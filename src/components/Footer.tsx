@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="flex gap-2 items-center">
         <Copyright />
         <span className="text-base">{year}, Built with</span>
-        <Heart className="text-red-500"/>
+        <Heart className="text-red-500" />
         <span className="text-base">by Vamsi Krishna</span>
       </div>
     </footer>

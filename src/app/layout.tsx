@@ -32,9 +32,7 @@ export default function RootLayout({
         >
           <main className="relative flex flex-col">
             <Navbar />
-            <div className="flex-grow flex-1 bg-background">
-              {children}
-            </div>
+            <div className="flex-grow flex-1 bg-background">{children}</div>
             <Toaster />
             <Footer />
           </main>

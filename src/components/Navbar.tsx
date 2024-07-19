@@ -9,7 +9,9 @@ const Navbar = () => {
       <div className="flex gap-8 items-center">
         <div className="hidden md:flex gap-8 items-center">
           {MENU_LIST.map((val) => (
-            <a href={`#${val}`} key={val} className="hover:text-primary">{val}</a>
+            <a href={`#${val}`} key={val} className="hover:text-primary">
+              {val}
+            </a>
           ))}
         </div>
         <ModeToggle />
