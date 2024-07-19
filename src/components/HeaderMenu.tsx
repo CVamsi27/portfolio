@@ -18,7 +18,9 @@ const HeaderMenu = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {MENU_LIST.map((val) => (
-            <DropdownMenuItem key={val}>{val}</DropdownMenuItem>
+            <DropdownMenuItem key={val} className="hover:text-primary">
+              <a href={`#${val}`} key={val}>{val}</a>
+            </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>

@@ -26,14 +26,14 @@ const Connections = () => {
   ];
 
   return (
-    <div className="flex justify-center items-center gap-10 w-full h-full mt-6">
+    <div className="flex justify-center items-center gap-2 md:gap-10 w-full h-full mt-6">
       {socialMediaLinks.map((link, index) => (
         <a
           key={index}
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary w-6 md:w-8 h-6 md:h-8"
+          className="text-primary w-10 h-10 md:w-12 md:h-12 bg-border border-border border-2 rounded-full p-2 m-2 flex items-center justify-center"
         >
           <FontAwesomeIcon icon={link.icon} size="lg" />
         </a>

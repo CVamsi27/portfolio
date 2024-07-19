@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 
 export const MaxWidthWrapper = ({
@@ -7,5 +8,5 @@ export const MaxWidthWrapper = ({
   className?: string;
   children: ReactNode;
 }) => {
-  return <div className={`${className} mx-auto w-full`}>{children}</div>;
+  return <div className={cn(className, "mx-auto w-full")}>{children}</div>;
 };
