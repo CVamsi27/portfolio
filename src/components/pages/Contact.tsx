@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { FORM_DETAILS, PERSONAL_DETAILS } from "@/lib/const";
 import Connections from "../Connections";
+import { Textarea } from "../ui/textarea";
 
 const FormSchema = z.object({
   name: z.string().min(2, {
@@ -53,7 +54,7 @@ const Contact = () => {
         Contact
       </span>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-4 my-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-8 my-2">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -68,7 +69,19 @@ const Contact = () => {
                   <FormItem>
                     <FormLabel>{value.label}</FormLabel>
                     <FormControl>
-                      <Input placeholder="" {...field} />
+                      {value.name === "message" ? (
+                        <Textarea
+                          className="border-0 bg-card"
+                          placeholder=""
+                          {...field}
+                        />
+                      ) : (
+                        <Input
+                          className="border-0 bg-card"
+                          placeholder=""
+                          {...field}
+                        />
+                      )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -82,7 +95,7 @@ const Contact = () => {
         <div className="flex flex-col gap-8 items-center">
           <div className="flex flex-col gap-6 mt-10">
             {PERSONAL_DETAILS.map((value, index) => (
-              <div key={index} className="flex gap-2">
+              <div key={index} className="flex gap-4 items-center">
                 <span className="text-primary w-6 md:w-10 h-6 md:h-10 bg-border border-border border-2 rounded-full p-2 flex items-center justify-center">
                   <value.icon />
                 </span>

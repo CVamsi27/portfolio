@@ -20,10 +20,10 @@ const Experience = () => {
       <div className="grid grid-cols-1 md:grid-cols-2">
         <div className="gap-6 grid grid-cols-1 m-14">
           {WORK_EXPERIENCE.map((value, index) => (
-            <Card key={index} className="text-center">
+            <Card key={index} className="text-center border-0 bg-card">
               <CardHeader>
                 <CardTitle className="text-primary">{value.title}</CardTitle>
-                <CardDescription className="text-primary-foreground">
+                <CardDescription className="text-foreground">
                   {value.company}
                 </CardDescription>
               </CardHeader>

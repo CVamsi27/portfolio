@@ -4,7 +4,7 @@ import HeaderMenu from "./HeaderMenu";
 
 const Navbar = () => {
   return (
-    <nav className="flex px-4 py-3 sticky top-0 justify-between items-center bg-background">
+    <nav className="flex px-4 py-3 sticky top-0 justify-between items-center bg-card">
       <span>VK</span>
       <div className="flex gap-8 items-center">
         <div className="hidden md:flex gap-8 items-center">
