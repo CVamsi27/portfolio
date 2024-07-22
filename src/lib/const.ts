@@ -2,9 +2,24 @@ import {
   FormDetails,
   PersonalDetails,
   Projects,
+  Skills,
   WorkExperience,
 } from "@/types";
 import { AtSign, MapPin, Phone } from "lucide-react";
+import azure from "../../public/azure.svg";
+import csharp from "../../public/csharp.svg";
+import css from "../../public/css.svg";
+import git from "../../public/git.svg";
+import html from "../../public/html.svg";
+import java from "../../public/java.svg";
+import javascript from "../../public/javascript.svg";
+import mongoBD from "../../public/mongoDB.svg";
+import mysql from "../../public/mysql.svg";
+import nextJS from "../../public/nextJS.svg";
+import postgresql from "../../public/postgresql.svg";
+import python from "../../public/python.svg";
+import react from "../../public/react.svg";
+import typescript from "../../public/typescript.svg";
 
 export const MENU_LIST = [
   "About",
@@ -86,5 +101,64 @@ export const PERSONAL_DETAILS: PersonalDetails[] = [
   {
     icon: MapPin,
     value: "Hyderabad, Telangana, India",
+  },
+];
+
+export const SKILLS: Skills[] = [
+  {
+    img: html,
+    alt: "HTML",
+  },
+  {
+    img: css,
+    alt: "CSS",
+  },
+  {
+    img: react,
+    alt: "React",
+  },
+  {
+    img: javascript,
+    alt: "Javascript",
+  },
+  {
+    img: typescript,
+    alt: "Typescript",
+  },
+  {
+    img: git,
+    alt: "Git",
+  },
+  {
+    img: nextJS,
+    alt: "NextJS",
+  },
+  {
+    img: java,
+    alt: "Java",
+  },
+  {
+    img: csharp,
+    alt: "C#",
+  },
+  {
+    img: python,
+    alt: "Python",
+  },
+  {
+    img: mongoBD,
+    alt: "MongoBD",
+  },
+  {
+    img: mysql,
+    alt: "Mysql",
+  },
+  {
+    img: postgresql,
+    alt: "Postgresql",
+  },
+  {
+    img: azure,
+    alt: "Azure",
   },
 ];

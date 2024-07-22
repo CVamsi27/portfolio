@@ -1,3 +1,5 @@
+import { StaticImageData } from "next/image";
+
 export interface WorkExperience {
   title: string;
   description: string;
@@ -23,4 +25,9 @@ export interface FormDetails {
 export interface PersonalDetails {
   icon: React.FC;
   value: string;
+}
+
+export interface Skills {
+  img: StaticImageData;
+  alt: string;
 }

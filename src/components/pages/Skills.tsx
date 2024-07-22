@@ -10,10 +10,17 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useState } from "react";
+import Image, { StaticImageData } from "next/image";
+import { SKILLS } from "@/lib/const";
 
 const Skills = () => {
   const plugin = React.useRef(
     Autoplay({ delay: 1500, stopOnInteraction: true }),
+  );
+
+  const [images, setImages] = useState<{ image: StaticImageData; alt: "" }[]>(
+    [],
   );
 
   return (
@@ -25,19 +32,30 @@ const Skills = () => {
         Skills
       </span>
 
-      {/* <Carousel
+      <Carousel
         plugins={[plugin.current]}
-        className="w-5/6"
+        className="w-4/6 md:w-5/6"
         onMouseEnter={plugin.current.stop}
         onMouseLeave={plugin.current.reset}
       >
         <CarouselContent>
-          {Array.from({ length: 15 }).map((_, index) => (
+          {SKILLS.map((data, index) => (
             <CarouselItem key={index} className="basis-1/10 w-40 h-40">
               <div className="p-1">
                 <Card className="border-0">
-                  <CardContent className="flex aspect-square items-center justify-center p-6">
-                    <span className="text-xl font-semibold">{index + 1}</span>
+                  <CardContent className="flex flex-col gap-3 aspect-square items-center justify-center p-6">
+                    <div className="h-8 sm:h-10">
+                      <Image
+                        src={data.img}
+                        alt={data.alt}
+                        width={40}
+                        height={40}
+                        className="h-full w-auto rounded-lg"
+                      />
+                    </div>
+                    <p className="text-foreground text-sm sm:text-lg">
+                      {data.alt}
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -46,7 +64,7 @@ const Skills = () => {
         </CarouselContent>
         <CarouselPrevious />
         <CarouselNext />
-      </Carousel> */}
+      </Carousel>
     </section>
   );
 };

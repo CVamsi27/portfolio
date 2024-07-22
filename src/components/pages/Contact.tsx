@@ -81,7 +81,7 @@ const Contact = () => {
           <div className="flex flex-col gap-6 mt-10">
             {PERSONAL_DETAILS.map((value, index) => (
               <div key={index} className="flex gap-4 items-center">
-                <span className="text-primary w-10 h-10 bg-border border-border border-2 rounded-full p-2 flex items-center justify-center">
+                <span className="text-primary w-10 h-10 bg-border rounded-full p-2 flex items-center justify-center">
                   <value.icon />
                 </span>
                 <span>{value.value}</span>
