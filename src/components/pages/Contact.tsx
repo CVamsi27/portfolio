@@ -39,10 +39,32 @@ const Contact = () => {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    toast({
-      title: "Message Sent",
-    });
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    try {
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      };
+
+      const response = await fetch(`/api/contact`, requestOptions);
+      const res = await response.json();
+
+      if (res.status === 200) {
+        toast({
+          title: "Message sent successfully!",
+        });
+        form.reset();
+      } else {
+        toast({
+          title: "Message sending failed!",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: JSON.stringify(error),
+      });
+    }
   };
 
   return (
@@ -55,8 +77,22 @@ const Contact = () => {
       </span>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-8 my-2">
+        <div className="flex flex-col gap-8 items-center">
+          <div className="flex flex-col gap-6 mt-10">
+            {PERSONAL_DETAILS.map((value, index) => (
+              <div key={index} className="flex gap-4 items-center">
+                <span className="text-primary w-10 h-10 bg-border border-border border-2 rounded-full p-2 flex items-center justify-center">
+                  <value.icon />
+                </span>
+                <span>{value.value}</span>
+              </div>
+            ))}
+          </div>
+          <Connections />
+        </div>
         <Form {...form}>
           <form
+            method="POST"
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-6 m-4"
           >
@@ -92,19 +128,6 @@ const Contact = () => {
             <Button type="submit">SEND MESSAGE</Button>
           </form>
         </Form>
-        <div className="flex flex-col gap-8 items-center">
-          <div className="flex flex-col gap-6 mt-10">
-            {PERSONAL_DETAILS.map((value, index) => (
-              <div key={index} className="flex gap-4 items-center">
-                <span className="text-primary w-6 md:w-10 h-6 md:h-10 bg-border border-border border-2 rounded-full p-2 flex items-center justify-center">
-                  <value.icon />
-                </span>
-                <span>{value.value}</span>
-              </div>
-            ))}
-          </div>
-          <Connections />
-        </div>
       </div>
     </section>
   );

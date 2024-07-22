@@ -33,7 +33,7 @@ const Connections = () => {
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary w-10 h-10 md:w-12 md:h-12 bg-border border-border border-2 rounded-full p-2 m-2 flex items-center justify-center"
+          className="text-primary w-10 h-10 md:w-12 md:h-12 bg-border rounded-full p-2 m-2 flex items-center justify-center"
         >
           <FontAwesomeIcon icon={link.icon} size="lg" />
         </a>

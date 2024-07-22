@@ -20,18 +20,21 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     description: "Front End Developer",
     duration: "March 2024 - Present",
     company: "MAQ Software",
+    URL: "https://maqsoftware.com"
   },
   {
     title: "Software Engineer 1",
     description: "Front End Developer",
     duration: "October 2021 - February 2024",
     company: "MAQ Software",
+    URL: "https://maqsoftware.com"
   },
   {
     title: "Programmer Analyst Trainee",
     description: "Full-Stack Developer",
     duration: "February 2021 - September 2021",
     company: "Cognizant",
+    URL: "https://www.cognizant.com/in/en"
   },
 ];
 
@@ -52,7 +55,7 @@ export const PROJECTS: Projects[] = [
     title: "Portfolio",
     description: "A place to learn about Vamsi Krishna",
     gitLink: "https://github.com/CVamsi27/portfolio",
-    URL: "",
+    URL: "https://vamsi-krishna-portfolio.vercel.app",
   },
 ];
 

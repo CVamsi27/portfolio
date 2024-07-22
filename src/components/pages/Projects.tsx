@@ -1,3 +1,4 @@
+"use client";
 import { PROJECTS } from "@/lib/const";
 import {
   Card,
@@ -10,6 +11,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { MoveUpRight } from "lucide-react";
+import Link from "next/link";
+
 const Projects = () => {
   return (
     <section
@@ -38,7 +41,7 @@ const Projects = () => {
                   href={value.gitLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary w-10 h-10 bg-border border-border border-2 rounded-lg p-2 flex items-center justify-center"
+                  className="text-primary w-10 h-10 bg-border rounded-lg p-2 flex items-center justify-center"
                 >
                   <FontAwesomeIcon icon={faGithub} size="lg" />
                 </a>
@@ -46,7 +49,7 @@ const Projects = () => {
                   href={value.URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary w-10 h-10 bg-border border-border border-2 rounded-lg p-2 flex items-center justify-center"
+                  className="text-primary w-10 h-10 bg-border rounded-lg p-2 flex items-center justify-center"
                 >
                   <MoveUpRight />
                 </a>

@@ -1,3 +1,4 @@
+"use client";
 import { WORK_EXPERIENCE } from "@/lib/const";
 import {
   Card,
@@ -7,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import Link from "next/link";
 
 const Experience = () => {
   return (
@@ -20,20 +22,27 @@ const Experience = () => {
       <div className="grid grid-cols-1 md:grid-cols-2">
         <div className="gap-6 grid grid-cols-1 m-14">
           {WORK_EXPERIENCE.map((value, index) => (
-            <Card key={index} className="text-center border-0 bg-card">
-              <CardHeader>
-                <CardTitle className="text-primary">{value.title}</CardTitle>
-                <CardDescription className="text-foreground">
-                  {value.company}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="text-2xl">{value.description}</span>
-              </CardContent>
-              <CardFooter className="justify-center">
-                <span>{value.duration}</span>
-              </CardFooter>
-            </Card>
+            <Link
+              key={index}
+              href={value.URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Card className="text-center border-0 bg-card">
+                <CardHeader>
+                  <CardTitle className="text-primary">{value.title}</CardTitle>
+                  <CardDescription className="text-foreground">
+                    {value.company}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <span className="text-2xl">{value.description}</span>
+                </CardContent>
+                <CardFooter className="justify-center">
+                  <span>{value.duration}</span>
+                </CardFooter>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>
