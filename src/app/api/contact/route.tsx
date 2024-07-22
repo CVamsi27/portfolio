@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const url = `https://api.telegram.org/bot${token}/sendMessage`;
-    const message = `New message from ${payload.name}\n\nEmail: ${payload.email}\n\nMessage:\n ${payload.message}\n\n`;
-
+    const message = `New message from ${payload.name}\nEmail: ${payload.email}\nMessage:\n ${payload.message}\n`;
+    console.log(url, message)
     const requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
