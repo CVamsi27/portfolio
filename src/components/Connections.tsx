@@ -26,7 +26,7 @@ const Connections = () => {
   ];
 
   return (
-    <div className="flex justify-center items-center gap-2 md:gap-10 w-full h-full mt-6">
+    <div className="flex justify-center items-center gap-2 md:gap-10 w-full h-full">
       {socialMediaLinks.map((link, index) => (
         <a
           key={index}
