@@ -14,11 +14,11 @@ const About = () => {
             </span>
             <span className="text-xl text-primary">A small into:</span>
             <span className="text-2xl md:text-base font-semibold">
-              Hey there! I'm a Full Stack Developer who loves creating awesome
+              Hey there! I&apos;m a Full Stack Developer who loves creating awesome
               web experiences. I work with everything from HTML, CSS, and React
               on the front end to Java, Python, and databases like MongoDB and
               PostgreSQL on the back end. I also dabble in Web 3.0 and love
-              keeping up with the latest tech trends. Let's build something
+              keeping up with the latest tech trends. Let&apos;s build something
               amazing together!
             </span>
           </div>
@@ -31,7 +31,7 @@ const About = () => {
             download="VamsiKrishna_Resume"
             className="bg-primary font-semibold text-xl text-primary-foreground text-center px-4 py-2 rounded-lg"
           >
-            Here's my Resume
+            Here&apos;s my Resume
           </a>
         </div>
         <div className="flex justify-center">
