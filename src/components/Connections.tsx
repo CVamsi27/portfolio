@@ -3,22 +3,22 @@ import {
   faGithub,
   faLinkedin,
   faStackOverflow,
-  faTwitter,
+  faXTwitter,
 } from "@fortawesome/free-brands-svg-icons";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
 const Connections = () => {
   const socialMediaLinks = [
-    { href: "https://github.com/CVamsi27", icon: faGithub },
+    { href: "https://x.com/Vamsikrishna99C", icon: faXTwitter },
     {
       href: "https://www.linkedin.com/in/vamsikrishnachandaluri/",
       icon: faLinkedin,
     },
+    { href: "https://github.com/CVamsi27", icon: faGithub },
     {
       href: "https://mail.google.com/mail/u/0/?fs=1&to=cvamsik99@gmail.com&tf=cm",
       icon: faEnvelope,
     },
-    { href: "https://x.com/Vamsikrishna99C", icon: faTwitter },
     {
       href: "https://stackoverflow.com/users/14019992/vamsi-krishna",
       icon: faStackOverflow,
@@ -33,7 +33,7 @@ const Connections = () => {
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary w-10 h-10 md:w-12 md:h-12 bg-border rounded-full p-2 m-2 flex items-center justify-center"
+          className="text-primary w-10 h-10 md:w-12 md:h-12 bg-border rounded-full p-2 mx-2 flex items-center justify-center"
         >
           <FontAwesomeIcon icon={link.icon} size="lg" />
         </a>

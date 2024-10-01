@@ -10,17 +10,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { useState } from "react";
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 import { SKILLS } from "@/lib/const";
 
 const Skills = () => {
   const plugin = React.useRef(
     Autoplay({ delay: 1500, stopOnInteraction: true }),
-  );
-
-  const [images, setImages] = useState<{ image: StaticImageData; alt: "" }[]>(
-    [],
   );
 
   return (

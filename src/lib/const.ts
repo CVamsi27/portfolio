@@ -32,21 +32,21 @@ export const MENU_LIST = [
 export const WORK_EXPERIENCE: WorkExperience[] = [
   {
     title: "Software Engineer 2",
-    description: "Front End Developer",
+    description: "Full Stack Developer",
     duration: "March 2024 - Present",
     company: "MAQ Software",
     URL: "https://maqsoftware.com",
   },
   {
     title: "Software Engineer 1",
-    description: "Front End Developer",
+    description: "Full Stack Developer",
     duration: "October 2021 - February 2024",
     company: "MAQ Software",
     URL: "https://maqsoftware.com",
   },
   {
     title: "Programmer Analyst Trainee",
-    description: "Full-Stack Developer",
+    description: "Full Stack Developer",
     duration: "February 2021 - September 2021",
     company: "Cognizant",
     URL: "https://www.cognizant.com/in/en",
