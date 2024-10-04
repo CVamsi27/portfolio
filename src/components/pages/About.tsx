@@ -4,22 +4,22 @@ import DEV from "../../../public/SE.png";
 
 const About = () => {
   return (
-    <section id="About" className="flex flex-col pt-8">
-      <div className="grid lg:grid-cols-2 gap-2">
-        <div className="flex flex-col gap-12 mx-8 mt-12">
+    <section id="About" className="flex flex-col">
+      <div className="grid lg:grid-cols-2 gap-2 mt-8">
+        <div className="flex flex-col gap-12 mx-8">
           <div className="flex flex-col gap-4">
             <span className="text-xl text-primary">People call me:</span>
             <span className="text-3xl md:text-5xl font-semibold">
               Vamsi Krishna Chandaluri
             </span>
             <span className="text-xl text-primary">A small into:</span>
-            <span className="text-2xl md:text-base font-semibold">
-              Hey there! I&apos;m a Full Stack Developer who loves creating awesome
-              web experiences. I work with everything from HTML, CSS, and React
-              on the front end to Java, Python, and databases like MongoDB and
-              PostgreSQL on the back end. I also dabble in Web 3.0 and love
-              keeping up with the latest tech trends. Let&apos;s build something
-              amazing together!
+            <span className="text-base font-semibold">
+              Hey there! I&apos;m a Full Stack Developer who loves creating
+              awesome web experiences. I work with everything from HTML, CSS,
+              and React on the front end to Java, Python, and databases like
+              MongoDB and PostgreSQL on the back end. I also dabble in Web 3.0
+              and love keeping up with the latest tech trends. Let&apos;s build
+              something amazing together!
             </span>
           </div>
           <span className="text-xl text-primary text-center">
@@ -29,7 +29,7 @@ const About = () => {
           <a
             href="/VamsiKrishna_Resume.pdf"
             download="VamsiKrishna_Resume"
-            className="bg-primary font-semibold text-xl text-primary-foreground text-center px-4 py-2 rounded-lg"
+            className="bg-primary hover:bg-border font-semibold text-xl text-primary-foreground hover:text-primary text-center px-4 py-2 rounded-lg"
           >
             Here&apos;s my Resume
           </a>
