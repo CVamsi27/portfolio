@@ -1,16 +1,40 @@
+"use client";
 import Connections from "../Connections";
 import Image from "next/image";
 import DEV from "../../../public/SE.png";
+import { useEffect, useState } from "react";
+import { getUniqueLanguageCombination } from "@/lib/utils";
 
 const About = () => {
+  const [nameCombination, setNameCombination] = useState({
+    vamsi: { word: "Vamsi", language: "English" },
+    krishna: { word: "Krishna", language: "English" },
+    chandaluri: { word: "Chandaluri", language: "English" },
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const { randomVamsi, randomKrishna, randomChandaluri } =
+        getUniqueLanguageCombination();
+      setNameCombination({
+        vamsi: randomVamsi,
+        krishna: randomKrishna,
+        chandaluri: randomChandaluri,
+      });
+    }, 900);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <section id="About" className="flex flex-col">
+    <section id="About" className="flex flex-col h-screen">
       <div className="grid lg:grid-cols-2 gap-2 mt-8">
         <div className="flex flex-col gap-12 mx-8">
           <div className="flex flex-col gap-4">
             <span className="text-xl text-primary">People call me:</span>
-            <span className="text-3xl md:text-5xl font-semibold">
-              Vamsi Krishna Chandaluri
+            <span className="text-3xl md:text-5xl font-semibold ">
+              {nameCombination.vamsi.word} {nameCombination.krishna.word}{" "}
+              {nameCombination.chandaluri.word}
             </span>
             <span className="text-xl text-primary">A small into:</span>
             <span className="text-base font-semibold">
