@@ -21,7 +21,7 @@ const Skills = () => {
   return (
     <section
       id="Skills"
-      className="w-full flex flex-col gap-10 justify-center items-center pt-20"
+      className="w-full flex flex-col gap-10 justify-center items-center pt-10"
     >
       <span className="mt-20 text-3xl md:text-5xl font-semibold text-center">
         Skills

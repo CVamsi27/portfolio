@@ -17,14 +17,13 @@ const Projects = () => {
   return (
     <section
       id="Projects"
-      className="w-full flex flex-col gap-10 justify-center pt-20"
+      className="w-full flex flex-col gap-10 justify-center pt-10"
     >
       <span className="text-3xl md:text-5xl font-semibold text-center">
         Projects
       </span>
-      <div className="grid grid-cols-1 md:grid-cols-2">
-        <div></div>
-        <div className="gap-6 grid grid-cols-1 m-14">
+      <div className="grid grid-cols-5 justify-center">
+        <div className="gap-6 grid grid-cols-1 col-span-5 lg:col-start-2 lg:col-span-3 m-6 lg:m-14">
           {PROJECTS.map((value, index) => (
             <Card key={index} className="text-center border-0 bg-card">
               <CardHeader>
@@ -33,15 +32,15 @@ const Projects = () => {
                   {value.description}
                 </CardDescription>
               </CardHeader>
-              {/* <CardContent>
-                <span className="text-2xl">{value.description}</span>
-              </CardContent> */}
+              <CardContent>
+                <span>{value.tech}</span>
+              </CardContent>
               <CardFooter className="flex justify-between mx-1">
                 <a
                   href={value.gitLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary w-10 h-10 bg-border rounded-lg p-2 flex items-center justify-center"
+                  className="text-primary w-10 h-10 bg-border hover:text-border hover:bg-primary rounded-lg p-2 flex items-center justify-center"
                 >
                   <FontAwesomeIcon icon={faGithub} size="lg" />
                 </a>
@@ -49,7 +48,7 @@ const Projects = () => {
                   href={value.URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary w-10 h-10 bg-border rounded-lg p-2 flex items-center justify-center"
+                  className="text-primary w-10 h-10 bg-border hover:text-border hover:bg-primary rounded-lg p-2 flex items-center justify-center"
                 >
                   <MoveUpRight />
                 </a>

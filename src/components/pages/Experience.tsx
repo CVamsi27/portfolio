@@ -3,7 +3,6 @@ import { WORK_EXPERIENCE } from "@/lib/const";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -19,8 +18,8 @@ const Experience = () => {
       <span className="text-3xl md:text-5xl font-semibold text-center">
         Experiences
       </span>
-      <div className="grid grid-cols-1 md:grid-cols-2">
-        <div className="gap-6 grid grid-cols-1 m-14">
+      <div className="grid grid-cols-5 justify-center">
+        <div className="gap-6 grid grid-cols-1 col-span-5 lg:col-start-2 lg:col-span-3 m-6 lg:m-14">
           {WORK_EXPERIENCE.map((value, index) => (
             <Link
               key={index}
@@ -28,15 +27,15 @@ const Experience = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Card className="text-center border-0 bg-card">
+              <Card className="text-center border-0 bg-card hover:bg-primary hover:text-muted">
                 <CardHeader>
-                  <CardTitle className="text-primary">{value.title}</CardTitle>
-                  <CardDescription className="text-foreground">
-                    {value.company}
-                  </CardDescription>
+                  <CardTitle>{value.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <span className="text-2xl">{value.description}</span>
+                <CardContent className="flex flex-col gap-4">
+                  <span className="text-lg lg:text-2xl">
+                    {value.description}
+                  </span>
+                  <span>{value.tech}</span>
                 </CardContent>
                 <CardFooter className="justify-center">
                   <span>{value.duration}</span>

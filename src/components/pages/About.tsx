@@ -27,8 +27,8 @@ const About = () => {
   }, []);
 
   return (
-    <section id="About" className="flex flex-col h-screen">
-      <div className="grid lg:grid-cols-2 gap-2 mt-8">
+    <section id="About" className="flex flex-col">
+      <div className="grid xl:grid-cols-2 gap-2 mt-8 text-center lg:text-left">
         <div className="flex flex-col gap-12 mx-8">
           <div className="flex flex-col gap-4">
             <span className="text-xl text-primary">People call me:</span>
@@ -58,7 +58,7 @@ const About = () => {
             Here&apos;s my Resume
           </a>
         </div>
-        <div className="flex justify-center">
+        <div className="hidden xl:flex justify-center">
           <Image
             src={DEV}
             alt="Developer"

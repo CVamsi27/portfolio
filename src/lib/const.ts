@@ -33,6 +33,7 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
   {
     title: "Software Engineer 2",
     description: "Full Stack Developer",
+    tech: "React, TypeScript, JavaScript, HTML, CSS, C#, .NET",
     duration: "March 2024 - Present",
     company: "MAQ Software",
     URL: "https://maqsoftware.com",
@@ -40,6 +41,7 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
   {
     title: "Software Engineer 1",
     description: "Full Stack Developer",
+    tech: "React, TypeScript, JavaScript, HTML, CSS, C#, .NET",
     duration: "October 2021 - February 2024",
     company: "MAQ Software",
     URL: "https://maqsoftware.com",
@@ -47,6 +49,7 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
   {
     title: "Programmer Analyst Trainee",
     description: "Full Stack Developer",
+    tech: "HTML, CSS, Java, Spring, JUnit, SQL",
     duration: "February 2021 - September 2021",
     company: "Cognizant",
     URL: "https://www.cognizant.com/in/en",
@@ -57,18 +60,21 @@ export const PROJECTS: Projects[] = [
   {
     title: "Digital Library",
     description: "A place to purchase books",
+    tech: "React, Next.JS, TypeScript, Tailwind, tRPC, Zod, Prisma ORM",
     gitLink: "https://github.com/CVamsi27/digital-library",
     URL: "https://digital-library-web.vercel.app",
   },
   {
     title: "Task Manager",
     description: "A place to manage your tasks",
+    tech: "React, Next.JS, TypeScript, Tailwind, Zod, Prisma ORM",
     gitLink: "https://github.com/CVamsi27/task-manager-1",
     URL: "https://task-manager-rosy-eight.vercel.app",
   },
   {
     title: "Portfolio",
     description: "A place to learn about Vamsi Krishna",
+    tech: "React, Next.JS, TypeScript, Tailwind",
     gitLink: "https://github.com/CVamsi27/portfolio",
     URL: "https://vamsi-krishna-portfolio.vercel.app",
   },
