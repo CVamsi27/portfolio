@@ -7,6 +7,7 @@ export interface WorkExperience {
   duration: string;
   company: string;
   URL: string;
+  details?: string[];
 }
 
 export interface Projects {
