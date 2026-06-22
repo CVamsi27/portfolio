@@ -1,85 +1,73 @@
 "use client";
 import { PROJECTS } from "@/lib/const";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { ExternalLink } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 const Projects = () => {
   return (
     <section
       id="Projects"
-      className="min-h-screen w-full flex flex-col gap-6 md:gap-10 justify-center px-4 md:px-8 py-12 md:py-20 relative overflow-hidden"
+      className="w-full px-6 py-20"
     >
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-400/10 dark:bg-purple-400/5 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 animate-blob"></div>
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-pink-400/10 dark:bg-pink-400/5 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
-      </div>
-
-      <div className="max-w-6xl mx-auto w-full">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-8 md:mb-12 animate-fade-in">
-          <span className="gradient-text">Featured Projects</span>
+      <div className="max-w-3xl mx-auto">
+        <h2 className="text-2xl font-bold tracking-tight mb-10 animate-fade-in">
+          Projects
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {PROJECTS.map((value, index) => (
-            <Card 
-              key={index} 
-              className="border-2 border-border bg-card/80 backdrop-blur-sm hover:border-primary hover:shadow-xl transition-all duration-300 flex flex-col hover-lift animate-scale-in group"
-              style={{ animationDelay: `${index * 0.1}s` }}
+            <div
+              key={index}
+              className="group relative flex flex-col gap-3 p-5 rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-primary/50 transition-all animate-scale-in cursor-default"
+              style={{ animationDelay: `${index * 0.08}s` }}
             >
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xl md:text-2xl text-primary group-hover:gradient-text transition-all duration-300">
+              <div className="flex items-start justify-between">
+                <h3 className="text-base font-semibold group-hover:text-primary transition-colors">
                   {value.title}
-                </CardTitle>
-                <CardDescription className="text-foreground text-sm md:text-base mt-2">
-                  {value.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grow">
-                <div className="flex flex-wrap gap-2">
-                  {value.tech.split(", ").map((tech, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2 md:px-3 py-1 bg-linear-to-r from-accent to-accent/80 text-accent-foreground rounded-md text-xs md:text-sm font-medium hover:scale-105 transition-transform duration-200"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 pt-3">
-                <a
-                  href={value.gitLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 text-primary hover:text-primary/80 font-medium transition-all w-full sm:w-auto hover:scale-105"
-                >
-                  <FontAwesomeIcon icon={faGithub} size="lg" />
-                  <span className="text-sm md:text-base">View Code</span>
-                </a>
+                </h3>
+                <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-0.5" />
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {value.description}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {value.tech.split(", ").map((tech, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 text-xs font-medium rounded-full bg-secondary text-secondary-foreground"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                {value.gitLink && (
+                  <a
+                    href={value.gitLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faGithub} className="h-3.5 w-3.5" />
+                    Source
+                  </a>
+                )}
                 <a
                   href={value.URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-linear-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-primary-foreground px-4 py-2 rounded-lg font-medium transition-all w-full sm:w-auto text-sm md:text-base hover:scale-105 shadow-md hover:shadow-lg"
+                  className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <span>Live Demo</span>
-                  <ExternalLink size={16} />
+                  Live Demo
+                  <ArrowUpRight className="h-3 w-3" />
                 </a>
-              </CardFooter>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </div>
     </section>
   );
 };
+
 export default Projects;

@@ -31,32 +31,36 @@ export const MENU_LIST = [
 
 export const WORK_EXPERIENCE: WorkExperience[] = [
   {
-    title: "Senior Software Engineer",
-    description: "Full Stack Developer & Team Lead",
-    tech: "React, TypeScript, CSS, Tailwind, C#, .NET, Azure SQL, Azure DevOps",
-    duration: "Apr 2025 - Jul 2025",
-    company: "MAQ Software",
-    URL: "https://maqsoftware.com",
+    title: "Founder / Full Stack Developer",
+    description: "Healthcare SaaS Platform",
+    tech: "React, Next.js 15, NestJS, TypeScript, PostgreSQL, Prisma ORM, Node.js, Express",
+    duration: "Aug 2025 - Present",
+    company: "Docita",
+    URL: "https://docita.work",
     details: [
-      "Managed and mentored a team of four engineers, delegating tasks, conducting code reviews, and improving sprint delivery predictability by 20%",
-      "Led system design and planning for recruitment modules, improving scalability and reducing development time by 25%",
-      "Architected and developed REST APIs using .NET (C#) with MVC principles, optimizing Azure SQL stored procedures to enhance query efficiency by 30%",
-      "Drove frontend standards by enforcing TypeScript interfaces, reusable components, and CSS/Tailwind conventions, reducing UI defects by 20%",
-      "Established testing and CI/CD workflows with Jest, Postman, and Azure DevOps, ensuring regression-free releases and maintaining 85% test coverage"
+      "Founded and engineered a production healthcare SaaS for Indian clinics covering patient records, OPD queue, consultations, digital prescriptions, billing, and follow-ups",
+      "Designed paper-to-cloud migration flows for Excel/CSV imports, duplicate review, document archival, OCR-assisted intake, and visit-based patient timelines",
+      "Built multi-tenant workspace architecture with RBAC for receptionists, doctors, and admins, plus audit trails for sensitive healthcare and billing actions",
+      "Delivered React/Next.js 15 workflows for check-in, patient history, prescription PDFs, invoices, queue management, admin reporting, and clinic operations",
+      "Implemented Node.js, Express, NestJS, PostgreSQL, and Prisma services with migrations, validation, query tuning, indexes, caching, and connection pooling",
+      "Integrated JWT auth, subscriptions, email automation, WhatsApp reminders/prescription sharing, structured logging, monitoring, and production deployment practices"
     ]
   },
   {
-    title: "Software Engineer",
-    description: "Full Stack Developer",
-    tech: "React, TypeScript, CSS, C#, .NET, Azure SQL",
-    duration: "Oct 2021 - Mar 2025",
+    title: "Senior Software Engineer / Software Engineer",
+    description: "Full Stack Developer & Team Lead",
+    tech: "React, TypeScript, Tailwind CSS, Node.js, Express, PostgreSQL, C#, .NET, Azure DevOps",
+    duration: "Oct 2021 - Jul 2025",
     company: "MAQ Software",
     URL: "https://maqsoftware.com",
     details: [
-      "Designed and implemented responsive front-end features using React, TypeScript, and CSS, improving user satisfaction and load performance by 30%",
-      "Developed backend services and RESTful APIs in .NET (C#) using MVC architecture, integrated with Azure SQL, reducing data retrieval latency by 25%",
-      "Participated in system design and database schema creation, optimizing table structures and stored procedures to boost query performance by 20%",
-      "Implemented robust error handling, logging, and validation mechanisms, reducing production incidents by 15% and improving maintainability"
+      "Led architecture improvements for recruitment and internal workflow modules, reducing delivery time by 25% through reusable TypeScript patterns and cleaner service boundaries",
+      "Designed and optimized Node.js/Express REST APIs with PostgreSQL, improving response times by 30% through query tuning, caching, and reduced N+1 access patterns",
+      "Built reusable React and TypeScript component libraries, reducing UI duplication by 20% and improving consistency across product surfaces",
+      "Improved frontend performance and accessibility for responsive React interfaces, reducing load times by 30% on high-traffic workflows",
+      "Implemented CI/CD pipelines, automated tests, structured error handling, and release checks that maintained 85%+ coverage and reduced production incidents by 15%",
+      "Mentored four engineers through code reviews, system design discussions, debugging sessions, and production-readiness practices, improving sprint predictability by 20%",
+      "Strengthened observability with structured logging, failure monitoring, and incident triage workflows that reduced diagnosis time for production issues"
     ]
   },
   {
@@ -67,14 +71,21 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     company: "Cognizant",
     URL: "https://www.cognizant.com/in/en",
     details: [
-      "Developed a microservices-based web application using Java (Spring Boot, Zuul Gateway) and H2 Database to enhance modularity and maintainability",
-      "Implemented RESTful APIs with MVC architecture, improving backend consistency and reducing code redundancy",
-      "Built responsive front-end interfaces using HTML, CSS, and JavaScript, optimizing load time by 15%"
+      "Built Java Spring Boot microservices with Zuul Gateway and H2 Database, improving modularity for backend training projects",
+      "Designed REST endpoints using MVC patterns and documented request/response contracts for maintainable service integration",
+      "Developed responsive web pages with HTML, CSS, and JavaScript while strengthening fundamentals in debugging and delivery"
     ]
   },
 ];
 
 export const PROJECTS: Projects[] = [
+  {
+    title: "Docita",
+    description: "Production healthcare SaaS for Indian clinics — patient records, OPD queue, consultations, prescriptions, billing, and follow-ups",
+    tech: "Next.js 15, NestJS, TypeScript, PostgreSQL, Prisma ORM, Node.js, Express",
+    gitLink: "",
+    URL: "https://docita.work",
+  },
   {
     title: "TeamOps",
     description: "Real-time collaboration platform enabling team task management using WebSockets and microservice architecture",

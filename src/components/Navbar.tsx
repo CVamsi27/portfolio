@@ -4,25 +4,29 @@ import HeaderMenu from "./HeaderMenu";
 
 const Navbar = () => {
   return (
-    <nav className="flex px-6 py-4 sticky top-0 justify-between items-center bg-card/80 backdrop-blur-md border-b border-border/50 z-50 shadow-lg">
-      <a href="#About" className="text-2xl font-bold gradient-text hover:scale-105 transition-transform duration-300">
-        ~VK.
-      </a>
-      <div className="flex gap-8 items-center">
-        <div className="hidden md:flex gap-8 items-center">
-          {MENU_LIST.map((val) => (
-            <a 
-              href={`#${val}`} 
-              key={val} 
-              className="text-foreground hover:text-primary transition-all duration-300 font-medium relative group"
-            >
-              {val}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-primary to-purple-600 group-hover:w-full transition-all duration-300"></span>
-            </a>
-          ))}
+    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
+      <div className="max-w-6xl mx-auto flex h-14 items-center justify-between px-6">
+        <a
+          href="#About"
+          className="text-lg font-semibold tracking-tight hover:text-primary transition-colors"
+        >
+          ~VK
+        </a>
+        <div className="flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1">
+            {MENU_LIST.map((val) => (
+              <a
+                key={val}
+                href={`#${val}`}
+                className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent"
+              >
+                {val}
+              </a>
+            ))}
+          </div>
+          <ModeToggle />
+          <HeaderMenu />
         </div>
-        <ModeToggle />
-        <HeaderMenu />
       </div>
     </nav>
   );

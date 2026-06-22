@@ -26,7 +26,7 @@ export interface FormDetails {
 }
 
 export interface PersonalDetails {
-  icon: React.FC;
+  icon: React.FC<{ className?: string }>;
   value: string;
 }
 

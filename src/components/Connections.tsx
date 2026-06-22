@@ -10,19 +10,22 @@ import { Code2 } from "lucide-react";
 
 const Connections = () => {
   const socialMediaLinks = [
-    { href: "https://x.com/Vamsikrishna99C", icon: faXTwitter },
+    { href: "https://x.com/Vamsikrishna99C", icon: faXTwitter, label: "X" },
     {
       href: "https://www.linkedin.com/in/vamsikrishnachandaluri/",
       icon: faLinkedin,
+      label: "LinkedIn",
     },
-    { href: "https://github.com/CVamsi27", icon: faGithub },
+    { href: "https://github.com/CVamsi27", icon: faGithub, label: "GitHub" },
     {
       href: "https://mail.google.com/mail/u/0/?fs=1&to=cvamsik99@gmail.com&tf=cm",
       icon: faEnvelope,
+      label: "Email",
     },
     {
       href: "https://stackoverflow.com/users/14019992/vamsi-krishna",
       icon: faStackOverflow,
+      label: "StackOverflow",
     },
     {
       href: "https://leetcode.com/u/cvamsik99/",
@@ -32,25 +35,25 @@ const Connections = () => {
   ];
 
   return (
-    <div className="flex justify-center items-center gap-2 md:gap-10 w-full h-full flex-wrap">
-      {socialMediaLinks.map((link, index) => (
+    <div className="flex items-center gap-3">
+      {socialMediaLinks.map((link) => (
         <a
-          key={index}
+          key={link.label}
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:text-white w-10 h-10 md:w-12 md:h-12 bg-linear-to-br from-border to-border/80 hover:from-primary hover:to-purple-600 rounded-full p-2 mx-2 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:rotate-6 shadow-md hover:shadow-xl animate-scale-in"
-          style={{ animationDelay: `${index * 0.1}s` }}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent-foreground/10 transition-all"
           title={link.label}
         >
           {link.icon ? (
-            <FontAwesomeIcon icon={link.icon} size="lg" />
+            <FontAwesomeIcon icon={link.icon} className="h-4 w-4" />
           ) : (
-            <Code2 size={20} />
+            <Code2 className="h-4 w-4" />
           )}
         </a>
       ))}
     </div>
   );
 };
+
 export default Connections;

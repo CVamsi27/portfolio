@@ -24,7 +24,7 @@ const FormSchema = z.object({
     message: "Name must be at least 2 characters.",
   }),
   email: z.string().email({
-    message: "Provide a valid mail id.",
+    message: "Provide a valid email address.",
   }),
   message: z.string(),
 });
@@ -70,49 +70,52 @@ const Contact = () => {
   return (
     <section
       id="Contact"
-      className="min-h-screen w-full flex flex-col gap-6 md:gap-10 justify-center px-4 md:px-8 py-12 md:py-20 relative overflow-hidden"
+      className="w-full px-6 py-20 bg-secondary/30"
     >
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-pink-400/10 dark:bg-pink-400/5 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 animate-blob"></div>
-        <div className="absolute top-1/4 right-1/4 w-80 h-80 bg-blue-400/10 dark:bg-blue-400/5 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
-      </div>
-
-      <div className="max-w-6xl mx-auto w-full">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-8 md:mb-12 animate-fade-in">
-          <span className="gradient-text">Get In Touch</span>
+      <div className="max-w-3xl mx-auto">
+        <h2 className="text-2xl font-bold tracking-tight mb-10 animate-fade-in">
+          Contact
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
-          <div className="flex flex-col gap-6 md:gap-8 animate-slide-in-left">
-            <div className="bg-card/80 backdrop-blur-sm border-2 border-border rounded-lg p-4 md:p-6 shadow-lg hover-lift">
-              <h3 className="text-xl md:text-2xl font-semibold text-primary mb-4 md:mb-6">Contact Information</h3>
-              <div className="flex flex-col gap-3 md:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div className="flex flex-col gap-8 animate-slide-in-left">
+            <div className="flex flex-col gap-4">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
+                Get in Touch
+              </h3>
+              <div className="flex flex-col gap-3">
                 {PERSONAL_DETAILS.map((value, index) => (
-                  <div key={index} className="flex gap-3 md:gap-4 items-center group">
-                    <span className="text-primary w-10 h-10 md:w-12 md:h-12 bg-linear-to-br from-secondary to-secondary/80 rounded-full p-2 md:p-3 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
-                      <value.icon />
+                  <a
+                    key={index}
+                    href={value.value.includes("@") ? `mailto:${value.value}` : value.value.includes("+") ? `tel:${value.value}` : `https://maps.google.com/?q=${encodeURIComponent(value.value)}`}
+                    target={value.value.includes("@") || value.value.includes("+") ? undefined : "_blank"}
+                    rel={value.value.includes("@") || value.value.includes("+") ? undefined : "noopener noreferrer"}
+                    className="flex gap-3 items-center group"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground group-hover:text-foreground group-hover:border-accent-foreground/10 transition-all shrink-0">
+                      <value.icon className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors break-all">
+                      {value.value}
                     </span>
-                    <span className="text-foreground text-sm md:text-base break-all">{value.value}</span>
-                  </div>
+                  </a>
                 ))}
               </div>
             </div>
-            <div className="bg-card/80 backdrop-blur-sm border-2 border-border rounded-lg p-4 md:p-6 shadow-lg hover-lift flex-1 flex flex-col">
-              <h3 className="text-xl md:text-2xl font-semibold text-primary mb-4 md:mb-6">Connect With Me</h3>
-              <div className="flex-1 flex items-center">
-                <Connections />
-              </div>
+            <div className="flex flex-col gap-4">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
+                Connect
+              </h3>
+              <Connections />
             </div>
           </div>
-          
-          <div className="bg-card/80 backdrop-blur-sm border-2 border-border rounded-lg p-4 md:p-6 shadow-lg hover-lift animate-slide-in-right">
-            <h3 className="text-xl md:text-2xl font-semibold text-primary mb-4 md:mb-6">Send a Message</h3>
+
+          <div className="animate-slide-in-right">
             <Form {...form}>
               <form
                 method="POST"
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4 md:space-y-6"
+                className="space-y-4"
               >
                 {FORM_DETAILS.map((value, index) => (
                   <FormField
@@ -121,17 +124,18 @@ const Contact = () => {
                     name={value.name}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-foreground font-medium text-sm md:text-base">{value.label}</FormLabel>
+                        <FormLabel className="text-sm font-medium text-foreground">
+                          {value.label}
+                        </FormLabel>
                         <FormControl>
                           {value.name === "message" ? (
                             <Textarea
-                              className="border-2 border-border bg-background/50 backdrop-blur-sm focus:border-primary transition-all duration-300 min-h-24 md:min-h-32 text-sm md:text-base hover:shadow-md"
-                              placeholder="Your message here..."
+                              className="min-h-[120px] resize-none"
+                              placeholder="Your message..."
                               {...field}
                             />
                           ) : (
                             <Input
-                              className="border-2 border-border bg-background/50 backdrop-blur-sm focus:border-primary transition-all duration-300 text-sm md:text-base hover:shadow-md"
                               placeholder={`Enter your ${value.name}...`}
                               {...field}
                             />
@@ -142,9 +146,8 @@ const Contact = () => {
                     )}
                   />
                 ))}
-
-                <Button type="submit" className="w-full bg-linear-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-primary-foreground font-semibold py-5 md:py-6 text-base md:text-lg hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
-                  SEND MESSAGE
+                <Button type="submit" className="w-full">
+                  Send Message
                 </Button>
               </form>
             </Form>
@@ -154,4 +157,5 @@ const Contact = () => {
     </section>
   );
 };
+
 export default Contact;

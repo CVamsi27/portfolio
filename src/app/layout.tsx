@@ -10,8 +10,9 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Vamsi Krishna",
-  description: "Portfolio",
+  title: "Vamsi Krishna | Developer & Founder",
+  description:
+    "Full Stack Developer & Founder specializing in modern web applications. Building scalable solutions with React, TypeScript, Next.js, and .NET.",
 };
 
 export default function RootLayout({
@@ -24,12 +25,10 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
-      <body
-        className={cn(inter.className, "relative font-mono antialiased")}
-      >
+      <body className={cn(inter.className, "antialiased")}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >

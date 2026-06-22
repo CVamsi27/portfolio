@@ -1,25 +1,27 @@
 import { Menu } from "lucide-react";
+import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { MENU_LIST } from "@/lib/const";
 
 const HeaderMenu = () => {
   return (
-    <div className="flex md:hidden items-center">
+    <div className="flex md:hidden">
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Menu />
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9">
+            <Menu className="h-4 w-4" />
+            <span className="sr-only">Menu</span>
+          </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent align="end" className="w-48">
           {MENU_LIST.map((val) => (
-            <DropdownMenuItem key={val} className="hover:text-primary">
-              <a href={`#${val}`} key={val}>
+            <DropdownMenuItem key={val} asChild>
+              <a href={`#${val}`} className="w-full cursor-pointer">
                 {val}
               </a>
             </DropdownMenuItem>
@@ -29,4 +31,5 @@ const HeaderMenu = () => {
     </div>
   );
 };
+
 export default HeaderMenu;
