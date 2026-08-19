@@ -18,6 +18,8 @@ import { toast } from "@/components/ui/use-toast";
 import { FORM_DETAILS, PERSONAL_DETAILS } from "@/lib/const";
 import Connections from "../Connections";
 import { Textarea } from "../ui/textarea";
+import { SectionHeading } from "@/components/common/SectionHeading";
+import { Reveal } from "@/components/common/Reveal";
 
 const FormSchema = z.object({
   name: z.string().min(2, {
@@ -73,12 +75,14 @@ const Contact = () => {
       className="w-full px-6 py-20 bg-secondary/30"
     >
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-2xl font-bold tracking-tight mb-10 animate-fade-in">
-          Contact
-        </h2>
+        <SectionHeading
+          eyebrow="Contact"
+          title="Let&apos;s work together"
+          description="Open to full-time, hybrid, and on-site roles across Europe — or a conversation about your next product."
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div className="flex flex-col gap-8 animate-slide-in-left">
+          <Reveal direction="left" className="flex flex-col gap-8">
             <div className="flex flex-col gap-4">
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
                 Get in Touch
@@ -87,7 +91,7 @@ const Contact = () => {
                 {PERSONAL_DETAILS.map((value, index) => (
                   <a
                     key={index}
-                    href={value.value.includes("@") ? `mailto:${value.value}` : value.value.includes("+") ? `tel:${value.value}` : `https://maps.google.com/?q=${encodeURIComponent(value.value)}`}
+                    href={value.value.includes("@") ? `mailto:${value.value}` : value.value.includes("+") ? `tel:${value.value}` : value.value.startsWith("https") ? value.value : `https://maps.google.com/?q=${encodeURIComponent(value.value)}`}
                     target={value.value.includes("@") || value.value.includes("+") ? undefined : "_blank"}
                     rel={value.value.includes("@") || value.value.includes("+") ? undefined : "noopener noreferrer"}
                     className="flex gap-3 items-center group"
@@ -108,9 +112,9 @@ const Contact = () => {
               </h3>
               <Connections />
             </div>
-          </div>
+          </Reveal>
 
-          <div className="animate-slide-in-right">
+          <Reveal direction="right" className="animate-slide-in-right">
             <Form {...form}>
               <form
                 method="POST"
@@ -151,7 +155,7 @@ const Contact = () => {
                 </Button>
               </form>
             </Form>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>

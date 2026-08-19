@@ -2,6 +2,8 @@
 import Connections from "../Connections";
 import { useEffect, useState } from "react";
 import { getUniqueLanguageCombination } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 const About = () => {
   const [nameCombination, setNameCombination] = useState({
@@ -26,16 +28,20 @@ const About = () => {
   return (
     <section
       id="About"
-      className="min-h-screen flex flex-col justify-center px-6 py-20"
+      className="relative min-h-screen flex flex-col justify-center px-6 py-24 overflow-hidden"
     >
-      <div className="max-w-3xl mx-auto w-full">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[420px] w-[420px] rounded-full bg-primary/10 blur-[120px]"
+      />
+      <div className="max-w-3xl mx-auto w-full relative">
         <div className="flex flex-col gap-8 text-center">
           <div className="flex flex-col gap-4">
             <p className="text-sm font-medium tracking-widest uppercase text-muted-foreground animate-fade-in">
               Hello, I&apos;m
             </p>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight animate-slide-up">
+            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight animate-slide-up">
               <span>{nameCombination.vamsi.word}</span>{" "}
               <span>{nameCombination.krishna.word}</span>{" "}
               <span className="gradient-text">
@@ -52,41 +58,43 @@ const About = () => {
             </div>
 
             <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground font-medium animate-fade-in-delayed-2">
-              Full Stack TypeScript Engineer
+              Full Stack Engineer · TypeScript · React · Node.js · NestJS ·
+              PostgreSQL
             </p>
+
+            <div className="flex justify-center animate-fade-in-delayed-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1.5 text-xs text-muted-foreground">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                Open to relocation · Hybrid / On-site / Remote
+              </span>
+            </div>
           </div>
 
           <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto animate-fade-in-delayed-3">
-            Full Stack TypeScript Engineer with 5+ years building SaaS products,
-            internal platforms, and production web systems. Strong in React,
-            Next.js, Node.js, NestJS, PostgreSQL, Prisma, and CI/CD. Owns
-            features end to end — from product workflow design through scalable
-            architecture, clean APIs, and polished user experiences.
+            Product-focused Full Stack Engineer with 5+ years of experience
+            delivering production web applications with TypeScript, React,
+            Node.js, NestJS, and PostgreSQL. Currently leading end-to-end clinic
+            workflows at Docita, used by 25+ clinics and supporting 1,000+
+            appointments/month — from UX and product needs to APIs, data models,
+            tested releases, and cloud delivery.
           </p>
 
           <div className="flex flex-col items-center gap-6 pt-2 animate-fade-in-delayed-4">
             <Connections />
 
-            <a
-              href="/VamsiKrishna_Resume.pdf"
-              download="VamsiKrishna_Resume"
-              className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Download Resume
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <Button asChild variant="outline" className="rounded-full px-6">
+              <a
+                href="/VamsiKrishna_Resume.pdf"
+                download="VamsiKrishna_Resume"
+                className="gap-2"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </a>
+                Download Resume
+                <Download className="h-4 w-4" />
+              </a>
+            </Button>
           </div>
         </div>
       </div>

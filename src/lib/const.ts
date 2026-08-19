@@ -5,16 +5,12 @@ import {
   Skills,
   WorkExperience,
 } from "@/types";
-import { AtSign, MapPin, Phone } from "lucide-react";
-import azure from "../../public/azure.svg";
-import csharp from "../../public/csharp.svg";
-import css from "../../public/css.svg";
+import { AtSign, Globe, MapPin, Phone } from "lucide-react";
 import git from "../../public/git.svg";
 import html from "../../public/html.svg";
+import css from "../../public/css.svg";
 import java from "../../public/java.svg";
 import javascript from "../../public/javascript.svg";
-import mongoBD from "../../public/mongoDB.svg";
-import mysql from "../../public/mysql.svg";
 import nextJS from "../../public/nextJS.svg";
 import postgresql from "../../public/postgresql.svg";
 import python from "../../public/python.svg";
@@ -31,49 +27,45 @@ export const MENU_LIST = [
 
 export const WORK_EXPERIENCE: WorkExperience[] = [
   {
-    title: "Founder / Full Stack Developer",
+    title: "Founding Engineer",
     description: "Healthcare SaaS Platform",
-    tech: "React, Next.js 15, NestJS, TypeScript, PostgreSQL, Prisma ORM, Node.js, Express",
+    tech: "React 19, Vite, React Router, Tailwind CSS, TanStack React Query, NestJS, PostgreSQL, TypeScript, Jest, Vitest, Playwright, GitHub Actions, Docker, Fly.io, Cloudflare/R2, AWS RDS",
     duration: "Aug 2025 - Present",
     company: "Docita",
     URL: "https://docita.work",
     details: [
-      "Founded and engineered a production healthcare SaaS for Indian clinics covering patient records, OPD queue, consultations, digital prescriptions, billing, and follow-ups",
-      "Designed paper-to-cloud migration flows for Excel/CSV imports, duplicate review, document archival, OCR-assisted intake, and visit-based patient timelines",
-      "Built multi-tenant workspace architecture with RBAC for receptionists, doctors, and admins, plus audit trails for sensitive healthcare and billing actions",
-      "Delivered React/Next.js 15 workflows for check-in, patient history, prescription PDFs, invoices, queue management, admin reporting, and clinic operations",
-      "Implemented Node.js, Express, NestJS, PostgreSQL, and Prisma services with migrations, validation, query tuning, indexes, caching, and connection pooling",
-      "Integrated JWT auth, subscriptions, email automation, WhatsApp reminders/prescription sharing, structured logging, monitoring, and production deployment practices"
+      "Owned end-to-end delivery of multi-tenant clinic workflows for 25+ clinics and 1,000+ appointments/month, covering scheduling, patient records, prescriptions, billing, and clinic operations",
+      "Built React 19 and Vite staff workflows with React Router, Tailwind CSS, TanStack React Query, shared components, and accessible UX for operational users",
+      "Engineered NestJS and PostgreSQL APIs for scheduling, patient records, prescriptions, and billing, covering schema design, migrations, indexes, DTO validation, pagination, tenant-aware access, and query-quality guardrails",
+      "Implemented JWT and resource-level authorization plus a durable background-worker boundary for reliable clinic workflows",
+      "Built automated quality gates with Jest/Vitest unit and API integration/E2E tests plus Playwright critical-flow and accessibility checks, deployed through GitHub Actions/Docker on Fly.io, Cloudflare/R2, and AWS RDS"
     ]
   },
   {
     title: "Senior Software Engineer / Software Engineer",
-    description: "Full Stack Developer & Team Lead",
-    tech: "React, TypeScript, Tailwind CSS, Node.js, Express, PostgreSQL, C#, .NET, Azure DevOps",
+    description: "Full Stack Developer",
+    tech: "TypeScript, React, Node.js, Express, NestJS, PostgreSQL, GitHub Actions, Jest",
     duration: "Oct 2021 - Jul 2025",
     company: "MAQ Software",
     URL: "https://maqsoftware.com",
     details: [
-      "Led architecture improvements for recruitment and internal workflow modules, reducing delivery time by 25% through reusable TypeScript patterns and cleaner service boundaries",
-      "Designed and optimized Node.js/Express REST APIs with PostgreSQL, improving response times by 30% through query tuning, caching, and reduced N+1 access patterns",
-      "Built reusable React and TypeScript component libraries, reducing UI duplication by 20% and improving consistency across product surfaces",
-      "Improved frontend performance and accessibility for responsive React interfaces, reducing load times by 30% on high-traffic workflows",
-      "Implemented CI/CD pipelines, automated tests, structured error handling, and release checks that maintained 85%+ coverage and reduced production incidents by 15%",
-      "Mentored four engineers through code reviews, system design discussions, debugging sessions, and production-readiness practices, improving sprint predictability by 20%",
-      "Strengthened observability with structured logging, failure monitoring, and incident triage workflows that reduced diagnosis time for production issues"
+      "Accelerated recruitment and internal-workflow delivery by 25% through reusable TypeScript service patterns and clearer module boundaries",
+      "Improved Node.js, Express, NestJS, and PostgreSQL REST API p95 latency by 30% through query tuning, caching, and N+1 elimination",
+      "Created a reusable React and TypeScript component library that reduced duplicated UI while improving load performance and keyboard and screen-reader accessibility",
+      "Strengthened CI/CD and code-review practices with GitHub Actions, Jest, release checks, and 85%+ test coverage; mentored 4 engineers and improved delivery predictability"
     ]
   },
   {
     title: "Programmer Analyst Trainee",
     description: "Full Stack Developer",
-    tech: "Java, Spring Boot, Zuul Gateway, H2 Database, HTML, CSS, JavaScript",
+    tech: "Java, Spring Boot, Eureka, Zuul Gateway, JWT, JPA/JDBC, Swagger/OpenAPI",
     duration: "Feb 2021 - Oct 2021",
     company: "Cognizant",
     URL: "https://www.cognizant.com/in/en",
     details: [
-      "Built Java Spring Boot microservices with Zuul Gateway and H2 Database, improving modularity for backend training projects",
-      "Designed REST endpoints using MVC patterns and documented request/response contracts for maintainable service integration",
-      "Developed responsive web pages with HTML, CSS, and JavaScript while strengthening fundamentals in debugging and delivery"
+      "Built 4 Spring Boot microservices for Product, Vendor, Retail Shop, and Proceed-to-Buy domains",
+      "Configured Eureka service discovery, Zuul gateway routing, and JWT-based authorization through a dedicated Authorization Service",
+      "Implemented REST endpoints, JWT login and token validation, Swagger/OpenAPI documentation, and JPA/JDBC persistence for the e-commerce services"
     ]
   },
 ];
@@ -149,7 +141,11 @@ export const PERSONAL_DETAILS: PersonalDetails[] = [
   },
   {
     icon: MapPin,
-    value: "Hyderabad, Telangana, India",
+    value: "Hyderabad, India",
+  },
+  {
+    icon: Globe,
+    value: "https://buildora.work",
   },
 ];
 
@@ -187,28 +183,12 @@ export const SKILLS: Skills[] = [
     alt: "Java",
   },
   {
-    img: csharp,
-    alt: "C#",
-  },
-  {
     img: python,
     alt: "Python",
   },
   {
-    img: mongoBD,
-    alt: "MongoBD",
-  },
-  {
-    img: mysql,
-    alt: "Mysql",
-  },
-  {
     img: postgresql,
     alt: "Postgresql",
-  },
-  {
-    img: azure,
-    alt: "Azure",
   },
 ];
 
