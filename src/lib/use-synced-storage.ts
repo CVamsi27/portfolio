@@ -38,7 +38,9 @@ function readLocal<T>(localKey: string, initial: T): T {
   let parsed: T = initial;
   if (raw !== null) {
     try {
-      parsed = JSON.parse(raw) as T;
+      const v = JSON.parse(raw);
+      // Guard: JSON.parse("null") === null, or other unexpected types
+      if (v !== null && v !== undefined) parsed = v as T;
     } catch {
       // corrupted entry → fall back to initial
     }

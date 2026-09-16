@@ -45,7 +45,7 @@ export default function GoalPage() {
   const [copied, setCopied] = useState(false);
   const [todayApps, setTodayApps] = useState("");
 
-  const doneCount = g.checks.filter(Boolean).length;
+  const doneCount = (g?.checks ?? []).filter(Boolean).length;
   const visaPct = Math.round((doneCount / GOAL_MILESTONES.length) * 100);
 
   const last7 = useMemo(() => {
@@ -58,7 +58,7 @@ export default function GoalPage() {
     }
     return out;
   }, [g.appsByDay]);
-  const weekly = last7.reduce((a, b) => a + b.n, 0);
+  const weekly = (last7 ?? []).reduce((a, b) => a + b.n, 0);
   const estDays = Math.max(
     12,
     Math.round(90 - doneCount * 12 - Math.min(weekly, 25)),

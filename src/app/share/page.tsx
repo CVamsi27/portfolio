@@ -55,6 +55,8 @@ const validEmail = (s: string) => /.+@.+\..+/.test(s.trim());
 export default function SharePage() {
   const { value: drops, setValue: setDrops, status, user } = useSyncedStorage<Drop[]>("share", []);
   const { value: links, setValue: setLinks } = useSyncedStorage<Record<string, SharedLink>>("share:links", {});
+  const safeDrops = drops ?? [];
+  const safeLinks = links ?? {};
   const [text, setText] = useState("");
   const [pendingImg, setPendingImg] = useState<string | null>(null);
   const [ttl, setTtl] = useState<string>("7d");
@@ -70,9 +72,7 @@ export default function SharePage() {
   const signedIn = Boolean(user && isSupabaseConfigured());
 
   // Derived during render — expired drops vanish instantly, no effect needed.
-  // Physical cleanup (state + storage files) happens opportunistically in
-  // save()/remove() below.
-  const visible = drops.filter(isAlive);
+  const visible = safeDrops.filter(isAlive);
   const imageCount = visible.filter((d) => d.image).length;
 
   const refreshUsage = () => setUsage(storageUsageBytes());
@@ -207,7 +207,7 @@ export default function SharePage() {
 
   const openEditor = (d: Drop) => {
     setShareEditor(d.id);
-    setDraftEmails(links[d.id]?.emails ?? []);
+    setDraftEmails(safeLinks[d.id]?.emails ?? []);
     setEmailInput("");
   };
 

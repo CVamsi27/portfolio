@@ -46,14 +46,16 @@ export default function FastingPage() {
   const { value: history, setValue: setHistory } = useSyncedStorage<
     HistoryEntry[]
   >("fasting:history", []);
+  const safe = st ?? DEFAULTS;
+  const safeHistory = history ?? [];
   // Single 1s ticker, drift-resistant: each tick banks real wall-clock
   // delta from lastTickAt (no now-state ping-pong, no second effect).
   useEffect(() => {
-    if (!st.running) return;
+    if (!safe.running) return;
     const id = window.setInterval(() => {
       const at = Date.now();
       setSt((prev) => {
-        if (!prev.running) return prev;
+        if (!prev?.running) return prev ?? DEFAULTS;
         const base = prev.lastTickAt ?? at;
         return {
           ...prev,
@@ -64,37 +66,37 @@ export default function FastingPage() {
     }, 1000);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [st.running]);
+  }, [safe.running]);
 
   const protocol =
-    FASTING_PROTOCOLS.find((p) => p.id === st.protocolId) ??
+    FASTING_PROTOCOLS.find((p) => p.id === safe.protocolId) ??
     FASTING_PROTOCOLS[1];
   const targetSec = protocol.fastHours * 3600;
-  const clamped = Math.min(st.elapsedSec, targetSec);
+  const clamped = Math.min(safe.elapsedSec, targetSec);
   const pct = targetSec === 0 ? 0 : (clamped / targetSec) * 100;
-  const remaining = Math.max(0, targetSec - st.elapsedSec);
+  const remaining = Math.max(0, targetSec - safe.elapsedSec);
   const stage = fastingStage(pct);
-  const complete = st.elapsedSec >= targetSec;
+  const complete = safe.elapsedSec >= targetSec;
 
   const weekTotal = useMemo(
-    () => history.slice(-7).reduce((a, h) => a + h.hours, 0),
-    [history],
+    () => (safeHistory ?? []).slice(-7).reduce((a, h) => a + h.hours, 0),
+    [safeHistory],
   );
 
   const toggleRun = () =>
     setSt({
-      ...st,
-      running: !st.running,
-      lastTickAt: !st.running ? Date.now() : null,
+      ...safe,
+      running: !safe.running,
+      lastTickAt: !safe.running ? Date.now() : null,
     });
 
   const reset = () =>
-    setSt({ ...st, elapsedSec: 0, running: false, lastTickAt: null });
+    setSt({ ...safe, elapsedSec: 0, running: false, lastTickAt: null });
 
   const switchPhase = () => {
-    if (st.phase === "fasting" && complete) {
+    if (safe.phase === "fasting" && complete) {
       setHistory([
-        ...history,
+        ...safeHistory,
         {
           date: new Date().toISOString().slice(0, 10),
           hours: protocol.fastHours,
@@ -103,8 +105,8 @@ export default function FastingPage() {
       ]);
     }
     setSt({
-      ...st,
-      phase: st.phase === "fasting" ? "eating" : "fasting",
+      ...safe,
+      phase: safe.phase === "fasting" ? "eating" : "fasting",
       elapsedSec: 0,
       running: true,
       lastTickAt: Date.now(),
@@ -166,10 +168,10 @@ export default function FastingPage() {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  {st.phase}
+                  {safe.phase}
                 </span>
                 <span className="font-display text-3xl font-bold tabular-nums">
-                  {formatHMS(st.elapsedSec)}
+                  {formatHMS(safe.elapsedSec)}
                 </span>
                 <span className="mt-1 text-xs text-muted-foreground">
                   {pct.toFixed(0)}% complete
@@ -187,7 +189,7 @@ export default function FastingPage() {
 
           {/* stats row */}
           <div className="mt-6 grid grid-cols-3 gap-2">
-            <Stat label="Elapsed" value={`${(st.elapsedSec / 3600).toFixed(1)} hrs`} />
+            <Stat label="Elapsed" value={`${(safe.elapsedSec / 3600).toFixed(1)} hrs`} />
             <Stat label="Remaining" value={`${(remaining / 3600).toFixed(1)} hrs`} />
             <Stat label="Window" value={`${protocol.fastHours}:${24 - protocol.fastHours}`} accent />
           </div>
@@ -223,8 +225,8 @@ export default function FastingPage() {
                 <Segmented
                   label="Fasting protocol"
                   options={FASTING_PROTOCOLS.map((p) => ({ value: p.id, label: p.label }))}
-                  value={st.protocolId}
-                  onChange={(id) => setSt({ ...st, protocolId: id })}
+                  value={safe.protocolId}
+                  onChange={(id) => setSt({ ...safe, protocolId: id })}
                 />
               </div>
             </div>
@@ -232,17 +234,17 @@ export default function FastingPage() {
             <div>
               <p className="text-sm font-medium">Current Interval State</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <Button onClick={toggleRun} variant={st.running ? "secondary" : "default"} className="flex-1">
-                  {st.running ? "Pause" : "Start Fast"}
+                <Button onClick={toggleRun} variant={safe.running ? "secondary" : "default"} className="flex-1">
+                  {safe.running ? "Pause" : "Start Fast"}
                 </Button>
                 <Button onClick={reset} variant="outline">
                   Reset
                 </Button>
               </div>
               <Button onClick={switchPhase} className="mt-2 w-full bg-blue-600 hover:bg-blue-600/90">
-                Switch to {st.phase === "fasting" ? "Eating Window" : "Fasting"}
+                Switch to {safe.phase === "fasting" ? "Eating Window" : "Fasting"}
               </Button>
-              {complete && st.phase === "fasting" && (
+              {complete && safe.phase === "fasting" && (
                 <p className="mt-2 text-center text-sm font-semibold text-emerald-500">
                   Window complete — nice work. Switch to eating.
                 </p>
@@ -253,7 +255,7 @@ export default function FastingPage() {
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium">Scrub Window Timeline</label>
                 <span className="text-sm tabular-nums text-muted-foreground">
-                  {(st.elapsedSec / 3600).toFixed(1)}h / {protocol.fastHours}h
+                  {(safe.elapsedSec / 3600).toFixed(1)}h / {protocol.fastHours}h
                 </span>
               </div>
               <input
@@ -263,7 +265,7 @@ export default function FastingPage() {
                 step={60}
                 value={clamped}
                 onChange={(e) =>
-                  setSt({ ...st, elapsedSec: Number(e.target.value) })
+                  setSt({ ...safe, elapsedSec: Number(e.target.value) })
                 }
                 className="mt-2 w-full"
               />
@@ -291,7 +293,7 @@ export default function FastingPage() {
             </Card>
           ) : (
             <ul className="mt-3 space-y-1.5">
-              {history.slice(-7).reverse().map((h, i) => (
+              {(safeHistory ?? []).slice(-7).reverse().map((h, i) => (
                 <li
                   key={`${h.date}-${i}`}
                   className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm transition-colors hover:bg-muted/60"

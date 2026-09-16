@@ -12,9 +12,10 @@ const Navbar = () => {
   const pathname = usePathname();
   const host =
     typeof window === "undefined" ? "" : window.location.hostname;
-  // Tracker pages (or the personal host, where `/` is the hub) get
-  // tracker links; the portfolio landing keeps its section anchors.
-  const isTracker = pathname !== "/" || host.startsWith("personal.");
+  // On personal host, TrackerNav inside each page provides sub-nav,
+  // so the top Navbar only shows logo + theme toggle (no duplicate links).
+  const isPersonalHost = host.startsWith("personal.");
+  const isTracker = pathname !== "/" || isPersonalHost;
   const [active, setActive] = useState(MENU_LIST[0]);
   const [progress, setProgress] = useState(0);
 
@@ -49,9 +50,11 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, [isTracker]);
 
-  const menuItems = isTracker
-    ? TRACKER_LINKS.map((t) => ({ label: t.label, href: t.href }))
-    : MENU_LIST.map((m) => ({ label: m, href: `#${m}` }));
+  const menuItems = isPersonalHost
+    ? []
+    : isTracker
+      ? TRACKER_LINKS.map((t) => ({ label: t.label, href: t.href }))
+      : MENU_LIST.map((m) => ({ label: m, href: `#${m}` }));
 
   const isMenuActive = (href: string) =>
     isTracker ? pathname === href : active === href.replace("#", "");
