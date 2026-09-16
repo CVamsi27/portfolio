@@ -10,16 +10,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { SyncBadge } from "@/components/auth/AuthButton";
-import { GOAL_MILESTONES, dateKey } from "@/lib/trackers";
+import { GOAL_MILESTONES, GOAL_SNIPPETS, dateKey } from "@/lib/trackers";
+import { useUserPrefs, GOAL_CATEGORIES, type GoalCategory } from "@/lib/user-prefs";
 import { cn } from "@/lib/utils";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Target } from "lucide-react";
 
 type GoalState = {
-  hub: "Berlin Hub" | "Munich Hub";
-  visa: "EU Blue Card" | "IT Specialist Fast-Track";
+  hub: string;
+  visa: string;
   dailyTarget: number;
   checks: boolean[];
   appsByDay: Record<string, number>;
+  category: GoalCategory;
 };
 
 const DEFAULTS: GoalState = {
@@ -28,25 +30,22 @@ const DEFAULTS: GoalState = {
   dailyTarget: 3,
   checks: [false, false, false, false],
   appsByDay: {},
-};
-
-const SNIPPETS: Record<string, (hub: string) => string> = {
-  LinkedIn: (hub) =>
-    `Hallo! I'm a Full Stack Engineer specializing in TypeScript (React, Node, NestJS, PostgreSQL). I love the tech ecosystem in ${hub.replace(" Hub", "")} and notice your team is scaling up. Would love to connect and share how my background aligns with your current architecture needs. Vielen Dank!`,
-  "Cold Email": (hub) =>
-    `Subject: Full Stack Engineer (TypeScript) — open to ${hub.replace(" Hub", "")} relocation\n\nHi team — 5+ yrs shipping production TypeScript: React 19, NestJS, PostgreSQL. Relocating to Germany via ${hub.replace(" Hub", "")} (${new Date().getFullYear()}), EU Blue Card path. 15-min intro this week?`,
-  Referral: (hub) =>
-    `Hi! Saw you're at a ${hub.replace(" Hub", "")} tech company — I'm a Full Stack Engineer (React/Node/Postgres) relocating to Germany. Would you be open to a referral or a quick pointer to the hiring manager? Happy to share CV + portfolio.`,
+  category: "relocation",
 };
 
 export default function GoalPage() {
+  const { prefs, setPrefs } = useUserPrefs();
   const { value: g, setValue: setG, status } = useSyncedStorage<GoalState>("goal", DEFAULTS);
-  const [snipType, setSnipType] = useState<keyof typeof SNIPPETS>("LinkedIn");
+  const [snipType, setSnipType] = useState<string>("LinkedIn");
   const [copied, setCopied] = useState(false);
   const [todayApps, setTodayApps] = useState("");
 
-  const doneCount = (g?.checks ?? []).filter(Boolean).length;
-  const visaPct = Math.round((doneCount / GOAL_MILESTONES.length) * 100);
+  const safe = g ?? DEFAULTS;
+  const goalCat = prefs.goalCategory ?? safe.category ?? "relocation";
+  const milestones = GOAL_MILESTONES[goalCat] ?? GOAL_MILESTONES.relocation;
+  const doneCount = (safe.checks ?? []).filter(Boolean).length;
+  const goalPct = milestones.length ? Math.round((doneCount / milestones.length) * 100) : 0;
+  const goalMeta = GOAL_CATEGORIES.find((gc) => gc.id === goalCat) ?? GOAL_CATEGORIES[0];
 
   const last7 = useMemo(() => {
     const out: { d: string; n: number }[] = [];
@@ -54,23 +53,24 @@ export default function GoalPage() {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const k = d.toISOString().slice(0, 10);
-      out.push({ d: k.slice(5), n: g.appsByDay[k] ?? 0 });
+      out.push({ d: k.slice(5), n: safe.appsByDay?.[k] ?? 0 });
     }
     return out;
-  }, [g.appsByDay]);
-  const weekly = (last7 ?? []).reduce((a, b) => a + b.n, 0);
-  const estDays = Math.max(
-    12,
-    Math.round(90 - doneCount * 12 - Math.min(weekly, 25)),
-  );
+  }, [safe.appsByDay]);
+  const weekly = last7.reduce((a, b) => a + b.n, 0);
+  const estDays = goalCat === "relocation"
+    ? Math.max(12, Math.round(90 - doneCount * 12 - Math.min(weekly, 25)))
+    : goalCat === "career"
+      ? Math.max(7, Math.round(60 - doneCount * 15 - Math.min(weekly * 3, 45)))
+      : Math.max(14, Math.round(30 - doneCount * 7));
 
-  const snippet = SNIPPETS[snipType](g.hub);
+  const snippet = (GOAL_SNIPPETS[goalCat] ?? GOAL_SNIPPETS.custom)(safe.hub);
 
   const logApps = () => {
     const n = parseInt(todayApps, 10);
     if (!n || n <= 0) return;
     const k = dateKey();
-    setG({ ...g, appsByDay: { ...g.appsByDay, [k]: (g.appsByDay[k] ?? 0) + n } });
+    setG({ ...safe, appsByDay: { ...safe.appsByDay, [k]: (safe.appsByDay?.[k] ?? 0) + n } });
     setTodayApps("");
   };
 
@@ -84,173 +84,170 @@ export default function GoalPage() {
     }
   };
 
+  const changeCategory = (cat: GoalCategory) => {
+    setPrefs({ ...prefs, goalCategory: cat });
+    const newMilestones = GOAL_MILESTONES[cat] ?? GOAL_MILESTONES.relocation;
+    setG({ ...safe, category: cat, checks: new Array(newMilestones.length).fill(false) });
+  };
+
+  const relocationMode = goalCat === "relocation";
+
   return (
     <RequireAuth>
     <TrackerShell
       icon="flag"
-      title="Germany Goal"
-      subtitle="Get the job. Move to Berlin. One board: outreach velocity, visa readiness, and today's applications."
+      title={prefs.goalTitle || goalMeta.label}
+      subtitle={`${goalMeta.icon} ${goalMeta.desc}. Track your milestones and daily progress.`}
       badge={<SyncBadge status={status} />}
     >
-      {/* trajectory */}
-      <Card className="overflow-hidden">
-        <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-5 text-white">
-          <svg viewBox="0 0 560 190" className="w-full">
-            <defs>
-              <linearGradient id="pathGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#38bdf8" />
-                <stop offset="100%" stopColor="#818cf8" />
-              </linearGradient>
-            </defs>
-            {[40, 150, 260, 370, 480].map((x) => (
-              <line key={x} x1={x} y1={10} x2={x} y2={175} stroke="#1e293b" strokeDasharray="3 4" />
-            ))}
-            <path
-              d="M40 120 C 110 118, 130 60, 190 62 S 270 108, 320 100 S 430 92, 490 42"
-              fill="none"
-              stroke="url(#pathGrad)"
-              strokeWidth="2.5"
-              strokeDasharray="7 6"
-            />
-            {[
-              { x: 40, y: 120, l: "Outreach & Apps", s: `${g.dailyTarget} / day`, on: true },
-              { x: 190, y: 62, l: "Tech Interviews", s: "velocity auto", on: true },
-              { x: 320, y: 100, l: "Visa Tracking", s: `${visaPct}% ready`, on: doneCount > 0 },
-              { x: 490, y: 42, l: "Relocate Base", s: "velocity auto", on: false },
-            ].map((n) => (
-              <g key={n.l}>
-                <circle cx={n.x} cy={n.y} r={16} fill={n.on ? "#38bdf8" : "#1e293b"} opacity={n.on ? 0.25 : 1} />
-                <circle cx={n.x} cy={n.y} r={9} fill={n.on ? "#38bdf8" : "#334155"} />
-                <text x={n.x} y={n.y + 32} textAnchor="middle" fill="#fff" fontSize="11" fontWeight="600">
-                  {n.l}
-                </text>
-                <text x={n.x} y={n.y + 45} textAnchor="middle" fill="#38bdf8" fontSize="10" fontFamily="monospace">
-                  {n.s}
-                </text>
-              </g>
-            ))}
-          </svg>
-          <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-xs">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            Active Tech Market Target: <strong>{g.hub.replace(" Hub", "")}</strong>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-2 px-5 pb-4">
-          <Stat label="Weekly Outreach" value={`${weekly} apps`} />
-          <Stat label="Est. Landing" value={`~${estDays} days`} />
-          <Stat label="Visa Status" value={`${visaPct}% ready`} accent />
-        </div>
-      </Card>
-
-      {/* controls */}
+      {/* goal category selector */}
       <Card>
-        <CardContent className="space-y-4 p-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <p className="text-sm font-medium">Target Tech Ecosystem</p>
-              <div className="mt-2">
-                <Segmented
-                  label="Target tech ecosystem"
-                  options={[
-                    { value: "Berlin Hub", label: "Berlin Hub" },
-                    { value: "Munich Hub", label: "Munich Hub" },
-                  ]}
-                  value={g.hub}
-                  onChange={(hub) => setG({ ...g, hub })}
-                />
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium">Visa Pathway Archetype</p>
-              <div className="mt-2">
-                <Segmented
-                  label="Visa pathway archetype"
-                  options={[
-                    { value: "EU Blue Card", label: "EU Blue Card" },
-                    { value: "IT Specialist Fast-Track", label: "IT Specialist Fast-Track" },
-                  ]}
-                  value={g.visa}
-                  onChange={(visa) => setG({ ...g, visa })}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Daily Developer Application Target</label>
-              <span className="text-sm font-semibold tabular-nums">{g.dailyTarget} / day</span>
-            </div>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={g.dailyTarget}
-              onChange={(e) => setG({ ...g, dailyTarget: Number(e.target.value) })}
-              className="mt-2 w-full"
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              min={1}
-              placeholder={`Log today's apps (e.g. ${g.dailyTarget})`}
-              value={todayApps}
-              onChange={(e) => setTodayApps(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && logApps()}
-            />
-            <Button onClick={logApps}>Log</Button>
-          </div>
-
-          <div className="flex items-end gap-1.5 pt-1">
-            {last7.map((d) => (
-              <div key={d.d} className="flex flex-1 flex-col items-center gap-1">
-                <div
-                  className="w-full rounded-md bg-gradient-to-t from-primary to-fuchsia-500"
-                  style={{ height: `${Math.max(4, Math.min(64, d.n * 12))}px`, opacity: d.n ? 1 : 0.25 }}
-                  title={`${d.n} applications`}
-                />
-                <span className="text-[10px] tabular-nums text-muted-foreground">{d.d.slice(3) || d.d}</span>
-              </div>
+        <CardContent className="p-5">
+          <p className="text-sm font-medium">Goal Category</p>
+          <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {GOAL_CATEGORIES.map((gc) => (
+              <button
+                key={gc.id}
+                onClick={() => changeCategory(gc.id)}
+                className={cn(
+                  "rounded-xl border p-2 text-center text-xs transition-all",
+                  goalCat === gc.id
+                    ? "border-primary bg-primary/10 font-semibold shadow-sm"
+                    : "border-border/60 hover:bg-accent",
+                )}
+              >
+                <span className="text-lg">{gc.icon}</span>
+                <p className="mt-0.5 font-medium">{gc.label}</p>
+              </button>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* milestones */}
+      {/* trajectory / progress */}
       <Card>
         <CardContent className="p-5">
-          <h2 className="font-display font-bold">Milestone verification</h2>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            {doneCount}/{GOAL_MILESTONES.length} complete
-          </p>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${visaPct}%` }} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              <h2 className="font-display font-bold">Milestones</h2>
+            </div>
+            <span className="text-sm font-semibold tabular-nums text-primary">{goalPct}%</span>
           </div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${goalPct}%` }} />
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <Stat label="Weekly Progress" value={`${weekly} items`} />
+            <Stat label="Est. Completion" value={`~${estDays} days`} />
+            <Stat label="Milestones" value={`${doneCount}/${milestones.length}`} accent />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* controls (for relocation/career goals) */}
+      {relocationMode && (
+        <Card>
+          <CardContent className="space-y-4 p-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-sm font-medium">Target City</p>
+                <div className="mt-2">
+                  <Segmented
+                    label="Target city"
+                    options={[
+                      { value: "Berlin Hub", label: "Berlin" },
+                      { value: "Munich Hub", label: "Munich" },
+                    ]}
+                    value={safe.hub}
+                    onChange={(hub) => setG({ ...safe, hub })}
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Visa Pathway</p>
+                <div className="mt-2">
+                  <Segmented
+                    label="Visa pathway"
+                    options={[
+                      { value: "EU Blue Card", label: "EU Blue Card" },
+                      { value: "IT Specialist Fast-Track", label: "IT Specialist" },
+                    ]}
+                    value={safe.visa}
+                    onChange={(visa) => setG({ ...safe, visa })}
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Daily Target</label>
+                <span className="text-sm font-semibold tabular-nums">{safe.dailyTarget} / day</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={safe.dailyTarget}
+                onChange={(e) => setG({ ...safe, dailyTarget: Number(e.target.value) })}
+                className="mt-2 w-full"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                min={1}
+                placeholder={`Log today's items (e.g. ${safe.dailyTarget})`}
+                value={todayApps}
+                onChange={(e) => setTodayApps(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && logApps()}
+              />
+              <Button onClick={logApps}>Log</Button>
+            </div>
+            <div className="flex items-end gap-1.5 pt-1">
+              {last7.map((d) => (
+                <div key={d.d} className="flex flex-1 flex-col items-center gap-1">
+                  <div
+                    className="w-full rounded-md bg-gradient-to-t from-primary to-fuchsia-500"
+                    style={{ height: `${Math.max(4, Math.min(64, d.n * 12))}px`, opacity: d.n ? 1 : 0.25 }}
+                    title={`${d.n} items`}
+                  />
+                  <span className="text-[10px] tabular-nums text-muted-foreground">{d.d.slice(3) || d.d}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* milestones checklist */}
+      <Card>
+        <CardContent className="p-5">
+          <h2 className="font-display font-bold">Milestone checklist</h2>
           <ul className="mt-3 space-y-2">
-            {GOAL_MILESTONES.map((m, i) => (
+            {milestones.map((m, i) => (
               <li key={m}>
                 <button
                   onClick={() => {
-                    const checks = [...g.checks];
+                    const checks = [...(safe.checks ?? [])];
+                    while (checks.length < milestones.length) checks.push(false);
                     checks[i] = !checks[i];
-                    setG({ ...g, checks });
+                    setG({ ...safe, checks });
                   }}
                   className={cn(
                     "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition-all",
-                    g.checks[i] ? "border-emerald-500/40 bg-emerald-500/10" : "border-border/60 hover:bg-accent",
+                    (safe.checks ?? [])[i] ? "border-emerald-500/40 bg-emerald-500/10" : "border-border/60 hover:bg-accent",
                   )}
                 >
                   <span
                     className={cn(
                       "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[11px] transition-all active:scale-90",
-                      g.checks[i] ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground",
+                      (safe.checks ?? [])[i] ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground",
                     )}
                   >
-                    {g.checks[i] ? <Check className="h-3 w-3" /> : ""}
+                    {(safe.checks ?? [])[i] ? <Check className="h-3 w-3" /> : ""}
                   </span>
-                  <span className={g.checks[i] ? "line-through opacity-70" : ""}>{m}</span>
+                  <span className={(safe.checks ?? [])[i] ? "line-through opacity-70" : ""}>{m}</span>
                 </button>
               </li>
             ))}
@@ -258,24 +255,20 @@ export default function GoalPage() {
         </CardContent>
       </Card>
 
-      {/* outreach generator */}
+      {/* outreach / reflection generator */}
       <Card>
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-display font-bold">Outreach generator</h2>
-            <Segmented
-              label="Outreach type"
-              options={Object.keys(SNIPPETS).map((k) => ({ value: k, label: k }))}
-              value={snipType}
-              onChange={(v) => setSnipType(v as keyof typeof SNIPPETS)}
-            />
+            <h2 className="font-display font-bold">
+              {relocationMode ? "Outreach generator" : "Daily reflection"}
+            </h2>
           </div>
           <p className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-4 text-sm leading-relaxed">
             {snippet}
           </p>
           <div className="mt-3 flex justify-end">
             <Button variant="secondary" size="sm" onClick={copy}>
-              {copied ? <><Check className="mr-1.5 h-4 w-4" /> Copied</> : <><Copy className="mr-1.5 h-4 w-4" /> Copy Snippet</>}
+              {copied ? <><Check className="mr-1.5 h-4 w-4" /> Copied</> : <><Copy className="mr-1.5 h-4 w-4" /> Copy</>}
             </Button>
           </div>
         </CardContent>

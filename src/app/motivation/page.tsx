@@ -8,19 +8,23 @@ import { Button } from "@/components/ui/button";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { SyncBadge } from "@/components/auth/AuthButton";
 import { MOTIVATION_QUOTES, dateKey } from "@/lib/trackers";
+import { useUserPrefs } from "@/lib/user-prefs";
 import { cn } from "@/lib/utils";
-import { Zap, Heart, Diamond, Check, X, ArrowRight } from "lucide-react";
+import { Zap, Heart, Diamond, Check, X, ArrowRight, Shuffle, Bookmark } from "lucide-react";
 
 export default function MotivationPage() {
+  const { prefs } = useUserPrefs();
+  const quotes = MOTIVATION_QUOTES[prefs.motivationStyle] ?? MOTIVATION_QUOTES.discipline;
+
   const daySeed = useMemo(() => {
     const d = dateKey();
     let h = 0;
     for (const c of d) h = (h * 31 + c.charCodeAt(0)) % 997;
     return h;
   }, []);
-  const daily = MOTIVATION_QUOTES[daySeed % MOTIVATION_QUOTES.length];
+  const daily = quotes[daySeed % quotes.length];
 
-  const [idx, setIdx] = useState(daySeed % MOTIVATION_QUOTES.length);
+  const [idx, setIdx] = useState(daySeed % quotes.length);
   const { value: favs, setValue: setFavs, status } = useSyncedStorage<string[]>(
     "motivation:favs",
     [],
@@ -31,21 +35,22 @@ export default function MotivationPage() {
     {},
   );
 
-  const quote = MOTIVATION_QUOTES[idx % MOTIVATION_QUOTES.length];
+  const quote = quotes[idx % quotes.length];
   const isFav = favs.includes(quote.text);
-  const streak = Object.keys(visits).length + (visits[todayKey] ? 0 : 1);
+  const streak = Object.keys(visits ?? {}).length + ((visits ?? {})[todayKey] ? 0 : 1);
 
   const shuffle = () =>
-    setIdx((i) => (i + 1 + Math.floor(Math.random() * (MOTIVATION_QUOTES.length - 1))) % MOTIVATION_QUOTES.length);
+    setIdx((i) => (i + 1 + Math.floor(Math.random() * (quotes.length - 1))) % quotes.length);
 
   return (
     <RequireAuth>
     <TrackerShell
       icon="flame"
       title="Motivation"
-      subtitle="One quote, zero noise. Daily pick plus a deck you can shuffle and save — built for the job hunt days."
+      subtitle={`Daily ${prefs.motivationStyle} quotes — curated for your ${prefs.goalTitle || "goals"}.`}
       badge={<SyncBadge status={status} />}
     >
+      {/* quote card */}
       <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-card to-fuchsia-500/10">
         <CardContent className="p-6 sm:p-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
@@ -56,7 +61,7 @@ export default function MotivationPage() {
           </blockquote>
           <div className="mt-5 flex flex-wrap gap-2">
             <Button onClick={shuffle} variant="secondary">
-              Shuffle deck
+              <Shuffle className="mr-1.5 h-4 w-4" /> Shuffle deck
             </Button>
             <Button
               variant="outline"
@@ -64,7 +69,7 @@ export default function MotivationPage() {
                 setFavs(isFav ? favs.filter((f) => f !== quote.text) : [...favs, quote.text])
               }
             >
-              {isFav ? <><Check className="mr-1.5 h-4 w-4" /> Saved</> : "Save this one"}
+              {isFav ? <><Bookmark className="mr-1.5 h-4 w-4" /> Saved</> : <><Bookmark className="mr-1.5 h-4 w-4" /> Save this one</>}
             </Button>
           </div>
           <p className="mt-4 rounded-lg bg-background/60 px-3 py-2 text-sm text-muted-foreground">
@@ -73,11 +78,12 @@ export default function MotivationPage() {
         </CardContent>
       </Card>
 
+      {/* stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
           { l: "Day streak", v: `${streak}`, Icon: Zap, gradient: "from-amber-500 to-orange-600" },
           { l: "Saved", v: `${favs.length}`, Icon: Heart, gradient: "from-rose-500 to-pink-600" },
-          { l: "Deck size", v: `${MOTIVATION_QUOTES.length}`, Icon: Diamond, gradient: "from-primary to-fuchsia-500" },
+          { l: "Deck size", v: `${quotes.length}`, Icon: Diamond, gradient: "from-primary to-fuchsia-500" },
         ].map((s) => (
           <Card key={s.l} className="group overflow-hidden">
             <div className="flex items-center gap-3 p-4">
@@ -96,13 +102,14 @@ export default function MotivationPage() {
         ))}
       </div>
 
+      {/* saved fuel */}
       <Card>
         <CardContent className="p-5">
           <h2 className="font-display font-bold">Saved fuel</h2>
-          {favs.length === 0 ? (
+          {(favs ?? []).length === 0 ? (
             <Card className="mt-3 border-dashed">
               <CardContent className="flex flex-col items-center p-6 text-center">
-                <Diamond className="h-8 w-8 text-muted-foreground/50" />
+                <Bookmark className="h-8 w-8 text-muted-foreground/50" />
                 <p className="mt-2 text-sm text-muted-foreground">
                   Nothing saved yet — hit &ldquo;Save this one&rdquo; on anything that hits.
                 </p>
@@ -110,7 +117,7 @@ export default function MotivationPage() {
             </Card>
           ) : (
             <ul className="mt-3 space-y-2">
-              {favs.map((f) => (
+              {(favs ?? []).map((f) => (
                 <li
                   key={f}
                   className={cn(
@@ -119,7 +126,7 @@ export default function MotivationPage() {
                 >
                   <span>&ldquo;{f}&rdquo;</span>
                   <button
-                    onClick={() => setFavs(favs.filter((x) => x !== f))}
+                    onClick={() => setFavs((favs ?? []).filter((x) => x !== f))}
                     className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
                     aria-label="Remove"
                   >
@@ -132,15 +139,15 @@ export default function MotivationPage() {
         </CardContent>
       </Card>
 
+      {/* goal anchor */}
       <Card>
         <CardContent className="p-5">
-          <h2 className="font-display font-bold">Germany goal anchor</h2>
+          <h2 className="font-display font-bold">Goal anchor</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Goal: land a Full Stack role and relocate to Berlin. Daily
-            non-negotiables — 3 applications, 1 workout logged, 16h fast
-            closed. Track it on the{" "}
+            Your focus: <strong>{prefs.goalTitle || prefs.goalCategory}</strong>. Daily
+            non-negotiables keep you on track.{" "}
             <a href="/goal" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
-              Germany Goal board <ArrowRight className="h-3.5 w-3.5" />
+              View goal board <ArrowRight className="h-3.5 w-3.5" />
             </a>
           </p>
         </CardContent>
