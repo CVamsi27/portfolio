@@ -1,0 +1,62 @@
+name: Supabase keep-alive
+
+# Pings Supabase Postgres ONCE A DAY at a pseudo-random hour so the free-tier
+# project never hits the 1-week inactivity pause (which otherwise needs a
+# manual dashboard resume). Any executed query counts as activity — this one
+# is a cheap RLS-scoped read.
+#
+# How the randomness works: GitHub cron is fixed, so the workflow runs every
+# 15 minutes and the job itself decides. It hashes today's date (UTC) to pick
+# a uniform slot hour 0–23 — a different hour each day — and only runs inside
+# that hour are allowed to ping. Duplicate pings are harmless (idempotent
+# reads), and even a fully missed day still leaves 6 days of margin.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL              e.g. https://xyzcompany.supabase.co
+#   SUPABASE_PUBLISHABLE_KEY  the publishable key (new format), or legacy
+#   SUPABASE_ANON_KEY         ...anon key as fallback — either one works,
+#                             RLS still applies; safe to store as a secret.
+#
+# Caveats (per GitHub docs):
+# - Runs on the default branch only.
+# - GitHub auto-disables scheduled workflows after 60 days of zero repo
+#   activity; any commit re-enables it. `workflow_dispatch` allows manual runs.
+
+on:
+  schedule:
+    # Every 15 minutes — the job below self-selects one slot per day.
+    - cron: "5,20,35,50 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping Supabase Postgres (REST)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          # Today's slot: uniform hour 0–23 derived from the date hash.
+          today=$(date -u +%Y%m%d)
+          target=$((0x$(echo -n "$today" | sha256sum | cut -c1-2) % 24))
+          hour=$((10#$(date -u +%H)))
+          minute=$((10#$(date -u +%M)))
+          echo "today=$today target_hour=$target now=${hour}:${minute}"
+          if [ "$hour" -ne "$target" ] || [ "$minute" -ge 30 ]; then
+            echo "Outside today's slot — skipping (one slot fires per day)."
+            exit 0
+          fi
+          test -n "$SUPABASE_URL" || { echo "SUPABASE_URL secret missing"; exit 1; }
+          test -n "$SUPABASE_KEY" || { echo "SUPABASE_PUBLISHABLE_KEY (or legacy SUPABASE_ANON_KEY) secret missing"; exit 1; }
+          code=$(curl -sS -o /tmp/keepalive.json -w "%{http_code}" --max-time 30 \
+            "$SUPABASE_URL/rest/v1/tracker_data?select=key&limit=1" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY")
+          echo "HTTP $code"
+          cat /tmp/keepalive.json
+          echo
+          test "$code" = "200" || { echo "keep-alive ping failed"; exit 1; }
+          echo "Supabase is alive ✓"

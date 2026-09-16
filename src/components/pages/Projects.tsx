@@ -8,7 +8,7 @@ import { ArrowUpRight } from "lucide-react";
 
 const Projects = () => {
   return (
-    <section id="Projects" className="w-full px-6 py-20">
+    <section id="Projects" className="w-full px-6 py-24">
       <div className="max-w-3xl mx-auto">
         <SectionHeading
           eyebrow="Selected work"
@@ -20,7 +20,7 @@ const Projects = () => {
             <Reveal
               key={index}
               delay={(index % 2) * 80}
-              className="group relative flex flex-col gap-3 p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all"
+              className="group relative flex flex-col gap-3 p-6 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300"
             >
               <div className="flex items-start justify-between">
                 <h3 className="font-display text-base font-semibold group-hover:text-primary transition-colors">
@@ -35,7 +35,7 @@ const Projects = () => {
                 {value.tech.split(", ").map((tech, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 text-xs font-medium rounded-full bg-secondary text-secondary-foreground"
+                    className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-background text-muted-foreground border border-border/70"
                   >
                     {tech}
                   </span>

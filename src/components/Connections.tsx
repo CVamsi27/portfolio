@@ -42,7 +42,7 @@ const Connections = () => {
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent-foreground/10 transition-all"
+          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:text-primary hover:shadow-md hover:shadow-primary/10"
           title={link.label}
         >
           {link.icon ? (

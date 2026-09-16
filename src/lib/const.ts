@@ -27,18 +27,19 @@ export const MENU_LIST = [
 
 export const WORK_EXPERIENCE: WorkExperience[] = [
   {
-    title: "Founding Engineer",
-    description: "Healthcare SaaS Platform",
-    tech: "React 19, Vite, React Router, Tailwind CSS, TanStack React Query, NestJS, PostgreSQL, TypeScript, Jest, Vitest, Playwright, GitHub Actions, Docker, Fly.io, Cloudflare/R2, AWS RDS",
+    title: "Full Stack Engineer",
+    description: "Healthcare SaaS",
+    tech: "React, Vite, TanStack Query, Zod, NestJS, Prisma, PostgreSQL, TypeScript, Jest, Vitest, Playwright, GitHub Actions, Docker",
     duration: "Aug 2025 - Present",
     company: "Docita",
     URL: "https://docita.work",
     details: [
-      "Owned end-to-end delivery of multi-tenant clinic workflows for 25+ clinics and 1,000+ appointments/month, covering scheduling, patient records, prescriptions, billing, and clinic operations",
-      "Built React 19 and Vite staff workflows with React Router, Tailwind CSS, TanStack React Query, shared components, and accessible UX for operational users",
-      "Engineered NestJS and PostgreSQL APIs for scheduling, patient records, prescriptions, and billing, covering schema design, migrations, indexes, DTO validation, pagination, tenant-aware access, and query-quality guardrails",
-      "Implemented JWT and resource-level authorization plus a durable background-worker boundary for reliable clinic workflows",
-      "Built automated quality gates with Jest/Vitest unit and API integration/E2E tests plus Playwright critical-flow and accessibility checks, deployed through GitHub Actions/Docker on Fly.io, Cloudflare/R2, and AWS RDS"
+      "Own end-to-end delivery of a multi-tenant healthcare platform serving 25+ clinics and 1,000+ appointment workflows per month, covering scheduling, records, prescriptions, billing, and inventory",
+      "Design maintainable NestJS, Prisma, and PostgreSQL APIs and data models using tenant-scoped queries, migrations, indexes, pagination, and transactional writes",
+      "Make sensitive clinical workflows trustworthy through request-scoped tenancy, PostgreSQL Row-Level Security, deny-by-default ABAC, encryption, audit trails, and PHI-safe error handling",
+      "Engineer resilient notifications, documents, payments, and partner integrations with PostgreSQL queues, transactional outbox, idempotency, retries, dead-letter replay, advisory locks, and verified webhooks",
+      "Build accessible React/Vite product experiences with TanStack Query and shared Zod schemas; enforce release confidence with Jest, Vitest, Playwright, GitHub Actions, Docker, and database snapshots",
+      "Ship controlled AI-assisted capabilities with validated outputs, usage quotas, timeouts, and environment-aware controls"
     ]
   },
   {
@@ -49,10 +50,10 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     company: "MAQ Software",
     URL: "https://maqsoftware.com",
     details: [
-      "Accelerated recruitment and internal-workflow delivery by 25% through reusable TypeScript service patterns and clearer module boundaries",
-      "Improved Node.js, Express, NestJS, and PostgreSQL REST API p95 latency by 30% through query tuning, caching, and N+1 elimination",
-      "Created a reusable React and TypeScript component library that reduced duplicated UI while improving load performance and keyboard and screen-reader accessibility",
-      "Strengthened CI/CD and code-review practices with GitHub Actions, Jest, release checks, and 85%+ test coverage; mentored 4 engineers and improved delivery predictability"
+      "Reduced delivery time for recruitment and internal-workflow modules by 25% through shared TypeScript service patterns, input validation, pagination, and clear module boundaries",
+      "Cut REST API p95 latency by 30% across Node.js, Express, NestJS, and PostgreSQL services by profiling slow paths, tuning queries and indexes, adding targeted caching, and removing N+1 access patterns",
+      "Built a reusable React and TypeScript component library that reduced duplicated UI and made loading, validation, keyboard, and screen-reader behavior more consistent",
+      "Improved release quality with GitHub Actions, Jest, release checks, and code review while sustaining 85%+ test coverage; mentored four engineers through design reviews and pairing"
     ]
   },
   {
@@ -63,9 +64,8 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     company: "Cognizant",
     URL: "https://www.cognizant.com/in/en",
     details: [
-      "Built 4 Spring Boot microservices for Product, Vendor, Retail Shop, and Proceed-to-Buy domains",
-      "Configured Eureka service discovery, Zuul gateway routing, and JWT-based authorization through a dedicated Authorization Service",
-      "Implemented REST endpoints, JWT login and token validation, Swagger/OpenAPI documentation, and JPA/JDBC persistence for the e-commerce services"
+      "Built 4 Spring Boot microservices for product, vendor, retail-shop, and checkout workflows in an e-commerce platform",
+      "Implemented Eureka service discovery, Zuul gateway routing, JWT authorization, REST APIs, Swagger/OpenAPI documentation, and JPA/JDBC persistence"
     ]
   },
 ];

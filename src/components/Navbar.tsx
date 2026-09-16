@@ -49,12 +49,12 @@ const Navbar = () => {
           style={{ width: `${progress}%` }}
         />
       </div>
-      <div className="max-w-6xl mx-auto flex h-14 items-center justify-between px-6">
+      <div className="max-w-6xl mx-auto flex h-16 items-center justify-between px-6">
         <a
           href="#About"
-          className="font-display text-lg font-semibold tracking-tight hover:text-primary transition-colors"
+          className="font-display text-lg font-bold tracking-tight hover:text-primary transition-colors"
         >
-          ~VK
+          ~<span className="gradient-text">VK</span>
         </a>
         <div className="flex items-center gap-1">
           <div className="hidden md:flex items-center gap-1">
@@ -63,15 +63,22 @@ const Navbar = () => {
                 key={val}
                 href={`#${val}`}
                 className={cn(
-                  "px-3 py-1.5 text-sm rounded-md transition-colors",
+                  "px-3 py-1.5 text-sm rounded-full transition-colors",
                   active === val
-                    ? "text-foreground bg-accent font-medium"
+                    ? "text-primary bg-primary/10 font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent",
                 )}
               >
                 {val}
               </a>
             ))}
+            <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+            <a
+              href="/trackers"
+              className="px-3 py-1.5 text-sm font-medium rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
+            >
+              Trackers →
+            </a>
           </div>
           <ModeToggle />
           <HeaderMenu />

@@ -18,14 +18,19 @@ const HeaderMenu = () => {
             <span className="sr-only">Menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-48 rounded-xl">
           {MENU_LIST.map((val) => (
             <DropdownMenuItem key={val} asChild>
-              <a href={`#${val}`} className="w-full cursor-pointer">
+              <a href={`#${val}`} className="w-full cursor-pointer rounded-lg">
                 {val}
               </a>
             </DropdownMenuItem>
           ))}
+          <DropdownMenuItem asChild>
+            <a href="/trackers" className="w-full cursor-pointer rounded-lg font-medium text-primary">
+              Trackers →
+            </a>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

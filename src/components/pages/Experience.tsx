@@ -5,12 +5,12 @@ import { Reveal } from "@/components/common/Reveal";
 
 const Experience = () => {
   return (
-    <section id="Experience" className="w-full px-6 py-20 bg-secondary/30">
+    <section id="Experience" className="w-full px-6 py-24 bg-secondary/30">
       <div className="max-w-3xl mx-auto">
         <SectionHeading
           eyebrow="Career"
           title="Experience"
-          description="Five years shipping production software — from founding a healthcare SaaS to scaling internal platforms and enterprise services."
+          description="5+ years shipping production software — from multi-tenant healthcare SaaS to internal platforms and enterprise services."
         />
         <div className="relative flex flex-col">
           {WORK_EXPERIENCE.map((value, index) => (
