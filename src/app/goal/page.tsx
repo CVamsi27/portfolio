@@ -12,6 +12,7 @@ import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { SyncBadge } from "@/components/auth/AuthButton";
 import { GOAL_MILESTONES, dateKey } from "@/lib/trackers";
 import { cn } from "@/lib/utils";
+import { Check, Copy } from "lucide-react";
 
 type GoalState = {
   hub: "Berlin Hub" | "Munich Hub";
@@ -86,14 +87,14 @@ export default function GoalPage() {
   return (
     <RequireAuth>
     <TrackerShell
-      icon="🇩🇪"
+      icon="flag"
       title="Germany Goal"
       subtitle="Get the job. Move to Berlin. One board: outreach velocity, visa readiness, and today's applications."
       badge={<SyncBadge status={status} />}
     >
       {/* trajectory */}
       <Card className="overflow-hidden">
-        <div className="bg-[#0b1020] p-5 text-white">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-5 text-white">
           <svg viewBox="0 0 560 190" className="w-full">
             <defs>
               <linearGradient id="pathGrad" x1="0" y1="0" x2="1" y2="0">
@@ -206,8 +207,9 @@ export default function GoalPage() {
             {last7.map((d) => (
               <div key={d.d} className="flex flex-1 flex-col items-center gap-1">
                 <div
-                  className="w-full rounded-md bg-blue-600/80"
+                  className="w-full rounded-md bg-gradient-to-t from-primary to-fuchsia-500"
                   style={{ height: `${Math.max(4, Math.min(64, d.n * 12))}px`, opacity: d.n ? 1 : 0.25 }}
+                  title={`${d.n} applications`}
                 />
                 <span className="text-[10px] tabular-nums text-muted-foreground">{d.d.slice(3) || d.d}</span>
               </div>
@@ -219,11 +221,12 @@ export default function GoalPage() {
       {/* milestones */}
       <Card>
         <CardContent className="p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Milestone verification steps · {doneCount}/{GOAL_MILESTONES.length}
+          <h2 className="font-display font-bold">Milestone verification</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            {doneCount}/{GOAL_MILESTONES.length} complete
           </p>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-blue-600 transition-all" style={{ width: `${visaPct}%` }} />
+            <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${visaPct}%` }} />
           </div>
           <ul className="mt-3 space-y-2">
             {GOAL_MILESTONES.map((m, i) => (
@@ -241,11 +244,11 @@ export default function GoalPage() {
                 >
                   <span
                     className={cn(
-                      "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[11px]",
+                      "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[11px] transition-all active:scale-90",
                       g.checks[i] ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground",
                     )}
                   >
-                    {g.checks[i] ? "✓" : ""}
+                    {g.checks[i] ? <Check className="h-3 w-3" /> : ""}
                   </span>
                   <span className={g.checks[i] ? "line-through opacity-70" : ""}>{m}</span>
                 </button>
@@ -259,25 +262,20 @@ export default function GoalPage() {
       <Card>
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              TypeScript outreach generator
-            </p>
-            <select
+            <h2 className="font-display font-bold">Outreach generator</h2>
+            <Segmented
+              label="Outreach type"
+              options={Object.keys(SNIPPETS).map((k) => ({ value: k, label: k }))}
               value={snipType}
-              onChange={(e) => setSnipType(e.target.value as keyof typeof SNIPPETS)}
-              className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
-            >
-              {Object.keys(SNIPPETS).map((k) => (
-                <option key={k}>{k}</option>
-              ))}
-            </select>
+              onChange={(v) => setSnipType(v as keyof typeof SNIPPETS)}
+            />
           </div>
           <p className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-4 text-sm leading-relaxed">
             {snippet}
           </p>
           <div className="mt-3 flex justify-end">
             <Button variant="secondary" size="sm" onClick={copy}>
-              {copied ? "Copied ✓" : "⧉ Copy Snippet"}
+              {copied ? <><Check className="mr-1.5 h-4 w-4" /> Copied</> : <><Copy className="mr-1.5 h-4 w-4" /> Copy Snippet</>}
             </Button>
           </div>
         </CardContent>

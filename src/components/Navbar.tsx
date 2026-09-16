@@ -1,23 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { MENU_LIST } from "@/lib/const";
+import { TRACKER_LINKS } from "@/lib/trackers";
 import { ModeToggle } from "./common/ModeToggle";
 import HeaderMenu from "./HeaderMenu";
 import { cn } from "@/lib/utils";
 
 const Navbar = () => {
+  const pathname = usePathname();
+  const host =
+    typeof window === "undefined" ? "" : window.location.hostname;
+  // Tracker pages (or the personal host, where `/` is the hub) get
+  // tracker links; the portfolio landing keeps its section anchors.
+  const isTracker = pathname !== "/" || host.startsWith("personal.");
   const [active, setActive] = useState(MENU_LIST[0]);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const sections = MENU_LIST.map((val) => document.getElementById(val));
+    const sections = isTracker
+      ? []
+      : MENU_LIST.map((val) => document.getElementById(val));
     const onScroll = () => {
       const scrollTop = window.scrollY;
       const height =
         document.documentElement.scrollHeight - window.innerHeight;
       setProgress(height > 0 ? (scrollTop / height) * 100 : 0);
 
+      if (isTracker) return;
       let current = MENU_LIST[0];
       for (const section of sections) {
         if (section && scrollTop >= section.offsetTop - 120) {
@@ -36,7 +47,14 @@ const Navbar = () => {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [isTracker]);
+
+  const menuItems = isTracker
+    ? TRACKER_LINKS.map((t) => ({ label: t.label, href: t.href }))
+    : MENU_LIST.map((m) => ({ label: m, href: `#${m}` }));
+
+  const isMenuActive = (href: string) =>
+    isTracker ? pathname === href : active === href.replace("#", "");
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
@@ -51,37 +69,30 @@ const Navbar = () => {
       </div>
       <div className="max-w-6xl mx-auto flex h-16 items-center justify-between px-6">
         <a
-          href="#About"
+          href={isTracker ? "/" : "#About"}
           className="font-display text-lg font-bold tracking-tight hover:text-primary transition-colors"
         >
           ~<span className="gradient-text">VK</span>
         </a>
         <div className="flex items-center gap-1">
           <div className="hidden md:flex items-center gap-1">
-            {MENU_LIST.map((val) => (
+            {menuItems.map((item) => (
               <a
-                key={val}
-                href={`#${val}`}
+                key={item.href}
+                href={item.href}
                 className={cn(
                   "px-3 py-1.5 text-sm rounded-full transition-colors",
-                  active === val
+                  isMenuActive(item.href)
                     ? "text-primary bg-primary/10 font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent",
                 )}
               >
-                {val}
+                {item.label}
               </a>
             ))}
-            <span className="mx-1 h-4 w-px bg-border" aria-hidden />
-            <a
-              href="/trackers"
-              className="px-3 py-1.5 text-sm font-medium rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
-            >
-              Trackers →
-            </a>
           </div>
           <ModeToggle />
-          <HeaderMenu />
+          <HeaderMenu items={menuItems} />
         </div>
       </div>
     </nav>

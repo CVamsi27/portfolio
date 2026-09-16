@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
+import Segmented from "@/components/trackers/Segmented";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { storageUsageBytes } from "@/lib/use-local-storage";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { SyncBadge } from "@/components/auth/AuthButton";
+import { Users, Plus, Check, X } from "lucide-react";
 
 type Drop = {
   id: string;
@@ -334,7 +336,7 @@ export default function SharePage() {
 
   return (
     <TrackerShell
-      icon="📤"
+      icon="share"
       title="Share"
       subtitle="Private scratchpad with email-allowlisted sharing. Signed-in friends you pick can view on the Shared page — everyone else sees nothing."
       badge={<SyncBadge status={status} />}
@@ -344,9 +346,9 @@ export default function SharePage() {
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Paste text, a link, a win…"
+            placeholder="Paste text, a link, a win..."
             rows={3}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            className="min-h-[80px] w-full rounded-lg border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
           />
           {pendingImg && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -354,7 +356,7 @@ export default function SharePage() {
           )}
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-              + Add image
+              <Plus className="mr-1 h-4 w-4" /> Add image
             </Button>
             <input
               ref={fileRef}
@@ -365,15 +367,13 @@ export default function SharePage() {
             />
             <label className="text-xs text-muted-foreground">
               Auto-clear{" "}
-              <select
+              <Segmented
+                label="Drop expiry"
+                variant="soft"
+                options={TTL_OPTIONS.map((o) => ({ value: o.id, label: o.label }))}
                 value={ttl}
-                onChange={(e) => setTtl(e.target.value)}
-                className="rounded-md border border-border bg-background px-1.5 py-1 text-xs"
-              >
-                {TTL_OPTIONS.map((o) => (
-                  <option key={o.id} value={o.id}>{o.label}</option>
-                ))}
-              </select>
+                onChange={setTtl}
+              />
             </label>
             {pendingImg && (
               <Button variant="ghost" size="sm" onClick={() => setPendingImg(null)}>
@@ -396,15 +396,15 @@ export default function SharePage() {
       </Card>
 
       {visible.length === 0 ? (
-        <Card>
+        <Card className="border-dashed">
           <CardContent className="p-5 text-sm text-muted-foreground">
             No drops yet — your quick captures land here newest-first, and vanish when their timer runs out.
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
           {visible.map((d) => (
-            <Card key={d.id} className="overflow-hidden">
+            <Card key={d.id} className="group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg">
               {d.image && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={d.image} alt="shared drop" className="max-h-56 w-full object-cover" loading="lazy" />
@@ -412,13 +412,19 @@ export default function SharePage() {
               <CardContent className="p-4">
                 {d.text && <p className="whitespace-pre-wrap text-sm leading-relaxed">{d.text}</p>}
                 <p className="mt-2 text-[11px] tabular-nums text-muted-foreground">
-                  {d.createdAt.slice(0, 16).replace("T", " ")} · ⏳ {expiryLabel(d.expiresAt)}
-                  {links[d.id] ? ` · 🔒 ${links[d.id].emails.length} viewer(s)` : ""}
+                  {d.createdAt.slice(0, 16).replace("T", " ")} · {expiryLabel(d.expiresAt)}
+                  {links[d.id] ? (
+                    <>
+                      {" "}· <Users className="mb-0.5 inline h-3 w-3" /> {links[d.id].emails.length} viewer(s)
+                    </>
+                  ) : (
+                    ""
+                  )}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {d.text && (
                     <Button variant="outline" size="sm" onClick={() => copyText(d)}>
-                      {copiedId === d.id ? "Copied ✓" : "Copy text"}
+                      {copiedId === d.id ? <><Check className="mr-1 h-4 w-4" /> Copied</> : "Copy text"}
                     </Button>
                   )}
                   {shareEditor === d.id ? (
@@ -427,18 +433,18 @@ export default function SharePage() {
                     </Button>
                   ) : (
                     <Button variant="outline" size="sm" onClick={() => openEditor(d)}>
-                      {links[d.id] ? "Sharing ✓" : "Share"}
+                      {links[d.id] ? <><Check className="mr-1 h-4 w-4" /> Sharing</> : "Share"}
                     </Button>
                   )}
                   {d.image && (
-                    <a href={d.image} download={`drop-${d.id}`} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center rounded-md border border-input px-3 text-sm hover:bg-accent">
+                    <a href={d.image} download={`drop-${d.id}`} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center rounded-xl border border-input px-3 text-sm transition-colors hover:bg-accent">
                       Open
                     </a>
                   )}
                   <span className="flex-1" />
                   <button
                     onClick={() => remove(d)}
-                    className="text-sm text-muted-foreground hover:text-foreground"
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     Delete
                   </button>
@@ -452,7 +458,7 @@ export default function SharePage() {
                         {draftEmails.map((e) => (
                           <span key={e} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
                             {e}
-                            <button onClick={() => removeEmail(d, e)} aria-label={`Remove ${e}`} className="text-muted-foreground hover:text-foreground">✕</button>
+                            <button onClick={() => removeEmail(d, e)} aria-label={`Remove ${e}`} className="text-muted-foreground transition-colors hover:text-foreground"><X className="h-3 w-3" /></button>
                           </span>
                         ))}
                       </div>
@@ -477,7 +483,7 @@ export default function SharePage() {
                       ) : (
                         <>
                           <Button size="sm" variant="secondary" onClick={() => copyLink(d)}>
-                            {copiedId === `link-${d.id}` ? "Link copied ✓" : "Copy link"}
+                            {copiedId === `link-${d.id}` ? <><Check className="mr-1 h-4 w-4" /> Link copied</> : "Copy link"}
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => revokeLink(d)}>
                             Revoke
@@ -498,7 +504,7 @@ export default function SharePage() {
 
       <Card>
         <CardContent className="p-5">
-          <h2 className="font-semibold">Zero-cost storage strategy</h2>
+          <h2 className="font-display font-bold">Zero-cost storage strategy</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
             <li><strong className="text-foreground">Caps ($0):</strong> {MAX_DROPS} drops max, 5 MB per image signed in (~1.2 MB local). Expired drops auto-clear.</li>
             <li><strong className="text-foreground">Text ($0):</strong> syncs as JSON rows in Postgres free tier.</li>

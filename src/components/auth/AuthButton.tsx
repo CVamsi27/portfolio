@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-store";
@@ -24,6 +25,7 @@ export function SyncBadge({ status }: { status: SyncStatus }) {
 
 export default function AuthButton() {
   const { user, loading, configured } = useAuth();
+  const pathname = usePathname();
 
   if (loading) return null;
 
@@ -39,6 +41,8 @@ export default function AuthButton() {
   }
 
   if (!user) {
+    // The /login page has its own sign-in card — don't duplicate it in nav.
+    if (pathname === "/login") return null;
     return (
       <Link href="/login">
         <Button size="sm" variant="outline">

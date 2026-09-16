@@ -6,13 +6,16 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocalValue } from "@/lib/use-synced-storage";
 
-const CARDS = [
-  { href: "/intermittent-fasting", icon: "⏱", title: "Intermittent Fasting", desc: "Live ring timer, protocol picker, scrub timeline, recent fasts.", key: "vk:fasting" },
-  { href: "/motivation", icon: "🔥", title: "Motivation", desc: "Quote of the day, shuffle deck, saved fuel for hard days.", key: "vk:motivation:favs" },
-  { href: "/goal", icon: "🇩🇪", title: "Germany Goal", desc: "Outreach velocity, visa checklist, application log, outreach snippets.", key: "vk:goal" },
-  { href: "/workout-tracking", icon: "💪", title: "Workout Tracking", desc: "Full Body log, week strip, sets/reps analytics vs baseline.", key: "vk:workouts" },
-  { href: "/todo", icon: "☑", title: "Todo", desc: "Quick daily list with today filter and progress bar.", key: "vk:todos" },
-  { href: "/share", icon: "📤", title: "Share", desc: "Quick-drop text + images, copy/download, JSON export.", key: "vk:share" },
+import { TrackerIcon, type TrackerIconName } from "@/components/trackers/icons";
+import { ArrowRight } from "lucide-react";
+
+const CARDS: { href: string; icon: TrackerIconName; title: string; desc: string; key: string }[] = [
+  { href: "/intermittent-fasting", icon: "timer", title: "Intermittent Fasting", desc: "Live ring timer, protocol picker, scrub timeline, recent fasts.", key: "vk:fasting" },
+  { href: "/motivation", icon: "flame", title: "Motivation", desc: "Quote of the day, shuffle deck, saved fuel for hard days.", key: "vk:motivation:favs" },
+  { href: "/goal", icon: "flag", title: "Germany Goal", desc: "Outreach velocity, visa checklist, application log, outreach snippets.", key: "vk:goal" },
+  { href: "/workout-tracking", icon: "workout", title: "Workout Tracking", desc: "Full Body log, week strip, sets/reps analytics vs baseline.", key: "vk:workouts" },
+  { href: "/todo", icon: "todo", title: "Todo", desc: "Quick daily list with today filter and progress bar.", key: "vk:todos" },
+  { href: "/share", icon: "share", title: "Share", desc: "Quick-drop text + images, copy/download, JSON export.", key: "vk:share" },
 ];
 
 function summaryOf(key: string, v: unknown): string {
@@ -49,14 +52,19 @@ function HubCard({ meta }: { meta: (typeof CARDS)[number] }) {
     <Link href={meta.href} className="group">
       <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg">
         <CardContent className="p-5">
-          <div className="flex items-start justify-between">
-            <span className="text-2xl">{meta.icon}</span>
+              <div className="flex items-start justify-between">
+                <span
+                  aria-hidden
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-fuchsia-500 shadow-md shadow-primary/20"
+                >
+                  <TrackerIcon name={meta.icon} className="h-5 w-5 text-white" />
+                </span>
             <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium tabular-nums text-muted-foreground">
               {summaryOf(meta.key, stored)}
             </span>
           </div>
           <h2 className="font-display mt-3 font-bold group-hover:text-primary">
-            {meta.title} →
+            {meta.title} <ArrowRight className="mb-0.5 inline h-4 w-4" />
           </h2>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{meta.desc}</p>
         </CardContent>
@@ -69,7 +77,7 @@ export default function TrackersHub() {
   return (
     <RequireAuth>
     <TrackerShell
-      icon="🧭"
+      icon="hub"
       title="Trackers"
       subtitle="Grab-and-go hub. Pick a tracker below — each page is a single-pager that saves to your browser automatically."
     >
@@ -81,7 +89,7 @@ export default function TrackersHub() {
 
       <Card>
         <CardContent className="p-5">
-          <h2 className="font-semibold">Absolute zero-cost setup ($0, ~10 min)</h2>
+          <h2 className="font-display font-bold">Absolute zero-cost setup ($0, ~10 min)</h2>
           <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-muted-foreground">
             <li>Keep the code as-is — storage is <strong className="text-foreground">browser localStorage</strong>, no DB, no keys, no bill.</li>
             <li>Push to GitHub: <code className="rounded bg-muted px-1.5 py-0.5 text-xs">git add -A && git commit -m "trackers" && git push</code></li>

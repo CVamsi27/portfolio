@@ -11,13 +11,14 @@ import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { SyncBadge } from "@/components/auth/AuthButton";
 import { WORKOUT_EXERCISES } from "@/lib/trackers";
 import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 
 type DayLog = Record<string, { sets: string; done: boolean; minutes?: string }>;
 type LogMap = Record<string, DayLog>;
 
 function weekDays(offsetWeeks = 0): Date[] {
   const now = new Date();
-  const day = (now.getDay() + 6) % 7; // Monday = 0
+  const day = (now.getDay() + 6) % 7;
   const monday = new Date(now);
   monday.setDate(now.getDate() - day + offsetWeeks * 7);
   return Array.from({ length: 7 }, (_, i) => {
@@ -70,7 +71,7 @@ export default function WorkoutPage() {
         const ex = WORKOUT_EXERCISES.find((e) => e.id === exId);
         if (!cell.done) return;
         if (ex?.unit === "minutes") {
-          reps += Number(cell.minutes || 0) * 10; // cardio-equivalent
+          reps += Number(cell.minutes || 0) * 10;
         } else {
           const arr = parseSets(cell.sets);
           sets += arr.length;
@@ -97,19 +98,23 @@ export default function WorkoutPage() {
   return (
     <RequireAuth>
     <TrackerShell
-      icon="💪"
+      icon="workout"
       title="Workout Tracking"
-      subtitle="Full Body list, daily logging, weekly analytics. Log sets like “9, 7” — progress is computed against your baselines."
+      subtitle="Full Body list, daily logging, weekly analytics. Log sets like 9, 7 — progress is computed against your baselines."
       badge={<SyncBadge status={status} />}
     >
       <Card>
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
-            <Button variant="outline" size="sm" onClick={() => setWeekOffset((w) => w - 1)}>← Prev</Button>
+            <Button variant="outline" size="sm" onClick={() => setWeekOffset((w) => w - 1)}>
+              <ChevronLeft className="mr-1 h-4 w-4" /> Prev
+            </Button>
             <p className="text-sm font-semibold">
               {weekOffset === 0 ? "This week" : weekOffset > 0 ? `+${weekOffset} wk` : `${weekOffset} wk`}
             </p>
-            <Button variant="outline" size="sm" onClick={() => setWeekOffset((w) => w + 1)}>Next →</Button>
+            <Button variant="outline" size="sm" onClick={() => setWeekOffset((w) => w + 1)}>
+              Next <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
           </div>
           <div className="mt-3 grid grid-cols-7 gap-1.5">
             {days.map((d) => {
@@ -145,7 +150,7 @@ export default function WorkoutPage() {
             <Stat label="Reps wk" value={`${weekStats.reps}`} accent />
           </div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-emerald-500 transition-all" style={{ width: `${dayPct}%` }} />
+            <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${dayPct}%` }} />
           </div>
           <p className="mt-1 text-right text-xs text-muted-foreground">
             {selected} · {dayPct}% complete
@@ -155,7 +160,7 @@ export default function WorkoutPage() {
 
       <Card>
         <CardContent className="space-y-3 p-5">
-          <h2 className="font-semibold">Full Body · {selected}</h2>
+          <h2 className="font-display font-bold">Full Body · {selected}</h2>
           {WORKOUT_EXERCISES.map((ex) => {
             const cell = dayLog[ex.id] ?? { sets: "", done: false, minutes: "" };
             const base = ex.unit === "minutes" ? `${ex.baselineMinutes} min` : ex.baseline.length ? ex.baseline.join(" : ") : "—";
@@ -163,7 +168,7 @@ export default function WorkoutPage() {
               <div
                 key={ex.id}
                 className={cn(
-                  "rounded-xl border p-3 transition-colors",
+                  "rounded-xl border p-3 transition-all",
                   cell.done ? "border-emerald-500/40 bg-emerald-500/5" : "border-border/60",
                 )}
               >
@@ -178,11 +183,11 @@ export default function WorkoutPage() {
                     onClick={() => setCell(ex.id, { done: !cell.done })}
                     aria-label={`Mark ${ex.name} done`}
                     className={cn(
-                      "flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-colors",
+                      "flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-all active:scale-90",
                       cell.done ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground/40 hover:border-foreground",
                     )}
                   >
-                    {cell.done ? "✓" : ""}
+                    {cell.done ? <Check className="h-4 w-4" /> : ""}
                   </button>
                 </div>
                 {ex.unit === "minutes" ? (
@@ -212,10 +217,9 @@ export default function WorkoutPage() {
 
       <Card>
         <CardContent className="p-5">
-          <h2 className="font-semibold">Progress vs baseline</h2>
+          <h2 className="font-display font-bold">Progress vs baseline</h2>
           <ul className="mt-3 space-y-2">
             {WORKOUT_EXERCISES.filter((e) => e.unit === "reps").map((ex) => {
-              // latest logged total
               let latest = 0;
               let latestDate = "";
               Object.entries(logs).forEach(([d, l]) => {
@@ -237,7 +241,7 @@ export default function WorkoutPage() {
                     </span>
                   </div>
                   <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-500" style={{ width: `${pct}%` }} />
+                    <div className="h-full rounded-full bg-gradient-to-r from-primary to-fuchsia-500" style={{ width: `${pct}%` }} />
                   </div>
                 </li>
               );
@@ -248,7 +252,7 @@ export default function WorkoutPage() {
               <div key={w.label} className="flex flex-1 flex-col items-center gap-1">
                 <span className="text-xs font-semibold tabular-nums">{w.n}</span>
                 <div
-                  className="w-full rounded-md bg-emerald-500/80"
+                  className="w-full rounded-md bg-gradient-to-t from-primary to-fuchsia-500"
                   style={{ height: `${Math.max(6, w.n * 18)}px`, opacity: w.n ? 1 : 0.3 }}
                 />
                 <span className="text-[10px] text-muted-foreground">{w.label}</span>

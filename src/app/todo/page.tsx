@@ -11,6 +11,7 @@ import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { SyncBadge } from "@/components/auth/AuthButton";
 import { dateKey } from "@/lib/trackers";
 import { cn } from "@/lib/utils";
+import { Check, X } from "lucide-react";
 
 type Todo = { id: string; text: string; done: boolean; date: string };
 
@@ -40,7 +41,7 @@ export default function TodoPage() {
   return (
     <RequireAuth>
     <TrackerShell
-      icon="☑"
+      icon="todo"
       title="Todo"
       subtitle="Quick daily list. Everything defaults to today — check it off, clear it, start fresh tomorrow."
       badge={<SyncBadge status={status} />}
@@ -70,7 +71,7 @@ export default function TodoPage() {
             />
           </div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+            <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${pct}%` }} />
           </div>
           <p className="mt-1 text-right text-xs text-muted-foreground">
             {doneToday}/{todayList.length} done today · {pct}%
@@ -81,9 +82,14 @@ export default function TodoPage() {
       <Card>
         <CardContent className="p-5">
           {visible.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nothing here. Add your first task above — keep it under 5 items for a quick day.
-            </p>
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center p-6 text-center">
+                <Check className="h-8 w-8 text-muted-foreground/50" />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Nothing here. Add your first task above — keep it under 5 items for a quick day.
+                </p>
+              </CardContent>
+            </Card>
           ) : (
             <ul className="space-y-2">
               {visible.map((t) => (
@@ -97,21 +103,21 @@ export default function TodoPage() {
                   <button
                     onClick={() => setTodos(todos.map((x) => (x.id === t.id ? { ...x, done: !x.done } : x)))}
                     className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs",
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs transition-all active:scale-90",
                       t.done ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground/50",
                     )}
                     aria-label="Toggle done"
                   >
-                    {t.done ? "✓" : ""}
+                    {t.done ? <Check className="h-3 w-3" /> : ""}
                   </button>
                   <span className={cn("flex-1", t.done && "line-through opacity-60")}>{t.text}</span>
                   {filter !== "today" && <span className="text-[11px] tabular-nums text-muted-foreground">{t.date.slice(5)}</span>}
                   <button
                     onClick={() => setTodos(todos.filter((x) => x.id !== t.id))}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
                     aria-label="Delete"
                   >
-                    ✕
+                    <X className="h-4 w-4" />
                   </button>
                 </li>
               ))}

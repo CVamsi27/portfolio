@@ -7,6 +7,7 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-store";
+import { ImageIcon, Inbox, PenLine } from "lucide-react";
 
 type Incoming = {
   id: string;
@@ -49,9 +50,9 @@ function IncomingList({ uid, email }: { uid: string; email: string }) {
 
   if (groups.length === 0) {
     return (
-      <Card>
+      <Card className="border-dashed">
         <CardContent className="p-8 text-center">
-          <p className="text-3xl">📭</p>
+              <p className="text-3xl"><Inbox className="mx-auto h-8 w-8 text-primary" /></p>
           <h2 className="font-display mt-3 text-xl font-bold">Nothing shared yet</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             When someone allowlists <strong>{email}</strong> on a drop, it lands here grouped by sender.
@@ -87,12 +88,12 @@ function IncomingList({ uid, email }: { uid: string; email: string }) {
                 href={`/share/${it.id}`}
                 className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2.5 transition-colors hover:bg-accent"
               >
-                {it.image_url ? <span>🖼</span> : <span>✎</span>}
+                {it.image_url ? <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" /> : <PenLine className="h-4 w-4 shrink-0 text-muted-foreground" />}
                 <span className="flex-1 truncate text-sm">
                   {it.text || "(image)"}
                 </span>
                 <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
-                  {it.expires_at ? `⏳ ${it.expires_at.slice(0, 10)}` : "∞"}
+                  {it.expires_at ? `Expires ${it.expires_at.slice(0, 10)}` : "No expiry"}
                 </span>
               </Link>
             ))}
@@ -109,7 +110,7 @@ export default function SharedWithMePage() {
   return (
     <RequireAuth>
       <TrackerShell
-        icon="👥"
+        icon="shared"
         title="Shared with me"
         subtitle="Drops other people allowlisted to your email. Their timers and revokes apply instantly."
       >

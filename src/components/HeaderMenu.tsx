@@ -6,9 +6,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { MENU_LIST } from "@/lib/const";
 
-const HeaderMenu = () => {
+const HeaderMenu = ({
+  items,
+}: {
+  items: { label: string; href: string }[];
+}) => {
   return (
     <div className="flex md:hidden">
       <DropdownMenu>
@@ -19,18 +22,13 @@ const HeaderMenu = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48 rounded-xl">
-          {MENU_LIST.map((val) => (
-            <DropdownMenuItem key={val} asChild>
-              <a href={`#${val}`} className="w-full cursor-pointer rounded-lg">
-                {val}
+          {items.map((item) => (
+            <DropdownMenuItem key={item.href} asChild>
+              <a href={item.href} className="w-full cursor-pointer rounded-lg">
+                {item.label}
               </a>
             </DropdownMenuItem>
           ))}
-          <DropdownMenuItem asChild>
-            <a href="/trackers" className="w-full cursor-pointer rounded-lg font-medium text-primary">
-              Trackers →
-            </a>
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

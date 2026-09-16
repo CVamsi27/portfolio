@@ -11,7 +11,14 @@ export default function Stat({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-card px-3 py-2.5 text-center shadow-sm">
+    <div
+      className={cn(
+        "rounded-xl border px-3 py-2.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+        accent
+          ? "border-primary/30 bg-gradient-to-b from-primary/10 to-fuchsia-500/5"
+          : "border-border/60 bg-card hover:border-primary/30",
+      )}
+    >
       <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </p>

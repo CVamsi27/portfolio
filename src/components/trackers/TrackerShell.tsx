@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import TrackerNav from "./TrackerNav";
+import { TrackerIcon, type TrackerIconName } from "./icons";
 
 export default function TrackerShell({
   icon,
@@ -8,7 +9,7 @@ export default function TrackerShell({
   badge,
   children,
 }: {
-  icon?: string;
+  icon?: TrackerIconName;
   title: string;
   subtitle: string;
   badge?: ReactNode;
@@ -22,9 +23,9 @@ export default function TrackerShell({
           {icon ? (
             <span
               aria-hidden
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-fuchsia-500 text-2xl shadow-lg shadow-primary/25"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-fuchsia-500 shadow-lg shadow-primary/25"
             >
-              {icon}
+              <TrackerIcon name={icon} className="h-6 w-6 text-white" />
             </span>
           ) : null}
           <div>

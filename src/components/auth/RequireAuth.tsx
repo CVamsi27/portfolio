@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-store";
+import { Lock } from "lucide-react";
 
 /**
  * Gate for private tracker pages. Public pages: `/`, `/portfolio`,
@@ -28,9 +29,9 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
 
   return (
     <div className="mx-auto w-full max-w-md px-4 pb-16 pt-16">
-      <Card>
+      <Card className="overflow-hidden border-primary/20 bg-gradient-to-b from-primary/10 via-card to-card shadow-xl shadow-primary/5">
         <CardContent className="p-8 text-center">
-          <p className="text-3xl">🔒</p>
+            <p className="text-3xl"><Lock className="mx-auto h-8 w-8 text-primary" /></p>
           <h1 className="font-display mt-3 text-2xl font-bold">Sign in required</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Trackers are private to your account. Sign in with Google to

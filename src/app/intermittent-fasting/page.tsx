@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Stat from "@/components/trackers/Stat";
+import Segmented from "@/components/trackers/Segmented";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
   formatHMS,
 } from "@/lib/trackers";
 import { cn } from "@/lib/utils";
+import { Timer } from "lucide-react";
 
 type FastState = {
   protocolId: string;
@@ -112,7 +114,7 @@ export default function FastingPage() {
   return (
     <RequireAuth>
     <TrackerShell
-      icon="⏱"
+      icon="timer"
       title="Intermittent Fasting"
       subtitle="One-glance fast timer. Pick a protocol, start the clock, scrub the timeline — everything persists in localStorage."
       badge={<SyncBadge status={status} />}
@@ -190,25 +192,40 @@ export default function FastingPage() {
             <Stat label="Window" value={`${protocol.fastHours}:${24 - protocol.fastHours}`} accent />
           </div>
 
+          {/* stage rail */}
+          <div className="mt-4">
+            <div className="flex gap-1.5">
+              {[0, 25, 55, 85].map((t) => (
+                <div
+                  key={t}
+                  className={cn(
+                    "h-1.5 flex-1 rounded-full transition-colors duration-500",
+                    pct >= t
+                      ? "bg-gradient-to-r from-primary to-fuchsia-500"
+                      : "bg-muted",
+                  )}
+                />
+              ))}
+            </div>
+            <div className="mt-1.5 flex text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              <span className="flex-1">Sugar drop</span>
+              <span className="flex-1 text-center">Fat burn</span>
+              <span className="flex-1 text-center">Ketosis</span>
+              <span className="flex-1 text-right">Autophagy</span>
+            </div>
+          </div>
+
           {/* controls */}
           <div className="mt-5 space-y-4">
             <div>
               <label className="text-sm font-medium">Fasting Protocol</label>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {FASTING_PROTOCOLS.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setSt({ ...st, protocolId: p.id })}
-                    className={cn(
-                      "rounded-2xl border px-3 py-2 text-left text-sm transition-all",
-                      p.id === protocol.id
-                        ? "border-primary bg-primary/10 font-semibold"
-                        : "border-border/60 hover:bg-accent",
-                    )}
-                  >
-                    {p.label}
-                  </button>
-                ))}
+              <div className="mt-2">
+                <Segmented
+                  label="Fasting protocol"
+                  options={FASTING_PROTOCOLS.map((p) => ({ value: p.id, label: p.label }))}
+                  value={st.protocolId}
+                  onChange={(id) => setSt({ ...st, protocolId: id })}
+                />
               </div>
             </div>
 
@@ -258,21 +275,26 @@ export default function FastingPage() {
       <Card>
         <CardContent className="p-5">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-semibold">Recent fasts</h2>
+              <h2 className="font-display font-bold">Recent fasts</h2>
             <span className="text-xs text-muted-foreground">
               Last 7: {weekTotal.toFixed(0)}h total
             </span>
           </div>
           {history.length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              No completed fasts yet — finish a window and it lands here.
-            </p>
+            <Card className="mt-3 border-dashed">
+              <CardContent className="flex flex-col items-center p-6 text-center">
+                <Timer className="h-8 w-8 text-muted-foreground/50" />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  No completed fasts yet — finish a window and it lands here.
+                </p>
+              </CardContent>
+            </Card>
           ) : (
             <ul className="mt-3 space-y-1.5">
               {history.slice(-7).reverse().map((h, i) => (
                 <li
                   key={`${h.date}-${i}`}
-                  className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm transition-colors hover:bg-muted/60"
                 >
                   <span className="font-medium tabular-nums">{h.date}</span>
                   <span className="text-muted-foreground">

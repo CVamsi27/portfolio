@@ -114,7 +114,7 @@ const About = () => {
             {STATS.map((s) => (
               <div
                 key={s.label}
-                className="rounded-xl border border-border bg-card/60 px-3 py-3 backdrop-blur transition-colors hover:border-primary/40"
+                className="rounded-xl border border-border bg-card/60 px-3 py-3 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
               >
                 <p className="font-display text-2xl font-bold tabular-nums">
                   {s.value}

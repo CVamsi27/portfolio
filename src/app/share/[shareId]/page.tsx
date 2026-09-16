@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-store";
+import { Lock } from "lucide-react";
 
 type SharedRow = {
   text: string;
@@ -48,7 +49,7 @@ function SharedDrop({ shareId }: { shareId: string }) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <p className="text-3xl">🔒</p>
+          <p className="text-3xl"><Lock className="mx-auto h-8 w-8 text-primary" /></p>
           <h2 className="font-display mt-3 text-xl font-bold">Not shared with you</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             This email isn&apos;t on the allowlist, or the link expired / was revoked.
@@ -84,7 +85,7 @@ export default function SharedDropPage() {
 
   return (
     <TrackerShell
-      icon="🔗"
+      icon="link"
       title="Shared drop"
       subtitle="Private link — only emails the owner allowlisted can open this. Sign in with the right Google account."
     >
@@ -97,7 +98,7 @@ export default function SharedDropPage() {
       ) : !user ? (
         <Card>
           <CardContent className="p-8 text-center">
-            <p className="text-3xl">🔒</p>
+            <p className="text-3xl"><Lock className="mx-auto h-8 w-8 text-primary" /></p>
             <h2 className="font-display mt-3 text-xl font-bold">Sign in to view</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               This link is allowlisted — sign in with the Google account it was shared to.

@@ -8,13 +8,13 @@ export default function Home() {
   return (
     <>
       <About />
-      <div className="border-t border-border/50" />
+      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <Experience />
-      <div className="border-t border-border/50" />
+      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <Projects />
-      <div className="border-t border-border/50" />
+      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <Skills />
-      <div className="border-t border-border/50" />
+      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <Contact />
     </>
   );
