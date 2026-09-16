@@ -86,20 +86,6 @@ export default function TrackersHub() {
           <HubCard key={c.href} meta={c} />
         ))}
       </div>
-
-      <Card>
-        <CardContent className="p-5">
-          <h2 className="font-display font-bold">Absolute zero-cost setup ($0, ~10 min)</h2>
-          <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-muted-foreground">
-            <li>Keep the code as-is — storage is <strong className="text-foreground">browser localStorage</strong>, no DB, no keys, no bill.</li>
-            <li>Push to GitHub: <code className="rounded bg-muted px-1.5 py-0.5 text-xs">git add -A && git commit -m "trackers" && git push</code></li>
-            <li>Deploy free: import the repo in <strong className="text-foreground">Vercel Hobby ($0)</strong> → defaults, no env vars needed → you get <code className="rounded bg-muted px-1.5 py-0.5 text-xs">/trackers</code> live.</li>
-            <li>Use on your phone: open the live URL → “Add to Home Screen” → each tracker works offline after first load.</li>
-            <li>Back up free: on <code className="rounded bg-muted px-1.5 py-0.5 text-xs">/share</code> hit <strong className="text-foreground">Export JSON</strong> weekly; save the file in Google Drive ($0).</li>
-            <li>Only spend if you outgrow it: Supabase free tier (Postgres + Storage) for cross-device sync — still $0 until ~500 MB.</li>
-          </ol>
-        </CardContent>
-      </Card>
     </TrackerShell>
     </RequireAuth>
   );
