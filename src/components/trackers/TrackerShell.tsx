@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import TrackerNav from "./TrackerNav";
 import { TrackerIcon, type TrackerIconName } from "./icons";
 
 export default function TrackerShell({
@@ -17,8 +16,7 @@ export default function TrackerShell({
 }) {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-16 pt-6 sm:px-6">
-      <TrackerNav />
-      <header className="mt-6 animate-slide-up">
+      <header className="animate-slide-up">
         <div className="flex items-center gap-3.5">
           {icon ? (
             <span

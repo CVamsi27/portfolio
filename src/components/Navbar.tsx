@@ -50,11 +50,9 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, [isTracker]);
 
-  const menuItems = isPersonalHost
-    ? []
-    : isTracker
-      ? TRACKER_LINKS.map((t) => ({ label: t.label, href: t.href }))
-      : MENU_LIST.map((m) => ({ label: m, href: `#${m}` }));
+  const menuItems = isTracker
+    ? TRACKER_LINKS.map((t) => ({ label: t.label, href: t.href }))
+    : MENU_LIST.map((m) => ({ label: m, href: `#${m}` }));
 
   const isMenuActive = (href: string) =>
     isTracker ? pathname === href : active === href.replace("#", "");
