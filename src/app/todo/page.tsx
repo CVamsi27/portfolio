@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
+import Segmented from "@/components/trackers/Segmented";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,19 +56,18 @@ export default function TodoPage() {
             />
             <Button onClick={add}>Add</Button>
           </div>
-          <div className="mt-3 flex items-center gap-1 rounded-xl bg-muted/50 p-1">
-            {(["today", "all", "done"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={cn(
-                  "flex-1 rounded-lg px-3 py-1.5 text-sm font-medium capitalize transition-colors",
-                  filter === f ? "bg-background shadow" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {f === "today" ? `Today (${todayList.length})` : f}
-              </button>
-            ))}
+          <div className="mt-3">
+            <Segmented
+              label="Todo filter"
+              variant="soft"
+              options={[
+                { value: "today", label: `Today (${todayList.length})` },
+                { value: "all", label: "All" },
+                { value: "done", label: "Done" },
+              ]}
+              value={filter}
+              onChange={setFilter}
+            />
           </div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
             <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
@@ -90,7 +90,7 @@ export default function TodoPage() {
                 <li
                   key={t.id}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm",
+                    "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
                     t.done ? "border-emerald-500/30 bg-emerald-500/5" : "border-border/60",
                   )}
                 >

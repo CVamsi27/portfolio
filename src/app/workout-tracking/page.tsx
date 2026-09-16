@@ -114,6 +114,7 @@ export default function WorkoutPage() {
           <div className="mt-3 grid grid-cols-7 gap-1.5">
             {days.map((d) => {
               const k = keyOf(d);
+              const isToday = k === new Date().toISOString().slice(0, 10);
               const logged = logs[k] && Object.values(logs[k]).some((c) => c.done);
               const isSel = k === selected;
               return (
@@ -121,10 +122,11 @@ export default function WorkoutPage() {
                   key={k}
                   onClick={() => setSelected(k)}
                   className={cn(
-                    "rounded-lg border px-1 py-2 text-center transition-colors",
+                    "rounded-xl border px-1 py-2 text-center transition-all",
                     isSel
-                      ? "border-primary bg-primary/10 font-semibold"
+                      ? "border-primary bg-primary/10 font-semibold shadow-sm"
                       : "border-border/60 hover:bg-accent",
+                    isToday && !isSel && "ring-1 ring-primary/40",
                   )}
                 >
                   <span className="block text-[10px] uppercase text-muted-foreground">

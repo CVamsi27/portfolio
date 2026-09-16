@@ -22,7 +22,7 @@ const Experience = () => {
               {index < WORK_EXPERIENCE.length - 1 && (
                 <div className="absolute left-[7px] top-5 bottom-0 w-px bg-gradient-to-b from-primary/40 to-border" />
               )}
-              <div className="relative mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full border-2 border-primary/40 bg-background group-hover:border-primary group-hover:bg-primary/10 transition-colors" />
+              <div className="relative mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full border-2 border-primary/40 bg-background transition-colors group-hover:border-primary group-hover:bg-primary group-hover:shadow-md group-hover:shadow-primary/40" />
               <div className="flex flex-col gap-2 flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
                   <h3 className="font-display text-base font-semibold group-hover:text-primary transition-colors">

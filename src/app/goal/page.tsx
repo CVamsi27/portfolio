@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Stat from "@/components/trackers/Stat";
+import Segmented from "@/components/trackers/Segmented";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -146,36 +147,30 @@ export default function GoalPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <p className="text-sm font-medium">Target Tech Ecosystem</p>
-              <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1">
-                {(["Berlin Hub", "Munich Hub"] as const).map((h) => (
-                  <button
-                    key={h}
-                    onClick={() => setG({ ...g, hub: h })}
-                    className={cn(
-                      "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                      g.hub === h ? "bg-blue-600 text-white shadow" : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {h}
-                  </button>
-                ))}
+              <div className="mt-2">
+                <Segmented
+                  label="Target tech ecosystem"
+                  options={[
+                    { value: "Berlin Hub", label: "Berlin Hub" },
+                    { value: "Munich Hub", label: "Munich Hub" },
+                  ]}
+                  value={g.hub}
+                  onChange={(hub) => setG({ ...g, hub })}
+                />
               </div>
             </div>
             <div>
               <p className="text-sm font-medium">Visa Pathway Archetype</p>
-              <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1">
-                {(["EU Blue Card", "IT Specialist Fast-Track"] as const).map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => setG({ ...g, visa: v })}
-                    className={cn(
-                      "truncate rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                      g.visa === v ? "bg-blue-600 text-white shadow" : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {v}
-                  </button>
-                ))}
+              <div className="mt-2">
+                <Segmented
+                  label="Visa pathway archetype"
+                  options={[
+                    { value: "EU Blue Card", label: "EU Blue Card" },
+                    { value: "IT Specialist Fast-Track", label: "IT Specialist Fast-Track" },
+                  ]}
+                  value={g.visa}
+                  onChange={(visa) => setG({ ...g, visa })}
+                />
               </div>
             </div>
           </div>
@@ -191,7 +186,7 @@ export default function GoalPage() {
               max={10}
               value={g.dailyTarget}
               onChange={(e) => setG({ ...g, dailyTarget: Number(e.target.value) })}
-              className="mt-2 w-full accent-blue-600"
+              className="mt-2 w-full"
             />
           </div>
 
@@ -240,7 +235,7 @@ export default function GoalPage() {
                     setG({ ...g, checks });
                   }}
                   className={cn(
-                    "flex w-full items-start gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
+                    "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition-all",
                     g.checks[i] ? "border-emerald-500/40 bg-emerald-500/10" : "border-border/60 hover:bg-accent",
                   )}
                 >

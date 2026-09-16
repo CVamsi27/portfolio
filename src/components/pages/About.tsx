@@ -74,7 +74,7 @@ const About = () => {
             </h1>
 
             <div className="flex justify-center animate-fade-in-delayed">
-              <div className="w-full max-w-xl rounded-xl border border-border bg-card/80 px-4 py-3 text-left shadow-sm backdrop-blur">
+              <div className="w-full max-w-xl rounded-2xl border border-border bg-card/80 px-4 py-3 text-left shadow-xl shadow-primary/10 backdrop-blur">
                 <div className="mb-2 flex items-center gap-1.5" aria-hidden>
                   <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
                   <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />

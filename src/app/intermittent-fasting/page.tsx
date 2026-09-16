@@ -200,7 +200,7 @@ export default function FastingPage() {
                     key={p.id}
                     onClick={() => setSt({ ...st, protocolId: p.id })}
                     className={cn(
-                      "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                      "rounded-2xl border px-3 py-2 text-left text-sm transition-all",
                       p.id === protocol.id
                         ? "border-primary bg-primary/10 font-semibold"
                         : "border-border/60 hover:bg-accent",
@@ -248,7 +248,7 @@ export default function FastingPage() {
                 onChange={(e) =>
                   setSt({ ...st, elapsedSec: Number(e.target.value) })
                 }
-                className="mt-2 w-full accent-blue-600"
+                className="mt-2 w-full"
               />
             </div>
           </div>
