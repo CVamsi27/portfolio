@@ -6,16 +6,16 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "VK Personal Suite",
-    short_name: "Personal Suite",
+    name: "NOVA//OS",
+    short_name: "NOVA",
     description:
-      "Local-first personal operating system: fasting, workouts, goals, todos, motivation and private sharing — with optional cloud sync.",
+      "A personal operating system for goals, habits, focus, and shared momentum.",
     start_url: "/trackers",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#0a0a0c",
-    theme_color: "#7c3aed",
+    background_color: "#071014",
+    theme_color: "#071014",
     categories: ["health", "fitness", "productivity", "lifestyle"],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },

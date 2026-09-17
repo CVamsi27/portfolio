@@ -16,17 +16,22 @@ import type { NextRequest } from "next/server";
 export default function proxy(req: NextRequest) {
   const host = (req.headers.get("host") ?? "").toLowerCase();
   const url = req.nextUrl.clone();
-
-  if (host.startsWith("personal.")) {
-    if (url.pathname === "/") {
-      url.pathname = "/trackers";
-      return NextResponse.rewrite(url);
-    }
-    return NextResponse.next();
-  }
-
+  const isPersonalHost = host.startsWith("personal.");
   const isLocal =
     host.startsWith("localhost") || host.startsWith("127.") || host.endsWith(".local");
+  const isLocalTrackerPath =
+    isLocal && url.pathname !== "/" && !url.pathname.startsWith("/api/");
+  const isTrackerSurface = isPersonalHost || isLocalTrackerPath;
+  const requestHeaders = new Headers(req.headers);
+  if (isTrackerSurface) requestHeaders.set("x-product-surface", "tracker");
+
+  if (isPersonalHost) {
+    if (url.pathname === "/") {
+      url.pathname = "/trackers";
+      return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+    }
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
 
   // PWA assets are app-agnostic — serve them from any host so the manifest,
   // service worker and icons never hit the portfolio redirect.
@@ -40,7 +45,9 @@ export default function proxy(req: NextRequest) {
     url.search = "";
     return NextResponse.redirect(url, 307);
   }
-  return NextResponse.next();
+  return isTrackerSurface
+    ? NextResponse.next({ request: { headers: requestHeaders } })
+    : NextResponse.next();
 }
 
 export const config = {

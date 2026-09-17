@@ -16,18 +16,16 @@ for (const size of sizes) {
     .resize(size, size)
     .png()
     .toFile(`public/icons/icon-${size}.png`);
-  // Maskable icon: full-bleed square with a padded monogram so Android's
-  // safe zone can crop any shape without clipping the mark.
+  // Maskable icon: full-bleed square with a padded mark so Android's safe
+  // zone can crop any shape without clipping the mark.
   const fullBleed = Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-       <defs>
-         <linearGradient id="vk-g" x1="0" y1="0" x2="1" y2="1">
-           <stop offset="0" stop-color="#7c3aed"/>
-           <stop offset="1" stop-color="#d946ef"/>
-         </linearGradient>
-       </defs>
-       <rect width="64" height="64" fill="url(#vk-g)"/>
-       <text x="32" y="42" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="22" font-weight="800" letter-spacing="0.5" fill="#ffffff" text-anchor="middle">VK</text>
+       <rect width="64" height="64" fill="#071014"/>
+       <path d="M9 25.5C16.5 15 27 10 38.5 11.5C47 12.5 53 17 56 23" fill="none" stroke="#49E7FF" stroke-width="2.25" stroke-linecap="round" opacity=".9"/>
+       <path d="M55 38.5C47.5 49 37 54 25.5 52.5C17 51.5 11 47 8 41" fill="none" stroke="#49E7FF" stroke-width="2.25" stroke-linecap="round" opacity=".55"/>
+       <path d="M18 44V20L46 44V20" fill="none" stroke="#F7FBFF" stroke-width="4.5" stroke-linejoin="bevel"/>
+       <path d="M32 12L34.8 20.2L43 23L34.8 25.8L32 34L29.2 25.8L21 23L29.2 20.2L32 12Z" fill="#C8FF3D"/>
+       <circle cx="32" cy="23" r="2.2" fill="#071014"/>
      </svg>`,
   );
   await sharp(fullBleed, { density: 300 })

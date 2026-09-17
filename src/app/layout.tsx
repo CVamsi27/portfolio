@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
+import { headers } from "next/headers";
+import { Bebas_Neue, IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/common/ThemeProvider";
@@ -7,6 +8,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PWARegister from "@/components/PWARegister";
 import { Toaster } from "@/components/ui/toaster";
+import {
+  getBrandForHost,
+  isTrackerHost,
+  PORTFOLIO_BRAND,
+  TRACKER_BRAND,
+} from "@/lib/brand";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({
@@ -19,26 +26,47 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
 });
 
-export const metadata: Metadata = {
-  title: "Vamsi Krishna | Full Stack Engineer",
-  description:
-    "Product-focused Full Stack Engineer with 5+ years of experience delivering production web applications with TypeScript, React, Node.js, NestJS, and PostgreSQL.",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    title: "Personal Suite",
-    statusBarStyle: "black-translucent",
-  },
-  icons: {
-    icon: "/icons/icon-192.png",
-    apple: "/icons/icon-192.png",
-  },
-};
+const novaDisplay = Bebas_Neue({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-nova-display",
+});
 
-export const viewport: Viewport = {
-  themeColor: "#0b0d12",
-  viewportFit: "cover",
-};
+async function requestBrand() {
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host") ?? "";
+  const trackerSurface =
+    requestHeaders.get("x-product-surface") === "tracker" || isTrackerHost(host);
+  return trackerSurface ? TRACKER_BRAND : getBrandForHost(host);
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await requestBrand();
+  const isTracker = brand === TRACKER_BRAND;
+
+  return {
+    title: isTracker ? `${TRACKER_BRAND.name} | Personal Operating System` : PORTFOLIO_BRAND.title,
+    description: brand.description,
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      title: isTracker ? TRACKER_BRAND.name : "Personal Suite",
+      statusBarStyle: "black-translucent",
+    },
+    icons: {
+      icon: "/icon.svg",
+      apple: "/icons/icon-192.png",
+    },
+  };
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  const brand = await requestBrand();
+  return {
+    themeColor: brand === TRACKER_BRAND ? TRACKER_BRAND.themeColor : "#0b0d12",
+    viewportFit: "cover",
+  };
+}
 
 export default function RootLayout({
   children,
@@ -55,6 +83,7 @@ export default function RootLayout({
           inter.variable,
           spaceGrotesk.variable,
           ibmPlexMono.variable,
+          novaDisplay.variable,
           "font-sans antialiased",
         )}
       >

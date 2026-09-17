@@ -358,7 +358,7 @@
     transform: none;
   }
 
-  .gradient-text {
+.gradient-text {
     background: linear-gradient(135deg, hsl(262 83% 58%), hsl(280 100% 60%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -563,6 +563,12 @@
     background: color-mix(in srgb, var(--color-dossier-lime) 13%, transparent);
     color: var(--color-dossier-lime);
   }
+}
+
+.nova-wordmark {
+  font-family: var(--font-nova-display), var(--font-space-grotesk),
+    ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.045em;
 }
 
 @media (prefers-reduced-motion: reduce) {
