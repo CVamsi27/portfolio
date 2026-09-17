@@ -11,6 +11,7 @@ import { ModeToggle } from "./common/ModeToggle";
 import HeaderMenu from "./HeaderMenu";
 import AuthButton from "./auth/AuthButton";
 import { cn } from "@/lib/utils";
+import NovaMark from "@/components/brand/NovaMark";
 
 const emptySubscribe = () => () => {};
 const getHostname = () =>
@@ -85,10 +86,17 @@ const Navbar = () => {
         </div>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
           <a
-            href={isTracker ? "/" : "#About"}
-            className="font-display text-lg font-black uppercase tracking-[-0.04em] transition-colors hover:text-primary"
+            href={isTracker ? "/trackers" : "#About"}
+            aria-label={isTracker ? "NOVA//OS home" : "Vamsi Krishna home"}
+            className="transition-colors hover:text-primary"
           >
-            ~<span className="gradient-text">VK</span>
+            {isTracker ? (
+              <NovaMark variant="wordmark" label="NOVA//OS" />
+            ) : (
+              <span className="font-display text-lg font-black uppercase tracking-[-0.04em]">
+                ~<span className="gradient-text">VK</span>
+              </span>
+            )}
           </a>
           <div className="flex items-center gap-1">
             <div className="hidden md:flex items-center gap-1">
@@ -122,21 +130,21 @@ const Navbar = () => {
                 ),
               )}
             </div>
-            {/* Personal Suite portal — subtle lock-and-key entry from the resume */}
+            {/* NOVA//OS portal — subtle entry from the resume */}
             {!isTracker && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
                     href={portalHref}
-                    aria-label="Open the Personal Suite trackers"
+                    aria-label="Open the NOVA//OS trackers"
                     className="dossier-portal-link ml-1 inline-flex h-9 items-center gap-1.5 px-3 text-xs font-semibold text-muted-foreground transition-all"
                   >
                     <Sparkles className="h-3.5 w-3.5" />
-                    <span className="hidden lg:inline">Personal Suite</span>
+                    <span className="hidden lg:inline">NOVA//OS</span>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
-                  Your private tracker command center — fasting, workouts, goals & more
+                  Your next chapter, in motion — fasting, workouts, goals & more
                 </TooltipContent>
               </Tooltip>
             )}

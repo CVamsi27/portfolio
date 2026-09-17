@@ -27,7 +27,7 @@ export default function TrackerShell({
   return (
     <div className="dossier-frame mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:pb-16 lg:px-10">
       <ChapterHeader
-        eyebrow="Personal Suite // Chapter 01"
+        eyebrow="NOVA//OS // Chapter 01"
         title={
           <span className="inline-flex items-center gap-3">
             {icon ? (
