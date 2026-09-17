@@ -38,7 +38,6 @@ next-env.d.ts
 
 # supabase cli cache
 supabase/.temp/
-pnpm-workspace.yaml
 
 # playwright
 /test-results/
