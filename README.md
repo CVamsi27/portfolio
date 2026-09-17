@@ -28,7 +28,7 @@ Tracker pages (client components)
                  debounced push (800ms) on every write
 ```
 
-**Local-first by design.** Every write hits `localStorage` synchronously and the cloud is progressive enhancement: offline-capable, zero-latency UI, and the same JSON rows sync across devices when signed in. Supabase is optional — with no env vars the app runs entirely locally and auth stays open.
+**Local-first by design.** Every write hits `localStorage` synchronously and the cloud is progressive enhancement: offline-capable, zero-latency UI, and the same JSON rows sync across devices when signed in. Supabase is optional — with no public Supabase env vars the app runs entirely locally, auth stays open, and Share drops remain local-only. Cloud sync, signed-in image storage, allowlisted private links, and public signed media require the configured Supabase project and migrations.
 
 ### Data model
 
@@ -67,6 +67,7 @@ pnpm dev            # http://localhost:3000 → tracker suite
 | `pnpm build` / `pnpm start` | Production build / serve |
 | `pnpm lint` | ESLint 9 flat config (`eslint.config.mjs`) |
 | `pnpm test:e2e` | Playwright suite (its `pretest:e2e` hook rebuilds in local mode first) |
+| `pnpm exec playwright test e2e/reduced-motion.spec.ts` | Reduced-motion contract test against the current production build |
 
 **Environment.** Copy your Supabase URL + publishable key into `.env` as `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to enable sign-in and cross-device sync. For public Share links, also configure `SUPABASE_SERVICE_ROLE_KEY` (or the server-only `SUPABASE_SECRET_KEY`) for the `/api/share/[shareId]` signer. Never prefix that secret with `NEXT_PUBLIC_`; it must not reach the browser. Leave the public variables blank for pure local mode. Note `NEXT_PUBLIC_*` vars are inlined at **build time**.
 
@@ -80,17 +81,19 @@ Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximate
 
 ## Testing
 
-The E2E suite (`e2e/`, 35 tests) drives the real production build in local mode on port 4111:
+The E2E suite (`e2e/`, 44 tests across 12 specs) drives the real production build in local mode on port 4111:
 
 ```bash
 pnpm test:e2e                          # full suite
 ./node_modules/.bin/playwright test e2e/workouts.spec.ts
 ./node_modules/.bin/playwright test e2e/share.spec.ts --grep "hard limits|asks for access"
+./node_modules/.bin/playwright test e2e/reduced-motion.spec.ts
 ./node_modules/.bin/playwright test --headed -g "rest timer"
+pnpm lint && pnpm build                 # release gates
 npx playwright show-trace test-results/<dir>/trace.zip   # debug a failure
 ```
 
-Key mechanics: the config blanks `NEXT_PUBLIC_SUPABASE_*` for the build (auth open, sync off), and `e2e/helpers.ts#seed` injects valid v2 store shapes into `localStorage` before page load — guarded by a `sessionStorage` flag so seeding runs **once per tab**, letting tests reload the page and assert persistence while every fresh context starts clean.
+Key mechanics: the config blanks `NEXT_PUBLIC_SUPABASE_*` for the build (auth open, sync off), and `e2e/helpers.ts#seed` injects valid v2 store shapes into `localStorage` before page load — guarded by a `sessionStorage` flag so seeding runs **once per tab**, letting tests reload the page and assert persistence while every fresh context starts clean. Run `pnpm build` with the same blank public variables before invoking Playwright directly; `NEXT_PUBLIC_*` values are inlined at build time. The configured Share integration suite is separate and requires all public Supabase variables plus a server-only signing key; local-mode E2E does not verify remote RLS, storage signing, or carrier/link delivery.
 
 ## CI
 

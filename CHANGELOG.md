@@ -2,7 +2,7 @@
 
 ## v2.0 — Personal Tracker Suite (2026-09-17)
 
-The portfolio repo now ships two products in one codebase: the public résumé at `buildora.work`, and a private, local-first life-OS at `personal.buildora.work` — 8 tracker pages, offline-capable PWA, cloud sync, and a 35-test E2E suite in CI.
+The portfolio repo now ships two products in one codebase: the public résumé at `buildora.work`, and a private, local-first life-OS at `personal.buildora.work` — 8 tracker pages, offline-capable PWA, cloud sync, and a 44-test E2E suite in CI.
 
 ### ✨ Highlights
 
@@ -40,9 +40,17 @@ The portfolio repo now ships two products in one codebase: the public résumé a
 - Custom affirmations that join the deck.
 - Three-prompt micro-journal (win / learned / tomorrow's focus) stored per date and synced.
 
+### 🎬 Shonen Dossier redesign & release gates
+
+- Responsive chapter shell, command deck, goal-centered Motivation focus scene, mobile command dock, and reduced-motion-safe dossier reveal styling now carry the visual system through the tracker suite and public portfolio.
+- The reduced-motion contract disables non-essential animation and transitions; Focus Mode keeps a layout fallback when browser fullscreen is unavailable.
+- Local mode remains usable without Supabase: public variables blank the auth gate and cloud sync, while cloud image storage and public/private Share links stay unavailable until the configured migrations and server signer are present.
+
 ### 📤 Share & Settings
 
-- Ephemeral drops with tags, pinning, fuzzy search, and a polished email allowlist editor.
+- Ephemeral drops with tags, pinning, fuzzy search, explicit private `Specific people` access, opt-in public `Anyone with the link` access, private media, email allowlists, expiry cleanup, and five-minute signed image URLs.
+- Share limits are 50 active drops, 5 MB per signed-in image, approximately 1.2 MB per local-only image, and approximately 5,000 KB displayed browser capacity. Public/private access is enforced by Supabase RLS and the server-only signing route; a link or gateway acceptance does not imply delivery or notification.
+- Supabase migrations run in order from `0001_tracker_data.sql` through `0005_private_share_media.sql`; the service-role/secret signing key is server-only and never uses a `NEXT_PUBLIC_` prefix.
 - Settings page: full-suite JSON export/import (validate-before-write, pre-import snapshot, v1 backups included), per-tracker storage stats, quick preferences, and a type-`CLEAR` danger zone.
 
 ### 🧱 Under the hood
@@ -54,4 +62,4 @@ The portfolio repo now ships two products in one codebase: the public résumé a
 
 ### 🧪 Quality
 
-- 35 Playwright E2E tests across 6 specs — onboarding, hub, fasting, workouts, goal, todos, motivation, settings, host routing — running against a real production build in local mode. The suite caught and fixed three real bugs before release: an inverted fasting Start button, a hydration-broken portal link, and a visit-log effect that could erase same-day history.
+- 44 Playwright E2E tests across 12 specs — including onboarding, hub, fasting, workouts, goal, todos, motivation, Share UI, reduced motion, settings, and host routing — run against a real production build in local mode. Release gates are `pnpm test:e2e`, `pnpm lint`, and `pnpm build`; configured Share integration additionally requires Supabase credentials and is not covered by local mode. The suite caught and fixed three real bugs before release: an inverted fasting Start button, a hydration-broken portal link, and a visit-log effect that could erase same-day history.
