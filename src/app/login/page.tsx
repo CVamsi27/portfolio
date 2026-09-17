@@ -60,7 +60,7 @@ export default function LoginPage() {
           ) : user ? (
             <>
               <StatusIcon variant="success"><UserCheck className="h-7 w-7 text-white" /></StatusIcon>
-              <h2 className="font-display mt-4 text-xl font-bold">You're signed in</h2>
+              <h2 className="font-display mt-4 text-xl font-bold">You&apos;re signed in</h2>
               <p className="mt-2 text-sm text-muted-foreground">{user.email}</p>
               <Link href="/trackers" className="mt-5 w-full">
                 <Button className="w-full">Open my trackers</Button>
