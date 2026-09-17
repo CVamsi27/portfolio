@@ -7,7 +7,9 @@ One Next.js 16 codebase serving two experiences, split by host at the edge:
 | `buildora.work` (and `/`) | Public developer résumé — hero, experience, projects, skills, live contact |
 | `personal.buildora.work` (and `localhost:3000`) | Private life-OS command center — fasting, workouts, goals, todos, motivation, journal |
 
-The résumé carries a subtle **Personal Suite** portal link; the tracker side is gated by auth when Supabase is configured, and fully usable signed-out (local-only mode).
+The résumé carries a subtle **NOVA//OS** portal link; the tracker side is gated by auth when Supabase is configured, and fully usable signed-out (local-only mode).
+
+The tracker UI is branded NOVA//OS. Internal `vk:` localStorage keys and the `vk-tracker-suite` backup discriminator remain stable for existing data.
 
 ---
 

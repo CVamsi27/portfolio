@@ -1,5 +1,5 @@
 /**
- * VK Personal Suite service worker.
+ * NOVA//OS service worker.
  *
  * Strategy:
  * - App shell (root documents + icons) precached at install.
@@ -9,7 +9,7 @@
  *
  * Bump CACHE_VERSION to invalidate everything.
  */
-const CACHE_VERSION = "vk-suite-v1";
+const CACHE_VERSION = "nova-os-v2";
 const OFFLINE_URL = "/trackers";
 
 const PRECACHE = [
