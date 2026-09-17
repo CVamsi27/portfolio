@@ -2,15 +2,18 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Host-based routing for the three domains on one Vercel project:
+ * Host-based routing for the three domains on one Vercel project.
+ * Next 16 renamed the `middleware` file convention to `proxy` — same
+ * runtime, same signature, new name.
+ *
  * - buildora.work / portfolio.buildora.work → portfolio resume ONLY.
  *   Every non-root path (incl. /login, /trackers, /goal, …) redirects to `/`.
  *   Only `/api/*` (contact form) is exempt.
  * - personal.buildora.work → tracker suite, with `/` rewritten to the
  *   `/trackers` hub; all other routes (/goal, /share, /login, …) pass through.
- * Localhost is unrestricted for development.
+ * - Localhost is unrestricted for development.
  */
-export function middleware(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   const host = (req.headers.get("host") ?? "").toLowerCase();
   const url = req.nextUrl.clone();
 
