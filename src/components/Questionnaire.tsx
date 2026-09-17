@@ -16,6 +16,7 @@ import {
   type MotivationStyle,
 } from "@/lib/user-prefs";
 import { ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
+import { TRACKER_BRAND } from "@/lib/brand";
 
 const STEPS = ["Welcome", "Goal", "Workout", "Fasting", "Motivation"] as const;
 
@@ -60,11 +61,11 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
           {/* step 0: Welcome */}
           {step === 0 && (
             <div className="space-y-4 text-center">
-              <p className="dossier-kicker">Personal Suite // Onboarding chapter</p>
+              <p className="dossier-kicker">{TRACKER_BRAND.name}{" // Onboarding chapter"}</p>
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-fuchsia-500 shadow-lg shadow-primary/25">
                 <Sparkles className="h-8 w-8 text-white" />
               </span>
-              <h1 className="font-display text-2xl font-bold">Welcome to your Trackers</h1>
+              <h1 className="font-display text-2xl font-bold">Welcome to {TRACKER_BRAND.name}</h1>
               <p className="text-sm text-muted-foreground">
                 Let&apos;s personalize your experience. This takes 30 seconds.
               </p>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-store";
+import { TRACKER_BRAND } from "@/lib/brand";
 import { Lock } from "lucide-react";
 
 /**
@@ -34,7 +35,7 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
             <p className="text-3xl"><Lock className="mx-auto h-8 w-8 text-primary" /></p>
           <h1 className="font-display mt-3 text-2xl font-bold">Sign in required</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Trackers are private to your account. Sign in with Google to
+            {TRACKER_BRAND.name} trackers are private to your account. Sign in with Google to
             continue — your data syncs across devices.
           </p>
           <div className="mt-5 flex flex-col gap-2">

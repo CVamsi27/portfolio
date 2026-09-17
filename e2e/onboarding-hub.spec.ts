@@ -12,7 +12,7 @@ test.describe("onboarding questionnaire", () => {
     });
     await page.goto("/trackers");
 
-    await expect(page.getByText("Welcome to your Trackers")).toBeVisible();
+    await expect(page.getByText("Welcome to NOVA//OS")).toBeVisible();
 
     // Step 0: name.
     await page.getByPlaceholder("Your name").fill("E2E Runner");
@@ -60,13 +60,13 @@ test.describe("onboarding questionnaire", () => {
       window.localStorage.clear();
     });
     await page.goto("/trackers");
-    await expect(page.getByText("Welcome to your Trackers")).toBeVisible();
+    await expect(page.getByText("Welcome to NOVA//OS")).toBeVisible();
     await page.getByPlaceholder("Your name").fill("Halfway");
     await page.getByRole("button", { name: "Next" }).click();
     // Reload — nothing was finished, so questionnaireDone is still false and
     // the questionnaire must reappear (storage survives the reload).
     await page.reload();
-    await expect(page.getByText("Welcome to your Trackers")).toBeVisible();
+    await expect(page.getByText("Welcome to NOVA//OS")).toBeVisible();
   });
 });
 

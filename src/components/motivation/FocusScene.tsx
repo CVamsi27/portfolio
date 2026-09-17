@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Bookmark, Check, Copy, Maximize2, Minimize2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { TRACKER_BRAND } from "@/lib/brand";
 import { enterFullscreen, exitFullscreen, focusModeLabel } from "@/lib/focus-mode";
 
 type FocusSceneProps = {
@@ -168,7 +169,7 @@ export default function FocusScene({
       </div>
 
       <footer className="flex items-center justify-between gap-3 border-t border-white/10 pt-4 font-utility text-[10px] uppercase tracking-[0.14em] text-white/45">
-        <span>Signal locked to your current objective</span>
+        <span>{TRACKER_BRAND.name} · Signal locked to your current objective</span>
         <span>{active ? "Esc to exit" : "Enter focus to clear the field"}</span>
       </footer>
     </section>

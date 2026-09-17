@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TRACKER_BRAND } from "@/lib/brand";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -60,9 +61,9 @@ export default function InstallPrompt() {
         <Download className="h-4 w-4 text-white" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold">Install Personal Suite</p>
+        <p className="text-sm font-semibold">Install {TRACKER_BRAND.name}</p>
         <p className="text-xs text-muted-foreground">
-          Full-screen app, offline support, home-screen icon.
+          {TRACKER_BRAND.tagline} Full-screen app, offline support, home-screen icon.
         </p>
       </div>
       <Button size="sm" onClick={install}>
