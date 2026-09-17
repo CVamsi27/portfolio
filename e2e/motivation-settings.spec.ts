@@ -107,7 +107,7 @@ test.describe("settings: backup, restore, wipe", () => {
       mimeType: "application/json",
       buffer: Buffer.from(JSON.stringify({ hello: "world" })),
     });
-    await expect(page.getByText("Import failed")).toBeVisible();
+    await expect(page.getByText("Import failed", { exact: true })).toBeVisible();
   });
 
   test("danger zone requires typing CLEAR and wipes the namespace", async ({ page }) => {
