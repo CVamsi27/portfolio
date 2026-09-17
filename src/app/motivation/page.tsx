@@ -1,158 +1,333 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
+import Modal from "@/components/trackers/Modal";
+import EmptyState from "@/components/trackers/EmptyState";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useSyncedStorage } from "@/lib/use-synced-storage";
+import { Input } from "@/components/ui/input";
 import { SyncBadge } from "@/components/auth/AuthButton";
-import { MOTIVATION_QUOTES, dateKey } from "@/lib/trackers";
 import { useUserPrefs } from "@/lib/user-prefs";
+import {
+  type CustomQuote,
+  type JournalMap,
+  MOTIVATION_QUOTES,
+  calculateStreak,
+  dateKey,
+} from "@/lib/trackers";
+import { useCustomQuotes, useJournal, useMigrateFasting, useMotivationVisits, newCustomQuote } from "@/lib/tracker-store";
+import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { cn } from "@/lib/utils";
-import { Zap, Heart, Diamond, Check, X, ArrowRight, Shuffle, Bookmark } from "lucide-react";
+import {
+  ArrowRight,
+  Bookmark,
+  BookOpen,
+  Check,
+  Copy,
+  Feather,
+  Plus,
+  Quote,
+  Shuffle,
+  Sparkles,
+  Trash2,
+  X,
+  Zap,
+} from "lucide-react";
+
+const JOURNAL_PROMPTS = [
+  { key: "win" as const, label: "One win today", placeholder: "Shipped the auth flow…", icon: Sparkles },
+  { key: "learned" as const, label: "One thing I learned / grateful for", placeholder: "Finally understood RSC hydration…", icon: BookOpen },
+  { key: "focus" as const, label: "Tomorrow's #1 focus", placeholder: "Finish the set logger…", icon: ArrowRight },
+];
 
 export default function MotivationPage() {
+  // Runs the fasting/goal migrations early for returning users; harmless no-op otherwise.
+  useMigrateFasting();
   const { prefs } = useUserPrefs();
-  const quotes = MOTIVATION_QUOTES[prefs.motivationStyle] ?? MOTIVATION_QUOTES.discipline;
+  const presetQuotes = MOTIVATION_QUOTES[prefs.motivationStyle] ?? MOTIVATION_QUOTES.discipline;
+
+  const { value: favs, setValue: setFavs, status } = useSyncedStorage<string[]>("motivation:favs", []);
+  const { value: visits, setValue: setVisits } = useMotivationVisits();
+  const { value: customQuotes, setValue: setCustomQuotes } = useCustomQuotes();
+  const { value: journal, setValue: setJournal } = useJournal();
+
+  const safeFavs = favs ?? [];
+  const safeVisits = useMemo(() => visits ?? {}, [visits]);
+  const safeCustom = useMemo(() => customQuotes ?? [], [customQuotes]);
+  const safeJournal: JournalMap = useMemo(() => journal ?? {}, [journal]);
+
+  const today = dateKey();
+  const [copied, setCopied] = useState(false);
+  const [quoteOpen, setQuoteOpen] = useState(false);
+  const [quoteDraft, setQuoteDraft] = useState({ text: "", tag: "Mine" });
+
+  // Register today's visit once, from an effect (never during render).
+  const [visitRecorded, setVisitRecorded] = useState(false);
+  useEffect(() => {
+    if (!visitRecorded && !safeVisits[today]) {
+      setVisitRecorded(true);
+      setVisits({ ...safeVisits, [today]: Date.now() });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visitRecorded, today]);
+
+  // Deck = presets + user's custom affirmations (normalized to one shape)
+  const deck = useMemo<{ text: string; tag: string; id: string }[]>(
+    () => [
+      ...presetQuotes.map((q, i) => ({ ...q, id: `preset-${i}` })),
+      ...safeCustom.map((q) => ({ text: q.text, tag: q.tag || "Mine", id: q.id })),
+    ],
+    [presetQuotes, safeCustom],
+  );
 
   const daySeed = useMemo(() => {
-    const d = dateKey();
     let h = 0;
-    for (const c of d) h = (h * 31 + c.charCodeAt(0)) % 997;
+    for (const c of today) h = (h * 31 + c.charCodeAt(0)) % 997;
     return h;
-  }, []);
-  const daily = quotes[daySeed % quotes.length];
+  }, [today]);
+  const [idx, setIdx] = useState(daySeed % Math.max(1, deck.length));
+  const current = deck[((idx % deck.length) + deck.length) % deck.length];
+  const currentText = current.text;
+  const isFav = safeFavs.includes(currentText);
 
-  const [idx, setIdx] = useState(daySeed % quotes.length);
-  const { value: favs, setValue: setFavs, status } = useSyncedStorage<string[]>(
-    "motivation:favs",
-    [],
+  // Real consecutive-day streak across journaling + visits.
+  const activeDays = useMemo(
+    () => Array.from(new Set([...Object.keys(safeJournal), ...Object.keys(safeVisits)])),
+    [safeJournal, safeVisits],
   );
-  const todayKey = dateKey();
-  const { value: visits } = useSyncedStorage<Record<string, number>>(
-    "motivation:visits",
-    {},
-  );
+  const streak = calculateStreak(activeDays);
 
-  const quote = quotes[idx % quotes.length];
-  const isFav = favs.includes(quote.text);
-  const streak = Object.keys(visits ?? {}).length + ((visits ?? {})[todayKey] ? 0 : 1);
+  const shuffle = () => setIdx((i) => i + 1 + Math.floor(Math.random() * (deck.length - 1)));
 
-  const shuffle = () =>
-    setIdx((i) => (i + 1 + Math.floor(Math.random() * (quotes.length - 1))) % quotes.length);
+  const toggleFav = () =>
+    setFavs(isFav ? safeFavs.filter((f) => f !== currentText) : [...safeFavs, currentText]);
+
+  const copyQuote = async () => {
+    try {
+      await navigator.clipboard.writeText(`"${currentText}"`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const addCustomQuote = () => {
+    const text = quoteDraft.text.trim();
+    if (!text) return;
+    setCustomQuotes([...safeCustom, newCustomQuote(text, quoteDraft.tag.trim() || "Mine")]);
+    setQuoteDraft({ text: "", tag: "Mine" });
+    setQuoteOpen(false);
+  };
+
+  // Journal draft state, hydrated from today's saved entry.
+  const entry = safeJournal[today] ?? { win: "", learned: "", focus: "", updatedAt: 0 };
+  const [draft, setDraft] = useState<{ win: string; learned: string; focus: string } | null>(null);
+  const draftState = draft ?? { win: entry.win, learned: entry.learned, focus: entry.focus };
+  const [savedFlash, setSavedFlash] = useState(false);
+
+  const saveJournal = () => {
+    setJournal({ ...safeJournal, [today]: { ...draftState, updatedAt: Date.now() } });
+    setDraft(null);
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1500);
+  };
 
   return (
     <RequireAuth>
-    <TrackerShell
-      icon="flame"
-      title="Motivation"
-      subtitle={`Daily ${prefs.motivationStyle} quotes — curated for your ${prefs.goalTitle || "goals"}.`}
-      badge={<SyncBadge status={status} />}
-    >
-      {/* quote card */}
-      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-card to-fuchsia-500/10">
-        <CardContent className="p-6 sm:p-8">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
-            Quote of the day · {quote.tag}
-          </p>
-          <blockquote className="font-display mt-3 text-2xl font-bold leading-snug tracking-tight sm:text-3xl">
-            &ldquo;{daily.text}&rdquo;
-          </blockquote>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button onClick={shuffle} variant="secondary">
-              <Shuffle className="mr-1.5 h-4 w-4" /> Shuffle deck
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() =>
-                setFavs(isFav ? favs.filter((f) => f !== quote.text) : [...favs, quote.text])
-              }
-            >
-              {isFav ? <><Bookmark className="mr-1.5 h-4 w-4" /> Saved</> : <><Bookmark className="mr-1.5 h-4 w-4" /> Save this one</>}
-            </Button>
-          </div>
-          <p className="mt-4 rounded-lg bg-background/60 px-3 py-2 text-sm text-muted-foreground">
-            Now showing: &ldquo;{quote.text}&rdquo;
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* stats */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { l: "Day streak", v: `${streak}`, Icon: Zap, gradient: "from-amber-500 to-orange-600" },
-          { l: "Saved", v: `${favs.length}`, Icon: Heart, gradient: "from-rose-500 to-pink-600" },
-          { l: "Deck size", v: `${quotes.length}`, Icon: Diamond, gradient: "from-primary to-fuchsia-500" },
-        ].map((s) => (
-          <Card key={s.l} className="group overflow-hidden">
-            <div className="flex items-center gap-3 p-4">
-              <span
-                aria-hidden
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${s.gradient} shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg`}
-              >
-                <s.Icon className="h-5 w-5 text-white" />
-              </span>
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">{s.l}</p>
-                <p className="font-display text-2xl font-bold">{s.v}</p>
-              </div>
+      <TrackerShell
+        icon="flame"
+        title="Motivation"
+        subtitle={`Daily ${prefs.motivationStyle} deck with your own affirmations, favorites, and a three-prompt reflection anchor.`}
+        badge={<SyncBadge status={status} />}
+      >
+        {/* ── Quote of the day ── */}
+        <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-card to-fuchsia-500/10">
+          <CardContent className="p-6 sm:p-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
+              Quote of the day · {current.tag}
+            </p>
+            <blockquote className="font-display mt-3 text-2xl font-bold leading-snug tracking-tight sm:text-3xl">
+              &ldquo;{currentText}&rdquo;
+            </blockquote>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Button onClick={shuffle} variant="secondary">
+                <Shuffle className="mr-1.5 h-4 w-4" /> Shuffle
+              </Button>
+              <Button variant="outline" onClick={toggleFav}>
+                <Bookmark className={cn("mr-1.5 h-4 w-4", isFav && "fill-current")} />
+                {isFav ? "Saved" : "Save"}
+              </Button>
+              <Button variant="ghost" onClick={copyQuote}>
+                {copied ? <Check className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
+                Copy
+              </Button>
             </div>
-          </Card>
-        ))}
-      </div>
+          </CardContent>
+        </Card>
 
-      {/* saved fuel */}
-      <Card>
-        <CardContent className="p-5">
-          <h2 className="font-display font-bold">Saved fuel</h2>
-          {(favs ?? []).length === 0 ? (
-            <Card className="mt-3 border-dashed">
-              <CardContent className="flex flex-col items-center p-6 text-center">
-                <Bookmark className="h-8 w-8 text-muted-foreground/50" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Nothing saved yet — hit &ldquo;Save this one&rdquo; on anything that hits.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <ul className="mt-3 space-y-2">
-              {(favs ?? []).map((f) => (
-                <li
-                  key={f}
-                  className={cn(
-                    "flex items-start justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2 text-sm transition-colors hover:bg-muted/60",
-                  )}
+        {/* ── Stats ── */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { l: "Day streak", v: `${streak}`, Icon: Zap, gradient: "from-amber-500 to-orange-600" },
+            { l: "Saved", v: `${safeFavs.length}`, Icon: Bookmark, gradient: "from-rose-500 to-pink-600" },
+            { l: "Deck size", v: `${deck.length}`, Icon: Quote, gradient: "from-primary to-fuchsia-500" },
+          ].map((s) => (
+            <Card key={s.l} className="group overflow-hidden">
+              <div className="flex items-center gap-3 p-4">
+                <span
+                  aria-hidden
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${s.gradient} shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg`}
                 >
-                  <span>&ldquo;{f}&rdquo;</span>
-                  <button
-                    onClick={() => setFavs((favs ?? []).filter((x) => x !== f))}
-                    className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
-                    aria-label="Remove"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                  <s.Icon className="h-5 w-5 text-white" />
+                </span>
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">{s.l}</p>
+                  <p className="font-display text-2xl font-bold">{s.v}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
 
-      {/* goal anchor */}
-      <Card>
-        <CardContent className="p-5">
-          <h2 className="font-display font-bold">Goal anchor</h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Your focus: <strong>{prefs.goalTitle || prefs.goalCategory}</strong>. Daily
-            non-negotiables keep you on track.{" "}
-            <a href="/goal" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
-              View goal board <ArrowRight className="h-3.5 w-3.5" />
-            </a>
-          </p>
-        </CardContent>
-      </Card>
-    </TrackerShell>
+        {/* ── Daily micro-journal ── */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display font-bold">Daily reflection</h2>
+              {entry.updatedAt ? (
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                  saved {new Date(entry.updatedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-3 space-y-3">
+              {JOURNAL_PROMPTS.map((p) => (
+                <div key={p.key}>
+                  <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p.icon className="h-3.5 w-3.5 text-primary" /> {p.label}
+                  </label>
+                  <Input
+                    className="mt-1.5"
+                    placeholder={p.placeholder}
+                    value={draftState[p.key]}
+                    onChange={(e) => setDraft({ ...draftState, [p.key]: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              {savedFlash && <span className="text-xs font-semibold text-emerald-500">Saved ✓</span>}
+              <Button size="sm" onClick={saveJournal} disabled={!draftState.win && !draftState.learned && !draftState.focus}>
+                Save reflection
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Custom affirmations ── */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display font-bold">Your affirmations</h2>
+              <Button variant="outline" size="sm" onClick={() => setQuoteOpen(true)}>
+                <Plus className="mr-1 h-3.5 w-3.5" /> Add
+              </Button>
+            </div>
+            {safeCustom.length === 0 ? (
+              <div className="mt-3">
+                <EmptyState
+                  icon={Feather}
+                  title="No personal affirmations yet"
+                  hint="Add mantras in your own words — they join the daily deck and shuffle alongside the presets."
+                  action={
+                    <Button size="sm" variant="outline" onClick={() => setQuoteOpen(true)}>
+                      <Plus className="mr-1.5 h-4 w-4" /> Write one
+                    </Button>
+                  }
+                />
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {safeCustom.map((q) => (
+                  <li key={q.id} className="flex items-start justify-between gap-3 rounded-xl border border-border/60 px-3 py-2.5 text-sm">
+                    <span>
+                      &ldquo;{q.text}&rdquo;
+                      <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{q.tag}</span>
+                    </span>
+                    <button
+                      onClick={() => setCustomQuotes(safeCustom.filter((x) => x.id !== q.id))}
+                      aria-label="Delete affirmation"
+                      className="shrink-0 text-muted-foreground transition-colors hover:text-red-500"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── Saved fuel ── */}
+        <Card>
+          <CardContent className="p-5">
+            <h2 className="font-display font-bold">Saved fuel</h2>
+            {safeFavs.length === 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">Nothing saved yet — hit &ldquo;Save&rdquo; on anything that hits.</p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {safeFavs.map((f) => (
+                  <li key={f} className="flex items-start justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                    <span>&ldquo;{f}&rdquo;</span>
+                    <button
+                      onClick={() => setFavs(safeFavs.filter((x) => x !== f))}
+                      aria-label="Remove"
+                      className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── Custom quote modal ── */}
+        <Modal
+          open={quoteOpen}
+          onClose={() => setQuoteOpen(false)}
+          title="New affirmation"
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setQuoteOpen(false)}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={addCustomQuote} disabled={!quoteDraft.text.trim()}>
+                Add to deck
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-3">
+            <Input
+              placeholder="I show up for the hard things first…"
+              value={quoteDraft.text}
+              onChange={(e) => setQuoteDraft({ ...quoteDraft, text: e.target.value })}
+              onKeyDown={(e) => e.key === "Enter" && addCustomQuote()}
+              autoFocus
+            />
+            <Input
+              placeholder="Tag (optional) — e.g. Mantra"
+              value={quoteDraft.tag}
+              onChange={(e) => setQuoteDraft({ ...quoteDraft, tag: e.target.value })}
+            />
+          </div>
+        </Modal>
+      </TrackerShell>
     </RequireAuth>
   );
 }
