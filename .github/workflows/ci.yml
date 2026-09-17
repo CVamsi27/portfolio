@@ -7,6 +7,9 @@ name: CI
 #   3. TypeScript   → `tsc --noEmit`
 #   4. E2E suite    → `pnpm test:e2e`
 #
+# Toolchain is pinned: pnpm comes from package.json#packageManager (corepack
+# honors it), Node from .nvmrc — local dev and CI run identical versions.
+#
 # The E2E script's pre-hook builds Next with NEXT_PUBLIC_SUPABASE_* blanked,
 # which compiles the app into LOCAL MODE: auth is open, cloud sync is off,
 # and every tracker runs off localStorage — exactly what the specs seed and
@@ -37,12 +40,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 11
+        # No `version:` input — the action reads package.json#packageManager.
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: pnpm
 
       - name: Install dependencies
