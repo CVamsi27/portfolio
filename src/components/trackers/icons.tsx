@@ -6,6 +6,7 @@ import {
   KeyRound,
   Link2,
   ListChecks,
+  Settings,
   Share2,
   Timer,
   Users,
@@ -23,6 +24,7 @@ export const TRACKER_ICONS = {
   shared: Users,
   login: KeyRound,
   link: Link2,
+  settings: Settings,
 } satisfies Record<string, LucideIcon>;
 
 export type TrackerIconName = keyof typeof TRACKER_ICONS;
