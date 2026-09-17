@@ -30,7 +30,7 @@ const Skills = () => {
   }, [api]);
 
   return (
-    <section id="Skills" className="w-full px-6 py-24 bg-secondary/30">
+    <section id="Skills" data-chapter-index="03" className="w-full px-6 py-24 bg-secondary/30">
       <div className="max-w-3xl mx-auto">
         <SectionHeading
           eyebrow="Stack"

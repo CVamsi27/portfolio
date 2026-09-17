@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import ChapterLabel from "@/components/editorial/ChapterLabel";
 
 export default function ChapterHeader({
   eyebrow,
@@ -16,6 +17,7 @@ export default function ChapterHeader({
   return (
     <header
       data-testid="chapter-header"
+      data-editorial-chapter="true"
       className="dossier-reveal dossier-chapter-header"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -23,7 +25,7 @@ export default function ChapterHeader({
         {utility ? <div className="dossier-utility">{utility}</div> : null}
       </div>
       <div className="mt-6 max-w-4xl">
-        <p className="dossier-kicker">{eyebrow}</p>
+        <ChapterLabel eyebrow={eyebrow} />
         <h1 className="font-display mt-2 text-4xl font-black uppercase leading-[0.95] tracking-[-0.05em] sm:text-6xl">
           {title}
         </h1>

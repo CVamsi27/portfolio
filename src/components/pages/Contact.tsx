@@ -73,6 +73,7 @@ const Contact = () => {
   return (
     <section
       id="Contact"
+      data-chapter-index="04"
       className="w-full px-6 py-24 bg-secondary/30"
     >
       <div className="max-w-3xl mx-auto">

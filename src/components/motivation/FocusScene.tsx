@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { TRACKER_BRAND } from "@/lib/brand";
 import { enterFullscreen, exitFullscreen, focusModeLabel } from "@/lib/focus-mode";
+import ChapterLabel from "@/components/editorial/ChapterLabel";
 
 type FocusSceneProps = {
   goalTitle: string;
@@ -79,6 +80,7 @@ export default function FocusScene({
     <section
       ref={sceneRef}
       data-testid="focus-scene"
+      data-editorial-reveal
       data-focus-active={active ? "true" : "false"}
       data-reduced-motion="supported"
       aria-label="Motivation focus scene"
@@ -92,7 +94,7 @@ export default function FocusScene({
 
       <header className="flex items-start justify-between gap-4">
         <div>
-          <p className="dossier-kicker">Motivation // Focus sequence</p>
+          <ChapterLabel eyebrow="Motivation // Focus sequence" />
           <p className="mt-2 font-utility text-[10px] uppercase tracking-[0.12em] text-white/55">
             {active ? "Focus channel active" : "One clear move for today"}
           </p>

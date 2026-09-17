@@ -57,6 +57,7 @@ const About = () => {
   return (
     <section
       id="About"
+      data-chapter-index="00"
       className="relative min-h-screen flex flex-col justify-center px-6 py-24 overflow-hidden"
     >
       <div

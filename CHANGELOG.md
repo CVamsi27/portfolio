@@ -66,3 +66,6 @@ The portfolio repo now ships two products in one codebase: the public résumé a
 ## Unreleased
 
 - Rebranded tracker-facing product surfaces as NOVA//OS while preserving internal storage and backup compatibility identifiers.
+- Added the repo-wide NOVA//OS editorial foundation: paper-toned public dossier, archive-black tracker chapters, shared display typography, indexed utility rails, telemetry, signal rules, and explicit action hierarchy.
+- Applied the foundation to portfolio, tracker shell, Share, Settings, Login, Motivation focus, onboarding, and install surfaces without changing localStorage keys, share access behavior, or no-sign-in local mode.
+- Added browser contracts for semantic surfaces, chapter identity, mobile action visibility, route coverage, host boundaries, and reduced-motion behavior. Adaptive Momentum and recovery features remain separate follow-up work.

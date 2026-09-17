@@ -48,8 +48,8 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
   const progress = ((step + 1) / STEPS.length) * 100;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <Card className="mx-4 w-full max-w-lg overflow-hidden border-primary/20 shadow-2xl shadow-primary/10">
+    <div data-surface="archive" className="fixed inset-0 z-[100] flex items-center justify-center bg-[#071014]/95 px-4 backdrop-blur-sm">
+      <Card className="mx-4 w-full max-w-lg overflow-hidden border-[#49E7FF]/30 bg-[#071014] text-white shadow-[10px_10px_0_rgba(255,85,77,0.35)]">
         {/* progress bar */}
         <div className="h-1 w-full bg-muted">
           <div

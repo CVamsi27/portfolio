@@ -56,7 +56,7 @@ export default function InstallPrompt() {
   if (!deferred) return null;
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 to-fuchsia-500/10 p-3.5">
+    <div data-editorial-action data-editorial-reveal className="flex items-center gap-3 border border-[#49E7FF]/35 bg-[#071014] p-3.5 text-white">
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-fuchsia-500 shadow-md shadow-primary/25">
         <Download className="h-4 w-4 text-white" />
       </span>

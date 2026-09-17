@@ -14,6 +14,8 @@ import { SyncBadge } from "@/components/auth/AuthButton";
 import { useToast } from "@/components/ui/use-toast";
 import { Users, Plus, Check, X, Search, Pin, PinOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ChapterLabel from "@/components/editorial/ChapterLabel";
+import TelemetryLine from "@/components/editorial/TelemetryLine";
 import {
   accessMode,
   BROWSER_STORAGE_LIMIT_BYTES,
@@ -431,8 +433,19 @@ export default function SharePage() {
       badge={<SyncBadge status={status} />}
     >
       {/* ── Composer ── */}
-      <Card>
+      <Card data-editorial-action className="editorial-dispatch-composer">
         <CardContent className="space-y-3 p-5">
+          <div className="flex items-end justify-between gap-4">
+            <ChapterLabel eyebrow="Dispatch studio // compose" status={signedIn ? "sync ready" : "local mode"} />
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">01 / 03</span>
+          </div>
+          <TelemetryLine
+            items={[
+              { label: "Drops", value: `${activeDropCount}/${MAX_DROPS}` },
+              { label: "Images", value: imageCount },
+              { label: "Expiry", value: selectedTtl.label },
+            ]}
+          />
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}

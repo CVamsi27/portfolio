@@ -8,7 +8,7 @@ import { ArrowUpRight } from "lucide-react";
 
 const Projects = () => {
   return (
-    <section id="Projects" className="w-full px-6 py-24">
+    <section id="Projects" data-chapter-index="02" className="w-full px-6 py-24">
       <div className="max-w-3xl mx-auto">
         <SectionHeading
           eyebrow="Selected work"

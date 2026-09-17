@@ -17,7 +17,7 @@ const Footer = () => {
   const isTracker = host.startsWith("personal.") || pathname !== "/";
 
   return (
-    <footer className="border-t border-border/40">
+    <footer data-editorial-footer className="border-t border-border/40">
       <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-6 py-6 text-sm text-muted-foreground">
         {isTracker ? (
           <p className="font-display text-sm font-bold tracking-[-0.02em] text-foreground">

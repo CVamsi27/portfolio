@@ -11,6 +11,12 @@ The résumé carries a subtle **NOVA//OS** portal link; the tracker side is gate
 
 The tracker UI is branded NOVA//OS. Internal `vk:` localStorage keys and the `vk-tracker-suite` backup discriminator remain stable for existing data.
 
+### Editorial product system
+
+The repository now shares one visual grammar across both hosts: the portfolio is a paper-toned **Public Dossier**, while tracker routes are an archive-black **NOVA//OS** transmission. Full-bleed chapter openings, indexed utility rails, oversized display type, technical telemetry, signal rules, and one obvious next action replace repeated equal-weight dashboard panels. The `src/components/editorial/` primitives are presentational only; tracker hooks, share/privacy behavior, local-first persistence, and host routing remain the source of truth.
+
+The system is responsive down to a 390px mobile viewport and honors `prefers-reduced-motion` by removing non-essential reveals and transitions. Adaptive product features such as explainable momentum weighting, recovery mode, and weekly narrative review remain separate follow-up releases so this foundation can ship without changing persisted data or domain APIs.
+
 ---
 
 ## Architecture
@@ -53,6 +59,7 @@ All state lives under the `vk:` localStorage namespace, one JSON document per tr
 - **Motivation** — daily deck + custom affirmations + 3-prompt micro-journal with a true consecutive-day streak.
 - **Share** (`/share`) — ephemeral drops with tags, pinning, fuzzy search, explicit private/public access, private media, email allowlists, and short-lived signed image URLs.
 - **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub); the service worker precaches the shell, serves pages network-first and falls back to a cached `/trackers` offline shell.
+- **Editorial foundation** — shared chapter primitives (`EditorialFrame`, `ChapterLabel`, `DisplayStatement`, `ActionBlock`, `SignalRule`, `TelemetryLine`, `EditorialGrid`) keep portfolio, tracker, focus, share, settings, and onboarding surfaces visually related while preserving their distinct identities.
 
 ---
 

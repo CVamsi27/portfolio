@@ -99,7 +99,7 @@ const Navbar = () => {
             )}
           </a>
           <div className="flex items-center gap-1">
-            <div className="hidden md:flex items-center gap-1">
+            <div data-editorial-index className="hidden items-center gap-1 md:flex">
               {menuItems.map((item) =>
                 isTracker ? (
                   <Link

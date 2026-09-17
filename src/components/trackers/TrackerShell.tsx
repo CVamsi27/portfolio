@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import { TrackerIcon, type TrackerIconName } from "./icons";
 import TrackerNavDock from "./TrackerNavDock";
 import ChapterHeader from "./ChapterHeader";
+import EditorialFrame from "@/components/editorial/EditorialFrame";
+import TelemetryLine from "@/components/editorial/TelemetryLine";
 
 export default function TrackerShell({
   icon,
@@ -25,7 +27,8 @@ export default function TrackerShell({
   });
 
   return (
-    <div className="dossier-frame mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:pb-16 lg:px-10">
+    <EditorialFrame surface="archive" className="dossier-frame">
+      <div className="mx-auto w-full max-w-6xl pb-28 sm:pb-16">
       <ChapterHeader
         eyebrow="NOVA//OS // Chapter 01"
         title={
@@ -45,14 +48,17 @@ export default function TrackerShell({
           </Link>
         }
         utility={
-          <>
-            <span className="dossier-date">{today}</span>
-            {badge}
-          </>
+          <TelemetryLine
+            items={[
+              { label: "Today", value: today },
+              ...(badge ? [{ label: "Status", value: badge }] : []),
+            ]}
+          />
         }
       />
       <main className="mt-8 space-y-5">{children}</main>
       <TrackerNavDock />
-    </div>
+      </div>
+    </EditorialFrame>
   );
 }

@@ -48,6 +48,7 @@ import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
 import { buildDailyChapter, buildNextAction } from "@/lib/command-deck";
 import { cn } from "@/lib/utils";
+import ActionBlock from "@/components/editorial/ActionBlock";
 import {
   Activity,
   Dumbbell,
@@ -117,6 +118,15 @@ export default function TrackersHub() {
     metricLabel: metric.label,
     nextTask: nextPriorityTodo?.text,
   });
+  const nextActionHref = nextAction.startsWith("Protect")
+    ? "/intermittent-fasting"
+    : nextAction === "Log the session"
+      ? "/workout-tracking"
+      : nextAction.startsWith("Write")
+        ? "/motivation"
+        : nextAction.startsWith("Log ")
+          ? "/goal"
+          : "/todo";
   const dailyChapter = buildDailyChapter({
     goalTitle: prefs.goalTitle,
     goalLabel: goalMeta.label,
@@ -261,6 +271,28 @@ export default function TrackersHub() {
       >
         {/* ── Install banner (shown only when the browser offers it) ── */}
         <InstallPrompt />
+
+        <ActionBlock
+          eyebrow="Daily transmission // next move"
+          title={dailyChapter.nextAction}
+          description={dailyChapter.summary}
+          primary={
+            <Link
+              href={nextActionHref}
+              className="inline-flex min-h-11 items-center justify-center border border-[#C8FF3D] bg-[#C8FF3D] px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#071014] transition-transform hover:-translate-y-0.5"
+            >
+              Log this move
+            </Link>
+          }
+          secondary={
+            <Link
+              href="/motivation"
+              className="inline-flex min-h-11 items-center justify-center border border-current/30 px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] transition-colors hover:border-[#49E7FF] hover:text-[#49E7FF]"
+            >
+              Enter focus
+            </Link>
+          }
+        />
 
         {/* ── Daily episode: goal first, then the next move ── */}
         <div className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]">

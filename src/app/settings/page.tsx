@@ -112,7 +112,7 @@ export default function SettingsPage() {
         subtitle="Your data, your device — export the full suite, restore from a backup, or manage local storage."
         badge={<SyncBadge status={status} />}
       >
-        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+        <div data-editorial-action className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
           <StoryPanel
             eyebrow="Archive controls"
             title="Keep the dossier portable"
