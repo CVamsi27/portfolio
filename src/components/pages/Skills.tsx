@@ -8,6 +8,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import Image from "next/image";
 import { SKILLS } from "@/lib/const";
@@ -16,8 +17,17 @@ import { Reveal } from "@/components/common/Reveal";
 
 const Skills = () => {
   const plugin = React.useRef(
-    Autoplay({ delay: 2000, stopOnInteraction: true }),
+    Autoplay({ delay: 2000, stopOnInteraction: true, playOnInit: false }),
   );
+  const [api, setApi] = React.useState<CarouselApi>();
+
+  // Autoplay is motion — honor prefers-reduced-motion by never starting it.
+  // (CSS transitions elsewhere are already zeroed by the global media query.)
+  // Play via the carousel API once the plugin is registered.
+  React.useEffect(() => {
+    if (!api || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    api.plugins().autoplay?.play();
+  }, [api]);
 
   return (
     <section id="Skills" className="w-full px-6 py-24 bg-secondary/30">
@@ -32,6 +42,7 @@ const Skills = () => {
           <Carousel
             plugins={[plugin.current]}
             className="w-full"
+            setApi={setApi}
             onMouseEnter={plugin.current.stop}
             onMouseLeave={plugin.current.reset}
           >
