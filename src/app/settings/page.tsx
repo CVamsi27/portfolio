@@ -38,6 +38,8 @@ import {
   UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import SignalPanel from "@/components/trackers/SignalPanel";
+import StoryPanel from "@/components/trackers/StoryPanel";
 
 export default function SettingsPage() {
   useMigrateWorkouts();
@@ -110,6 +112,21 @@ export default function SettingsPage() {
         subtitle="Your data, your device — export the full suite, restore from a backup, or manage local storage."
         badge={<SyncBadge status={status} />}
       >
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+          <StoryPanel
+            eyebrow="Archive controls"
+            title="Keep the dossier portable"
+            action={<a href="#backup-restore" className="dossier-back-link">Open backup</a>}
+          >
+            Export before making broad changes, restore a known-good snapshot, and clear local data only after the explicit confirmation step.
+          </StoryPanel>
+          <SignalPanel
+            label="Storage signal"
+            value={stats ? `${activeKeys} keys` : "Measuring"}
+            detail={user ? "Cloud sync available" : "Local browser storage"}
+            tone={status === "error" ? "red" : "lime"}
+          />
+        </div>
         {/* ── Account ── */}
         <Card>
           <CardContent className="flex items-center justify-between gap-3 p-5">
@@ -129,7 +146,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* ── Backup / restore ── */}
-        <Card>
+        <Card id="backup-restore">
           <CardContent className="space-y-4 p-5">
             <div className="flex items-center gap-2">
               <Database className="h-5 w-5 text-primary" />

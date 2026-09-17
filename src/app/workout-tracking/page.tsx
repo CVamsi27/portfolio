@@ -39,6 +39,8 @@ import {
   useWorkouts,
 } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
+import SignalPanel from "@/components/trackers/SignalPanel";
+import StoryPanel from "@/components/trackers/StoryPanel";
 import {
   ArrowDown,
   ArrowUp,
@@ -239,8 +241,26 @@ export default function WorkoutPage() {
         subtitle="Split-aware sessions with structured set logging, last-session prefill, PR tracking and a built-in rest timer."
         badge={<SyncBadge status={status} />}
       >
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+          <StoryPanel
+            eyebrow="Current chapter"
+            title={tabs.find((t) => t.id === dayId)?.label ?? "Training session"}
+            action={<a href="#exercise-logger" className="dossier-back-link">Log sets</a>}
+          >
+            {dayPct === 100
+              ? "Session complete. Record the win, then let recovery set up the next progression."
+              : `${doneCount} of ${exercises.length} exercises complete. Follow the suggested day and build the next rep.`}
+          </StoryPanel>
+          <SignalPanel
+            label="Session signal"
+            value={`${dayPct}%`}
+            detail={`${weekSessions} session${weekSessions === 1 ? "" : "s"} logged`}
+            progress={dayPct}
+            tone="lime"
+          />
+        </div>
         {/* ── Header controls: split day tabs + unit toggle ── */}
-        <Card>
+        <Card id="exercise-logger">
           <CardContent className="space-y-3 p-4">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold">

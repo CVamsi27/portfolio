@@ -22,6 +22,8 @@ import {
 import { useMigrateTodos, useTodos, newTodo } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
 import { CalendarDays, Check, ListChecks, Pencil, Plus, Trash2, X } from "lucide-react";
+import SignalPanel from "@/components/trackers/SignalPanel";
+import StoryPanel from "@/components/trackers/StoryPanel";
 
 type View = "today" | "tomorrow" | "upcoming" | "done";
 
@@ -113,8 +115,26 @@ export default function TodoPage() {
         subtitle="Focused task manager — priorities, tags and date planning. Enter chains tasks; click a title to edit inline."
         badge={<SyncBadge status={status} />}
       >
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+          <StoryPanel
+            eyebrow="Next action"
+            title="Today&apos;s next move"
+            action={<a href="#todo-list" className="dossier-back-link">Open task list</a>}
+          >
+            {openToday
+              ? `${openToday} task${openToday === 1 ? "" : "s"} waiting in today’s queue. Start with the highest-priority move.`
+              : "Add one concrete task to open the next scene, or use the completed view to review the streak."}
+          </StoryPanel>
+          <SignalPanel
+            label="Completion signal"
+            value={`${pct}%`}
+            detail={`${doneToday}/${todayList.length} done today · ${streak}-day streak`}
+            progress={pct}
+            tone="lime"
+          />
+        </div>
         {/* ── Quick add ── */}
-        <Card>
+        <Card id="todo-list">
           <CardContent className="space-y-3 p-5">
             <div className="flex gap-2">
               <Input

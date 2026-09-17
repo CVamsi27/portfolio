@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-store";
 import { KeyRound, UserCheck, Wrench } from "lucide-react";
+import StoryPanel from "@/components/trackers/StoryPanel";
 
 function StatusIcon({ children, variant }: { children: React.ReactNode; variant: "primary" | "success" | "warn" }) {
   return (
@@ -39,6 +40,9 @@ export default function LoginPage() {
       title="Login"
       subtitle="One Google account unlocks all private trackers on every device. Public pages never need this."
     >
+      <StoryPanel eyebrow="Access chapter" title="Unlock your private archive">
+        Sign in once to carry your tracker chapters across devices. Public portfolio pages remain open to everyone.
+      </StoryPanel>
       <Card className="overflow-hidden border-primary/20 bg-gradient-to-b from-primary/10 via-card to-card shadow-xl shadow-primary/5">
         <CardContent className="flex flex-col items-center p-8 text-center">
           {loading ? (

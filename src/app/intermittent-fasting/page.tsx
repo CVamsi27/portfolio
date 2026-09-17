@@ -33,6 +33,8 @@ import {
 import { useFasting, useFastingHistory, useMigrateFasting, useNow } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
 import { CalendarClock, Flame, Pencil, Play, Square, Timer, Trash2 } from "lucide-react";
+import SignalPanel from "@/components/trackers/SignalPanel";
+import StoryPanel from "@/components/trackers/StoryPanel";
 
 type ManualDraft = { date: string; startTime: string; endTime: string; note: string };
 
@@ -149,8 +151,28 @@ export default function FastingPage() {
         subtitle="Timestamp-based fasting engine — accurate across suspended tabs. Track your window, log past fasts, and watch the streak build."
         badge={<SyncBadge status={status} />}
       >
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+          <StoryPanel
+            eyebrow="Current chapter"
+            title={eating ? "Refuel before the next window" : derived.running ? "Protect the current window" : "Open the fasting chapter"}
+            action={<a href="#fasting-timer" className="dossier-back-link">Open timer</a>}
+          >
+            {eating
+              ? "Use the eating window deliberately, then return to the protocol when the next fast begins."
+              : derived.running
+                ? `${formatHMS(derived.elapsedMs / 1000)} recorded in the current ${protocol.label} window.`
+                : "Start a timestamped window when you are ready. The timer remains accurate across suspended tabs."}
+          </StoryPanel>
+          <SignalPanel
+            label="Window signal"
+            value={`${Math.round(derived.pct)}%`}
+            detail={`${streak}-day fasting streak · ${protocol.label}`}
+            progress={derived.pct}
+            tone={eating ? "lime" : "violet"}
+          />
+        </div>
         {/* ── Timer hero ── */}
-        <Card className="overflow-hidden">
+        <Card id="fasting-timer" className="overflow-hidden">
           <CardContent className="p-6">
             <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-around">
               <div className="text-center sm:text-left">

@@ -40,6 +40,14 @@ test.describe("navigation & shell", () => {
     await expect(dock).toBeHidden();
   });
 
+  test("every primary chapter exposes the shared visual shell", async ({ page }) => {
+    await seed(page);
+    for (const route of ["/intermittent-fasting", "/workout-tracking", "/goal", "/todo", "/settings", "/portfolio"]) {
+      await page.goto(route);
+      await expect(page.getByTestId("chapter-header")).toBeVisible();
+    }
+  });
+
   test("PWA assets are served and exempt from the portfolio redirect", async ({ page }) => {
     const manifest = await page.request.get("http://127.0.0.1:4111/manifest.webmanifest", {
       headers: { Host: "buildora.work" },

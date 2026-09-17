@@ -26,6 +26,8 @@ import {
 } from "@/lib/trackers";
 import { useGoalState, useMigrateGoal, useNow } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
+import SignalPanel from "@/components/trackers/SignalPanel";
+import StoryPanel from "@/components/trackers/StoryPanel";
 import { Check, ChevronDown, ChevronUp, Copy, Pencil, Plus, Target, Trash2, TrendingUp, X } from "lucide-react";
 
 type MilestoneDraft = { title: string };
@@ -152,8 +154,26 @@ export default function GoalPage() {
         subtitle={`${goalMeta.icon} ${goalMeta.desc}. Log your daily metric, manage milestones, and watch the trajectory.`}
         badge={<SyncBadge status={status} />}
       >
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+          <StoryPanel
+            eyebrow="Roadmap chapter"
+            title={milestones.find((m) => !m.done)?.title ?? "All milestones complete"}
+            action={<a href="#milestones" className="dossier-back-link">Open roadmap</a>}
+          >
+            {goalPct === 100
+              ? "The roadmap is complete. Capture the next chapter or keep the daily metric alive."
+              : `Keep the next milestone visible and log ${metric.label.toLowerCase()} to move the trajectory.`}
+          </StoryPanel>
+          <SignalPanel
+            label="Roadmap signal"
+            value={`${goalPct}%`}
+            detail={`${doneCount} of ${milestones.length} milestones complete`}
+            progress={goalPct}
+            tone="red"
+          />
+        </div>
         {/* ── Category selector ── */}
-        <Card>
+        <Card id="milestones">
           <CardContent className="p-5">
             <p className="text-sm font-medium">Goal Category</p>
             <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">

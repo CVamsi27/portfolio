@@ -3,6 +3,7 @@ import Connections from "../Connections";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Download } from "lucide-react";
+import ChapterHeader from "@/components/trackers/ChapterHeader";
 
 const PHRASES = [
   "Full Stack Engineer",
@@ -63,15 +64,18 @@ const About = () => {
         className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[420px] w-[420px] rounded-full bg-primary/10 blur-[120px]"
       />
       <div className="max-w-3xl mx-auto w-full relative">
-        <div className="flex flex-col gap-8 text-center">
-          <div className="flex flex-col gap-4">
-            <p className="text-sm font-medium tracking-widest uppercase text-muted-foreground animate-fade-in">
-              Hello, I&apos;m
-            </p>
+          <div className="flex flex-col gap-8 text-center">
+          <ChapterHeader
+            eyebrow="Public portfolio // Chapter 00"
+            title={
+              <>
+                Vamsi Krishna <span className="gradient-text">Chandaluri</span>
+              </>
+            }
+            subtitle="Product-focused Full Stack Engineer building resilient SaaS chapters from interface to delivery."
+          />
 
-            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight animate-slide-up">
-              Vamsi Krishna <span className="gradient-text">Chandaluri</span>
-            </h1>
+          <div className="flex flex-col gap-4">
 
             <div className="flex justify-center animate-fade-in-delayed">
               <div className="w-full max-w-xl rounded-2xl border border-border bg-card/80 px-4 py-3 text-left shadow-xl shadow-primary/10 backdrop-blur">
