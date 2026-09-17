@@ -24,7 +24,9 @@ test.describe("motivation", () => {
     const dialog = page.getByRole("dialog");
     await dialog.getByPlaceholder("I show up for the hard things first…").fill("I ship every single day.");
     await dialog.getByRole("button", { name: "Add to deck" }).click();
-    await expect(page.getByText("I ship every single day.")).toBeVisible();
+    // Scope to the affirmations list — the text may also surface as the
+    // quote of the day once it joins the deck.
+    await expect(page.locator("li").filter({ hasText: "I ship every single day." })).toBeVisible();
     const custom = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:motivation:custom"))) ?? "[]");
     expect(custom.some((q: { text: string }) => q.text === "I ship every single day.")).toBe(true);
   });

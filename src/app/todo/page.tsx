@@ -227,7 +227,8 @@ export default function TodoPage() {
                         "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs transition-all active:scale-90",
                         t.done ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground/50",
                       )}
-                      aria-label="Toggle done"
+                      aria-pressed={t.done}
+                      aria-label={t.done ? `Mark "${t.text}" not done` : `Mark "${t.text}" done`}
                     >
                       {t.done ? <Check className="h-3 w-3" /> : ""}
                     </button>

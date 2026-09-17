@@ -20,8 +20,11 @@ export default function MiniBars({
   height?: number;
 }) {
   const max = Math.max(...data.map((d) => d.value), 1);
+  // One accessible summary for the whole series (role=img); the decorative
+  // bars stay silent so screen readers get the data exactly once.
+  const summary = data.map((d) => `${d.label}: ${d.value}${unit ? ` ${unit}` : ""}`).join(", ");
   return (
-    <div className={cn("flex items-end gap-1.5", className)}>
+    <div className={cn("flex items-end gap-1.5", className)} role="img" aria-label={summary}>
       {data.map((d, i) => {
         const isLast = highlightLast && i === data.length - 1;
         const h = Math.max(4, Math.round((d.value / max) * height));

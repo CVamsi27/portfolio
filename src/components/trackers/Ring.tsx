@@ -34,8 +34,19 @@ export default function Ring({
   const gapPct = (GAP_DEG / 360) * circ;
 
   return (
-    <div className={cn("relative", className)} style={{ width: size, height: size }}>
-      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+    <div
+      className={cn("relative", className)}
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label={
+        segments.some((s) => s.label)
+          ? `Progress: ${segments
+              .map((s) => `${s.label ?? "segment"} ${Math.round((s.value ?? 0) * 100)}%`)
+              .join(", ")}`
+          : undefined
+      }
+    >
+      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden="true">
         {/* track */}
         {segments.map((seg, i) => {
           const offsetDeg = i * sweep + GAP_DEG / 2;
@@ -110,8 +121,13 @@ export function SimpleRing({
   const circ = 2 * Math.PI * r;
   const clamped = Math.min(100, Math.max(0, pct));
   return (
-    <div className={cn("relative", className)} style={{ width: size, height: size }}>
-      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+    <div
+      className={cn("relative", className)}
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label={`Progress ${Math.round(clamped)}%`}
+    >
+      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden="true">
         <circle cx="50" cy="50" r={r} fill="none" strokeWidth={thickness} stroke="currentColor" className="text-muted" />
         <circle
           cx="50"

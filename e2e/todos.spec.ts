@@ -54,7 +54,7 @@ test.describe("todo manager", () => {
     await page.keyboard.press("Enter");
 
     // Complete it.
-    await page.getByRole("button", { name: "Toggle done" }).first().click();
+    await page.getByRole("button", { name: /Mark "Finishable task" done/ }).click();
     await expect(page.getByText("All done for today. Beautiful.")).toBeVisible();
 
     // It's in Completed view.
