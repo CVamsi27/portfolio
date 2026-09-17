@@ -1,0 +1,69 @@
+name: CI
+
+# Verification pipeline for every push to main and every PR:
+#
+#   1. pnpm install (frozen lockfile)
+#   2. ESLint       → `pnpm lint`  (flat config, 0-error/0-warning policy)
+#   3. TypeScript   → `tsc --noEmit`
+#   4. E2E suite    → `pnpm test:e2e`
+#
+# The E2E script's pre-hook builds Next with NEXT_PUBLIC_SUPABASE_* blanked,
+# which compiles the app into LOCAL MODE: auth is open, cloud sync is off,
+# and every tracker runs off localStorage — exactly what the specs seed and
+# drive. No Supabase secrets are needed here, and none must be provided:
+# real credentials would flip pages behind a sign-in gate and break the run.
+#
+# Chromium is installed explicitly so `npx playwright install --with-deps`
+# matches the browser version pinned by @playwright/test in the lockfile.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: ./node_modules/.bin/tsc --noEmit
+
+      - name: Install Playwright Chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
