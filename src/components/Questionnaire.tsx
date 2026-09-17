@@ -10,6 +10,7 @@ import {
   GOAL_CATEGORIES,
   WORKOUT_SPLITS,
   MOTIVATION_STYLES,
+  DEFAULT_GOAL_METRICS,
   type GoalCategory,
   type WorkoutSplit,
   type MotivationStyle,
@@ -25,8 +26,11 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
     name: prefs.name,
     goalCategory: prefs.goalCategory as GoalCategory,
     goalTitle: prefs.goalTitle,
+    dailyMetricLabel: prefs.dailyMetricLabel,
+    dailyMetricTarget: prefs.dailyMetricTarget,
     workoutDaysPerWeek: prefs.workoutDaysPerWeek,
     workoutSplit: prefs.workoutSplit as WorkoutSplit,
+    weightUnit: prefs.weightUnit,
     fastingEnabled: prefs.fastingEnabled,
     fastingProtocolId: prefs.fastingProtocolId,
     motivationStyle: prefs.motivationStyle as MotivationStyle,
@@ -115,6 +119,30 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
                   onChange={(e) => setLocal({ ...local, goalTitle: e.target.value })}
                 />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Daily metric</label>
+                  <Input
+                    className="mt-1"
+                    placeholder={DEFAULT_GOAL_METRICS[local.goalCategory]?.label}
+                    value={local.dailyMetricLabel ?? ""}
+                    onChange={(e) => setLocal({ ...local, dailyMetricLabel: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Daily target</label>
+                  <Input
+                    className="mt-1 tabular-nums"
+                    type="number"
+                    min={1}
+                    placeholder={String(DEFAULT_GOAL_METRICS[local.goalCategory]?.target ?? 3)}
+                    value={local.dailyMetricTarget ?? ""}
+                    onChange={(e) =>
+                      setLocal({ ...local, dailyMetricTarget: e.target.value === "" ? undefined : Number(e.target.value) })
+                    }
+                  />
+                </div>
+              </div>
             </div>
           )}
 
@@ -153,6 +181,28 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
                     onChange={(v) => setLocal({ ...local, workoutSplit: v as WorkoutSplit })}
                   />
                 </div>
+                {local.workoutSplit === "custom" && (
+                  <p className="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                    Custom split: you&apos;ll build named day tabs (e.g. &ldquo;Day A&rdquo;, &ldquo;Arms&rdquo;) on the workout page.
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="text-sm font-medium">Weight unit</label>
+                <div className="mt-2">
+                  <Segmented
+                    label="Weight unit"
+                    options={[
+                      { value: "kg", label: "Kilograms (kg)" },
+                      { value: "lbs", label: "Pounds (lbs)" },
+                    ]}
+                    value={local.weightUnit}
+                    onChange={(v) => setLocal({ ...local, weightUnit: v as "kg" | "lbs" })}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Toggle anytime on the workout page — history is stored in kg and converts automatically.
+                </p>
               </div>
             </div>
           )}
