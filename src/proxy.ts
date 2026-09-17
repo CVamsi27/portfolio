@@ -27,7 +27,15 @@ export default function proxy(req: NextRequest) {
 
   const isLocal =
     host.startsWith("localhost") || host.startsWith("127.") || host.endsWith(".local");
-  if (!isLocal && url.pathname !== "/" && !url.pathname.startsWith("/api/")) {
+
+  // PWA assets are app-agnostic — serve them from any host so the manifest,
+  // service worker and icons never hit the portfolio redirect.
+  const isPwaAsset =
+    url.pathname === "/manifest.webmanifest" ||
+    url.pathname === "/sw.js" ||
+    url.pathname.startsWith("/icons/");
+
+  if (!isLocal && !isPwaAsset && url.pathname !== "/" && !url.pathname.startsWith("/api/")) {
     url.pathname = "/";
     url.search = "";
     return NextResponse.redirect(url, 307);
