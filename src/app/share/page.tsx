@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -14,6 +14,20 @@ import { SyncBadge } from "@/components/auth/AuthButton";
 import { useToast } from "@/components/ui/use-toast";
 import { Users, Plus, Check, X, Search, Pin, PinOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  accessMode,
+  BROWSER_STORAGE_LIMIT_BYTES,
+  CLOUD_IMAGE_LIMIT_BYTES,
+  estimateDataUrlBytes,
+  expiryCopy,
+  isValidEmail,
+  LOCAL_IMAGE_LIMIT_BYTES,
+  MAX_DROPS,
+  normalizeEmail,
+  shareLimitState,
+  storagePathFromUrl,
+  type ShareAccessMode,
+} from "@/lib/share-domain";
 
 type DropTag = "Note" | "Snippet" | "Image" | "Link";
 
@@ -25,13 +39,16 @@ type Drop = {
   expiresAt: string | null; // null = never
   tags?: DropTag[];
   pinned?: boolean;
+  imagePath?: string | null;
 };
 
-type SharedLink = { id: string; url: string; expiresAt: string | null; emails: string[] };
-
-const LOCAL_IMG_LIMIT = 1_200_000; // ~1.2 MB binary for base64/localStorage path
-const CLOUD_IMG_LIMIT = 5_000_000;
-const MAX_DROPS = 50;
+type SharedLink = {
+  id: string;
+  url: string;
+  expiresAt: string | null;
+  emails: string[];
+  isPublic: boolean;
+};
 
 const TTL_OPTIONS = [
   { id: "24h", label: "24 hours", ms: 24 * 3600 * 1000 },
@@ -46,22 +63,6 @@ const DROP_TAGS: { id: DropTag; auto: (t: string) => boolean }[] = [
 ];
 
 const isAlive = (d: Drop) => !d.expiresAt || new Date(d.expiresAt).getTime() > Date.now();
-
-function expiryLabel(iso: string | null | undefined): string {
-  if (!iso) return "never expires";
-  const left = new Date(iso).getTime() - Date.now();
-  if (left <= 0) return "expired";
-  const h = Math.floor(left / 3600000);
-  if (h < 1) return "expires in <1h";
-  if (h < 24) return `expires in ${h}h`;
-  return `expires in ${Math.floor(h / 24)}d`;
-}
-
-function storagePathFromUrl(url: string): string | null {
-  const marker = "/drops/";
-  const i = url.indexOf(marker);
-  return i === -1 ? null : url.slice(i + marker.length).split("?")[0];
-}
 
 /** Tiny subsequence fuzzy match — returns a score, or -1 when no match. */
 function fuzzyScore(text: string, query: string): number {
@@ -81,8 +82,6 @@ function fuzzyScore(text: string, query: string): number {
   return score;
 }
 
-const validEmail = (s: string) => /.+@.+\..+/.test(s.trim());
-
 export default function SharePage() {
   const { value: drops, setValue: setDrops, status, user } = useSyncedStorage<Drop[]>("share", []);
   const { value: links, setValue: setLinks } = useSyncedStorage<Record<string, SharedLink>>("share:links", {});
@@ -97,6 +96,7 @@ export default function SharePage() {
   const [saving, setSaving] = useState(false);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [shareEditor, setShareEditor] = useState<string | null>(null);
+  const [shareAccess, setShareAccess] = useState<ShareAccessMode>("private");
   const [emailInput, setEmailInput] = useState("");
   const [draftEmails, setDraftEmails] = useState<string[]>([]);
   const [query, setQuery] = useState("");
@@ -116,14 +116,14 @@ export default function SharePage() {
     return filtered.sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false) || b.createdAt.localeCompare(a.createdAt));
   }, [safeDrops, query, tagFilter]);
 
-  const imageCount = safeDrops.filter((d) => d.image && isAlive(d)).length;
+  const imageCount = safeDrops.filter((d) => (d.image || d.imagePath) && isAlive(d)).length;
 
   const refreshUsage = () => setUsage(storageUsageBytes());
 
   const cleanStorageFiles = (expired: Drop[]) => {
     if (!signedIn) return;
     const paths = expired
-      .map((d) => (d.image?.startsWith("http") ? storagePathFromUrl(d.image) : null))
+      .map((d) => d.imagePath ?? (d.image?.startsWith("http") ? storagePathFromUrl(d.image) : null))
       .filter((p): p is string => Boolean(p));
     if (paths.length) void getSupabase()?.storage.from("drops").remove(paths).then(() => undefined);
   };
@@ -154,8 +154,14 @@ export default function SharePage() {
 
   const onFile = (f: File | undefined) => {
     if (!f) return;
-    if (f.size > CLOUD_IMG_LIMIT) {
-      toast({ title: "Image too large", description: "Keep images under ~5MB (zero-cost tier). Compress the screenshot first." });
+    const limit = signedIn ? CLOUD_IMAGE_LIMIT_BYTES : LOCAL_IMAGE_LIMIT_BYTES;
+    if (f.size > limit) {
+      toast({
+        title: "Image too large",
+        description: signedIn
+          ? "Signed-in images must be 5 MB or smaller. Compress the screenshot first."
+          : "Local-only images must be approximately 1.2 MB or smaller. Sign in for the 5 MB limit.",
+      });
       return;
     }
     const r = new FileReader();
@@ -177,7 +183,7 @@ export default function SharePage() {
         .storage.from("drops")
         .upload(path, blob, { contentType: blob.type || "image/png", upsert: true });
       if (error) return null;
-      return sb.storage.from("drops").getPublicUrl(path).data.publicUrl;
+      return path;
     } catch {
       return null;
     }
@@ -217,8 +223,8 @@ export default function SharePage() {
           ];
           if (!url) toast({ title: "Image upload failed", description: "Saved inline instead (heavier sync)." });
         } else {
-          const bytes = Math.round(pendingImg.length * 0.75);
-          if (bytes > LOCAL_IMG_LIMIT) {
+          const bytes = estimateDataUrlBytes(pendingImg);
+          if (bytes > LOCAL_IMAGE_LIMIT_BYTES) {
             toast({ title: "Image too large for local mode", description: "Sign in with Google to save images over ~1.2MB, or compress first." });
             return;
           }
@@ -246,8 +252,8 @@ export default function SharePage() {
 
   const remove = (d: Drop) => {
     setDrops(purgeExpired(safeDrops).filter((x) => x.id !== d.id));
-    if (signedIn && d.image?.startsWith("http")) {
-      const path = storagePathFromUrl(d.image);
+    if (signedIn) {
+      const path = d.imagePath ?? (d.image?.startsWith("http") ? storagePathFromUrl(d.image) : null);
       if (path) void getSupabase()?.storage.from("drops").remove([path]).then(() => undefined);
     }
     if (safeLinks[d.id]) void revokeLink(d, true);
@@ -263,13 +269,15 @@ export default function SharePage() {
 
   const openEditor = (d: Drop) => {
     setShareEditor(d.id);
-    setDraftEmails(safeLinks[d.id]?.emails ?? []);
+    const link = safeLinks[d.id];
+    setShareAccess(link ? accessMode({ is_public: link.isPublic }) : "private");
+    setDraftEmails(link?.emails ?? []);
     setEmailInput("");
   };
 
-  const addEmail = async (d: Drop) => {
-    const email = emailInput.trim().toLowerCase();
-    if (!validEmail(email)) {
+  const addEmail = (d: Drop) => {
+    const email = normalizeEmail(emailInput);
+    if (!isValidEmail(email)) {
       toast({ title: "Invalid email", description: "Enter a valid email address." });
       return;
     }
@@ -280,25 +288,13 @@ export default function SharePage() {
     const next = [...draftEmails, email];
     setDraftEmails(next);
     setEmailInput("");
-    const link = safeLinks[d.id];
-    if (link) {
-      const { error } = (await getSupabase()?.from("shared_drops").update({ allowed_emails: next }).eq("id", link.id)) ?? { error: null };
-      if (error) {
-        toast({ title: "Could not update sharing", description: "Did you run migration 0004?" });
-        return;
-      }
-      setLinks({ ...safeLinks, [d.id]: { ...link, emails: next } });
-    }
+    void d;
   };
 
-  const removeEmail = async (d: Drop, email: string) => {
+  const removeEmail = (d: Drop, email: string) => {
     const next = draftEmails.filter((e) => e !== email);
     setDraftEmails(next);
-    const link = safeLinks[d.id];
-    if (link) {
-      await getSupabase()?.from("shared_drops").update({ allowed_emails: next }).eq("id", link.id);
-      setLinks({ ...safeLinks, [d.id]: { ...link, emails: next } });
-    }
+    void d;
   };
 
   const createLink = async (d: Drop) => {
@@ -306,7 +302,7 @@ export default function SharePage() {
       toast({ title: "Sign in to share", description: "Links are allowlisted to emails you pick." });
       return;
     }
-    if (draftEmails.length === 0) {
+    if (shareAccess === "private" && draftEmails.length === 0) {
       toast({ title: "No viewers added", description: "Add at least one email to share with." });
       return;
     }
@@ -314,26 +310,32 @@ export default function SharePage() {
     try {
       const sb = getSupabase();
       if (!sb) return;
-      let imageUrl = d.image?.startsWith("http") ? d.image : null;
+      let imagePath = d.imagePath ?? (d.image?.startsWith("http") ? storagePathFromUrl(d.image) : null);
       if (d.image?.startsWith("data:")) {
-        imageUrl = await uploadToStorage(d.image, `shared-${d.id}`);
-        if (imageUrl) setDrops(safeDrops.map((x) => (x.id === d.id ? { ...x, image: imageUrl } : x)));
+        imagePath = await uploadToStorage(d.image, `shared-${d.id}`);
+        if (imagePath) setDrops(safeDrops.map((x) => (x.id === d.id ? { ...x, image: null, imagePath } : x)));
+        if (!imagePath) {
+          toast({ title: "Could not secure image", description: "The private Storage upload failed, so no share link was created." });
+          return;
+        }
       }
       const { data: sess } = await sb.auth.getSession();
       const { data, error } = await sb
-        .from("shared_drops")
-        .insert({
+        .from("shared_drops").upsert({
+          ...(safeLinks[d.id] ? { id: safeLinks[d.id].id } : {}),
           text: d.text ?? "",
-          image_url: imageUrl,
+          image_url: null,
+          image_path: imagePath,
+          is_public: shareAccess === "public",
           expires_at: d.expiresAt,
           created_from_drop: d.id,
           owner_email: sess.session?.user?.email ?? null,
-          allowed_emails: draftEmails,
+          allowed_emails: shareAccess === "private" ? draftEmails : [],
         })
         .select("id")
         .single();
       if (error || !data) {
-        toast({ title: "Could not create link", description: "Did you run migration 0004_shared_allowlist.sql?" });
+        toast({ title: "Could not create link", description: "Run Supabase migrations 0001 through 0005, then try again." });
         return;
       }
       const url = `${window.location.origin}/share/${data.id}`;
@@ -342,8 +344,14 @@ export default function SharePage() {
       } catch {
         /* clipboard unavailable */
       }
-      setLinks({ ...safeLinks, [d.id]: { id: data.id, url, expiresAt: d.expiresAt, emails: draftEmails } });
-      toast({ title: "Share link created", description: "Copied to clipboard — only allowlisted viewers can open it." });
+      setLinks({
+        ...safeLinks,
+        [d.id]: { id: data.id, url, expiresAt: d.expiresAt, emails: draftEmails, isPublic: shareAccess === "public" },
+      });
+      toast({
+        title: safeLinks[d.id] ? "Share settings updated" : "Share link created",
+        description: shareAccess === "public" ? "Copied to clipboard — anyone with the link can view it until it expires." : "Copied to clipboard — only matching signed-in emails can view it.",
+      });
     } finally {
       setSharingId(null);
     }
@@ -395,13 +403,31 @@ export default function SharePage() {
     URL.revokeObjectURL(a.href);
   };
 
-  const kb = (usage / 1024).toFixed(1);
+  useEffect(() => {
+    refreshUsage();
+    const expired = safeDrops.filter((drop) => !isAlive(drop));
+    if (expired.length > 0) {
+      setDrops(safeDrops.filter(isAlive));
+      cleanStorageFiles(expired);
+    }
+    void cleanupExpiredShares();
+    // The external store owns the data lifecycle; this is an opportunistic
+    // page-entry cleanup and should not run for every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn]);
+
+  const activeDropCount = safeDrops.filter(isAlive).length;
+  const pendingImageBytes = pendingImg?.startsWith("data:") ? estimateDataUrlBytes(pendingImg) : 0;
+  const limits = shareLimitState(activeDropCount, pendingImageBytes);
+  const kb = Math.min(usage, BROWSER_STORAGE_LIMIT_BYTES) / 1024;
+  const selectedTtl = TTL_OPTIONS.find((option) => option.id === ttl) ?? TTL_OPTIONS[1];
+  const selectedExpiry = new Date(Date.now() + selectedTtl.ms);
 
   return (
     <TrackerShell
       icon="share"
       title="Share"
-      subtitle="Private scratchpad with tags, pinning, fuzzy search and email-allowlisted sharing — everyone else sees nothing."
+      subtitle="A timed drop archive with explicit access controls, private media, and automatic cleanup."
       badge={<SyncBadge status={status} />}
     >
       {/* ── Composer ── */}
@@ -429,8 +455,9 @@ export default function SharePage() {
               className="hidden"
               onChange={(e) => onFile(e.target.files?.[0])}
             />
-            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              Auto-clear
+            <fieldset aria-label="Auto-clear this drop" className="flex min-w-0 flex-wrap items-center gap-2">
+              <legend className="sr-only">Auto-clear this drop</legend>
+              <span className="text-xs text-muted-foreground">Auto-clear this drop</span>
               <Segmented
                 label="Drop expiry"
                 variant="soft"
@@ -438,24 +465,29 @@ export default function SharePage() {
                 value={ttl}
                 onChange={setTtl}
               />
-            </label>
+              <span className="text-xs text-muted-foreground">
+                {expiryCopy(selectedExpiry.toISOString())} · clears {selectedExpiry.toLocaleString()}
+              </span>
+            </fieldset>
             {pendingImg && (
               <Button variant="ghost" size="sm" onClick={() => setPendingImg(null)}>
                 Remove image
               </Button>
             )}
             <span className="flex-1" />
-            <Button size="sm" onClick={save} disabled={(!text.trim() && !pendingImg) || saving}>
+            <Button size="sm" onClick={save} disabled={(!text.trim() && !pendingImg) || saving || limits.dropCapReached || limits.imageCapReached}>
               {saving ? "Uploading…" : "Drop it"}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            {safeDrops.filter(isAlive).length}/{MAX_DROPS} drops · {imageCount} images ·{" "}
+            {activeDropCount}/{MAX_DROPS} drops · {limits.dropsLeft} drops left · {imageCount} images ·{" "}
             {signedIn
-              ? "signed in — images go to Storage (5 MB max), sharing is email-allowlisted."
-              : "local mode — images capped ~1.2 MB, sharing needs sign-in."}{" "}
-            Browser: ~{kb} KB / ~5,000 KB.
+              ? "signed-in images use private Storage (5 MB max)."
+              : "local-only images are capped at approximately 1.2 MB; sharing needs sign-in."}{" "}
+            Browser: {kb.toFixed(1)} KB / {(BROWSER_STORAGE_LIMIT_BYTES / 1000).toLocaleString()} KB.
           </p>
+          {limits.dropCapReached && <p className="text-sm font-medium text-destructive">Drop cap reached. Export or delete an active drop before adding another.</p>}
+          {limits.imageCapReached && <p className="text-sm font-medium text-destructive">This image exceeds the active image limit. Choose a smaller file.</p>}
         </CardContent>
       </Card>
 
@@ -502,7 +534,7 @@ export default function SharePage() {
         <div className="grid gap-3 sm:grid-cols-2">
           {visible.map((d) => (
             <Card key={d.id} className={cn("group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg", d.pinned && "border-primary/40")}>
-              {d.image && (
+              {d.image?.startsWith("data:") && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={d.image} alt="shared drop" className="max-h-56 w-full object-cover" loading="lazy" />
               )}
@@ -510,7 +542,7 @@ export default function SharePage() {
                 {d.text && <p className="whitespace-pre-wrap text-sm leading-relaxed">{d.text}</p>}
                 <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground">
                   <span>{d.createdAt.slice(0, 16).replace("T", " ")}</span>
-                  <span>· {expiryLabel(d.expiresAt)}</span>
+                  <span>· {expiryCopy(d.expiresAt)}</span>
                   {(d.tags ?? []).map((t) => (
                     <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
                       {t}
@@ -518,7 +550,7 @@ export default function SharePage() {
                   ))}
                   {safeLinks[d.id] && (
                     <span className="inline-flex items-center gap-1">
-                      · <Users className="h-3 w-3" /> {safeLinks[d.id].emails.length}
+                      · <Users className="h-3 w-3" /> {safeLinks[d.id].isPublic ? "public" : safeLinks[d.id].emails.length}
                     </span>
                   )}
                 </div>
@@ -540,7 +572,7 @@ export default function SharePage() {
                       {safeLinks[d.id] ? <><Check className="mr-1 h-4 w-4" /> Sharing</> : "Share"}
                     </Button>
                   )}
-                  {d.image && (
+                  {d.image?.startsWith("data:") && (
                     <a
                       href={d.image}
                       download={`drop-${d.id}`}
@@ -563,8 +595,32 @@ export default function SharePage() {
 
                 {shareEditor === d.id && (
                   <div className="mt-3 space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
-                    <p className="text-xs font-medium">Who can view (email allowlist)</p>
-                    {draftEmails.length > 0 ? (
+                    <h3 className="text-sm font-semibold">Who can view this drop?</h3>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/60 p-2.5 text-sm">
+                        <input
+                          type="radio"
+                          name={`share-access-${d.id}`}
+                          value="private"
+                          checked={shareAccess === "private"}
+                          onChange={() => setShareAccess("private")}
+                          className="mt-0.5 accent-primary"
+                        />
+                        <span><strong>Specific people</strong><span className="block text-xs text-muted-foreground">Only matching signed-in emails.</span></span>
+                      </label>
+                      <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/60 p-2.5 text-sm">
+                        <input
+                          type="radio"
+                          name={`share-access-${d.id}`}
+                          value="public"
+                          checked={shareAccess === "public"}
+                          onChange={() => setShareAccess("public")}
+                          className="mt-0.5 accent-primary"
+                        />
+                        <span><strong>Anyone with the link</strong><span className="block text-xs text-muted-foreground">Signed-out visitors can view it until expiry.</span></span>
+                      </label>
+                    </div>
+                    {shareAccess === "private" && draftEmails.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">
                         {draftEmails.map((e) => (
                           <span key={e} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
@@ -575,30 +631,37 @@ export default function SharePage() {
                           </span>
                         ))}
                       </div>
-                    ) : (
+                    ) : shareAccess === "private" ? (
                       <p className="text-xs text-muted-foreground">No viewers yet — add emails below.</p>
+                    ) : null}
+                    {shareAccess === "private" ? (
+                      <div className="flex gap-2">
+                        <Input
+                          type="email"
+                          placeholder="friend@gmail.com"
+                          value={emailInput}
+                          onChange={(e) => setEmailInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") addEmail(d);
+                          }}
+                        />
+                        <Button size="sm" variant="secondary" onClick={() => addEmail(d)}>
+                          Add
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="rounded-lg bg-primary/10 p-2 text-xs text-muted-foreground">Public mode is an explicit opt-in: anyone who receives this link can read the drop before it auto-clears.</p>
                     )}
-                    <div className="flex gap-2">
-                      <Input
-                        type="email"
-                        placeholder="friend@gmail.com"
-                        value={emailInput}
-                        onChange={(e) => setEmailInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") void addEmail(d);
-                        }}
-                      />
-                      <Button size="sm" variant="secondary" onClick={() => addEmail(d)}>
-                        Add
-                      </Button>
-                    </div>
                     <div className="flex flex-wrap gap-2">
                       {!safeLinks[d.id] ? (
                         <Button size="sm" onClick={() => createLink(d)} disabled={sharingId === d.id || !signedIn}>
-                          {sharingId === d.id ? "Creating…" : "Create link"}
+                          {sharingId === d.id ? "Creating…" : "Confirm & create link"}
                         </Button>
                       ) : (
                         <>
+                          <span className="self-center text-xs text-muted-foreground">
+                            {safeLinks[d.id].isPublic ? "Public access" : "Private allowlist"} · {expiryCopy(d.expiresAt)}
+                          </span>
                           <Button size="sm" variant="secondary" onClick={() => copyLink(d)}>
                             {copiedId === `link-${d.id}` ? <><Check className="mr-1 h-4 w-4" /> Link copied</> : "Copy link"}
                           </Button>
@@ -608,7 +671,7 @@ export default function SharePage() {
                         </>
                       )}
                     </div>
-                    {!signedIn && <p className="text-xs text-muted-foreground">Sign in with Google to create links.</p>}
+                    {!signedIn && <p className="text-xs text-muted-foreground">Sign in with Google to create or update share links.</p>}
                   </div>
                 )}
               </CardContent>
@@ -617,15 +680,15 @@ export default function SharePage() {
         </div>
       )}
 
-      {/* ── Storage strategy ── */}
+      {/* ── Storage limits ── */}
       <Card>
         <CardContent className="p-5">
-          <h2 className="font-display font-bold">Zero-cost storage strategy</h2>
+          <h2 className="font-display font-bold">Storage limits</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-            <li><strong className="text-foreground">Caps ($0):</strong> {MAX_DROPS} drops max, 5 MB per image signed in (~1.2 MB local). Expired drops auto-clear.</li>
-            <li><strong className="text-foreground">Text ($0):</strong> syncs as JSON rows in Postgres free tier.</li>
-            <li><strong className="text-foreground">Images ($0):</strong> Storage bucket <code className="rounded bg-muted px-1 text-xs">drops</code> (free 1 GB), private per-user folders; only URLs sync.</li>
-            <li><strong className="text-foreground">Sharing ($0, private):</strong> allowlisted emails can open links via <a href="/shared-with-me" className="text-primary hover:underline">Shared with me</a>. Revoke anytime.</li>
+            <li><strong className="text-foreground">Drops:</strong> {MAX_DROPS} active drops maximum. Expired drops clear from this list automatically.</li>
+            <li><strong className="text-foreground">Images:</strong> 5 MB per signed-in image, or approximately 1.2 MB per local-only image.</li>
+            <li><strong className="text-foreground">Browser:</strong> approximately {(BROWSER_STORAGE_LIMIT_BYTES / 1000).toLocaleString()} KB display capacity. Export before making large changes.</li>
+            <li><strong className="text-foreground">Sharing:</strong> private allowlists match signed-in emails; public mode is an explicit link-access choice. <a href="/shared-with-me" className="text-primary hover:underline">Shared with me</a> shows incoming private drops.</li>
           </ul>
           <Button variant="secondary" size="sm" className="mt-3" onClick={exportAll} disabled={visible.length === 0}>
             Export JSON backup

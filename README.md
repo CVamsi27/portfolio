@@ -49,7 +49,7 @@ All state lives under the `vk:` localStorage namespace, one JSON document per tr
 - **Goal** — all six categories fully interactive, editable daily metric, 14-day chart, run-rate ETA, milestone CRUD with completion timestamps.
 - **Todos** — P1/P2/P3 priorities, tags, Today/Tomorrow/Upcoming/Done views, inline editing, Enter-chained quick add.
 - **Motivation** — daily deck + custom affirmations + 3-prompt micro-journal with a true consecutive-day streak.
-- **Share** (`/share`) — ephemeral drops with tags, pinning, fuzzy search, email allowlist.
+- **Share** (`/share`) — ephemeral drops with tags, pinning, fuzzy search, explicit private/public access, private media, email allowlists, and short-lived signed image URLs.
 - **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub); the service worker precaches the shell, serves pages network-first and falls back to a cached `/trackers` offline shell.
 
 ---
@@ -68,7 +68,13 @@ pnpm dev            # http://localhost:3000 → tracker suite
 | `pnpm lint` | ESLint 9 flat config (`eslint.config.mjs`) |
 | `pnpm test:e2e` | Playwright suite (its `pretest:e2e` hook rebuilds in local mode first) |
 
-**Environment.** Copy your Supabase URL + publishable key into `.env` as `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to enable sign-in and cross-device sync. Leave them blank for pure local mode. Note `NEXT_PUBLIC_*` vars are inlined at **build time**.
+**Environment.** Copy your Supabase URL + publishable key into `.env` as `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to enable sign-in and cross-device sync. For public Share links, also configure `SUPABASE_SERVICE_ROLE_KEY` (or the server-only `SUPABASE_SECRET_KEY`) for the `/api/share/[shareId]` signer. Never prefix that secret with `NEXT_PUBLIC_`; it must not reach the browser. Leave the public variables blank for pure local mode. Note `NEXT_PUBLIC_*` vars are inlined at **build time**.
+
+### Share storage and access
+
+Run Supabase migrations in order: `0001_tracker_data.sql`, `0002_drops_storage.sql`, `0003_shared_drops.sql`, `0004_shared_allowlist.sql`, then `0005_private_share_media.sql`. The final migration makes the `drops` bucket private, adds public/private access mode and storage-path columns, backfills compatible paths, and applies owner/allowlist/expiry RLS.
+
+Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximately 1.2 MB limit per local-only image, and an approximately 5,000 KB browser-storage display capacity. Expired drops are removed from the active list and cleaned opportunistically. Private links require a matching signed-in email; public links are an explicit “Anyone with the link” choice and are readable only until expiry. Public detail pages use the server route to issue a five-minute signed media URL. Backups include link URL, expiry, allowlist, and access mode metadata, but never storage tokens.
 
 **Conventions.** TypeScript strict, ESLint 0-error/0-warning policy (React Compiler rules included), Radix where it matters, dependency-free primitives for tracker UI (`Ring`, `MiniBars`, `Modal`, `RestTimer` in `src/components/trackers/`).
 
@@ -79,6 +85,7 @@ The E2E suite (`e2e/`, 35 tests) drives the real production build in local mode 
 ```bash
 pnpm test:e2e                          # full suite
 ./node_modules/.bin/playwright test e2e/workouts.spec.ts
+./node_modules/.bin/playwright test e2e/share.spec.ts --grep "hard limits|asks for access"
 ./node_modules/.bin/playwright test --headed -g "rest timer"
 npx playwright show-trace test-results/<dir>/trace.zip   # debug a failure
 ```

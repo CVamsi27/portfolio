@@ -43,6 +43,32 @@ export type KeyStat = {
   exists: boolean;
 };
 
+type ShareLinkBackup = {
+  id: string;
+  url: string;
+  expiresAt: string | null;
+  emails: string[];
+  isPublic: boolean;
+};
+
+function sanitizeShareLinks(value: unknown): Record<string, ShareLinkBackup> {
+  if (!value || typeof value !== "object") return {};
+  const out: Record<string, ShareLinkBackup> = {};
+  for (const [dropId, candidate] of Object.entries(value)) {
+    if (!candidate || typeof candidate !== "object") continue;
+    const link = candidate as Record<string, unknown>;
+    if (typeof link.id !== "string" || typeof link.url !== "string") continue;
+    out[dropId] = {
+      id: link.id,
+      url: link.url,
+      expiresAt: typeof link.expiresAt === "string" ? link.expiresAt : null,
+      emails: Array.isArray(link.emails) ? link.emails.filter((email): email is string => typeof email === "string") : [],
+      isPublic: link.isPublic === true,
+    };
+  }
+  return out;
+}
+
 /** Byte size of one localStorage entry (UTF-16 → ×2). */
 export function keyBytes(key: string): number {
   try {
@@ -101,7 +127,10 @@ export function collectBackup(): BackupFile {
     for (const key of KEYS) {
       try {
         const raw = window.localStorage.getItem(`vk:${key}`);
-        if (raw !== null) data[key] = JSON.parse(raw);
+        if (raw !== null) {
+          const value = JSON.parse(raw);
+          data[key] = key === "share:links" ? sanitizeShareLinks(value) : value;
+        }
       } catch {
         // skip corrupt entries
       }

@@ -8,36 +8,47 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-store";
 import { ImageIcon, Inbox, PenLine } from "lucide-react";
+import { accessMode, expiryCopy } from "@/lib/share-domain";
 
 type Incoming = {
   id: string;
   text: string;
+  image_path: string | null;
   image_url: string | null;
   created_at: string;
   expires_at: string | null;
   owner: string;
   owner_email: string | null;
+  is_public: boolean;
 };
 
-async function fetchIncoming(uid: string): Promise<Incoming[]> {
-  if (typeof window === "undefined" || !isSupabaseConfigured()) return [];
+type IncomingResult = { rows: Incoming[]; unavailable: boolean };
+
+async function fetchIncoming(uid: string): Promise<IncomingResult> {
+  if (typeof window === "undefined" || !isSupabaseConfigured()) return { rows: [], unavailable: true };
   const sb = getSupabase();
-  if (!sb) return [];
-  // Never rejects: RLS denial / network error → empty list.
+  if (!sb) return { rows: [], unavailable: true };
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
   try {
     const { data } = await sb
       .from("shared_drops")
-      .select("id, text, image_url, created_at, expires_at, owner, owner_email")
-      .order("created_at", { ascending: false });
-    return ((data ?? []) as Incoming[]).filter((r) => r.owner !== uid);
+      .select("id, text, image_path, image_url, created_at, expires_at, owner, owner_email, is_public")
+      .neq("owner", uid)
+      .order("created_at", { ascending: false })
+      .abortSignal(controller.signal);
+    return { rows: (data ?? []) as Incoming[], unavailable: false };
   } catch {
-    return [];
+    return { rows: [], unavailable: true };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
 /** People sharing with me + the items they shared (email-allowlisted). */
 function IncomingList({ uid, email }: { uid: string; email: string }) {
-  const rows = use(useMemo(() => fetchIncoming(uid), [uid]));
+  const result = use(useMemo(() => fetchIncoming(uid), [uid]));
+  const rows = result.rows;
   const groups = useMemo(() => {
     const m = new Map<string, Incoming[]>();
     for (const r of rows) {
@@ -47,6 +58,18 @@ function IncomingList({ uid, email }: { uid: string; email: string }) {
     }
     return [...m.entries()];
   }, [rows]);
+
+  if (result.unavailable) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <p className="text-3xl"><Inbox className="mx-auto h-8 w-8 text-primary" /></p>
+          <h2 className="font-display mt-3 text-xl font-bold">Shared items unavailable</h2>
+          <p className="mt-2 text-sm text-muted-foreground">The access-controlled inbox could not be reached. Check your connection and try again.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (groups.length === 0) {
     return (
@@ -88,12 +111,13 @@ function IncomingList({ uid, email }: { uid: string; email: string }) {
                 href={`/share/${it.id}`}
                 className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2.5 transition-colors hover:bg-accent"
               >
-                {it.image_url ? <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" /> : <PenLine className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                {it.image_path || it.image_url ? <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" /> : <PenLine className="h-4 w-4 shrink-0 text-muted-foreground" />}
                 <span className="flex-1 truncate text-sm">
                   {it.text || "(image)"}
                 </span>
-                <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
-                  {it.expires_at ? `Expires ${it.expires_at.slice(0, 10)}` : "No expiry"}
+                <span className="shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+                  <span className="block">{accessMode(it)}</span>
+                  <span className="block">{expiryCopy(it.expires_at)}</span>
                 </span>
               </Link>
             ))}
