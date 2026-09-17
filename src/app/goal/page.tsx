@@ -4,75 +4,129 @@ import { useMemo, useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
+import Modal from "@/components/trackers/Modal";
+import MiniBars from "@/components/trackers/MiniBars";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { SyncBadge } from "@/components/auth/AuthButton";
-import { GOAL_MILESTONES, GOAL_SNIPPETS, dateKey } from "@/lib/trackers";
 import { useUserPrefs, GOAL_CATEGORIES, type GoalCategory } from "@/lib/user-prefs";
+import {
+  type GoalState,
+  type Milestone,
+  GOAL_TOTAL_PRESETS,
+  GOAL_SNIPPETS,
+  calculateStreak,
+  dateKey,
+  goalEtaDays,
+  lastNDates,
+  milestonesFor,
+  newMilestoneId,
+} from "@/lib/trackers";
+import { useGoalState, useMigrateGoal, useNow } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
-import { Check, Copy, Target } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Copy, Pencil, Plus, Target, Trash2, TrendingUp, X } from "lucide-react";
 
-type GoalState = {
-  hub: string;
-  visa: string;
-  dailyTarget: number;
-  checks: boolean[];
-  appsByDay: Record<string, number>;
-  category: GoalCategory;
-};
-
-const DEFAULTS: GoalState = {
-  hub: "Berlin Hub",
-  visa: "EU Blue Card",
-  dailyTarget: 3,
-  checks: [false, false, false, false],
-  appsByDay: {},
-  category: "relocation",
-};
+type MilestoneDraft = { title: string };
 
 export default function GoalPage() {
+  useMigrateGoal();
   const { prefs, setPrefs } = useUserPrefs();
-  const { value: g, setValue: setG, status } = useSyncedStorage<GoalState>("goal", DEFAULTS);
-  const [snipType, setSnipType] = useState<string>("LinkedIn");
-  const [copied, setCopied] = useState(false);
-  const [todayApps, setTodayApps] = useState("");
+  const { value: g, setValue: setG, status } = useGoalState();
+  const now = useNow(60_000);
 
-  const safe = g ?? DEFAULTS;
-  const goalCat = prefs.goalCategory ?? safe.category ?? "relocation";
-  const milestones = GOAL_MILESTONES[goalCat] ?? GOAL_MILESTONES.relocation;
-  const doneCount = (safe.checks ?? []).filter(Boolean).length;
-  const goalPct = milestones.length ? Math.round((doneCount / milestones.length) * 100) : 0;
+  const safe: GoalState = useMemo(() => g ?? { metricByDay: {}, milestonesByCategory: {} }, [g]);
+  const goalCat = prefs.goalCategory;
   const goalMeta = GOAL_CATEGORIES.find((gc) => gc.id === goalCat) ?? GOAL_CATEGORIES[0];
 
-  const last7 = useMemo(() => {
-    const out: { d: string; n: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const k = d.toISOString().slice(0, 10);
-      out.push({ d: k.slice(5), n: safe.appsByDay?.[k] ?? 0 });
-    }
-    return out;
-  }, [safe.appsByDay]);
-  const weekly = last7.reduce((a, b) => a + b.n, 0);
-  const estDays = goalCat === "relocation"
-    ? Math.max(12, Math.round(90 - doneCount * 12 - Math.min(weekly, 25)))
-    : goalCat === "career"
-      ? Math.max(7, Math.round(60 - doneCount * 15 - Math.min(weekly * 3, 45)))
-      : Math.max(14, Math.round(30 - doneCount * 7));
+  const metric = useMemo(
+    () => ({
+      label: prefs.dailyMetricLabel || DEFAULT_LABELS[goalCat],
+      target: prefs.dailyMetricTarget || DEFAULT_TARGETS[goalCat],
+    }),
+    [prefs.dailyMetricLabel, prefs.dailyMetricTarget, goalCat],
+  );
+
+  const [metricLabelDraft, setMetricLabelDraft] = useState<string | null>(null);
+  const [metricTargetDraft, setMetricTargetDraft] = useState<string | null>(null);
+  const [todayLog, setTodayLog] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [msModal, setMsModal] = useState<{ mode: "add" } | { mode: "edit"; id: string } | null>(null);
+  const [msDraft, setMsDraft] = useState<MilestoneDraft>({ title: "" });
+
+  const today = dateKey();
+  const milestones = useMemo(() => milestonesFor(safe, goalCat), [safe, goalCat]);
+  const doneCount = milestones.filter((m) => m.done).length;
+  const goalPct = milestones.length ? Math.round((doneCount / milestones.length) * 100) : 0;
+
+  const metricByDay = useMemo(() => safe.metricByDay ?? {}, [safe]);
+  const todayValue = metricByDay[today] ?? 0;
+  const totalLogged = useMemo(() => Object.values(metricByDay).reduce((a, b) => a + b, 0), [metricByDay]);
+
+  const last14 = useMemo(
+    () =>
+      lastNDates(14).map((d) => ({
+        label: d.toLocaleDateString("en-US", { day: "numeric" }),
+        value: metricByDay[dateKey(d)] ?? 0,
+      })),
+    [metricByDay],
+  );
+  const last7Total = last14.slice(-7).reduce((a, b) => a + b.value, 0);
+  const avg7 = last7Total / 7;
+  const streak = calculateStreak(Object.entries(metricByDay).filter(([, v]) => v >= metric.target).map(([k]) => k));
+  const goalTotal = prefs.dailyMetricGoalTotal ?? GOAL_TOTAL_PRESETS[goalCat];
+  const etaDays = goalEtaDays(totalLogged, goalTotal, avg7);
+  const etaDate = etaDays !== null ? new Date(now + etaDays * 86_400_000) : null;
+
+  const logToday = (n: number) => {
+    if (!Number.isFinite(n) || n === 0) return;
+    setG({ ...safe, metricByDay: { ...metricByDay, [today]: Math.max(0, todayValue + n) } });
+  };
+
+  const saveMetricEdits = () => {
+    setPrefs({
+      ...prefs,
+      dailyMetricLabel: metricLabelDraft?.trim() || prefs.dailyMetricLabel,
+      dailyMetricTarget: metricTargetDraft ? Math.max(1, Number(metricTargetDraft) || 1) : prefs.dailyMetricTarget,
+    });
+    setMetricLabelDraft(null);
+    setMetricTargetDraft(null);
+  };
+
+  // ── milestone CRUD ──
+  const setMilestones = (next: Milestone[]) =>
+    setG({ ...safe, milestonesByCategory: { ...safe.milestonesByCategory, [goalCat]: next } });
+
+  const addMilestone = () => {
+    const title = msDraft.title.trim();
+    if (!title) return;
+    setMilestones([...milestones, { id: newMilestoneId(), title, done: false, doneAt: null }]);
+    setMsModal(null);
+  };
+
+  const editMilestone = () => {
+    const title = msDraft.title.trim();
+    if (!title || msModal?.mode !== "edit") return;
+    setMilestones(milestones.map((m) => (m.id === msModal.id ? { ...m, title } : m)));
+    setMsModal(null);
+  };
+
+  const toggleMilestone = (id: string) =>
+    setMilestones(milestones.map((m) => (m.id === id ? { ...m, done: !m.done, doneAt: !m.done ? dateKey() : null } : m)));
+
+  const deleteMilestone = (id: string) => setMilestones(milestones.filter((m) => m.id !== id));
+
+  const moveMilestone = (id: string, dir: -1 | 1) => {
+    const i = milestones.findIndex((m) => m.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= milestones.length) return;
+    const next = [...milestones];
+    [next[i], next[j]] = [next[j], next[i]];
+    setMilestones(next);
+  };
 
   const snippet = (GOAL_SNIPPETS[goalCat] ?? GOAL_SNIPPETS.custom)(safe.hub);
-
-  const logApps = () => {
-    const n = parseInt(todayApps, 10);
-    if (!n || n <= 0) return;
-    const k = dateKey();
-    setG({ ...safe, appsByDay: { ...safe.appsByDay, [k]: (safe.appsByDay?.[k] ?? 0) + n } });
-    setTodayApps("");
-  };
 
   const copy = async () => {
     try {
@@ -85,195 +139,327 @@ export default function GoalPage() {
   };
 
   const changeCategory = (cat: GoalCategory) => {
-    setPrefs({ ...prefs, goalCategory: cat });
-    const newMilestones = GOAL_MILESTONES[cat] ?? GOAL_MILESTONES.relocation;
-    setG({ ...safe, category: cat, checks: new Array(newMilestones.length).fill(false) });
+    setPrefs({ ...prefs, goalCategory: cat, dailyMetricLabel: undefined, dailyMetricTarget: undefined });
   };
 
   const relocationMode = goalCat === "relocation";
 
   return (
     <RequireAuth>
-    <TrackerShell
-      icon="flag"
-      title={prefs.goalTitle || goalMeta.label}
-      subtitle={`${goalMeta.icon} ${goalMeta.desc}. Track your milestones and daily progress.`}
-      badge={<SyncBadge status={status} />}
-    >
-      {/* goal category selector */}
-      <Card>
-        <CardContent className="p-5">
-          <p className="text-sm font-medium">Goal Category</p>
-          <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
-            {GOAL_CATEGORIES.map((gc) => (
-              <button
-                key={gc.id}
-                onClick={() => changeCategory(gc.id)}
-                className={cn(
-                  "rounded-xl border p-2 text-center text-xs transition-all",
-                  goalCat === gc.id
-                    ? "border-primary bg-primary/10 font-semibold shadow-sm"
-                    : "border-border/60 hover:bg-accent",
-                )}
-              >
-                <span className="text-lg">{gc.icon}</span>
-                <p className="mt-0.5 font-medium">{gc.label}</p>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* trajectory / progress */}
-      <Card>
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              <h2 className="font-display font-bold">Milestones</h2>
-            </div>
-            <span className="text-sm font-semibold tabular-nums text-primary">{goalPct}%</span>
-          </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${goalPct}%` }} />
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            <Stat label="Weekly Progress" value={`${weekly} items`} />
-            <Stat label="Est. Completion" value={`~${estDays} days`} />
-            <Stat label="Milestones" value={`${doneCount}/${milestones.length}`} accent />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* controls (for relocation/career goals) */}
-      {relocationMode && (
+      <TrackerShell
+        icon="flag"
+        title={prefs.goalTitle || goalMeta.label}
+        subtitle={`${goalMeta.icon} ${goalMeta.desc}. Log your daily metric, manage milestones, and watch the trajectory.`}
+        badge={<SyncBadge status={status} />}
+      >
+        {/* ── Category selector ── */}
         <Card>
-          <CardContent className="space-y-4 p-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-sm font-medium">Target City</p>
-                <div className="mt-2">
-                  <Segmented
-                    label="Target city"
-                    options={[
-                      { value: "Berlin Hub", label: "Berlin" },
-                      { value: "Munich Hub", label: "Munich" },
-                    ]}
-                    value={safe.hub}
-                    onChange={(hub) => setG({ ...safe, hub })}
-                  />
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Visa Pathway</p>
-                <div className="mt-2">
-                  <Segmented
-                    label="Visa pathway"
-                    options={[
-                      { value: "EU Blue Card", label: "EU Blue Card" },
-                      { value: "IT Specialist Fast-Track", label: "IT Specialist" },
-                    ]}
-                    value={safe.visa}
-                    onChange={(visa) => setG({ ...safe, visa })}
-                  />
-                </div>
-              </div>
+          <CardContent className="p-5">
+            <p className="text-sm font-medium">Goal Category</p>
+            <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+              {GOAL_CATEGORIES.map((gc) => (
+                <button
+                  key={gc.id}
+                  onClick={() => changeCategory(gc.id)}
+                  className={cn(
+                    "rounded-xl border p-2 text-center text-xs transition-all",
+                    goalCat === gc.id
+                      ? "border-primary bg-primary/10 font-semibold shadow-sm"
+                      : "border-border/60 hover:bg-accent",
+                  )}
+                >
+                  <span className="text-lg">{gc.icon}</span>
+                  <p className="mt-0.5 font-medium">{gc.label}</p>
+                </button>
+              ))}
             </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Daily Target</label>
-                <span className="text-sm font-semibold tabular-nums">{safe.dailyTarget} / day</span>
+            {relocationMode && (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Target City</p>
+                  <div className="mt-1.5">
+                    <Segmented
+                      label="Target city"
+                      variant="soft"
+                      options={[
+                        { value: "Berlin Hub", label: "Berlin" },
+                        { value: "Munich Hub", label: "Munich" },
+                      ]}
+                      value={safe.hub ?? "Berlin Hub"}
+                      onChange={(hub) => setG({ ...safe, hub })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Visa Pathway</p>
+                  <div className="mt-1.5">
+                    <Segmented
+                      label="Visa pathway"
+                      variant="soft"
+                      options={[
+                        { value: "EU Blue Card", label: "EU Blue Card" },
+                        { value: "IT Specialist Fast-Track", label: "IT Specialist" },
+                      ]}
+                      value={safe.visa ?? "EU Blue Card"}
+                      onChange={(visa) => setG({ ...safe, visa })}
+                    />
+                  </div>
+                </div>
               </div>
-              <input
-                type="range"
-                min={1}
-                max={10}
-                value={safe.dailyTarget}
-                onChange={(e) => setG({ ...safe, dailyTarget: Number(e.target.value) })}
-                className="mt-2 w-full"
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── Daily metric ── */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                {metricLabelDraft === null ? (
+                  <h2 className="font-display flex items-center gap-2 font-bold">
+                    <span className="truncate">{metric.label}</span>
+                    <button
+                      onClick={() => {
+                        setMetricLabelDraft(metric.label);
+                        setMetricTargetDraft(String(metric.target));
+                      }}
+                      aria-label="Edit metric"
+                      className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  </h2>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input className="h-9 w-56" value={metricLabelDraft} onChange={(e) => setMetricLabelDraft(e.target.value)} placeholder="Metric name" />
+                    <Input className="h-9 w-20 tabular-nums" type="number" min={1} value={metricTargetDraft ?? ""} onChange={(e) => setMetricTargetDraft(e.target.value)} placeholder="Target" />
+                    <Button size="sm" onClick={saveMetricEdits}>
+                      Save
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setMetricLabelDraft(null); setMetricTargetDraft(null); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Daily target: {metric.target} · hit streak: {streak} {streak === 1 ? "day" : "days"}
+                </p>
+              </div>
+              <span className="font-display text-2xl font-bold tabular-nums text-primary">
+                {todayValue}
+                <span className="text-sm font-medium text-muted-foreground"> / {metric.target}</span>
+              </span>
+            </div>
+
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all"
+                style={{ width: `${Math.min(100, metric.target ? (todayValue / metric.target) * 100 : 0)}%` }}
               />
             </div>
-            <div className="flex gap-2">
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <Input
                 type="number"
-                min={1}
-                placeholder={`Log today's items (e.g. ${safe.dailyTarget})`}
-                value={todayApps}
-                onChange={(e) => setTodayApps(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && logApps()}
+                min={0}
+                className="w-32 tabular-nums"
+                placeholder="Add amount"
+                value={todayLog}
+                onChange={(e) => setTodayLog(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    logToday(Number(todayLog) || 0);
+                    setTodayLog("");
+                  }
+                }}
               />
-              <Button onClick={logApps}>Log</Button>
-            </div>
-            <div className="flex items-end gap-1.5 pt-1">
-              {last7.map((d) => (
-                <div key={d.d} className="flex flex-1 flex-col items-center gap-1">
-                  <div
-                    className="w-full rounded-md bg-gradient-to-t from-primary to-fuchsia-500"
-                    style={{ height: `${Math.max(4, Math.min(64, d.n * 12))}px`, opacity: d.n ? 1 : 0.25 }}
-                    title={`${d.n} items`}
-                  />
-                  <span className="text-[10px] tabular-nums text-muted-foreground">{d.d.slice(3) || d.d}</span>
-                </div>
+              <Button
+                onClick={() => {
+                  logToday(Number(todayLog) || 0);
+                  setTodayLog("");
+                }}
+              >
+                Log
+              </Button>
+              {[1, 3, 5].map((n) => (
+                <Button key={n} variant="outline" size="sm" onClick={() => logToday(n)} className="tabular-nums">
+                  +{n}
+                </Button>
               ))}
+              {todayValue > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => logToday(-todayValue)}>
+                  Reset today
+                </Button>
+              )}
+            </div>
+
+            <div className="mt-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Last 14 days</p>
+              <MiniBars className="mt-2" data={last14} height={56} />
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* milestones checklist */}
-      <Card>
-        <CardContent className="p-5">
-          <h2 className="font-display font-bold">Milestone checklist</h2>
-          <ul className="mt-3 space-y-2">
-            {milestones.map((m, i) => (
-              <li key={m}>
-                <button
-                  onClick={() => {
-                    const checks = [...(safe.checks ?? [])];
-                    while (checks.length < milestones.length) checks.push(false);
-                    checks[i] = !checks[i];
-                    setG({ ...safe, checks });
-                  }}
+        {/* ── Trajectory stats ── */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat label="7-day total" value={`${last7Total}`} />
+          <Stat label="Daily avg (7d)" value={avg7.toFixed(1)} />
+          <Stat label="Goal total" value={`${goalTotal}`} />
+          <Stat label="Est. finish" value={etaDate ? etaDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"} accent />
+        </div>
+        {etaDays !== null && (
+          <p className="-mt-1 flex items-center gap-1.5 px-1 text-xs text-muted-foreground">
+            <TrendingUp className="h-3.5 w-3.5 text-primary" />
+            At your current pace of {avg7.toFixed(1)}/day, you&apos;re on track in about {etaDays} days.
+          </p>
+        )}
+
+        {/* ── Milestones with CRUD ── */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                <h2 className="font-display font-bold">Milestones</h2>
+              </div>
+              <span className="text-sm font-semibold tabular-nums text-primary">
+                {doneCount}/{milestones.length} · {goalPct}%
+              </span>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+              <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${goalPct}%` }} />
+            </div>
+
+            <ul className="mt-4 space-y-2">
+              {milestones.map((m, i) => (
+                <li
+                  key={m.id}
                   className={cn(
-                    "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition-all",
-                    (safe.checks ?? [])[i] ? "border-emerald-500/40 bg-emerald-500/10" : "border-border/60 hover:bg-accent",
+                    "group flex items-start gap-3 rounded-xl border px-3 py-2.5 text-sm transition-all",
+                    m.done ? "border-emerald-500/40 bg-emerald-500/10" : "border-border/60 hover:bg-accent",
                   )}
                 >
-                  <span
+                  <button
+                    onClick={() => toggleMilestone(m.id)}
+                    aria-label={m.done ? `Mark ${m.title} incomplete` : `Mark ${m.title} complete`}
                     className={cn(
                       "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[11px] transition-all active:scale-90",
-                      (safe.checks ?? [])[i] ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground",
+                      m.done ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground",
                     )}
                   >
-                    {(safe.checks ?? [])[i] ? <Check className="h-3 w-3" /> : ""}
-                  </span>
-                  <span className={(safe.checks ?? [])[i] ? "line-through opacity-70" : ""}>{m}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+                    {m.done ? <Check className="h-3 w-3" /> : ""}
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p className={cn(m.done && "line-through opacity-70")}>{m.title}</p>
+                    {m.done && m.doneAt && (
+                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                        Completed {new Date(m.doneAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                    <button onClick={() => moveMilestone(m.id, -1)} disabled={i === 0} aria-label="Move up" className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30">
+                      <ChevronUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button onClick={() => moveMilestone(m.id, 1)} disabled={i === milestones.length - 1} aria-label="Move down" className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30">
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMsDraft({ title: m.title });
+                        setMsModal({ mode: "edit", id: m.id });
+                      }}
+                      aria-label="Edit milestone"
+                      className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button onClick={() => deleteMilestone(m.id)} aria-label="Delete milestone" className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-red-500">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
 
-      {/* outreach / reflection generator */}
-      <Card>
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-bold">
-              {relocationMode ? "Outreach generator" : "Daily reflection"}
-            </h2>
-          </div>
-          <p className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-4 text-sm leading-relaxed">
-            {snippet}
-          </p>
-          <div className="mt-3 flex justify-end">
-            <Button variant="secondary" size="sm" onClick={copy}>
-              {copied ? <><Check className="mr-1.5 h-4 w-4" /> Copied</> : <><Copy className="mr-1.5 h-4 w-4" /> Copy</>}
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => {
+                setMsDraft({ title: "" });
+                setMsModal({ mode: "add" });
+              }}
+            >
+              <Plus className="mr-1.5 h-4 w-4" /> Add milestone
             </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </TrackerShell>
+          </CardContent>
+        </Card>
+
+        {/* ── Outreach / reflection generator ── */}
+        <Card>
+          <CardContent className="p-5">
+            <h2 className="font-display font-bold">{relocationMode ? "Outreach generator" : "Daily reflection"}</h2>
+            <p className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-4 text-sm leading-relaxed">{snippet}</p>
+            <div className="mt-3 flex justify-end">
+              <Button variant="secondary" size="sm" onClick={copy}>
+                {copied ? (
+                  <>
+                    <Check className="mr-1.5 h-4 w-4" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="mr-1.5 h-4 w-4" /> Copy
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Milestone modal ── */}
+        <Modal
+          open={msModal !== null}
+          onClose={() => setMsModal(null)}
+          title={msModal?.mode === "edit" ? "Edit milestone" : "Add milestone"}
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setMsModal(null)}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={msModal?.mode === "edit" ? editMilestone : addMilestone} disabled={!msDraft.title.trim()}>
+                {msModal?.mode === "edit" ? "Save" : "Add"}
+              </Button>
+            </div>
+          }
+        >
+          <Input
+            placeholder="Milestone — e.g. Complete 50 applications"
+            value={msDraft.title}
+            onChange={(e) => setMsDraft({ title: e.target.value })}
+            onKeyDown={(e) => e.key === "Enter" && (msModal?.mode === "edit" ? editMilestone() : addMilestone())}
+            autoFocus
+          />
+        </Modal>
+      </TrackerShell>
     </RequireAuth>
   );
 }
+
+const DEFAULT_LABELS: Record<GoalCategory, string> = {
+  relocation: "Applications & Outreach",
+  career: "Target Applications",
+  fitness: "Active Workout",
+  learning: "Deep Study",
+  financial: "Savings & Investments",
+  custom: "Daily Focus Metric",
+};
+
+const DEFAULT_TARGETS: Record<GoalCategory, number> = {
+  relocation: 3,
+  career: 5,
+  fitness: 45,
+  learning: 60,
+  financial: 20,
+  custom: 3,
+};
