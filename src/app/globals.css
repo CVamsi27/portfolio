@@ -773,6 +773,29 @@
     border-top: 1px solid rgb(17 17 17 / 0.18);
   }
 
+  [data-public-dossier] > section {
+    position: relative;
+  }
+
+  [data-public-dossier] > section::before {
+    position: absolute;
+    top: clamp(1.5rem, 4vw, 4rem);
+    right: clamp(1rem, 4vw, 4rem);
+    color: rgb(17 17 17 / 0.32);
+    content: attr(data-chapter-index);
+    font-family: var(--font-utility);
+    font-size: clamp(2.5rem, 8vw, 7rem);
+    font-weight: 700;
+    letter-spacing: -0.1em;
+    line-height: 0.8;
+  }
+
+  [data-public-dossier] #Projects .rounded-2xl,
+  [data-public-dossier] #Skills .rounded-2xl,
+  [data-public-dossier] #Contact .rounded-2xl {
+    border-radius: 0.25rem;
+  }
+
   [data-public-dossier] .dossier-chapter-header {
     text-align: left;
   }
