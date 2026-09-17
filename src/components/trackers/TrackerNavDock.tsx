@@ -8,8 +8,8 @@ import { TrackerIcon, type TrackerIconName } from "./icons";
 import { cn } from "@/lib/utils";
 
 /**
- * Mobile-only floating bottom dock for the tracker suite.
- * Glassmorphic pill bar; hides on scroll-down, reveals on scroll-up.
+ * Mobile-only command dock for the tracker suite.
+ * It keeps route semantics stable while making the active chapter explicit.
  */
 export default function TrackerNavDock() {
   const pathname = usePathname();
@@ -38,13 +38,14 @@ export default function TrackerNavDock() {
   return (
     <nav
       aria-label="Tracker navigation"
+      data-testid="mobile-command-dock"
       className={cn(
-        "fixed inset-x-2 bottom-2 z-[70] transition-transform duration-300 sm:hidden",
+        "dossier-command-dock fixed inset-x-2 bottom-2 z-[70] transition-transform duration-300 sm:hidden",
         hidden ? "pointer-events-none translate-y-[130%]" : "translate-y-0",
       )}
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="flex items-center justify-between gap-0.5 rounded-2xl border border-border/60 bg-card/85 p-1.5 shadow-xl shadow-black/10 backdrop-blur-md">
+      <div className="flex items-center justify-between gap-0.5">
         {links.map((l) => {
           const active = pathname === l.href;
           return (
@@ -54,8 +55,8 @@ export default function TrackerNavDock() {
               aria-label={l.label}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 transition-all",
-                active ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground",
+                "dossier-command-link flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2 transition-all",
+                active ? "is-active" : "text-muted-foreground hover:text-foreground",
               )}
             >
               <TrackerIcon name={l.icon as TrackerIconName} className={cn("h-[18px] w-[18px]", active && "drop-shadow-[0_0_6px_hsl(262_83%_58%/0.6)]")} />

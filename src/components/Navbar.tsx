@@ -73,7 +73,7 @@ const Navbar = () => {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
+      <nav data-testid="command-rail" className="dossier-command-rail sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg">
         <div
           aria-hidden
           className="absolute inset-x-0 top-0 h-0.5 bg-transparent"
@@ -83,10 +83,10 @@ const Navbar = () => {
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className="max-w-6xl mx-auto flex h-16 items-center justify-between px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
           <a
             href={isTracker ? "/" : "#About"}
-            className="font-display text-lg font-bold tracking-tight hover:text-primary transition-colors"
+            className="font-display text-lg font-black uppercase tracking-[-0.04em] transition-colors hover:text-primary"
           >
             ~<span className="gradient-text">VK</span>
           </a>
@@ -98,9 +98,9 @@ const Navbar = () => {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "px-3 py-1.5 text-sm rounded-full transition-colors",
+                      "dossier-rail-link px-3 py-1.5 text-sm transition-colors",
                       isMenuActive(item.href)
-                        ? "text-primary bg-primary/10 font-semibold"
+                        ? "is-active"
                         : "text-muted-foreground hover:text-foreground hover:bg-accent",
                     )}
                   >
@@ -111,9 +111,9 @@ const Navbar = () => {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "px-3 py-1.5 text-sm rounded-full transition-colors",
+                      "dossier-rail-link px-3 py-1.5 text-sm transition-colors",
                       isMenuActive(item.href)
-                        ? "text-primary bg-primary/10 font-semibold"
+                        ? "is-active"
                         : "text-muted-foreground hover:text-foreground hover:bg-accent",
                     )}
                   >
@@ -129,7 +129,7 @@ const Navbar = () => {
                   <Link
                     href={portalHref}
                     aria-label="Open the Personal Suite trackers"
-                    className="ml-1 inline-flex h-9 items-center gap-1.5 rounded-full border border-border/60 px-3 text-xs font-semibold text-muted-foreground transition-all hover:border-primary/50 hover:text-primary hover:shadow-sm hover:shadow-primary/10"
+                    className="dossier-portal-link ml-1 inline-flex h-9 items-center gap-1.5 px-3 text-xs font-semibold text-muted-foreground transition-all"
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                     <span className="hidden lg:inline">Personal Suite</span>
