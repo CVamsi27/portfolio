@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import TrackerShell from "@/components/trackers/TrackerShell";
+import FocusScene from "@/components/motivation/FocusScene";
 import Modal from "@/components/trackers/Modal";
 import EmptyState from "@/components/trackers/EmptyState";
 import RequireAuth from "@/components/auth/RequireAuth";
@@ -11,15 +13,15 @@ import { Input } from "@/components/ui/input";
 import { SyncBadge } from "@/components/auth/AuthButton";
 import { useUserPrefs } from "@/lib/user-prefs";
 import {
-  type CustomQuote,
   type JournalMap,
   MOTIVATION_QUOTES,
   calculateStreak,
   dateKey,
+  milestonesFor,
 } from "@/lib/trackers";
-import { useCustomQuotes, useJournal, useMigrateFasting, useMotivationVisits, newCustomQuote } from "@/lib/tracker-store";
+import { useCustomQuotes, useGoalState, useJournal, useMigrateFasting, useMigrateGoal, useMotivationVisits, newCustomQuote } from "@/lib/tracker-store";
+import { GOAL_CATEGORIES } from "@/lib/user-prefs";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import { cn } from "@/lib/utils";
 import {
   ArrowRight,
   Bookmark,
@@ -29,7 +31,6 @@ import {
   Feather,
   Plus,
   Quote,
-  Shuffle,
   Sparkles,
   Trash2,
   X,
@@ -45,7 +46,10 @@ const JOURNAL_PROMPTS = [
 export default function MotivationPage() {
   // Runs the fasting/goal migrations early for returning users; harmless no-op otherwise.
   useMigrateFasting();
+  useMigrateGoal();
+  const router = useRouter();
   const { prefs } = useUserPrefs();
+  const { value: goal } = useGoalState();
   const presetQuotes = MOTIVATION_QUOTES[prefs.motivationStyle] ?? MOTIVATION_QUOTES.discipline;
 
   const { value: favs, setValue: setFavs, status } = useSyncedStorage<string[]>("motivation:favs", []);
@@ -57,6 +61,12 @@ export default function MotivationPage() {
   const safeVisits = useMemo(() => visits ?? {}, [visits]);
   const safeCustom = useMemo(() => customQuotes ?? [], [customQuotes]);
   const safeJournal: JournalMap = useMemo(() => journal ?? {}, [journal]);
+  const safeGoal = useMemo(() => goal ?? { metricByDay: {}, milestonesByCategory: {} }, [goal]);
+  const goalMeta = GOAL_CATEGORIES.find((category) => category.id === prefs.goalCategory) ?? GOAL_CATEGORIES[0];
+  const milestones = useMemo(() => milestonesFor(safeGoal, prefs.goalCategory), [safeGoal, prefs.goalCategory]);
+  const completedMilestones = milestones.filter((milestone) => milestone.done).length;
+  const goalPct = milestones.length ? Math.round((completedMilestones / milestones.length) * 100) : 0;
+  const nextMilestone = milestones.find((milestone) => !milestone.done)?.title ?? "All milestones complete";
 
   const today = dateKey();
   const [copied, setCopied] = useState(false);
@@ -150,30 +160,22 @@ export default function MotivationPage() {
         subtitle={`Daily ${prefs.motivationStyle} deck with your own affirmations, favorites, and a three-prompt reflection anchor.`}
         badge={<SyncBadge status={status} />}
       >
-        {/* ── Quote of the day ── */}
-        <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-card to-fuchsia-500/10">
-          <CardContent className="p-6 sm:p-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
-              Quote of the day · {current.tag}
-            </p>
-            <blockquote className="font-display mt-3 text-2xl font-bold leading-snug tracking-tight sm:text-3xl">
-              &ldquo;{currentText}&rdquo;
-            </blockquote>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <Button onClick={shuffle} variant="secondary">
-                <Shuffle className="mr-1.5 h-4 w-4" /> Shuffle
-              </Button>
-              <Button variant="outline" onClick={toggleFav}>
-                <Bookmark className={cn("mr-1.5 h-4 w-4", isFav && "fill-current")} />
-                {isFav ? "Saved" : "Save"}
-              </Button>
-              <Button variant="ghost" onClick={copyQuote}>
-                {copied ? <Check className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
-                Copy
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <FocusScene
+          goalTitle={prefs.goalTitle.trim() || goalMeta.label}
+          goalLabel={goalMeta.label}
+          goalPct={goalPct}
+          nextMilestone={nextMilestone}
+          streak={streak}
+          quote={currentText}
+          quoteTag={current.tag}
+          saved={isFav}
+          copied={copied}
+          onStartAction={() => router.push("/goal")}
+          onShuffle={shuffle}
+          onSave={toggleFav}
+          onCopy={copyQuote}
+          onOpenGoal={() => router.push("/goal")}
+        />
 
         {/* ── Stats ── */}
         <div className="grid grid-cols-3 gap-3">
