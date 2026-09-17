@@ -3,109 +3,217 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import TrackerShell from "@/components/trackers/TrackerShell";
+import Ring, { type RingSegment } from "@/components/trackers/Ring";
+import MiniBars from "@/components/trackers/MiniBars";
+import EmptyState from "@/components/trackers/EmptyState";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
-import { useSyncedStorage, useLocalValue } from "@/lib/use-synced-storage";
-import { useUserPrefs, GOAL_CATEGORIES } from "@/lib/user-prefs";
-import { FASTING_PROTOCOLS, dateKey, GOAL_MILESTONES } from "@/lib/trackers";
-import { TrackerIcon, type TrackerIconName } from "@/components/trackers/icons";
-import { ArrowRight, Flame, Dumbbell, ListChecks, Flag, Timer, TrendingUp, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useSyncedStorage } from "@/lib/use-synced-storage";
+import { useUserPrefs, metricFor, GOAL_CATEGORIES } from "@/lib/user-prefs";
+import {
+  type FastHistoryEntry,
+  type Todo,
+  buildRecentActivity,
+  buildWeekReview,
+  calculateStreak,
+  dateKey,
+  fastHoursByDay,
+  formatDelta,
+  milestonesFor,
+  protocolById,
+  relativeTime,
+  weeklyWorkoutStats,
+} from "@/lib/trackers";
+import {
+  useFasting,
+  useFastingHistory,
+  useGoalState,
+  useJournal,
+  useMigrateFasting,
+  useMigrateGoal,
+  useMigrateTodos,
+  useMigrateWorkouts,
+  useNow,
+  useTodos,
+  useWorkouts,
+} from "@/lib/tracker-store";
+import { MOTIVATION_QUOTES } from "@/lib/trackers";
 import Questionnaire from "@/components/Questionnaire";
-
-type FastState = { protocolId: string; phase: string; elapsedSec: number; running: boolean };
-type Todo = { id: string; text: string; done: boolean; date: string };
-type GoalState = { checks: boolean[]; appsByDay: Record<string, number> };
-type LogMap = Record<string, Record<string, { done: boolean }>>;
-type HistoryEntry = { date: string; hours: number };
-
-function MiniStat({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string; color: string }) {
-  return (
-    <Link href={
-      label === "Fasting" ? "/intermittent-fasting" :
-      label === "Workouts" ? "/workout-tracking" :
-      label === "Todos" ? "/todo" :
-      "/goal"
-    } className="group">
-      <Card className="transition-all hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/40">
-        <CardContent className="flex items-center gap-3 p-4">
-          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${color} shadow-md`}>
-            <Icon className="h-5 w-5 text-white" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
-            <p className="truncate font-display text-lg font-bold">{value}</p>
-          </div>
-          <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
+import { TrackerIcon, type TrackerIconName } from "@/components/trackers/icons";
+import { computeFastingState } from "@/lib/trackers";
+import { cn } from "@/lib/utils";
+import {
+  Activity,
+  Dumbbell,
+  Flag,
+  ListChecks,
+  Plus,
+  Sparkles,
+  Timer,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
 
 export default function TrackersHub() {
+  useMigrateWorkouts();
+  useMigrateFasting();
+  useMigrateTodos();
+  useMigrateGoal();
   const { prefs, isSetup } = useUserPrefs();
   const [showQ, setShowQ] = useState(false);
+  const now = useNow(30_000);
 
-  const { value: fasting } = useSyncedStorage<FastState>("fasting", { protocolId: "16-8", phase: "fasting", elapsedSec: 0, running: false });
-  const { value: todos } = useSyncedStorage<Todo[]>("todos", []);
-  const { value: goal } = useSyncedStorage<GoalState>("goal", { checks: [], appsByDay: {} });
-  const { value: workouts } = useSyncedStorage<LogMap>("workouts", {});
-  const { value: history } = useSyncedStorage<HistoryEntry[]>("fasting:history", []);
-  const { value: favs } = useSyncedStorage<string[]>("motivation:favs", []);
+  const { value: fasting, setValue: setFasting } = useFasting();
+  const { value: fastHistory } = useFastingHistory();
+  const { value: todos, setValue: setTodos } = useTodos();
+  const { value: goal, setValue: setGoal } = useGoalState();
+  const { value: workouts } = useWorkouts();
+  const { value: journal } = useJournal();
 
-  const safe = (v: unknown, d: any) => v ?? d;
+  const fastSt = fasting ?? { protocolId: "16-8", phase: "fasting" as const, startedAt: null };
+  const fastHist = useMemo(() => (fastHistory ?? []) as FastHistoryEntry[], [fastHistory]);
+  const todoList = useMemo(() => (todos ?? []) as Todo[], [todos]);
+  const goalSt = useMemo(() => goal ?? { metricByDay: {}, milestonesByCategory: {} }, [goal]);
+  const workoutLogs = useMemo(() => workouts ?? {}, [workouts]);
+  const journalMap = useMemo(() => journal ?? {}, [journal]);
+
   const today = dateKey();
+  const metric = metricFor(prefs);
+  const todayMetric = goalSt.metricByDay?.[today] ?? 0;
 
-  const fastingData = safe(fasting, { protocolId: "16-8", phase: "fasting", elapsedSec: 0, running: false }) as FastState;
-  const todoData = safe(todos, []) as Todo[];
-  const goalData = safe(goal, { checks: [], appsByDay: {} }) as GoalState;
-  const workoutData = safe(workouts, {}) as LogMap;
-  const historyData = safe(history, []) as HistoryEntry[];
-  const favsData = safe(favs, []) as string[];
+  // ── ring segment values ──
+  const protocol = protocolById(fastSt.protocolId);
+  const derived = computeFastingState(fastSt, now, protocol.fastHours);
+  const fastedToday = fastHist.some((h) => dateKey(new Date(h.end)) === today) || (derived.running && !derived.complete && fastSt.phase === "fasting" && derived.pct > 0.5);
+  const fastSeg = fastedToday ? 1 : derived.running && fastSt.phase === "fasting" ? derived.pct / 100 : 0;
 
-  const protocol = FASTING_PROTOCOLS.find((p) => p.id === fastingData.protocolId) ?? FASTING_PROTOCOLS[1];
+  const workoutDone = Object.values(workoutLogs[today] ?? {}).some((l) => l?.done);
 
-  const todayTodos = todoData.filter((t) => t.date === today);
-  const doneToday = todayTodos.filter((t) => t.done).length;
-  const todoPct = todayTodos.length ? Math.round((doneToday / todayTodos.length) * 100) : 0;
+  const todayTodos = todoList.filter((t) => t.date === today || (t.date < today && !t.done));
+  const doneTodos = todayTodos.filter((t) => t.done).length;
+  const todoSeg = todayTodos.length ? doneTodos / todayTodos.length : 0;
 
-  const goalChecks = (goalData.checks ?? []).filter(Boolean).length;
-  const goalTotal = (GOAL_MILESTONES[prefs.goalCategory] ?? GOAL_MILESTONES.relocation).length;
-  const goalPct = goalTotal ? Math.round((goalChecks / goalTotal) * 100) : 0;
+  const goalSeg = Math.min(1, metric.target ? todayMetric / metric.target : 0);
 
-  const workoutDays = Object.keys(workoutData).length;
-  const thisWeekSessions = useMemo(() => {
-    let n = 0;
-    const now = new Date();
-    const day = (now.getDay() + 6) % 7;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - day);
-    for (let i = 0; i <= day; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      const k = d.toISOString().slice(0, 10);
-      if (workoutData[k] && Object.values(workoutData[k]).some((c) => c.done)) n++;
-    }
-    return n;
-  }, [workoutData]);
+  const ringPct = Math.round(((fastSeg + (workoutDone ? 1 : 0) + todoSeg + goalSeg) / 4) * 100);
 
-  const weekFastHours = useMemo(
-    () => historyData.slice(-7).reduce((a, h) => a + h.hours, 0),
-    [historyData],
+  const segments: RingSegment[] = [
+    { value: fastSeg, color: "#3b82f6", label: "Fasting" },
+    { value: workoutDone ? 1 : 0, color: "#10b981", label: "Workout" },
+    { value: todoSeg, color: "#f59e0b", label: "Tasks" },
+    { value: goalSeg, color: "#d946ef", label: "Goal" },
+  ];
+
+  // ── analytics for cards ──
+  const weekFastBars = useMemo(() => fastHoursByDay(fastHist, 7, new Date(now)), [fastHist, now]);
+  const volumeBars = useMemo(
+    () => weeklyWorkoutStats(workoutLogs, 4, new Date(now)).map((w) => ({ label: w.label, value: w.volumeKg })),
+    [workoutLogs, now],
+  );
+  const fastStreak = calculateStreak(fastHist.map((h) => dateKey(new Date(h.end))));
+  const workoutStreak = calculateStreak(
+    Object.entries(workoutLogs)
+      .filter(([, day]) => Object.values(day).some((l) => l?.done))
+      .map(([d]) => d),
+  );
+  const taskStreak = calculateStreak(
+    Object.entries(
+      todoList.reduce<Record<string, number>>((acc, t) => {
+        if (t.done && t.completedAt) {
+          const k = new Date(t.completedAt).toISOString().slice(0, 10);
+          acc[k] = (acc[k] ?? 0) + 1;
+        }
+        return acc;
+      }, {}),
+    )
+      .filter(([, n]) => n > 0)
+      .map(([k]) => k),
   );
 
-  const weeklyApps = useMemo(() => {
-    let total = 0;
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const k = d.toISOString().slice(0, 10);
-      total += (goalData.appsByDay?.[k] as number) ?? 0;
-    }
-    return total;
-  }, [goalData.appsByDay]);
+  const goalMeta = GOAL_CATEGORIES.find((gc) => gc.id === prefs.goalCategory) ?? GOAL_CATEGORIES[0];
+  const milestones = milestonesFor(goalSt, prefs.goalCategory);
+  const milestonesDone = milestones.filter((m) => m.done).length;
 
-  const goalMeta = GOAL_CATEGORIES.find((g) => g.id === prefs.goalCategory) ?? GOAL_CATEGORIES[0];
+  const quote = useMemo(() => {
+    const deck = MOTIVATION_QUOTES[prefs.motivationStyle] ?? MOTIVATION_QUOTES.discipline;
+    let h = 0;
+    for (const c of today) h = (h * 31 + c.charCodeAt(0)) % 997;
+    return deck[h % deck.length];
+  }, [prefs.motivationStyle, today]);
+
+  const weekReview = useMemo(
+    () =>
+      buildWeekReview(
+        {
+          fastHistory: fastHist,
+          workouts: workoutLogs,
+          todos: todoList,
+          metricByDay: goalSt.metricByDay ?? {},
+          journal: journalMap,
+        },
+        new Date(now),
+      ),
+    [fastHist, workoutLogs, todoList, goalSt.metricByDay, journalMap, now],
+  );
+
+  const activity = useMemo(
+    () =>
+      buildRecentActivity(
+        {
+          fastHistory: fastHist,
+          workouts: workoutLogs,
+          todos: todoList,
+          metricByDay: goalSt.metricByDay ?? {},
+          metricLabel: metric.label,
+          journal: journalMap,
+        },
+        now,
+      ),
+    [fastHist, workoutLogs, todoList, goalSt.metricByDay, metric.label, journalMap, now],
+  );
+
+  // ── quick actions ──
+  const [quickTask, setQuickTask] = useState("");
+  const [quickMetric, setQuickMetric] = useState("");
+  const addQuickTask = () => {
+    const v = quickTask.trim();
+    if (!v) return;
+    const t: Todo = {
+      id: `t_${Date.now().toString(36)}`,
+      text: v,
+      done: false,
+      date: today,
+      priority: "P2",
+      tag: "Goal",
+      createdAt: Date.now(),
+    };
+    setTodos([...todoList, t]);
+    setQuickTask("");
+  };
+  const toggleFast = () => {
+    if (fastSt.startedAt !== null) {
+      // end current phase
+      if (fastSt.phase === "fasting" && !fastedToday) {
+        const hours = (now - fastSt.startedAt) / 3600_000;
+        if (hours >= 0.25) {
+          setFasting({ ...fastSt, startedAt: null });
+          // log handled on the fasting page; hub just stops the clock
+          return;
+        }
+      }
+      setFasting({ ...fastSt, startedAt: null });
+    } else {
+      setFasting({ protocolId: fastSt.protocolId, phase: "fasting", startedAt: Date.now() });
+    }
+  };
+  const logQuickMetric = () => {
+    const n = Number(quickMetric);
+    if (!Number.isFinite(n) || n === 0) return;
+    setGoal({ ...goalSt, metricByDay: { ...(goalSt.metricByDay ?? {}), [today]: todayMetric + n } });
+    setQuickMetric("");
+  };
 
   if (!isSetup || showQ) {
     return (
@@ -120,154 +228,320 @@ export default function TrackersHub() {
 
   return (
     <RequireAuth>
-    <TrackerShell
-      icon="hub"
-      title={prefs.name ? `Welcome back, ${prefs.name}` : "Your Dashboard"}
-      subtitle={`Tracking ${goalMeta.icon} ${prefs.goalTitle || goalMeta.label} · ${prefs.motivationStyle} motivation`}
-    >
-      {/* quick stats grid */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {prefs.fastingEnabled && (
-          <MiniStat
-            icon={Timer}
-            label="Fasting"
-            value={fastingData.running
-              ? `${(fastingData.elapsedSec / 3600).toFixed(1)}h / ${protocol.fastHours}h`
-              : fastingData.phase === "eating"
-                ? "In eating window"
-                : "Ready to start"
-            }
-            color="from-blue-500 to-violet-600"
-          />
-        )}
-        <MiniStat
-          icon={Dumbbell}
-          label="Workouts"
-          value={thisWeekSessions > 0 ? `${thisWeekSessions} sessions this week` : "No sessions yet"}
-          color="from-emerald-500 to-teal-600"
-        />
-        <MiniStat
-          icon={ListChecks}
-          label="Todos"
-          value={todayTodos.length > 0 ? `${doneToday}/${todayTodos.length} done today` : "No tasks today"}
-          color="from-amber-500 to-orange-600"
-        />
-        <MiniStat
-          icon={Flag}
-          label="Goal"
-          value={`${goalChecks}/${goalTotal} milestones · ${weeklyApps} apps/wk`}
-          color="from-rose-500 to-pink-600"
-        />
-      </div>
-
-      {/* streaks & analytics */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Flame className="mx-auto h-6 w-6 text-amber-500" />
-            <p className="font-display mt-2 text-2xl font-bold">{weekFastHours.toFixed(0)}h</p>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Fast hours (7d)</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <TrendingUp className="mx-auto h-6 w-6 text-emerald-500" />
-            <p className="font-display mt-2 text-2xl font-bold">{weeklyApps}</p>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Apps this week</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Zap className="mx-auto h-6 w-6 text-primary" />
-            <p className="font-display mt-2 text-2xl font-bold">{favsData.length}</p>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Saved quotes</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* goal progress */}
-      {goalChecks > 0 && (
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display font-bold">{goalMeta.icon} {prefs.goalTitle || goalMeta.label}</h2>
-              <span className="text-sm font-semibold tabular-nums text-primary">{goalPct}%</span>
-            </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${goalPct}%` }} />
-            </div>
-            <Link href="/goal" className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline">
-              View details <ArrowRight className="h-3 w-3" />
-            </Link>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* workout weekly bar */}
-      {workoutDays > 0 && (
-        <Card>
-          <CardContent className="p-5">
-            <h2 className="font-display font-bold">Workout consistency</h2>
-            <div className="mt-3 flex items-end gap-1.5">
-              {[3, 2, 1, 0].map((w) => {
-                let n = 0;
-                const now = new Date();
-                const day = (now.getDay() + 6) % 7;
-                const monday = new Date(now);
-                monday.setDate(now.getDate() - day);
-                for (let i = 0; i < 7; i++) {
-                  const d = new Date(monday);
-                  d.setDate(monday.getDate() + i - w * 7);
-                  const k = d.toISOString().slice(0, 10);
-                  if (workoutData[k] && Object.values(workoutData[k]).some((c) => c.done)) n++;
-                }
-                return (
-                  <div key={w} className="flex flex-1 flex-col items-center gap-1">
-                    <div
-                      className="w-full rounded-md bg-gradient-to-t from-primary to-fuchsia-500"
-                      style={{ height: `${Math.max(6, n * 18)}px`, opacity: n ? 1 : 0.3 }}
-                    />
-                    <span className="text-[10px] text-muted-foreground">{w === 0 ? "This" : `${w}w ago`}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <Link href="/workout-tracking" className="mt-3 inline-flex items-center gap-1 text-xs text-primary hover:underline">
-              Log today's workout <ArrowRight className="h-3 w-3" />
-            </Link>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* quick links */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          { href: "/intermittent-fasting", icon: "timer" as TrackerIconName, label: "Fasting" },
-          { href: "/motivation", icon: "flame" as TrackerIconName, label: "Motivation" },
-          { href: "/goal", icon: "flag" as TrackerIconName, label: "Goal" },
-          { href: "/workout-tracking", icon: "workout" as TrackerIconName, label: "Workouts" },
-          { href: "/todo", icon: "todo" as TrackerIconName, label: "Todo" },
-          { href: "/share", icon: "share" as TrackerIconName, label: "Share" },
-        ].filter((l) => !l.href.includes("fasting") || prefs.fastingEnabled).map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-sm transition-all hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
-          >
-            <TrackerIcon name={l.icon} className="h-3.5 w-3.5" />
-            {l.label}
-          </Link>
-        ))}
-      </div>
-
-      {/* re-run questionnaire */}
-      <button
-        onClick={() => setShowQ(true)}
-        className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+      <TrackerShell
+        icon="hub"
+        title={prefs.name ? `Welcome back, ${prefs.name}` : "Command Center"}
+        subtitle={`${goalMeta.icon} ${prefs.goalTitle || goalMeta.label} · four daily anchors, one momentum ring.`}
       >
-        Re-run setup questionnaire
-      </button>
-    </TrackerShell>
+        {/* ── Hero: momentum ring + quick actions ── */}
+        <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-card to-fuchsia-500/5">
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
+              <div className="relative">
+                <Ring segments={segments} size={210} thickness={13}>
+                  <span className="font-display text-4xl font-bold tabular-nums">{ringPct}%</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    Daily momentum
+                  </span>
+                </Ring>
+              </div>
+              <div className="w-full flex-1 space-y-2.5">
+                <SegmentLegend
+                  items={[
+                    { label: "Fasting", value: fastSeg, color: "#3b82f6", detail: fastedToday ? "Window complete ✓" : derived.running && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m in` : "Not started" },
+                    { label: "Workout", value: workoutDone ? 1 : 0, color: "#10b981", detail: workoutDone ? "Session logged ✓" : "No session yet" },
+                    { label: "Tasks", value: todoSeg, color: "#f59e0b", detail: todayTodos.length ? `${doneTodos}/${todayTodos.length} done` : "No tasks today" },
+                    { label: "Goal", value: goalSeg, color: "#d946ef", detail: `${todayMetric}/${metric.target} ${metric.label.toLowerCase()}` },
+                  ]}
+                />
+              </div>
+            </div>
+
+            {/* quick actions */}
+            <div className="mt-6 grid gap-2 sm:grid-cols-2">
+              <div className="flex gap-2">
+                <Input
+                  className="h-9"
+                  placeholder="+ Quick add task…"
+                  value={quickTask}
+                  onChange={(e) => setQuickTask(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addQuickTask()}
+                />
+                <Button size="sm" className="h-9" onClick={addQuickTask}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  className="h-9 tabular-nums"
+                  type="number"
+                  min={0}
+                  placeholder={`+ Log ${metric.label.toLowerCase()}…`}
+                  value={quickMetric}
+                  onChange={(e) => setQuickMetric(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && logQuickMetric()}
+                />
+                <Button size="sm" className="h-9" onClick={logQuickMetric}>
+                  <TrendingUp className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button variant={fastSt.startedAt !== null ? "secondary" : "default"} className="h-9" onClick={toggleFast}>
+                <Timer className="mr-1.5 h-4 w-4" />
+                {fastSt.startedAt !== null
+                  ? `End ${fastSt.phase === "fasting" ? "fast" : "window"}`
+                  : "Start fast"}
+              </Button>
+              <Link href="/workout-tracking">
+                <Button variant="outline" className="h-9 w-full">
+                  <Dumbbell className="mr-1.5 h-4 w-4" /> Log workout session
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Streak row ── */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { l: "Fast streak", v: `${fastStreak}d`, Icon: Timer, c: "text-blue-500" },
+            { l: "Gym streak", v: `${workoutStreak}d`, Icon: Dumbbell, c: "text-emerald-500" },
+            { l: "Task streak", v: `${taskStreak}d`, Icon: ListChecks, c: "text-amber-500" },
+            { l: "Milestones", v: `${milestonesDone}/${milestones.length}`, Icon: Flag, c: "text-fuchsia-500" },
+          ].map((s) => (
+            <Card key={s.l}>
+              <CardContent className="flex items-center gap-2.5 p-4">
+                <s.Icon className={cn("h-5 w-5 shrink-0", s.c)} />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">{s.l}</p>
+                  <p className="font-display truncate text-lg font-bold tabular-nums">{s.v}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* ── Metric cards ── */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-baseline justify-between">
+                <h2 className="font-display font-bold">Fasting</h2>
+                <Link href="/intermittent-fasting" className="text-xs text-primary hover:underline">
+                  open →
+                </Link>
+              </div>
+              <p className="mt-1 text-2xl font-bold tabular-nums">
+                {fastSt.startedAt !== null
+                  ? fastSt.phase === "fasting"
+                    ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m`
+                    : "Eating window"
+                  : "Idle"}
+                <span className="ml-1.5 text-xs font-medium text-muted-foreground">/ {protocol.fastHours}h target</span>
+              </p>
+              <MiniBars className="mt-3" data={weekFastBars} unit="h" height={48} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-baseline justify-between">
+                <h2 className="font-display font-bold">Workout volume</h2>
+                <Link href="/workout-tracking" className="text-xs text-primary hover:underline">
+                  open →
+                </Link>
+              </div>
+              <p className="mt-1 text-2xl font-bold tabular-nums">
+                {weeklyWorkoutStats(workoutLogs, 1, new Date(now))[0]?.sessions ?? 0}
+                <span className="ml-1.5 text-xs font-medium text-muted-foreground">sessions this week</span>
+              </p>
+              <MiniBars className="mt-3" data={volumeBars} height={48} />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ── Week in review ── */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-baseline justify-between">
+              <h2 className="font-display font-bold">Week in review</h2>
+              <span className="text-xs text-muted-foreground">
+                {weekReview.activeDays}/7 active days · {weekReview.journalEntries} reflections
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+              <ReviewStat label="Fast hours" value={weekReview.fastHours} prev={weekReview.prevFastHours} unit="h" decimals />
+              <ReviewStat label="Sessions" value={weekReview.sessions} prev={weekReview.prevSessions} />
+              <ReviewStat label="Volume" value={weekReview.volumeKg} prev={weekReview.prevVolumeKg} unit="kg" />
+              <ReviewStat label="Tasks done" value={weekReview.tasksCompleted} prev={weekReview.prevTasksCompleted} />
+              <ReviewStat label={metric.label} value={weekReview.metricTotal} prev={weekReview.prevMetricTotal} />
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">Deltas vs the previous 7 days</p>
+          </CardContent>
+        </Card>
+
+        {/* ── Goal trajectory + quote ── */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-baseline justify-between">
+                <h2 className="font-display font-bold">{goalMeta.icon} {prefs.goalTitle || goalMeta.label}</h2>
+                <Link href="/goal" className="text-xs text-primary hover:underline">
+                  open →
+                </Link>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {metric.label}: <strong className="text-foreground tabular-nums">{todayMetric}</strong> / {metric.target} today
+              </p>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all"
+                  style={{ width: `${Math.min(100, (todayMetric / Math.max(1, metric.target)) * 100)}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {milestonesDone}/{milestones.length} milestones · {Math.round((milestonesDone / Math.max(1, milestones.length)) * 100)}% roadmap
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-baseline justify-between">
+                <h2 className="font-display font-bold">Fuel for today</h2>
+                <Link href="/motivation" className="text-xs text-primary hover:underline">
+                  open →
+                </Link>
+              </div>
+              <blockquote className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                &ldquo;{quote.text}&rdquo;
+                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold">{quote.tag}</span>
+              </blockquote>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ── Recent activity ── */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 text-primary" />
+              <h2 className="font-display font-bold">Last 48 hours</h2>
+            </div>
+            {activity.length === 0 ? (
+              <div className="mt-3">
+                <EmptyState
+                  icon={Zap}
+                  title="No activity yet"
+                  hint="Complete a fast, log a workout, finish tasks or journal — your recent wins land here."
+                />
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-1.5">
+                {activity.map((ev) => (
+                  <li key={ev.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                    <span className="min-w-0 truncate">
+                      <ActivityDot kind={ev.kind} /> {ev.title}
+                      {ev.detail ? <span className="text-muted-foreground"> · {ev.detail}</span> : null}
+                    </span>
+                    <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{relativeTime(ev.at, now)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── Quick links + setup ── */}
+        <div className="flex flex-wrap items-center gap-2">
+          {(
+            [
+              { href: "/intermittent-fasting", icon: "timer", label: "Fasting" },
+              { href: "/workout-tracking", icon: "workout", label: "Workouts" },
+              { href: "/goal", icon: "flag", label: "Goal" },
+              { href: "/todo", icon: "todo", label: "Todo" },
+              { href: "/motivation", icon: "flame", label: "Motivation" },
+              { href: "/share", icon: "share", label: "Share" },
+            ] as { href: string; icon: TrackerIconName; label: string }[]
+          )
+            .filter((l) => l.href !== "/intermittent-fasting" || prefs.fastingEnabled)
+            .map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-sm transition-all hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+              >
+                <TrackerIcon name={l.icon} className="h-3.5 w-3.5" />
+                {l.label}
+              </Link>
+            ))}
+          <button
+            onClick={() => setShowQ(true)}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Re-run setup
+          </button>
+        </div>
+      </TrackerShell>
     </RequireAuth>
+  );
+}
+
+function SegmentLegend({
+  items,
+}: {
+  items: { label: string; value: number; color: string; detail: string }[];
+}) {
+  return (
+    <ul className="space-y-2">
+      {items.map((it) => (
+        <li key={it.label} className="flex items-center gap-3">
+          <span
+            aria-hidden
+            className={cn("h-2.5 w-2.5 shrink-0 rounded-full", it.value <= 0 && "opacity-30")}
+            style={{ backgroundColor: it.color, boxShadow: it.value > 0 ? `0 0 8px ${it.color}` : undefined }}
+          />
+          <span className="w-16 shrink-0 text-xs font-semibold">{it.label}</span>
+          <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${Math.min(100, it.value * 100)}%`, backgroundColor: it.color }}
+            />
+          </div>
+          <span className="w-36 shrink-0 text-right text-[11px] text-muted-foreground">{it.detail}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ActivityDot({ kind }: { kind: string }) {
+  const colors: Record<string, string> = {
+    fast: "bg-blue-500",
+    workout: "bg-emerald-500",
+    todo: "bg-amber-500",
+    goal: "bg-fuchsia-500",
+    journal: "bg-violet-500",
+  };
+  return <span aria-hidden className={cn("mr-1.5 inline-block h-2 w-2 rounded-full", colors[kind] ?? "bg-muted-foreground")} />;
+}
+
+function ReviewStat({
+  label,
+  value,
+  prev,
+  unit = "",
+  decimals = false,
+}: {
+  label: string;
+  value: number;
+  prev: number;
+  unit?: string;
+  decimals?: boolean;
+}) {
+  const delta = formatDelta(value, prev, unit);
+  return (
+    <div className="rounded-xl border border-border/60 px-3 py-2.5">
+      <p className="truncate text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">{label}</p>
+      <p className="font-display mt-0.5 text-lg font-bold tabular-nums">{decimals ? value.toFixed(1) : value}{unit}</p>
+      <p className={cn("text-[11px] font-semibold tabular-nums", delta.good ? "text-emerald-500" : "text-red-500")}>{delta.text} vs last wk</p>
+    </div>
   );
 }
