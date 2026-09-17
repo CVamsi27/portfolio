@@ -14,7 +14,9 @@ name: CI
 # real credentials would flip pages behind a sign-in gate and break the run.
 #
 # Chromium is installed explicitly so `npx playwright install --with-deps`
-# matches the browser version pinned by @playwright/test in the lockfile.
+# matches the browser version pinned by @playwright/test in the lockfile —
+# which is also the browser-cache key. `playwright install` is a no-op on a
+# cache hit; only the OS deps re-verify.
 
 on:
   push:
@@ -51,6 +53,12 @@ jobs:
 
       - name: Typecheck
         run: ./node_modules/.bin/tsc --noEmit
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Playwright Chromium
         run: ./node_modules/.bin/playwright install --with-deps chromium
