@@ -2,12 +2,12 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("navigation & shell", () => {
-  test("portfolio root renders and exposes the Personal Suite portal", async ({ page }) => {
+  test("portfolio root renders and exposes the NOVA//OS portal", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("body")).toContainText(/Vamsi|Full Stack/i);
     // Portal link is host-aware: on localhost it points at the tracker hub.
     // (host is read in an effect, so allow the href to settle after hydration.)
-    const portal = page.getByRole("link", { name: "Open the Personal Suite trackers" });
+    const portal = page.getByRole("link", { name: "Open the NOVA//OS trackers" });
     await expect(portal).toBeVisible();
     await expect(portal).toHaveAttribute("href", "/trackers", { timeout: 7_000 });
   });
@@ -54,7 +54,7 @@ test.describe("navigation & shell", () => {
     });
     expect(manifest.status()).toBe(200);
     const json = await manifest.json();
-    expect(json.name).toBe("VK Personal Suite");
+    expect(json.name).toBe("NOVA//OS");
     const sw = await page.request.get("http://127.0.0.1:4111/sw.js", { headers: { Host: "buildora.work" } });
     expect(sw.status()).toBe(200);
   });
