@@ -61,7 +61,7 @@ export default function NovaMark({
           opacity="0.55"
         />
         <path
-          d="M18 44V20L32 38L46 20V44"
+          d="M18 44V20L46 44V20"
           stroke="#F7FBFF"
           strokeWidth="4.5"
           strokeLinejoin="bevel"
@@ -73,7 +73,7 @@ export default function NovaMark({
         <circle cx="32" cy="23" r="2.2" fill="#071014" />
       </svg>
       {variant !== "mark" ? (
-        <span className={cn("font-display font-black uppercase leading-none tracking-[-0.055em]", styles.text)}>
+        <span className={cn("nova-wordmark font-normal uppercase leading-none", styles.text)}>
           NOVA<span className="text-[#49E7FF]">{"//"}</span>OS
         </span>
       ) : null}

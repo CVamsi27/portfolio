@@ -27,9 +27,15 @@ test.describe("product branding", () => {
 
   test("tracker product copy is consistent", async ({ page }) => {
     await seed(page);
-    await page.goto("/settings");
+    await page.goto("/trackers");
+    await page.evaluate(() => {
+      const prefs = JSON.parse(window.localStorage.getItem("vk:prefs") ?? "{}");
+      window.localStorage.setItem("vk:prefs", JSON.stringify({ ...prefs, questionnaireDone: false }));
+    });
+    await page.reload();
     await expect(page.locator("body")).not.toContainText("Personal Suite");
     await expect(page.locator("body")).not.toContainText("VK Personal Suite");
+    await expect(page.getByText("Welcome to NOVA//OS")).toBeVisible();
     await page.goto("/motivation");
     await expect(page.getByTestId("focus-scene")).toBeVisible();
   });
@@ -43,7 +49,7 @@ test.describe("product branding", () => {
     expect(manifest.start_url).toBe("/trackers");
 
     await page.goto("/trackers");
-    await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/icon.svg");
+    await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", "/icon.svg");
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#071014");
   });
 
