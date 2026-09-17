@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -12,10 +12,16 @@ import HeaderMenu from "./HeaderMenu";
 import AuthButton from "./auth/AuthButton";
 import { cn } from "@/lib/utils";
 
+const emptySubscribe = () => () => {};
+const getHostname = () =>
+  typeof window === "undefined" ? "" : window.location.hostname;
+
 const Navbar = () => {
   const pathname = usePathname();
-  const host =
-    typeof window === "undefined" ? "" : window.location.hostname;
+  // window.location.hostname is empty during SSR and the first client render,
+  // so host-dependent hrefs resolve through an external store — the value
+  // appears after hydration without setState-in-effect cascades.
+  const host = useSyncExternalStore(emptySubscribe, getHostname, () => "");
   // On personal host, TrackerNavDock (inside TrackerShell) provides sub-nav,
   // so the top Navbar shows logo + auth + theme toggle (no duplicate links).
   const isPersonalHost = host.startsWith("personal.");

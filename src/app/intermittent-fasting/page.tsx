@@ -245,7 +245,7 @@ export default function FastingPage() {
               />
               <div className="flex flex-wrap gap-2">
                 {safe.startedAt === null ? (
-                  <Button onClick={eating ? startFast : startEating} className="flex-1">
+                  <Button onClick={eating ? startEating : startFast} className="flex-1">
                     <Play className="mr-1.5 h-4 w-4" /> Start {eating ? "Eating Window" : "Fast"}
                   </Button>
                 ) : (

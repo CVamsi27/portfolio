@@ -64,14 +64,18 @@ export default function MotivationPage() {
   const [quoteDraft, setQuoteDraft] = useState({ text: "", tag: "Mine" });
 
   // Register today's visit once, from an effect (never during render).
+  // Uses the store's updater form so a stale first-render snapshot (before
+  // localStorage hydration) can never wipe previously-visited days.
   const [visitRecorded, setVisitRecorded] = useState(false);
   useEffect(() => {
-    if (!visitRecorded && !safeVisits[today]) {
-      setVisitRecorded(true);
-      setVisits({ ...safeVisits, [today]: Date.now() });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visitRecorded, today]);
+    if (visitRecorded) return;
+    setVisitRecorded(true);
+    setVisits((prev) => {
+      const v = prev ?? {};
+      if (v[today]) return v;
+      return { ...v, [today]: Date.now() };
+    });
+  }, [visitRecorded, today, setVisits]);
 
   // Deck = presets + user's custom affirmations (normalized to one shape)
   const deck = useMemo<{ text: string; tag: string; id: string }[]>(
@@ -129,7 +133,10 @@ export default function MotivationPage() {
   const [savedFlash, setSavedFlash] = useState(false);
 
   const saveJournal = () => {
-    setJournal({ ...safeJournal, [today]: { ...draftState, updatedAt: Date.now() } });
+    // Event handler — stamping the wall clock is the intent.
+    // eslint-disable-next-line react-hooks/purity
+    const savedAt = Date.now();
+    setJournal({ ...safeJournal, [today]: { ...draftState, updatedAt: savedAt } });
     setDraft(null);
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 1500);
