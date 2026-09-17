@@ -41,6 +41,7 @@ import {
 } from "@/lib/tracker-store";
 import { MOTIVATION_QUOTES } from "@/lib/trackers";
 import Questionnaire from "@/components/Questionnaire";
+import InstallPrompt from "@/components/InstallPrompt";
 import { TrackerIcon, type TrackerIconName } from "@/components/trackers/icons";
 import { computeFastingState } from "@/lib/trackers";
 import { cn } from "@/lib/utils";
@@ -233,7 +234,10 @@ export default function TrackersHub() {
         title={prefs.name ? `Welcome back, ${prefs.name}` : "Command Center"}
         subtitle={`${goalMeta.icon} ${prefs.goalTitle || goalMeta.label} · four daily anchors, one momentum ring.`}
       >
-        {/* ── Hero: momentum ring + quick actions ── */}
+        {/* ── Install banner (shown only when the browser offers it) ── */}
+      <InstallPrompt />
+
+      {/* ── Hero: momentum ring + quick actions ── */}
         <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-card to-fuchsia-500/5">
           <CardContent className="p-6">
             <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
