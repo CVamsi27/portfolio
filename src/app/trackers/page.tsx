@@ -44,6 +44,9 @@ import Questionnaire from "@/components/Questionnaire";
 import InstallPrompt from "@/components/InstallPrompt";
 import { TrackerIcon, type TrackerIconName } from "@/components/trackers/icons";
 import { computeFastingState } from "@/lib/trackers";
+import SignalPanel from "@/components/trackers/SignalPanel";
+import StoryPanel from "@/components/trackers/StoryPanel";
+import { buildDailyChapter, buildNextAction } from "@/lib/command-deck";
 import { cn } from "@/lib/utils";
 import {
   Activity,
@@ -96,9 +99,32 @@ export default function TrackersHub() {
   const doneTodos = todayTodos.filter((t) => t.done).length;
   const todoSeg = todayTodos.length ? doneTodos / todayTodos.length : 0;
 
+  const nextPriorityTodo = todayTodos
+    .filter((t) => !t.done && (t.priority === "P1" || t.priority === "P2"))
+    .sort((a, b) => (a.priority === b.priority ? a.createdAt - b.createdAt : a.priority === "P1" ? -1 : 1))[0];
+
+  const goalMeta = GOAL_CATEGORIES.find((gc) => gc.id === prefs.goalCategory) ?? GOAL_CATEGORIES[0];
   const goalSeg = Math.min(1, metric.target ? todayMetric / metric.target : 0);
 
   const ringPct = Math.round(((fastSeg + (workoutDone ? 1 : 0) + todoSeg + goalSeg) / 4) * 100);
+
+  const nextAction = buildNextAction({
+    fastRunning: fastSt.startedAt !== null,
+    workoutDone,
+    todoCount: todayTodos.length,
+    doneTodos,
+    goalPct: goalSeg * 100,
+    metricLabel: metric.label,
+    nextTask: nextPriorityTodo?.text,
+  });
+  const dailyChapter = buildDailyChapter({
+    goalTitle: prefs.goalTitle,
+    goalLabel: goalMeta.label,
+    goalPct: goalSeg * 100,
+    ringPct,
+    nextAction,
+    today,
+  });
 
   const segments: RingSegment[] = [
     { value: fastSeg, color: "#3b82f6", label: "Fasting" },
@@ -133,7 +159,6 @@ export default function TrackersHub() {
       .map(([k]) => k),
   );
 
-  const goalMeta = GOAL_CATEGORIES.find((gc) => gc.id === prefs.goalCategory) ?? GOAL_CATEGORIES[0];
   const milestones = milestonesFor(goalSt, prefs.goalCategory);
   const milestonesDone = milestones.filter((m) => m.done).length;
 
@@ -235,21 +260,43 @@ export default function TrackersHub() {
         subtitle={`${goalMeta.icon} ${prefs.goalTitle || goalMeta.label} · four daily anchors, one momentum ring.`}
       >
         {/* ── Install banner (shown only when the browser offers it) ── */}
-      <InstallPrompt />
+        <InstallPrompt />
 
-      {/* ── Hero: momentum ring + quick actions ── */}
-        <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-card to-fuchsia-500/5">
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
-              <div className="relative">
+        {/* ── Daily episode: goal first, then the next move ── */}
+        <div className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]">
+          <StoryPanel
+            eyebrow={dailyChapter.eyebrow}
+            title={<span data-testid="command-deck-title">{dailyChapter.title}</span>}
+            tone="signal"
+            action={
+              <Link href="/goal" className="text-xs font-semibold text-primary hover:underline">
+                Open goal →
+              </Link>
+            }
+          >
+            <p>{dailyChapter.summary}</p>
+            <div data-testid="next-action" className="mt-5 border-l-2 border-primary pl-4">
+              <p className="dossier-kicker">Next move</p>
+              <p className="mt-1 text-base font-semibold text-foreground">{dailyChapter.nextAction}</p>
+            </div>
+          </StoryPanel>
+
+          <div data-testid="momentum-signal">
+            <SignalPanel
+              label="Momentum signal"
+              value={ringPct === 0 ? "No signal" : `${ringPct}%`}
+              detail={`${ringPct}% daily momentum across fasting, movement, tasks, and the goal metric.`}
+              progress={ringPct}
+              tone="red"
+            />
+            <Card className="mt-4">
+              <CardContent className="flex flex-col items-center gap-5 p-5">
                 <Ring segments={segments} size={210} thickness={13}>
                   <span className="font-display text-4xl font-bold tabular-nums">{ringPct}%</span>
                   <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Daily momentum
                   </span>
                 </Ring>
-              </div>
-              <div className="w-full flex-1 space-y-2.5">
                 <SegmentLegend
                   items={[
                     { label: "Fasting", value: fastSeg, color: "#3b82f6", detail: fastedToday ? "Window complete ✓" : derived.running && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m in` : "Not started" },
@@ -258,51 +305,52 @@ export default function TrackersHub() {
                     { label: "Goal", value: goalSeg, color: "#d946ef", detail: `${todayMetric}/${metric.target} ${metric.label.toLowerCase()}` },
                   ]}
                 />
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
-            {/* quick actions */}
-            <div className="mt-6 grid gap-2 sm:grid-cols-2">
-              <div className="flex gap-2">
-                <Input
-                  className="h-9"
-                  placeholder="+ Quick add task…"
-                  value={quickTask}
-                  onChange={(e) => setQuickTask(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addQuickTask()}
-                />
-                <Button size="sm" className="h-9" onClick={addQuickTask}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  className="h-9 tabular-nums"
-                  type="number"
-                  min={0}
-                  placeholder={`+ Log ${metric.label.toLowerCase()}…`}
-                  value={quickMetric}
-                  onChange={(e) => setQuickMetric(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && logQuickMetric()}
-                />
-                <Button size="sm" className="h-9" onClick={logQuickMetric}>
-                  <TrendingUp className="h-4 w-4" />
-                </Button>
-              </div>
-              <Button variant={fastSt.startedAt !== null ? "secondary" : "default"} className="h-9" onClick={toggleFast}>
-                <Timer className="mr-1.5 h-4 w-4" />
-                {fastSt.startedAt !== null
-                  ? `End ${fastSt.phase === "fasting" ? "fast" : "window"}`
-                  : "Start fast"}
+        <StoryPanel eyebrow="Command inputs" title="Quick actions" tone="archive">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="flex gap-2">
+              <Input
+                className="h-9"
+                placeholder="+ Quick add task…"
+                value={quickTask}
+                onChange={(e) => setQuickTask(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addQuickTask()}
+              />
+              <Button size="sm" className="h-9" onClick={addQuickTask}>
+                <Plus className="h-4 w-4" />
               </Button>
-              <Link href="/workout-tracking">
-                <Button variant="outline" className="h-9 w-full">
-                  <Dumbbell className="mr-1.5 h-4 w-4" /> Log workout session
-                </Button>
-              </Link>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex gap-2">
+              <Input
+                className="h-9 tabular-nums"
+                type="number"
+                min={0}
+                placeholder={`+ Log ${metric.label.toLowerCase()}…`}
+                value={quickMetric}
+                onChange={(e) => setQuickMetric(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && logQuickMetric()}
+              />
+              <Button size="sm" className="h-9" onClick={logQuickMetric}>
+                <TrendingUp className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button variant={fastSt.startedAt !== null ? "secondary" : "default"} className="h-9" onClick={toggleFast}>
+              <Timer className="mr-1.5 h-4 w-4" />
+              {fastSt.startedAt !== null
+                ? `End ${fastSt.phase === "fasting" ? "fast" : "window"}`
+                : "Start fast"}
+            </Button>
+            <Link href="/workout-tracking">
+              <Button variant="outline" className="h-9 w-full">
+                <Dumbbell className="mr-1.5 h-4 w-4" /> Log workout session
+              </Button>
+            </Link>
+          </div>
+        </StoryPanel>
 
         {/* ── Streak row ── */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
