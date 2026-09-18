@@ -69,6 +69,7 @@
 - Modify: `CHANGELOG.md` — remove emoji headings.
 - Modify: active source, tests, and fixtures containing Berlin/Germany demo copy, “Personal Suite”, or emoji UI strings.
 - Modify: tracker feature routes where old Card-first wording or stale shell copy remains.
+- Modify: `src/components/auth/AuthButton.tsx`, `src/components/pages/About.tsx`, `src/components/pages/Contact.tsx`, `src/components/pages/Experience.tsx`, `src/components/pages/Projects.tsx`, `src/components/pages/Skills.tsx` — replace the old portfolio symbol, reveal full email text, and tighten oversized public spacing.
 - Test: add focused assertions to existing E2E suites and run source audits with `rg`.
 
 ---
@@ -360,6 +361,7 @@ git commit -m "feat: add goal-aware motivation media"
 
 **Interfaces:**
 - Preserves all route paths and data keys while making copy, iconography, focus states, and responsive composition consistent with the existing editorial system.
+- The portfolio navbar uses a readable Buildora mark instead of `~VK`; signed-in email text remains available to assistive technology and is fully readable in a responsive account control; public chapters use compact responsive spacing rather than a full-screen hero plus repeated `py-24` dead zones.
 
 - [ ] **Step 1: Write the failing string and route audit.**
 
@@ -389,11 +391,19 @@ Expected: failures identify the remaining visible flame emoji copy, category emo
 
 Use Lucide or `TrackerIcon` wherever a visible emoji currently appears. Rewrite active changelog headings as plain text. Replace active Berlin fixtures with a neutral country fixture or an explicit Canada/United States selection test. Do not alter historical design docs or compatibility-sensitive storage values.
 
-- [ ] **Step 4: Polish remaining route surfaces.**
+- [ ] **Step 4: Replace the old symbol and reveal account email.**
+
+Render the existing Buildora wordmark/mark component in the public navbar instead of the `~VK` text treatment. Keep the accessible name `Vamsi Krishna home` or `Buildora home` explicit on the link. In `AuthButton`, remove the fixed `max-w-[140px] truncate` treatment, use a responsive `break-all` or `break-words` email span with a sensible mobile max width, and keep the full email in the DOM and accessible name. Add a narrow-viewport assertion that the signed-in email is not replaced by an ellipsis.
+
+- [ ] **Step 5: Tighten public and tracker spacing without flattening the visual language.**
+
+Change the portfolio hero from `min-h-screen` to a header-height-aware minimum height, reduce repeated public chapter padding from `py-24` to a responsive `py-16 md:py-20`, and reduce only redundant inner gaps after inspecting the rendered desktop and 390px layouts. Replace aggressive `truncate` on primary labels with wrapping where the full text is important; retain truncation only for secondary telemetry values that have an accessible full label. Keep the FocusScene intentionally immersive and do not reduce its full-screen motivation mode.
+
+- [ ] **Step 6: Polish remaining route surfaces.**
 
 For each route, apply the existing `ChapterHeader`, `StoryPanel`, `SignalPanel`, `ActionBlock`, and focus-visible utility classes where the page still uses a generic stacked Card layout. Preserve content and event handlers. Ensure buttons have a 44px minimum hit area, labels are sentence case, empty states name the next action, and `prefers-reduced-motion` disables nonessential reveals.
 
-- [ ] **Step 5: Run focused tests and commit.**
+- [ ] **Step 7: Run focused tests and commit.**
 
 Run: `pnpm exec playwright test e2e/editorial-foundation.spec.ts e2e/reduced-motion.spec.ts e2e/branding.spec.ts e2e/onboarding-hub.spec.ts e2e/goal.spec.ts`
 
