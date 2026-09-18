@@ -2,6 +2,29 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("motivation focus scene", () => {
+  test("renders goal-safe media behind the full-screen focus scene", async ({ page }) => {
+    await page.route("**/api/motivation-media**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          imageUrl: "https://images.example.test/journey.jpg",
+          imageAlt: "A path toward a distant horizon",
+          attribution: "Public image source",
+          quote: "Progress becomes visible when you keep moving.",
+          quoteAuthor: "NOVA//OS",
+          fetchedAt: Date.now(),
+        }),
+      });
+    });
+    await seed(page);
+    await page.goto("/motivation");
+    await expect(page.getByTestId("focus-media")).toHaveAttribute("src", "https://images.example.test/journey.jpg");
+    await expect(page.getByText("Public image source")).toBeVisible();
+    await expect(page.getByTestId("focus-goal")).toContainText("Relocate to Canada");
+    await expect(page.getByTestId("focus-scene")).toHaveAttribute("data-focus-active", "false");
+  });
+
   test("motivation opens as a goal-centered focus scene", async ({ page }) => {
     await seed(page);
     await page.goto("/motivation");

@@ -23,6 +23,7 @@ type FocusSceneProps = {
   onSave: () => void;
   onCopy?: () => void;
   onOpenGoal: () => void;
+  media?: { imageUrl?: string; imageAlt?: string; attribution?: string };
 };
 
 export default function FocusScene({
@@ -40,6 +41,7 @@ export default function FocusScene({
   onSave,
   onCopy,
   onOpenGoal,
+  media,
 }: FocusSceneProps) {
   const sceneRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(false);
@@ -89,6 +91,15 @@ export default function FocusScene({
         active && "focus-scene--active",
       )}
     >
+      {media?.imageUrl ? (
+        <img
+          data-testid="focus-media"
+          src={media.imageUrl}
+          alt={media.imageAlt || "Motivational visual"}
+          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-55"
+        />
+      ) : null}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(7,16,20,0.96)_0%,rgba(7,16,20,0.72)_48%,rgba(7,16,20,0.52)_100%),linear-gradient(180deg,rgba(7,16,20,0.2),rgba(7,16,20,0.88)]" />
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_18%,rgba(200,255,61,0.16),transparent_26%),radial-gradient(circle_at_8%_80%,rgba(255,59,48,0.2),transparent_30%)] motion-safe:animate-pulse" />
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 opacity-50 [background-image:linear-gradient(115deg,transparent_0_48%,rgba(255,255,255,0.08)_49%,transparent_50%),linear-gradient(180deg,transparent_0_72%,rgba(200,255,61,0.06)_73%,transparent_74%)] [background-size:38rem_38rem,100%_100%]" />
 
@@ -171,7 +182,7 @@ export default function FocusScene({
       </div>
 
       <footer className="flex items-center justify-between gap-3 border-t border-white/10 pt-4 font-utility text-[10px] uppercase tracking-[0.14em] text-white/45">
-        <span>{TRACKER_BRAND.name} · Signal locked to your current objective</span>
+        <span>{media?.attribution ? `${media.attribution} · ` : ""}{TRACKER_BRAND.name} · Signal locked to your current objective</span>
         <span>{active ? "Esc to exit" : "Enter focus to clear the field"}</span>
       </footer>
     </section>

@@ -23,6 +23,7 @@ import { useCustomQuotes, useGoalState, useJournal, useMigrateFasting, useMigrat
 import { GOAL_CATEGORIES, displayGoalTitle } from "@/lib/user-prefs";
 import Segmented from "@/components/trackers/Segmented";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
+import { fallbackMotivationMedia, type MotivationMedia } from "@/lib/motivation-media";
 import {
   ArrowRight,
   Bookmark,
@@ -57,6 +58,7 @@ export default function MotivationPage() {
   const { value: visits, setValue: setVisits } = useMotivationVisits();
   const { value: customQuotes, setValue: setCustomQuotes } = useCustomQuotes();
   const { value: journal, setValue: setJournal } = useJournal();
+  const { value: mediaCache, setValue: setMediaCache } = useSyncedStorage<Record<string, MotivationMedia>>("motivation:media", {});
 
   const safeFavs = favs ?? [];
   const safeVisits = useMemo(() => visits ?? {}, [visits]);
@@ -73,6 +75,7 @@ export default function MotivationPage() {
   const [copied, setCopied] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteDraft, setQuoteDraft] = useState({ text: "", tag: "Mine" });
+  const [media, setMedia] = useState<MotivationMedia>(() => fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory));
 
   // Register today's visit once, from an effect (never during render).
   // Uses the store's updater form so a stale first-render snapshot (before
@@ -143,6 +146,27 @@ export default function MotivationPage() {
   const draftState = draft ?? { win: entry.win, learned: entry.learned, focus: entry.focus };
   const [savedFlash, setSavedFlash] = useState(false);
 
+  useEffect(() => {
+    const key = `${prefs.motivationPersonalization}:${prefs.goalCategory}`;
+    const cached = mediaCache?.[key];
+    if (cached && Date.now() - cached.fetchedAt < 86_400_000) {
+      setMedia(cached);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/motivation-media?source=${prefs.motivationPersonalization}&category=${prefs.goalCategory}`)
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("media unavailable"))))
+      .then((next: MotivationMedia) => {
+        if (cancelled) return;
+        setMedia(next);
+        setMediaCache({ ...(mediaCache ?? {}), [key]: next });
+      })
+      .catch(() => {
+        if (!cancelled) setMedia(fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory));
+      });
+    return () => { cancelled = true; };
+  }, [mediaCache, prefs.goalCategory, prefs.motivationPersonalization, setMediaCache]);
+
   const saveJournal = () => {
     // Event handler — stamping the wall clock is the intent.
     // eslint-disable-next-line react-hooks/purity
@@ -191,6 +215,7 @@ export default function MotivationPage() {
           onSave={toggleFav}
           onCopy={copyQuote}
           onOpenGoal={() => router.push("/goal")}
+          media={media}
         />
 
         {/* ── Stats ── */}

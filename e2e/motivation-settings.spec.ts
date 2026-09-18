@@ -11,6 +11,28 @@ test.describe("motivation", () => {
     expect(prefs.motivationPersonalization).toBe("general");
   });
 
+  test("general inspiration requests the general source without goal text", async ({ page }) => {
+    const requests: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/api/motivation-media")) requests.push(request.url());
+    });
+    await page.route("**/api/motivation-media**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ quote: "Keep moving.", quoteAuthor: "NOVA//OS", fetchedAt: Date.now() }),
+      });
+    });
+    await seed(page);
+    await page.goto("/motivation");
+    await page.getByRole("button", { name: "General inspiration" }).click();
+    await expect.poll(() => requests.length).toBeGreaterThan(0);
+    expect(requests.at(-1)).toContain("source=general");
+    expect(requests.at(-1)).toContain("category=relocation");
+    expect(requests.at(-1)).not.toContain("Canada");
+    expect(requests.at(-1)).not.toContain("Relocate");
+  });
+
   test("quote deck shuffles + favorites persist", async ({ page }) => {
     await seed(page);
     await page.goto("/motivation");
