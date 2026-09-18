@@ -1,5 +1,6 @@
 export type NextActionInput = {
   fastRunning: boolean;
+  fastLogged?: boolean;
   workoutDone: boolean;
   todoCount: number;
   doneTodos: number;
@@ -11,6 +12,7 @@ export type NextActionInput = {
 /** Derive the single action that best protects today's momentum. */
 export function buildNextAction(input: NextActionInput): string {
   if (input.fastRunning) return "Protect the current fast";
+  if (!input.fastLogged) return "Log today's meal window";
 
   if (input.todoCount > input.doneTodos) {
     const nextTask = input.nextTask?.trim();

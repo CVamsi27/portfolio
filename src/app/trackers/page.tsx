@@ -91,7 +91,7 @@ export default function TrackersHub() {
   // ── ring segment values ──
   const protocol = protocolById(fastSt.protocolId);
   const derived = computeFastingState(fastSt, now, protocol.fastHours);
-  const fastedToday = fastHist.some((h) => dateKey(new Date(h.end)) === today) || (derived.running && !derived.complete && fastSt.phase === "fasting" && derived.pct > 0.5);
+  const fastedToday = fastHist.some((h) => (h.mealDate ?? dateKey(new Date(h.end))) === today) || (derived.running && !derived.complete && fastSt.phase === "fasting" && derived.pct > 0.5);
   const fastSeg = fastedToday ? 1 : derived.running && fastSt.phase === "fasting" ? derived.pct / 100 : 0;
 
   const workoutDone = Object.values(workoutLogs[today] ?? {}).some((l) => l?.done);
@@ -111,6 +111,7 @@ export default function TrackersHub() {
 
   const nextAction = buildNextAction({
     fastRunning: fastSt.startedAt !== null,
+    fastLogged: fastedToday,
     workoutDone,
     todoCount: todayTodos.length,
     doneTodos,
@@ -118,7 +119,7 @@ export default function TrackersHub() {
     metricLabel: metric.label,
     nextTask: nextPriorityTodo?.text,
   });
-  const nextActionHref = nextAction.startsWith("Protect")
+  const nextActionHref = nextAction.startsWith("Protect") || nextAction.startsWith("Log today's")
     ? "/intermittent-fasting"
     : nextAction === "Log the session"
       ? "/workout-tracking"
@@ -149,7 +150,7 @@ export default function TrackersHub() {
     () => weeklyWorkoutStats(workoutLogs, 4, new Date(now)).map((w) => ({ label: w.label, value: w.volumeKg })),
     [workoutLogs, now],
   );
-  const fastStreak = calculateStreak(fastHist.map((h) => dateKey(new Date(h.end))));
+  const fastStreak = calculateStreak(fastHist.map((h) => h.mealDate ?? dateKey(new Date(h.end))));
   const workoutStreak = calculateStreak(
     Object.entries(workoutLogs)
       .filter(([, day]) => Object.values(day).some((l) => l?.done))

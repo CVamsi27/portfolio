@@ -197,7 +197,7 @@ function adaptFastState(v: unknown): FastState | null {
     v1.running && typeof v1.elapsedSec === "number" && v1.elapsedSec > 0
       ? Date.now() - v1.elapsedSec * 1000
       : null;
-  return { protocolId, phase, startedAt };
+  return { protocolId, phase, startedAt, autoClearHours: 720 };
 }
 
 function adaptFastHistory(v: unknown): FastHistoryEntry[] | null {

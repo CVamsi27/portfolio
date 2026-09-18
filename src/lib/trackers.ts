@@ -156,16 +156,27 @@ export type FastState = {
   phase: FastPhase;
   /** Epoch ms when the current phase began; null = idle. */
   startedAt: number | null;
+  mealRoutine?: { firstMealTime: string; lastMealTime: string };
+  autoClearHours?: 24 | 168 | 720;
 };
 
-export const DEFAULT_FAST_STATE: FastState = { protocolId: "16-8", phase: "fasting", startedAt: null };
+export const DEFAULT_FAST_STATE: FastState = {
+  protocolId: "16-8",
+  phase: "fasting",
+  startedAt: null,
+  autoClearHours: 720,
+};
 
 export type FastHistoryEntry = {
   id: string;
   start: number;
   end: number;
   protocolId: string;
-  source: "timer" | "manual";
+  source: "timer" | "manual" | "meal-window";
+  firstMealTime?: string;
+  lastMealTime?: string;
+  mealDate?: string;
+  createdAt?: number;
   note?: string;
 };
 
@@ -207,7 +218,7 @@ export function protocolById(id: string): FastingProtocol {
 // Fasting analytics ──
 
 export function fastDateKeys(history: FastHistoryEntry[]): string[] {
-  return history.map((h) => dateKey(new Date(h.end)));
+  return history.map((h) => h.mealDate ?? dateKey(new Date(h.end)));
 }
 
 export function fastingStreak(history: FastHistoryEntry[]): number {
@@ -234,7 +245,10 @@ export function totalFastHours(history: FastHistoryEntry[]): number {
 /** Fast hours per day for the trailing `n` days (oldest first) — for charts. */
 export function fastHoursByDay(history: FastHistoryEntry[], n: number, now: Date = new Date()): { label: string; value: number }[] {
   const byDay = new Map<string, number>();
-  for (const h of history) byDay.set(dateKey(new Date(h.end)), (byDay.get(dateKey(new Date(h.end))) ?? 0) + (h.end - h.start) / 3600_000);
+  for (const h of history) {
+    const key = h.mealDate ?? dateKey(new Date(h.end));
+    byDay.set(key, (byDay.get(key) ?? 0) + (h.end - h.start) / 3600_000);
+  }
   return lastNDates(n, now).map((d) => ({
     label: d.toLocaleDateString("en-US", { weekday: "narrow" }),
     value: Math.round((byDay.get(dateKey(d)) ?? 0) * 10) / 10,
@@ -753,7 +767,7 @@ export function buildRecentActivity(
       kind: "fast",
       at: h.end,
       title: `Completed a ${hrs}h fast`,
-      detail: h.source === "manual" ? "logged manually" : protocolById(h.protocolId).label,
+      detail: h.source === "manual" ? "logged manually" : h.source === "meal-window" ? "first and last meal logged" : protocolById(h.protocolId).label,
     });
   }
 
@@ -870,7 +884,7 @@ export function buildWeekReview(
   const sumFast = (w: { start: Date; end: Date }) =>
     inputs.fastHistory
       .filter((h) => {
-        const k = dateKey(new Date(h.end));
+        const k = h.mealDate ?? dateKey(new Date(h.end));
         return k >= dateKey(w.start) && k <= dateKey(w.end);
       })
       .reduce((a, h) => a + (h.end - h.start) / 3600_000, 0);
@@ -916,7 +930,7 @@ export function buildWeekReview(
   // Active days: union of any anchor activity per day this week.
   const activeDayKeys = new Set<string>();
   for (const h of inputs.fastHistory) {
-    const k = dateKey(new Date(h.end));
+    const k = h.mealDate ?? dateKey(new Date(h.end));
     if (inRange(k, thisWeek.start, thisWeek.end)) activeDayKeys.add(k);
   }
   for (const k of Object.keys(inputs.workouts)) {
@@ -958,4 +972,3 @@ export function formatDelta(current: number, previous: number, unit = "", moreIs
   const arrow = diff > 0 ? "+" : "−";
   return { text: `${arrow}${abs}${unit}`, good: moreIsBetter ? diff > 0 : diff < 0 };
 }
-

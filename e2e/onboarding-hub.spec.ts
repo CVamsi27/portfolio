@@ -152,6 +152,6 @@ test.describe("hub command center", () => {
     await seed(page);
     await page.goto("/trackers");
     await expect(page.getByText("0%", { exact: true })).toBeVisible();
-    await expect(page.getByText("Start fast")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Log today\'s meal window" })).toBeVisible();
   });
 });
