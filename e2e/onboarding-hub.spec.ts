@@ -15,7 +15,7 @@ test.describe("onboarding questionnaire", () => {
     await expect(page.getByLabel("Destination country")).toBeVisible();
     await expect(page.getByRole("option", { name: "United States" })).toHaveCount(1);
     await expect(page.getByRole("option", { name: "Japan" })).toHaveCount(1);
-    await expect(page.locator('input[placeholder*="Berlin"]')).toHaveCount(0);
+    await expect(page.locator('input[placeholder*="Relocate to"]')).toHaveCount(0);
 
     await page.getByRole("button", { name: "Next" }).click();
     await page.getByRole("button", { name: "Next" }).click();

@@ -58,7 +58,7 @@ const About = () => {
     <section
       id="About"
       data-chapter-index="00"
-      className="relative min-h-screen flex flex-col justify-center px-6 py-24 overflow-hidden"
+      className="relative flex min-h-[calc(100svh-var(--app-header-height))] flex-col justify-center overflow-hidden px-6 py-16 sm:py-20"
     >
       <div
         aria-hidden

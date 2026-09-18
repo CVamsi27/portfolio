@@ -112,6 +112,6 @@ test.describe("todo manager", () => {
     ]);
     await seed(page, { "vk:todos": todos });
     await page.goto("/todo");
-    await expect(page.getByText("🔥 3-day completion streak")).toBeVisible();
+    await expect(page.getByText("3-day completion streak")).toBeVisible();
   });
 });

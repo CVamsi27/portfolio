@@ -28,7 +28,7 @@ export default function TrackerShell({
 
   return (
     <EditorialFrame surface="archive" className="dossier-frame">
-      <div className="mx-auto w-full max-w-6xl pb-28 sm:pb-16">
+      <div className="mx-auto w-full max-w-6xl pb-24 sm:pb-8">
       <ChapterHeader
         eyebrow="NOVA//OS // Chapter 01"
         title={
@@ -56,7 +56,7 @@ export default function TrackerShell({
           />
         }
       />
-      <main className="mt-8 space-y-5">{children}</main>
+      <main className="mt-6 space-y-5">{children}</main>
       <TrackerNavDock />
       </div>
     </EditorialFrame>

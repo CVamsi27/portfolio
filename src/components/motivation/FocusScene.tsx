@@ -92,6 +92,8 @@ export default function FocusScene({
       )}
     >
       {media?.imageUrl ? (
+        // Remote public-art media is intentionally kept as a full-bleed image.
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           data-testid="focus-media"
           src={media.imageUrl}

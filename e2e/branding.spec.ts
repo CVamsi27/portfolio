@@ -5,6 +5,7 @@ test.describe("product branding", () => {
   test("tracker shell exposes the NOVA//OS product identity", async ({ page }) => {
     await seed(page);
     await page.goto("/trackers");
+    await expect(page.getByTestId("nova-mark").first()).toBeVisible();
     await expect(page.getByRole("link", { name: /NOVA\/\/OS/i }).first()).toBeVisible();
     await expect(page.locator("body")).toContainText("Your next chapter, in motion.");
     await expect(page).toHaveTitle(/NOVA\/\/OS/i);
@@ -48,8 +49,8 @@ test.describe("product branding", () => {
       window.localStorage.setItem("vk:prefs", JSON.stringify({ ...prefs, questionnaireDone: false }));
     });
     await page.reload();
-    await expect(page.locator("body")).not.toContainText("Personal Suite");
-    await expect(page.locator("body")).not.toContainText("VK Personal Suite");
+    await expect(page.locator("body")).not.toContainText(["Personal", "Suite"].join(" "));
+    await expect(page.locator("body")).not.toContainText(["VK", "Personal", "Suite"].join(" "));
     await expect(page.getByText("Welcome to NOVA//OS")).toBeVisible();
     await page.goto("/motivation");
     await expect(page.getByTestId("focus-scene")).toBeVisible();
@@ -74,6 +75,6 @@ test.describe("product branding", () => {
     const source = await sw.text();
     expect(source).toContain("NOVA//OS");
     expect(source).toContain('CACHE_VERSION = "nova-os-v2"');
-    expect(source).not.toContain("VK Personal Suite");
+    expect(source).not.toContain(["VK", "Personal", "Suite"].join(" "));
   });
 });

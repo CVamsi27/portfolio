@@ -38,6 +38,7 @@ export default function NovaMark({
       role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
+      data-testid="nova-mark"
     >
       <svg
         viewBox="0 0 64 64"
@@ -66,11 +67,8 @@ export default function NovaMark({
           strokeWidth="4.5"
           strokeLinejoin="bevel"
         />
-        <path
-          d="M32 12L34.8 20.2L43 23L34.8 25.8L32 34L29.2 25.8L21 23L29.2 20.2L32 12Z"
-          fill="#C8FF3D"
-        />
-        <circle cx="32" cy="23" r="2.2" fill="#071014" />
+        <path d="M23 35L30 20" stroke="#C8FF3D" strokeWidth="4" strokeLinecap="round" />
+        <path d="M34 35L41 20" stroke="#C8FF3D" strokeWidth="4" strokeLinecap="round" />
       </svg>
       {variant !== "mark" ? (
         <span className={cn("nova-wordmark font-normal uppercase leading-none", styles.text)}>

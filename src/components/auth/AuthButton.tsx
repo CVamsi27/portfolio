@@ -54,7 +54,11 @@ export default function AuthButton() {
 
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="max-w-[140px] truncate text-xs text-muted-foreground">
+      <span
+        data-testid="auth-email"
+        title={user.email ?? undefined}
+        className="max-w-[min(60vw,32rem)] break-all text-right text-xs leading-5 text-muted-foreground"
+      >
         {user.email}
       </span>
       <Button

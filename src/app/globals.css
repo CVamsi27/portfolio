@@ -588,6 +588,10 @@
     padding: clamp(2.5rem, 6vw, 6rem) clamp(1rem, 5vw, 5rem);
   }
 
+  .editorial-frame.dossier-frame {
+    padding: clamp(1.5rem, 3vw, 3rem) clamp(0.75rem, 3vw, 3rem);
+  }
+
   .editorial-frame::before {
     position: absolute;
     z-index: -1;

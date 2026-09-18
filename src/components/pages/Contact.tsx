@@ -74,13 +74,13 @@ const Contact = () => {
     <section
       id="Contact"
       data-chapter-index="04"
-      className="w-full px-6 py-24 bg-secondary/30"
+      className="w-full bg-secondary/30 px-6 py-16 md:py-20"
     >
       <div className="max-w-3xl mx-auto">
         <SectionHeading
           eyebrow="Contact"
           title="Let&apos;s work together"
-          description="Open to full-time, hybrid, and on-site roles across Europe — or a conversation about your next product."
+          description="Open to full-time, hybrid, and on-site roles across locations — or a conversation about your next product."
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">

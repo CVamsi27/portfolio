@@ -11,7 +11,6 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useUserPrefs } from "@/lib/user-prefs";
 import { SyncBadge } from "@/components/auth/AuthButton";
 import {
   type FastHistoryEntry,
@@ -47,7 +46,6 @@ const AUTO_CLEAR_OPTIONS = [
 
 export default function FastingPage() {
   useMigrateFasting();
-  const { prefs } = useUserPrefs();
   const { value: state, setValue: setState, status } = useFasting();
   const { value: history, setValue: setHistory } = useFastingHistory();
   const today = dateKey();
@@ -73,12 +71,6 @@ export default function FastingPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (safeState.mealRoutine && !draft.firstMealTime && !draft.lastMealTime) {
-      setDraft(safeState.mealRoutine);
-    }
-  }, [safeState.mealRoutine, draft.firstMealTime, draft.lastMealTime]);
-
-  useEffect(() => {
     if (safeHistory.length !== rawHistory.length) setHistory(safeHistory);
   }, [rawHistory.length, safeHistory, setHistory]);
 
@@ -89,25 +81,26 @@ export default function FastingPage() {
   const longest = longestFastHours(safeHistory);
   const total = totalFastHours(safeHistory);
   const progress = todayEntry ? Math.min(100, (todayEntry.end - todayEntry.start) / 86_400_000 * 100) : 0;
-  const calculated = draft.firstMealTime && draft.lastMealTime && !validateMealWindow(draft.firstMealTime, draft.lastMealTime)
-    ? calculateMealWindow(draft.firstMealTime, draft.lastMealTime)
+  const effectiveDraft = draft.firstMealTime || draft.lastMealTime ? draft : (safeState.mealRoutine ?? draft);
+  const calculated = effectiveDraft.firstMealTime && effectiveDraft.lastMealTime && !validateMealWindow(effectiveDraft.firstMealTime, effectiveDraft.lastMealTime)
+    ? calculateMealWindow(effectiveDraft.firstMealTime, effectiveDraft.lastMealTime)
     : null;
 
   const saveWindow = (date: string, note?: string) => {
-    const validation = validateMealWindow(draft.firstMealTime, draft.lastMealTime);
+    const validation = validateMealWindow(effectiveDraft.firstMealTime, effectiveDraft.lastMealTime);
     if (validation) {
       setError(validation);
       return;
     }
-    const { start, end } = mealWindowTimestamps(date, draft.firstMealTime, draft.lastMealTime);
+    const { start, end } = mealWindowTimestamps(date, effectiveDraft.firstMealTime, effectiveDraft.lastMealTime);
     const entry: FastHistoryEntry = {
       id: `meal_${end.toString(36)}`,
       start,
       end,
       protocolId: safeState.protocolId,
       source: "meal-window",
-      firstMealTime: draft.firstMealTime,
-      lastMealTime: draft.lastMealTime,
+      firstMealTime: effectiveDraft.firstMealTime,
+      lastMealTime: effectiveDraft.lastMealTime,
       mealDate: date,
       createdAt: Date.now(),
       note: note?.trim() || undefined,
@@ -115,7 +108,7 @@ export default function FastingPage() {
     setHistory([...safeHistory.filter((item) => !(item.source === "meal-window" && (item.mealDate ?? dateKey(new Date(item.end))) === date)), entry]);
     setState({
       ...safeState,
-      mealRoutine: { ...draft },
+      mealRoutine: { ...effectiveDraft },
     });
     setError("");
     setSaved(true);
@@ -178,11 +171,11 @@ export default function FastingPage() {
               <div className="grid w-full gap-3 sm:grid-cols-2 lg:max-w-md">
                 <div>
                   <label htmlFor="first-meal-time" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">First meal</label>
-                  <Input id="first-meal-time" aria-label="First meal time" className="mt-1.5 h-11" type="time" value={draft.firstMealTime} onChange={(event) => setDraft({ ...draft, firstMealTime: event.target.value })} />
+                  <Input id="first-meal-time" aria-label="First meal time" className="mt-1.5 h-11" type="time" value={effectiveDraft.firstMealTime} onChange={(event) => setDraft({ ...effectiveDraft, firstMealTime: event.target.value })} />
                 </div>
                 <div>
                   <label htmlFor="last-meal-time" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Last meal</label>
-                  <Input id="last-meal-time" aria-label="Last meal time" className="mt-1.5 h-11" type="time" value={draft.lastMealTime} onChange={(event) => setDraft({ ...draft, lastMealTime: event.target.value })} />
+                  <Input id="last-meal-time" aria-label="Last meal time" className="mt-1.5 h-11" type="time" value={effectiveDraft.lastMealTime} onChange={(event) => setDraft({ ...effectiveDraft, lastMealTime: event.target.value })} />
                 </div>
               </div>
             </div>

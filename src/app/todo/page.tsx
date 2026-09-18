@@ -184,7 +184,7 @@ export default function TodoPage() {
               <span className="font-semibold">
                 {doneToday}/{todayList.length} done today
               </span>
-              <span className="text-xs text-muted-foreground">🔥 {streak}-day completion streak</span>
+              <span className="text-xs text-muted-foreground">{streak}-day completion streak</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
               <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${pct}%` }} />

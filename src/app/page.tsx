@@ -7,7 +7,7 @@ import EditorialFrame from "@/components/editorial/EditorialFrame";
 
 export default function Home() {
   return (
-    <EditorialFrame surface="paper" className="min-h-screen" >
+    <EditorialFrame surface="paper" className="min-h-full">
       <div data-public-dossier className="mx-auto w-full max-w-7xl">
       <About />
       <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />

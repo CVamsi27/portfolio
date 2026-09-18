@@ -4,7 +4,6 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Sparkles } from "lucide-react";
 import { MENU_LIST } from "@/lib/const";
 import { TRACKER_LINKS } from "@/lib/trackers";
 import { ModeToggle } from "./common/ModeToggle";
@@ -138,7 +137,7 @@ const Navbar = () => {
                     aria-label="Open the NOVA//OS trackers"
                     className="dossier-portal-link ml-1 inline-flex h-9 items-center gap-1.5 px-3 text-xs font-semibold text-muted-foreground transition-all"
                   >
-                    <Sparkles className="h-3.5 w-3.5" />
+                    <NovaMark variant="mark" className="[&>svg]:h-3.5 [&>svg]:w-3.5" />
                     <span className="hidden lg:inline">NOVA//OS</span>
                   </Link>
                 </TooltipTrigger>
