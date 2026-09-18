@@ -9,7 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "NOVA//OS",
     short_name: "NOVA",
     description:
-      "A personal operating system for goals, habits, focus, and shared momentum.",
+      "NOVA//OS by Buildora — a personal operating system for goals, habits, focus, and shared momentum.",
     start_url: "/trackers",
     scope: "/",
     display: "standalone",

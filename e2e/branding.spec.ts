@@ -13,7 +13,22 @@ test.describe("product branding", () => {
   test("portfolio shell keeps the personal identity", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("link", { name: "Open the NOVA//OS trackers" })).toBeVisible();
-    await expect(page).toHaveTitle(/Vamsi Krishna/i);
+    await expect(page.getByRole("link", { name: "Buildora home" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Vamsi Krishna/i })).toBeVisible();
+    await expect(page).toHaveTitle(/Buildora.*Vamsi Krishna/i);
+  });
+
+  test("personal-host landing explains the product before workspace entry", async ({ page }) => {
+    const response = await page.request.get("http://127.0.0.1:4111/", {
+      headers: { Host: "personal.buildora.work" },
+      maxRedirects: 0,
+    });
+    expect(response.status()).toBe(200);
+    const html = await response.text();
+    expect(html).toContain('data-testid="tracker-public-landing"');
+    expect(html).toContain("Goals, routines, focus");
+    expect(html).toContain('href="/trackers"');
+    expect(html).not.toContain("Sign in required");
   });
 
   test("tracker navigation and footer use NOVA//OS", async ({ page }) => {

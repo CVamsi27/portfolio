@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { ArrowUp } from "lucide-react";
-import { TRACKER_BRAND } from "@/lib/brand";
+import { PORTFOLIO_BRAND, TRACKER_BRAND } from "@/lib/brand";
 
 const emptySubscribe = () => () => {};
 const getHostname = () =>
@@ -28,7 +28,7 @@ const Footer = () => {
           <p>
             © {year}{" "}
             <span className="font-medium text-foreground">
-              Vamsi Krishna Chandaluri
+              {PORTFOLIO_BRAND.siteName} <span className="text-muted-foreground">· {PORTFOLIO_BRAND.personName}</span>
             </span>
           </p>
         )}

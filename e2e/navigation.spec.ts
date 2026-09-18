@@ -12,14 +12,17 @@ test.describe("navigation & shell", () => {
     await expect(portal).toHaveAttribute("href", "/trackers", { timeout: 7_000 });
   });
 
-  test("personal-host rewrite lands on the tracker hub", async ({ page }) => {
-    await seed(page);
+  test("personal-host rewrite lands on the public tracker landing", async ({ page }) => {
     const resp = await page.request.get("http://127.0.0.1:4111/", {
       headers: { Host: "personal.buildora.work" },
       maxRedirects: 0,
     });
-    // The proxy rewrites (not redirects) the personal host onto /trackers.
+    // The proxy rewrites (not redirects) the personal host onto the public landing.
     expect(resp.status()).toBe(200);
+    const html = await resp.text();
+    expect(html).toContain('data-testid="tracker-public-landing"');
+    expect(html).toContain("Enter NOVA//OS");
+    expect(html).not.toContain("Sign in required");
   });
 
   test("portfolio host never serves tracker pages", async ({ page }) => {

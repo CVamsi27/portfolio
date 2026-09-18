@@ -10,7 +10,8 @@ import type { NextRequest } from "next/server";
  *   Every non-root path (incl. /login, /trackers, /goal, …) redirects to `/`.
  *   Only `/api/*` (contact form) is exempt.
  * - personal.buildora.work → tracker suite, with `/` rewritten to the
- *   `/trackers` hub; all other routes (/goal, /share, /login, …) pass through.
+ *   public `/trackers/landing` entry; all other routes (/trackers, /goal,
+ *   /share, /login, …) pass through.
  * - Localhost is unrestricted for development.
  */
 export default function proxy(req: NextRequest) {
@@ -27,7 +28,7 @@ export default function proxy(req: NextRequest) {
 
   if (isPersonalHost) {
     if (url.pathname === "/") {
-      url.pathname = "/trackers";
+      url.pathname = "/trackers/landing";
       return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
     }
     return NextResponse.next({ request: { headers: requestHeaders } });

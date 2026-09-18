@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.webmanifest",
     appleWebApp: {
       capable: true,
-      title: isTracker ? TRACKER_BRAND.name : "Personal Suite",
+      title: isTracker ? TRACKER_BRAND.name : PORTFOLIO_BRAND.siteName,
       statusBarStyle: "black-translucent",
     },
     icons: {

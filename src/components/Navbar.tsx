@@ -12,6 +12,7 @@ import HeaderMenu from "./HeaderMenu";
 import AuthButton from "./auth/AuthButton";
 import { cn } from "@/lib/utils";
 import NovaMark from "@/components/brand/NovaMark";
+import BuildoraMark from "@/components/brand/BuildoraMark";
 
 const emptySubscribe = () => () => {};
 const getHostname = () =>
@@ -87,15 +88,13 @@ const Navbar = () => {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
           <a
             href={isTracker ? "/trackers" : "#About"}
-            aria-label={isTracker ? "NOVA//OS home" : "Vamsi Krishna home"}
+            aria-label={isTracker ? "NOVA//OS home" : "Buildora home"}
             className="transition-colors hover:text-primary"
           >
             {isTracker ? (
               <NovaMark variant="wordmark" label="NOVA//OS" />
             ) : (
-              <span className="font-display text-lg font-black uppercase tracking-[-0.04em]">
-                ~<span className="gradient-text">VK</span>
-              </span>
+              <BuildoraMark variant="wordmark" label="Buildora" />
             )}
           </a>
           <div className="flex items-center gap-1">

@@ -67,7 +67,7 @@ const About = () => {
       <div className="max-w-3xl mx-auto w-full relative">
           <div className="flex flex-col gap-8 text-center">
           <ChapterHeader
-            eyebrow="Public portfolio // Chapter 00"
+            eyebrow="BUILDORA // Public portfolio // Chapter 00"
             title={
               <>
                 Vamsi Krishna <span className="gradient-text">Chandaluri</span>
@@ -75,6 +75,8 @@ const About = () => {
             }
             subtitle="Product-focused Full Stack Engineer building resilient SaaS chapters from interface to delivery."
           />
+
+          <p className="-mt-4 font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-primary">BUILDORA</p>
 
           <div className="flex flex-col gap-4">
 
