@@ -6,7 +6,8 @@ test("command deck leads with the goal and next move", async ({ page }) => {
     "vk:prefs": {
       name: "Test User",
       goalCategory: "relocation",
-      goalTitle: "Relocate to Berlin",
+      goalTitle: "",
+      goalCountry: "Canada",
       questionnaireDone: true,
     },
     "vk:todos": [
@@ -22,7 +23,7 @@ test("command deck leads with the goal and next move", async ({ page }) => {
     ],
   });
   await page.goto("/trackers");
-  await expect(page.getByTestId("command-deck-title")).toContainText("Relocate to Berlin");
+  await expect(page.getByTestId("command-deck-title")).toContainText("Relocate to Canada");
   await expect(page.getByTestId("next-action")).toContainText(/Choose a neighborhood|next move/i);
   await expect(page.getByTestId("momentum-signal")).toBeVisible();
 });

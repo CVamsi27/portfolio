@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncedStorage } from "./use-synced-storage";
+import type { TrackerIconName } from "@/components/trackers/icons";
 
 export type GoalCategory =
   | "relocation"
@@ -13,6 +14,7 @@ export type GoalCategory =
 export type WorkoutSplit = "fullbody" | "push-pull-legs" | "upper-lower" | "custom";
 
 export type MotivationStyle = "discipline" | "resilience" | "growth" | "health" | "career" | "stoic";
+export type MotivationPersonalization = "goal" | "general";
 
 export type WeightUnit = "kg" | "lbs";
 
@@ -22,6 +24,7 @@ export type UserPrefs = {
   name: string;
   goalCategory: GoalCategory;
   goalTitle: string;
+  goalCountry?: string;
   /** Label of the daily metric being logged (e.g. "Applications"). */
   dailyMetricLabel?: string;
   /** Per-day target for the metric. */
@@ -34,6 +37,7 @@ export type UserPrefs = {
   fastingEnabled: boolean;
   fastingProtocolId: string;
   motivationStyle: MotivationStyle;
+  motivationPersonalization: MotivationPersonalization;
   /** Named day tabs for the custom split. */
   customSplitDays: CustomSplitDay[];
   questionnaireDone: boolean;
@@ -52,6 +56,7 @@ const DEFAULT_PREFS: UserPrefs = {
   name: "",
   goalCategory: "relocation",
   goalTitle: "",
+  goalCountry: undefined,
   dailyMetricLabel: undefined,
   dailyMetricTarget: undefined,
   dailyMetricGoalTotal: undefined,
@@ -61,6 +66,7 @@ const DEFAULT_PREFS: UserPrefs = {
   fastingEnabled: true,
   fastingProtocolId: "16-8",
   motivationStyle: "discipline",
+  motivationPersonalization: "goal",
   customSplitDays: [
     { id: "day-1", label: "Day 1" },
     { id: "day-2", label: "Day 2" },
@@ -71,13 +77,27 @@ const DEFAULT_PREFS: UserPrefs = {
 
 export { DEFAULT_PREFS as DEFAULT_USER_PREFS };
 
-export const GOAL_CATEGORIES: { id: GoalCategory; label: string; icon: string; desc: string }[] = [
-  { id: "relocation", label: "Relocation", icon: "🌍", desc: "Move to a new country" },
-  { id: "fitness", label: "Fitness", icon: "💪", desc: "Build strength and health" },
-  { id: "career", label: "Career Growth", icon: "🚀", desc: "Level up professionally" },
-  { id: "learning", label: "Learning", icon: "📚", desc: "Master new skills" },
-  { id: "financial", label: "Financial", icon: "💰", desc: "Build wealth and freedom" },
-  { id: "custom", label: "Custom", icon: "✨", desc: "Define your own path" },
+export const RELOCATION_COUNTRIES = [
+  "United States",
+  "United Kingdom",
+  "Canada",
+  "United Arab Emirates",
+  "Australia",
+  "Japan",
+  "Germany",
+  "Netherlands",
+  "Ireland",
+  "Singapore",
+  "Other",
+] as const;
+
+export const GOAL_CATEGORIES: { id: GoalCategory; label: string; iconName: TrackerIconName; desc: string }[] = [
+  { id: "relocation", label: "Relocation", iconName: "globe", desc: "Plan a move to a destination that matters to you" },
+  { id: "fitness", label: "Fitness", iconName: "workout", desc: "Build strength and health" },
+  { id: "career", label: "Career Growth", iconName: "briefcase", desc: "Level up professionally" },
+  { id: "learning", label: "Learning", iconName: "book", desc: "Master new skills" },
+  { id: "financial", label: "Financial", iconName: "wallet", desc: "Build wealth and freedom" },
+  { id: "custom", label: "Custom", iconName: "sparkles", desc: "Define your own path" },
 ];
 
 export const WORKOUT_SPLITS: { id: WorkoutSplit; label: string; desc: string }[] = [
@@ -95,6 +115,13 @@ export const MOTIVATION_STYLES: { id: MotivationStyle; label: string; desc: stri
   { id: "career", label: "Career Drive", desc: "Professional ambition" },
   { id: "stoic", label: "Stoic", desc: "Calm, focused, unstoppable" },
 ];
+
+export function displayGoalTitle(prefs: Pick<UserPrefs, "goalCategory" | "goalTitle" | "goalCountry">): string {
+  const customTitle = prefs.goalTitle.trim();
+  if (customTitle) return customTitle;
+  if (prefs.goalCategory === "relocation" && prefs.goalCountry) return `Relocate to ${prefs.goalCountry}`;
+  return GOAL_CATEGORIES.find((category) => category.id === prefs.goalCategory)?.label ?? "Your goal";
+}
 
 /** Resolve metric label/target for a category, honoring explicit user overrides. */
 export function metricFor(prefs: UserPrefs, category?: GoalCategory): { label: string; target: number } {
@@ -115,6 +142,7 @@ export function useUserPrefs() {
     ...DEFAULT_PREFS,
     ...(prefs ?? {}),
     weightUnit: prefs?.weightUnit === "lbs" ? "lbs" : "kg",
+    motivationPersonalization: prefs?.motivationPersonalization === "general" ? "general" : "goal",
     customSplitDays: prefs?.customSplitDays?.length ? prefs.customSplitDays : DEFAULT_PREFS.customSplitDays,
   };
   return { prefs: safe, setPrefs, isSetup: safe.questionnaireDone };

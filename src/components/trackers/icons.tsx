@@ -8,6 +8,11 @@ import {
   ListChecks,
   Settings,
   Share2,
+  Globe2,
+  BriefcaseBusiness,
+  BookOpen,
+  WalletCards,
+  Sparkles,
   Timer,
   Users,
   type LucideIcon,
@@ -25,6 +30,11 @@ export const TRACKER_ICONS = {
   login: KeyRound,
   link: Link2,
   settings: Settings,
+  globe: Globe2,
+  briefcase: BriefcaseBusiness,
+  book: BookOpen,
+  wallet: WalletCards,
+  sparkles: Sparkles,
 } satisfies Record<string, LucideIcon>;
 
 export type TrackerIconName = keyof typeof TRACKER_ICONS;

@@ -73,6 +73,13 @@ test.describe("goal tracker", () => {
     void goal;
   });
 
+  test("relocation title is composed from the selected destination", async ({ page }) => {
+    await seed(page);
+    await page.goto("/goal");
+    await page.getByLabel("Destination country").selectOption("Canada");
+    await expect(page.getByRole("heading", { name: "Relocate to Canada" })).toBeVisible();
+  });
+
   test("run-rate ETA appears after enough metric history", async ({ page }) => {
     const d = (n: number) => daysAgoKey(n);
     await seed(page, {
@@ -83,7 +90,8 @@ test.describe("goal tracker", () => {
       "vk:prefs": {
         name: "Test User",
         goalCategory: "relocation",
-        goalTitle: "Relocate to Berlin",
+        goalTitle: "",
+        goalCountry: "Canada",
         workoutDaysPerWeek: 4,
         workoutSplit: "fullbody",
         weightUnit: "kg",

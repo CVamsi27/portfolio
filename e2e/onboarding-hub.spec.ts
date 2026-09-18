@@ -2,6 +2,28 @@ import { expect, test } from "@playwright/test";
 import { seed, daysAgoKey, workoutCell } from "./helpers";
 
 test.describe("onboarding questionnaire", () => {
+  test("relocation asks for a neutral destination and motivation source", async ({ page }) => {
+    await page.addInitScript(() => {
+      if (window.sessionStorage.getItem("__vkOnboardDestination")) return;
+      window.sessionStorage.setItem("__vkOnboardDestination", "1");
+      window.localStorage.clear();
+    });
+    await page.goto("/trackers");
+    await page.getByPlaceholder("Your name").fill("Destination Test");
+    await page.getByRole("button", { name: "Next" }).click();
+
+    await expect(page.getByLabel("Destination country")).toBeVisible();
+    await expect(page.getByRole("option", { name: "United States" })).toHaveCount(1);
+    await expect(page.getByRole("option", { name: "Japan" })).toHaveCount(1);
+    await expect(page.locator('input[placeholder*="Berlin"]')).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next" }).click();
+    await expect(page.getByRole("button", { name: "Goal-aware" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "General inspiration" })).toBeVisible();
+  });
+
   test("walks goal → workout → fasting → motivation and persists prefs", async ({ page }) => {
     // Fresh visitor — no prefs at all (do not use the standard seed).
     // sessionStorage guard: survives reloads, fresh per test context.

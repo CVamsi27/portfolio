@@ -20,7 +20,8 @@ import {
   milestonesFor,
 } from "@/lib/trackers";
 import { useCustomQuotes, useGoalState, useJournal, useMigrateFasting, useMigrateGoal, useMotivationVisits, newCustomQuote } from "@/lib/tracker-store";
-import { GOAL_CATEGORIES } from "@/lib/user-prefs";
+import { GOAL_CATEGORIES, displayGoalTitle } from "@/lib/user-prefs";
+import Segmented from "@/components/trackers/Segmented";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import {
   ArrowRight,
@@ -48,7 +49,7 @@ export default function MotivationPage() {
   useMigrateFasting();
   useMigrateGoal();
   const router = useRouter();
-  const { prefs } = useUserPrefs();
+  const { prefs, setPrefs } = useUserPrefs();
   const { value: goal } = useGoalState();
   const presetQuotes = MOTIVATION_QUOTES[prefs.motivationStyle] ?? MOTIVATION_QUOTES.discipline;
 
@@ -160,8 +161,23 @@ export default function MotivationPage() {
         subtitle={`Daily ${prefs.motivationStyle} deck with your own affirmations, favorites, and a three-prompt reflection anchor.`}
         badge={<SyncBadge status={status} />}
       >
+        <div className="flex flex-col gap-2 border border-border/60 bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-utility text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Inspiration source</p>
+            <p className="mt-1 text-sm text-muted-foreground">Choose whether the scene follows your goal or stays broad.</p>
+          </div>
+          <Segmented
+            label="Inspiration source"
+            options={[
+              { value: "goal" as const, label: "Goal-aware" },
+              { value: "general" as const, label: "General inspiration" },
+            ]}
+            value={prefs.motivationPersonalization}
+            onChange={(value) => setPrefs({ ...prefs, motivationPersonalization: value })}
+          />
+        </div>
         <FocusScene
-          goalTitle={prefs.goalTitle.trim() || goalMeta.label}
+          goalTitle={displayGoalTitle(prefs)}
           goalLabel={goalMeta.label}
           goalPct={goalPct}
           nextMilestone={nextMilestone}

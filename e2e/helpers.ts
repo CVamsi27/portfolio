@@ -28,7 +28,8 @@ export async function seed(page: Page, data: Record<string, unknown> = {}): Prom
       "vk:prefs": {
         name: "Test User",
         goalCategory: "relocation",
-        goalTitle: "Relocate to Berlin",
+        goalTitle: "",
+        goalCountry: "Canada",
         dailyMetricLabel: undefined,
         dailyMetricTarget: undefined,
         dailyMetricGoalTotal: undefined,
@@ -38,6 +39,7 @@ export async function seed(page: Page, data: Record<string, unknown> = {}): Prom
         fastingEnabled: true,
         fastingProtocolId: "16-8",
         motivationStyle: "discipline",
+        motivationPersonalization: "goal",
         customSplitDays: [
           { id: "day-1", label: "Day 1" },
           { id: "day-2", label: "Day 2" },

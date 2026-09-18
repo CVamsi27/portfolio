@@ -2,6 +2,15 @@ import { expect, test } from "@playwright/test";
 import { seed, daysAgoKey } from "./helpers";
 
 test.describe("motivation", () => {
+  test("lets the user choose goal-aware or general inspiration", async ({ page }) => {
+    await seed(page);
+    await page.goto("/motivation");
+    await expect(page.getByRole("button", { name: "Goal-aware" })).toBeVisible();
+    await page.getByRole("button", { name: "General inspiration" }).click();
+    const prefs = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:prefs"))) ?? "{}");
+    expect(prefs.motivationPersonalization).toBe("general");
+  });
+
   test("quote deck shuffles + favorites persist", async ({ page }) => {
     await seed(page);
     await page.goto("/motivation");

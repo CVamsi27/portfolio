@@ -11,12 +11,15 @@ import {
   WORKOUT_SPLITS,
   MOTIVATION_STYLES,
   DEFAULT_GOAL_METRICS,
+  RELOCATION_COUNTRIES,
   type GoalCategory,
   type WorkoutSplit,
   type MotivationStyle,
+  type MotivationPersonalization,
 } from "@/lib/user-prefs";
 import { ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
 import { TRACKER_BRAND } from "@/lib/brand";
+import { TrackerIcon } from "@/components/trackers/icons";
 
 const STEPS = ["Welcome", "Goal", "Workout", "Fasting", "Motivation"] as const;
 
@@ -27,6 +30,7 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
     name: prefs.name,
     goalCategory: prefs.goalCategory as GoalCategory,
     goalTitle: prefs.goalTitle,
+    goalCountry: prefs.goalCountry,
     dailyMetricLabel: prefs.dailyMetricLabel,
     dailyMetricTarget: prefs.dailyMetricTarget,
     workoutDaysPerWeek: prefs.workoutDaysPerWeek,
@@ -35,6 +39,7 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
     fastingEnabled: prefs.fastingEnabled,
     fastingProtocolId: prefs.fastingProtocolId,
     motivationStyle: prefs.motivationStyle as MotivationStyle,
+    motivationPersonalization: prefs.motivationPersonalization as MotivationPersonalization,
   });
 
   const next = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -100,19 +105,33 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
                         : "border-border/60 hover:bg-accent"
                     }`}
                   >
-                    <span className="text-xl">{g.icon}</span>
+                    <TrackerIcon name={g.iconName} className="h-5 w-5 text-primary" />
                     <p className="mt-1 font-medium">{g.label}</p>
                     <p className="text-xs text-muted-foreground">{g.desc}</p>
                   </button>
                 ))}
               </div>
+              {local.goalCategory === "relocation" ? (
+                <div>
+                  <label htmlFor="destination-country" className="text-sm font-medium">Destination country</label>
+                  <select
+                    id="destination-country"
+                    className="mt-1 flex h-10 w-full rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    value={local.goalCountry ?? ""}
+                    onChange={(e) => setLocal({ ...local, goalCountry: e.target.value || undefined })}
+                  >
+                    <option value="">Choose a destination</option>
+                    {RELOCATION_COUNTRIES.map((country) => <option key={country} value={country}>{country}</option>)}
+                  </select>
+                </div>
+              ) : null}
               <div>
                 <label className="text-sm font-medium">Goal title (optional)</label>
                 <Input
                   className="mt-1"
                   placeholder={
                     local.goalCategory === "relocation"
-                      ? "e.g. Relocate to Berlin"
+                      ? "Name the outcome you want"
                       : local.goalCategory === "fitness"
                         ? "e.g. Run a half marathon"
                         : "e.g. Get promoted to senior"
@@ -266,7 +285,22 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
             <div className="space-y-4">
               <div className="text-center">
                 <h2 className="font-display text-xl font-bold">What drives you?</h2>
-                <p className="mt-1 text-sm text-muted-foreground">We&apos;ll tailor your daily quotes.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Choose whether inspiration follows your goal or stays broad.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: "goal" as const, label: "Goal-aware", desc: "Reflect your chosen direction" },
+                  { value: "general" as const, label: "General inspiration", desc: "Keep the signal open-ended" },
+                ].map((source) => (
+                  <button
+                    key={source.value}
+                    onClick={() => setLocal({ ...local, motivationPersonalization: source.value })}
+                    className={`rounded-xl border p-3 text-left text-sm transition-all ${local.motivationPersonalization === source.value ? "border-primary bg-primary/10 font-semibold shadow-sm" : "border-border/60 hover:bg-accent"}`}
+                  >
+                    <p className="font-medium">{source.label}</p>
+                    <p className="text-xs text-muted-foreground">{source.desc}</p>
+                  </button>
+                ))}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {MOTIVATION_STYLES.map((m) => (

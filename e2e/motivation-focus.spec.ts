@@ -7,7 +7,7 @@ test.describe("motivation focus scene", () => {
     await page.goto("/motivation");
 
     await expect(page.getByTestId("focus-scene")).toBeVisible();
-    await expect(page.getByTestId("focus-goal")).toContainText("Relocate to Berlin");
+    await expect(page.getByTestId("focus-goal")).toContainText("Relocate to Canada");
     await expect(page.getByRole("button", { name: "Enter Focus Mode" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Shuffle" })).toBeVisible();
     await expect(page.getByText(/Recognized university degree/)).toBeVisible();

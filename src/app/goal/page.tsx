@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SyncBadge } from "@/components/auth/AuthButton";
-import { useUserPrefs, GOAL_CATEGORIES, type GoalCategory } from "@/lib/user-prefs";
+import { useUserPrefs, GOAL_CATEGORIES, RELOCATION_COUNTRIES, displayGoalTitle, type GoalCategory } from "@/lib/user-prefs";
 import {
   type GoalState,
   type Milestone,
@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
 import { Check, ChevronDown, ChevronUp, Copy, Pencil, Plus, Target, Trash2, TrendingUp, X } from "lucide-react";
+import { TrackerIcon } from "@/components/trackers/icons";
 
 type MilestoneDraft = { title: string };
 
@@ -150,8 +151,8 @@ export default function GoalPage() {
     <RequireAuth>
       <TrackerShell
         icon="flag"
-        title={prefs.goalTitle || goalMeta.label}
-        subtitle={`${goalMeta.icon} ${goalMeta.desc}. Log your daily metric, manage milestones, and watch the trajectory.`}
+        title={displayGoalTitle(prefs)}
+        subtitle={`${goalMeta.desc}. Log your daily metric, manage milestones, and watch the trajectory.`}
         badge={<SyncBadge status={status} />}
       >
         <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
@@ -188,7 +189,7 @@ export default function GoalPage() {
                       : "border-border/60 hover:bg-accent",
                   )}
                 >
-                  <span className="text-lg">{gc.icon}</span>
+                  <TrackerIcon name={gc.iconName} className="mx-auto h-5 w-5 text-primary" />
                   <p className="mt-0.5 font-medium">{gc.label}</p>
                 </button>
               ))}
@@ -196,18 +197,17 @@ export default function GoalPage() {
             {relocationMode && (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Target City</p>
+                  <label htmlFor="destination-country" className="text-xs font-medium text-muted-foreground">Destination country</label>
                   <div className="mt-1.5">
-                    <Segmented
-                      label="Target city"
-                      variant="soft"
-                      options={[
-                        { value: "Berlin Hub", label: "Berlin" },
-                        { value: "Munich Hub", label: "Munich" },
-                      ]}
-                      value={safe.hub ?? "Berlin Hub"}
-                      onChange={(hub) => setG({ ...safe, hub })}
-                    />
+                    <select
+                      id="destination-country"
+                      className="flex h-10 w-full rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      value={prefs.goalCountry ?? ""}
+                      onChange={(event) => setPrefs({ ...prefs, goalCountry: event.target.value || undefined })}
+                    >
+                      <option value="">Choose a destination</option>
+                      {RELOCATION_COUNTRIES.map((country) => <option key={country} value={country}>{country}</option>)}
+                    </select>
                   </div>
                 </div>
                 <div>

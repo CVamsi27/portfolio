@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import { useUserPrefs, metricFor, GOAL_CATEGORIES } from "@/lib/user-prefs";
+import { useUserPrefs, metricFor, GOAL_CATEGORIES, displayGoalTitle } from "@/lib/user-prefs";
 import {
   type FastHistoryEntry,
   type Todo,
@@ -128,7 +128,7 @@ export default function TrackersHub() {
           ? "/goal"
           : "/todo";
   const dailyChapter = buildDailyChapter({
-    goalTitle: prefs.goalTitle,
+    goalTitle: displayGoalTitle(prefs),
     goalLabel: goalMeta.label,
     goalPct: goalSeg * 100,
     ringPct,
@@ -267,7 +267,7 @@ export default function TrackersHub() {
       <TrackerShell
         icon="hub"
         title={prefs.name ? `Welcome back, ${prefs.name}` : "Command Center"}
-        subtitle={`${goalMeta.icon} ${prefs.goalTitle || goalMeta.label} · four daily anchors, one momentum ring.`}
+        subtitle={`${displayGoalTitle(prefs)} · four daily anchors, one momentum ring.`}
       >
         {/* ── Install banner (shown only when the browser offers it) ── */}
         <InstallPrompt />
@@ -467,7 +467,7 @@ export default function TrackersHub() {
           <Card>
             <CardContent className="p-5">
               <div className="flex items-baseline justify-between">
-                <h2 className="font-display font-bold">{goalMeta.icon} {prefs.goalTitle || goalMeta.label}</h2>
+                <h2 className="flex items-center gap-2 font-display font-bold"><TrackerIcon name={goalMeta.iconName} className="h-4 w-4 text-primary" /> {displayGoalTitle(prefs)}</h2>
                 <Link href="/goal" className="text-xs text-primary hover:underline">
                   open →
                 </Link>
