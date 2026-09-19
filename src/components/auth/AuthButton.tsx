@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-store";
 import type { SyncStatus } from "@/lib/use-synced-storage";
+import { UserRound } from "lucide-react";
 
 export function SyncBadge({ status }: { status: SyncStatus }) {
   const map: Record<SyncStatus, { dot: string; label: string }> = {
@@ -23,7 +24,7 @@ export function SyncBadge({ status }: { status: SyncStatus }) {
   );
 }
 
-export default function AuthButton() {
+export default function AuthButton({ showEmail = false }: { showEmail?: boolean } = {}) {
   const { user, loading, configured } = useAuth();
   const pathname = usePathname();
 
@@ -55,12 +56,20 @@ export default function AuthButton() {
   return (
     <span className="inline-flex items-center gap-2">
       <span
-        data-testid="auth-email"
-        title={user.email ?? undefined}
-        className="max-w-[min(60vw,32rem)] break-all text-right text-xs leading-5 text-muted-foreground"
+        aria-label="Signed-in account"
+        title={showEmail ? user.email ?? "Signed-in account" : "Signed-in account"}
+        className="inline-flex h-8 w-8 items-center justify-center border border-border/70 text-xs text-muted-foreground"
       >
-        {user.email}
+        <UserRound className="h-3.5 w-3.5" aria-hidden />
       </span>
+      {showEmail ? (
+        <span
+          data-testid="auth-email"
+          className="max-w-[min(60vw,32rem)] break-all text-right text-xs leading-5 text-muted-foreground"
+        >
+          {user.email}
+        </span>
+      ) : null}
       <Button
         size="sm"
         variant="ghost"

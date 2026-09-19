@@ -43,6 +43,27 @@ test.describe("navigation & shell", () => {
     await expect(dock).toBeHidden();
   });
 
+  test("personal navbar does not expose account email text", async ({ page }) => {
+    await seed(page);
+    await page.goto("/todo");
+
+    const rail = page.getByTestId("command-rail");
+    await expect(rail.locator('[data-testid="auth-email"]')).toHaveCount(0);
+    await expect(rail).not.toContainText(/@/);
+  });
+
+  test("settings keeps account controls outside the navbar", async ({ page }) => {
+    await seed(page);
+    await page.goto("/settings");
+    const trackerSurface = page.locator('[data-surface="archive"]');
+    await expect(trackerSurface.getByText("Account & sync")).toBeVisible();
+    await expect(
+      trackerSurface
+        .getByText("Local mode", { exact: true })
+        .or(trackerSurface.getByRole("button", { name: /Sign in|Sign out/ })),
+    ).toBeVisible();
+  });
+
   test("every primary chapter exposes the shared visual shell", async ({ page }) => {
     await seed(page);
     for (const route of ["/intermittent-fasting", "/workout-tracking", "/goal", "/todo", "/settings", "/portfolio"]) {

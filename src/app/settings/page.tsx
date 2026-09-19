@@ -141,7 +141,7 @@ export default function SettingsPage() {
                 </p>
               </div>
             </div>
-            <AuthButton />
+            <AuthButton showEmail />
           </CardContent>
         </Card>
 
