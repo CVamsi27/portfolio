@@ -240,6 +240,10 @@ export default function WorkoutPage() {
         title="Workout Tracking"
         subtitle="Split-aware sessions with structured set logging, last-session prefill, PR tracking and a built-in rest timer."
         badge={<SyncBadge status={status} />}
+        actions={{
+          primary: <a href="#exercise-logger" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Log session</a>,
+          secondary: <a href="#exercise-logger" className="text-xs font-semibold text-primary hover:underline">Open exercise logger →</a>,
+        }}
       >
         <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
           <StoryPanel

@@ -114,6 +114,10 @@ export default function TodoPage() {
         title="Todo"
         subtitle="Focused task manager — priorities, tags and date planning. Enter chains tasks; click a title to edit inline."
         badge={<SyncBadge status={status} />}
+        actions={{
+          primary: <a href="#todo-list" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Add task</a>,
+          secondary: <a href="#todo-list" className="text-xs font-semibold text-primary hover:underline">Open task list →</a>,
+        }}
       >
         <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
           <StoryPanel

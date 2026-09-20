@@ -6,18 +6,21 @@ import TrackerNavDock from "./TrackerNavDock";
 import ChapterHeader from "./ChapterHeader";
 import EditorialFrame from "@/components/editorial/EditorialFrame";
 import TelemetryLine from "@/components/editorial/TelemetryLine";
+import TrackerActionBar from "./TrackerActionBar";
 
 export default function TrackerShell({
   icon,
   title,
   subtitle,
   badge,
+  actions,
   children,
 }: {
   icon?: TrackerIconName;
   title: string;
   subtitle: string;
   badge?: ReactNode;
+  actions?: { primary: ReactNode; secondary?: ReactNode };
   children: ReactNode;
 }) {
   const today = new Date().toLocaleDateString("en-US", {
@@ -56,6 +59,7 @@ export default function TrackerShell({
           />
         }
       />
+      {actions ? <TrackerActionBar {...actions} /> : null}
       <main className="mt-6 space-y-5">{children}</main>
       <TrackerNavDock />
       </div>

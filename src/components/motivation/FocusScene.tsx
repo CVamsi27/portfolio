@@ -114,6 +114,7 @@ export default function FocusScene({
   return (
     <section
       ref={sceneRef}
+      id="focus-scene"
       data-testid="focus-scene"
       data-editorial-reveal
       data-focus-active={active ? "true" : "false"}

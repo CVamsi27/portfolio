@@ -431,9 +431,13 @@ export default function SharePage() {
       title="Share"
       subtitle="A timed drop archive with explicit access controls, private media, and automatic cleanup."
       badge={<SyncBadge status={status} />}
+      actions={{
+        primary: <a href="#share-editor" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Create share</a>,
+        secondary: <a href="#sent-drops" className="text-xs font-semibold text-primary hover:underline">View sent drops →</a>,
+      }}
     >
       {/* ── Composer ── */}
-      <Card variant="dossier" data-editorial-action className="editorial-dispatch-composer">
+      <Card variant="dossier" id="share-editor" data-editorial-action className="editorial-dispatch-composer">
         <CardContent className="space-y-3 p-5">
           <div className="flex items-end justify-between gap-4">
             <ChapterLabel eyebrow="Dispatch studio // compose" status={signedIn ? "sync ready" : "local mode"} />
@@ -505,7 +509,7 @@ export default function SharePage() {
       </Card>
 
       {/* ── Search + tag filter ── */}
-      <Card variant="dossier">
+      <Card variant="dossier" id="sent-drops">
         <CardContent className="space-y-3 p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

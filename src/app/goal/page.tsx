@@ -154,6 +154,10 @@ export default function GoalPage() {
         title={displayGoalTitle(prefs)}
         subtitle={`${goalMeta.desc}. Log your daily metric, manage milestones, and watch the trajectory.`}
         badge={<SyncBadge status={status} />}
+        actions={{
+          primary: <a href="#daily-metric" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Log today&apos;s progress</a>,
+          secondary: <a href="#milestones" className="text-xs font-semibold text-primary hover:underline">Open milestones →</a>,
+        }}
       >
         <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
           <StoryPanel
@@ -231,7 +235,7 @@ export default function GoalPage() {
         </Card>
 
         {/* ── Daily metric ── */}
-        <Card variant="dossier">
+        <Card variant="dossier" id="daily-metric">
           <CardContent className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">

@@ -111,6 +111,10 @@ export default function SettingsPage() {
         title="Settings"
         subtitle="Your data, your device — export the full suite, restore from a backup, or manage local storage."
         badge={<SyncBadge status={status} />}
+        actions={{
+          primary: <a href="#backup-restore" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Open backup controls</a>,
+          secondary: <a href="#backup-restore" className="text-xs font-semibold text-primary hover:underline">Manage preferences →</a>,
+        }}
       >
         <div data-editorial-action className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
           <StoryPanel

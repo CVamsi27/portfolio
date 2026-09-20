@@ -218,6 +218,10 @@ export default function MotivationPage() {
         title="Motivation"
         subtitle={`Daily ${prefs.motivationStyle} deck with your own affirmations, favorites, and a three-prompt reflection anchor.`}
         badge={<SyncBadge status={status} />}
+        actions={{
+          primary: <a href="#focus-scene" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Start focus scene</a>,
+          secondary: <a href="#journal" className="text-xs font-semibold text-primary hover:underline">Write reflection →</a>,
+        }}
       >
         <div className="flex flex-col gap-2 border border-border/60 bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -282,7 +286,7 @@ export default function MotivationPage() {
         </div>
 
         {/* ── Daily micro-journal ── */}
-        <Card variant="dossier">
+        <Card variant="dossier" id="journal">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <h2 className="font-display font-bold">Daily reflection</h2>

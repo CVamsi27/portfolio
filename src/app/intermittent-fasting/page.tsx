@@ -132,6 +132,10 @@ export default function FastingPage() {
         title="Intermittent Fasting"
         subtitle="Add the time of your first and last meal. NOVA//OS calculates the fasting window from what you actually logged."
         badge={<SyncBadge status={status} />}
+        actions={{
+          primary: <a href="#meal-window" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">{safeState.mealRoutine ? "Save today's window" : "Save routine and use for today"}</a>,
+          secondary: <a href="#fasting-history" className="text-xs font-semibold text-primary hover:underline">Open history →</a>,
+        }}
       >
         <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
           <StoryPanel
@@ -199,7 +203,7 @@ export default function FastingPage() {
           </CardContent>
         </Card>
 
-        <Card variant="dossier">
+        <Card variant="dossier" id="fasting-history">
           <CardContent className="p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>

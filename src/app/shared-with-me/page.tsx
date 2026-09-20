@@ -201,15 +201,21 @@ export default function SharedWithMePage() {
         icon="shared"
         title="Shared with me"
         subtitle="A calm inbox for your own dispatches and the drops people have allowlisted to your account."
+        actions={{
+          primary: <a href="#shared-inbox" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Review incoming items</a>,
+          secondary: <a href="#shared-inbox" className="text-xs font-semibold text-primary hover:underline">Open inbox →</a>,
+        }}
       >
         <InboxSummary />
-        {!user ? (
-          <StateCard title="Sign in to see incoming drops">
-            Your local workspace is still available. Sign in when you want to receive allowlisted items across devices.
-          </StateCard>
-        ) : (
-          <IncomingList uid={user.id} />
-        )}
+        <div id="shared-inbox">
+          {!user ? (
+            <StateCard title="Sign in to see incoming drops">
+              Your local workspace is still available. Sign in when you want to receive allowlisted items across devices.
+            </StateCard>
+          ) : (
+            <IncomingList uid={user.id} />
+          )}
+        </div>
       </TrackerShell>
     </RequireAuth>
   );
