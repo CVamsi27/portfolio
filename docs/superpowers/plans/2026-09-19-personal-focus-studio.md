@@ -131,30 +131,6 @@ export function getMotivationKeywords(
 
 Complete the fixed map for every supported relocation country before using the helper from the route.
 
-The public helper should have this shape:
-
-```ts
-const DESTINATION_TERMS: Partial<Record<string, readonly string[]>> = {
-  Germany: ["Germany", "landmark", "city", "landscape"],
-  Canada: ["Canada", "landmark", "city", "landscape"],
-  "United States": ["United States", "landmark", "city", "landscape"],
-};
-
-export function getMotivationKeywords(
-  source: MotivationPersonalization,
-  category: GoalCategory,
-  country?: string,
-): readonly string[] {
-  if (source === "general") return GENERAL_KEYWORDS;
-  if (category === "relocation" && country && DESTINATION_TERMS[country]) {
-    return DESTINATION_TERMS[country]!;
-  }
-  return CATEGORY_TERMS[category] ?? CATEGORY_TERMS.custom;
-}
-```
-
-Complete the fixed map for every supported relocation country before using the helper from the route.
-
 - [ ] **Step 4: Replace the image provider with Wikimedia Commons normalization**
 
 Build a server-side request to `https://commons.wikimedia.org/w/api.php` using `generator=search`, namespace `6`, `prop=imageinfo`, `iiprop=url|extmetadata`, and a bounded thumbnail width. Select the first result with a safe HTTPS thumbnail URL. Normalize image URL, alt text, attribution, source page URL, provider, and destination key. Keep the existing quote request independent and retain local quote fallback.
