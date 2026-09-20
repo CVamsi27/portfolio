@@ -91,7 +91,7 @@ const Navbar = () => {
             className="transition-colors hover:text-primary"
           >
             {isTracker ? (
-              <NovaMark variant="wordmark" label="NOVA//OS" />
+              <NovaMark variant="wordmark" simple label="NOVA//OS" />
             ) : (
               <BuildoraMark variant="wordmark" label="Buildora" />
             )}

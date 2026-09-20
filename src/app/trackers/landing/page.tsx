@@ -19,7 +19,7 @@ export default function TrackerLandingPage() {
         <section className="grid gap-10 border-b border-white/10 pb-14 lg:grid-cols-[1.15fr_.85fr] lg:items-end lg:gap-16 lg:pb-20">
           <div>
             <div className="flex flex-wrap items-center gap-3 text-white/55">
-              <NovaMark variant="compact" label={TRACKER_BRAND.name} />
+              <NovaMark variant="compact" simple label={TRACKER_BRAND.name} />
               <span className="font-utility text-[10px] uppercase tracking-[0.2em]">From Buildora</span>
             </div>
             <ChapterLabel eyebrow="NOVA//OS // Public entry" />

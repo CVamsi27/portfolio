@@ -69,7 +69,7 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
             <div className="space-y-4 text-center">
               <p className="dossier-kicker">{TRACKER_BRAND.name}{" // Onboarding chapter"}</p>
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-fuchsia-500 shadow-lg shadow-primary/25">
-                <NovaMark variant="mark" label={TRACKER_BRAND.name} className="[&>svg]:h-12 [&>svg]:w-12" />
+                <NovaMark variant="mark" simple label={TRACKER_BRAND.name} className="[&>svg]:h-12 [&>svg]:w-12" />
               </span>
               <h1 className="font-display text-2xl font-bold">Welcome to {TRACKER_BRAND.name}</h1>
               <p className="text-sm text-muted-foreground">
@@ -337,7 +337,7 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
               </Button>
             ) : (
               <Button size="sm" onClick={finish}>
-                <NovaMark variant="mark" className="mr-1.5 [&>svg]:h-4 [&>svg]:w-4" /> Get started
+                <NovaMark variant="mark" simple className="mr-1.5 [&>svg]:h-4 [&>svg]:w-4" /> Get started
               </Button>
             )}
           </div>

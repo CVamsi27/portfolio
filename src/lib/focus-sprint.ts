@@ -57,10 +57,11 @@ export function completeFocusSession(active: FocusActiveState, endedAt: number):
 
 export function focusMinutesForDates(sessions: FocusSession[], day: string): number {
   return sessions.reduce(
-    (total, session) =>
-      session.status === "completed" && dateKey(new Date(session.startedAt)) === day
-        ? total + session.durationMinutes
-        : total,
+    (total, session) => {
+      if (session.status !== "completed" || dateKey(new Date(session.startedAt)) !== day) return total;
+      const duration = Number(session.durationMinutes);
+      return Number.isFinite(duration) ? total + Math.max(0, duration) : total;
+    },
     0,
   );
 }

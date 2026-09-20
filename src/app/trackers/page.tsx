@@ -367,7 +367,7 @@ export default function TrackersHub() {
           <FocusSprint label={nextAction} compact />
 
           {/* ── Daily episode: goal first, then the next move ── */}
-          <div className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]">
+          <div className="grid items-start gap-4 lg:grid-cols-[1.25fr_.75fr]">
           <StoryPanel
             eyebrow={dailyChapter.eyebrow}
             title={<span data-testid="command-deck-title">{dailyChapter.title}</span>}

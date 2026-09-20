@@ -10,6 +10,7 @@ test.describe("navigation & shell", () => {
     const portal = page.getByRole("link", { name: "Open the NOVA//OS trackers" });
     await expect(portal).toBeVisible();
     await expect(portal).toHaveAttribute("href", "/trackers", { timeout: 7_000 });
+    await expect(page.getByTestId("nova-simple-mark")).toHaveCount(0);
   });
 
   test("personal-host rewrite lands on the public tracker landing", async ({ page }) => {
@@ -50,6 +51,14 @@ test.describe("navigation & shell", () => {
     const rail = page.getByTestId("command-rail");
     await expect(rail.locator('[data-testid="auth-email"]')).toHaveCount(0);
     await expect(rail).not.toContainText(/@/);
+  });
+
+  test("personal navbar uses the simplified NOVA mark", async ({ page }) => {
+    await seed(page);
+    await page.goto("/todo");
+
+    await expect(page.getByTestId("nova-simple-mark")).toBeVisible();
+    await expect(page.getByRole("link", { name: "NOVA//OS home" })).toContainText("NOVA//OS");
   });
 
   test("settings keeps account controls outside the navbar", async ({ page }) => {

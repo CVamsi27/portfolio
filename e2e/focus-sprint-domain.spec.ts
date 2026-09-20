@@ -60,4 +60,23 @@ test.describe("focus sprint domain", () => {
       ),
     ).toBe(20);
   });
+
+  test("ignores malformed duration values from stale local storage", () => {
+    expect(
+      focusMinutesForDates(
+        [
+          {
+            id: "stale",
+            label: "stale record",
+            plannedMinutes: 25,
+            startedAt: Date.parse("2026-09-20T10:00:00Z"),
+            durationMinutes: Number.NaN,
+            status: "completed",
+            createdAt: 1,
+          },
+        ],
+        "2026-09-20",
+      ),
+    ).toBe(0);
+  });
 });
