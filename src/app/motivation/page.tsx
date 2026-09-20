@@ -75,7 +75,14 @@ export default function MotivationPage() {
   const [copied, setCopied] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteDraft, setQuoteDraft] = useState({ text: "", tag: "Mine" });
-  const [media, setMedia] = useState<MotivationMedia>(() => fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory));
+  const [media, setMedia] = useState<MotivationMedia>(() => fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory, prefs.goalCountry));
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaRefreshKey, setMediaRefreshKey] = useState<string | null>(null);
+
+  const mediaCountry = prefs.motivationPersonalization === "goal" && prefs.goalCategory === "relocation"
+    ? prefs.goalCountry
+    : undefined;
+  const mediaKey = `${prefs.motivationPersonalization}:${prefs.goalCategory}:${mediaCountry ?? "none"}`;
 
   // Register today's visit once, from an effect (never during render).
   // Uses the store's updater form so a stale first-render snapshot (before
@@ -147,34 +154,52 @@ export default function MotivationPage() {
   const [savedFlash, setSavedFlash] = useState(false);
 
   useEffect(() => {
-    const country =
-      prefs.motivationPersonalization === "goal" && prefs.goalCategory === "relocation"
-        ? prefs.goalCountry
-        : undefined;
-    const key = `${prefs.motivationPersonalization}:${prefs.goalCategory}:${country ?? "none"}`;
-    const cached = mediaCache?.[key];
-    if (cached && Date.now() - cached.fetchedAt < 86_400_000) {
+    const forceRefresh = mediaRefreshKey === mediaKey;
+    const cached = mediaCache?.[mediaKey];
+    if (!forceRefresh && cached && Date.now() - cached.fetchedAt < 86_400_000) {
       setMedia(cached);
+      setMediaLoading(false);
       return;
     }
     let cancelled = false;
+    setMediaLoading(true);
     const params = new URLSearchParams({
       source: prefs.motivationPersonalization,
       category: prefs.goalCategory,
     });
-    if (country) params.set("country", country);
+    if (mediaCountry) params.set("country", mediaCountry);
     fetch(`/api/motivation-media?${params.toString()}`)
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("media unavailable"))))
       .then((next: MotivationMedia) => {
         if (cancelled) return;
         setMedia(next);
-        setMediaCache({ ...(mediaCache ?? {}), [key]: next });
+        setMediaLoading(false);
+        setMediaRefreshKey((current) => (current === mediaKey ? null : current));
+        setMediaCache((prev) => ({ ...(prev ?? {}), [mediaKey]: next }));
       })
       .catch(() => {
-        if (!cancelled) setMedia(fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory));
+        if (cancelled) return;
+        setMedia(fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory, mediaCountry));
+        setMediaLoading(false);
+        setMediaRefreshKey((current) => (current === mediaKey ? null : current));
       });
-    return () => { cancelled = true; };
-  }, [mediaCache, prefs.goalCategory, prefs.goalCountry, prefs.motivationPersonalization, setMediaCache]);
+    return () => {
+      cancelled = true;
+    };
+  }, [mediaCache, mediaCountry, mediaKey, mediaRefreshKey, prefs.goalCategory, prefs.motivationPersonalization, setMediaCache]);
+
+  const refreshMedia = () => {
+    setMediaRefreshKey(mediaKey);
+    setMediaCache((prev) => {
+      const next = { ...(prev ?? {}) };
+      delete next[mediaKey];
+      return next;
+    });
+  };
+
+  const nextAction = nextMilestone === "All milestones complete"
+    ? "Log today's progress"
+    : `Move toward: ${nextMilestone}`;
 
   const saveJournal = () => {
     // Event handler — stamping the wall clock is the intent.
@@ -214,9 +239,12 @@ export default function MotivationPage() {
           goalLabel={goalMeta.label}
           goalPct={goalPct}
           nextMilestone={nextMilestone}
+          nextAction={nextAction}
           streak={streak}
           quote={currentText}
           quoteTag={current.tag}
+          quoteAuthor={media.quoteAuthor}
+          destination={media.destinationKey ?? mediaCountry}
           saved={isFav}
           copied={copied}
           onStartAction={() => router.push("/goal")}
@@ -224,6 +252,8 @@ export default function MotivationPage() {
           onSave={toggleFav}
           onCopy={copyQuote}
           onOpenGoal={() => router.push("/goal")}
+          onRefreshMedia={refreshMedia}
+          mediaLoading={mediaLoading}
           media={media}
         />
 
@@ -234,7 +264,7 @@ export default function MotivationPage() {
             { l: "Saved", v: `${safeFavs.length}`, Icon: Bookmark, gradient: "from-rose-500 to-pink-600" },
             { l: "Deck size", v: `${deck.length}`, Icon: Quote, gradient: "from-primary to-fuchsia-500" },
           ].map((s) => (
-            <Card key={s.l} className="group overflow-hidden">
+            <Card variant="dossier" key={s.l} className="group overflow-hidden">
               <div className="flex items-center gap-3 p-4">
                 <span
                   aria-hidden
@@ -252,7 +282,7 @@ export default function MotivationPage() {
         </div>
 
         {/* ── Daily micro-journal ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <h2 className="font-display font-bold">Daily reflection</h2>
@@ -287,7 +317,7 @@ export default function MotivationPage() {
         </Card>
 
         {/* ── Custom affirmations ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <h2 className="font-display font-bold">Your affirmations</h2>
@@ -331,7 +361,7 @@ export default function MotivationPage() {
         </Card>
 
         {/* ── Saved fuel ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <h2 className="font-display font-bold">Saved fuel</h2>
             {safeFavs.length === 0 ? (

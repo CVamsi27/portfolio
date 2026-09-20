@@ -43,7 +43,7 @@ export default function LoginPage() {
       <StoryPanel eyebrow="Access chapter" title="Unlock your private archive">
         Sign in once to carry your tracker chapters across devices. Public portfolio pages remain open to everyone.
       </StoryPanel>
-      <Card className="overflow-hidden border-primary/20 bg-gradient-to-b from-primary/10 via-card to-card shadow-xl shadow-primary/5">
+      <Card variant="dossier" className="overflow-hidden border-primary/20 bg-gradient-to-b from-primary/10 via-card to-card shadow-xl shadow-primary/5">
         <CardContent className="flex flex-col items-center p-8 text-center">
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading...</p>

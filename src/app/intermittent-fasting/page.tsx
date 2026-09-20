@@ -154,7 +154,7 @@ export default function FastingPage() {
           />
         </div>
 
-        <Card id="meal-window" className="overflow-hidden">
+        <Card variant="dossier" id="meal-window" className="overflow-hidden">
           <CardContent className="p-5 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
@@ -199,7 +199,7 @@ export default function FastingPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -217,13 +217,13 @@ export default function FastingPage() {
         </Card>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Card>
+          <Card variant="dossier">
             <CardContent className="p-5">
               <h2 className="font-display font-bold">Fasting hours · 7 days</h2>
               <MiniBars className="mt-3" data={weekBars} unit="h" />
             </CardContent>
           </Card>
-          <Card>
+          <Card variant="dossier">
             <CardContent className="grid grid-cols-2 gap-2 p-5">
               <Stat label="Avg window (7d)" value={`${avg7.toFixed(1)} h`} />
               <Stat label="Avg window (30d)" value={`${avg30.toFixed(1)} h`} />
@@ -233,7 +233,7 @@ export default function FastingPage() {
           </Card>
         </div>
 
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <div className="flex items-baseline justify-between">
               <h2 className="font-display font-bold">History</h2>

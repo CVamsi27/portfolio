@@ -128,7 +128,7 @@ export default function SettingsPage() {
           />
         </div>
         {/* ── Account ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="flex items-center justify-between gap-3 p-5">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-fuchsia-500">
@@ -146,7 +146,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* ── Backup / restore ── */}
-        <Card id="backup-restore">
+        <Card variant="dossier" id="backup-restore">
           <CardContent className="space-y-4 p-5">
             <div className="flex items-center gap-2">
               <Database className="h-5 w-5 text-primary" />
@@ -205,7 +205,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* ── Storage breakdown ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <h2 className="font-display font-bold">Storage by tracker</h2>
             {stats === null ? (
@@ -228,7 +228,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* ── Preferences ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="space-y-4 p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -287,7 +287,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* ── Danger zone ── */}
-        <Card className="border-red-500/30">
+        <Card variant="dossier" className="border-red-500/30">
           <CardContent className="space-y-3 p-5">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-500" />

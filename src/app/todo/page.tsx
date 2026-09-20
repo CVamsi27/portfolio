@@ -134,7 +134,7 @@ export default function TodoPage() {
           />
         </div>
         {/* ── Quick add ── */}
-        <Card id="todo-list">
+        <Card variant="dossier" id="todo-list">
           <CardContent className="space-y-3 p-5">
             <div className="flex gap-2">
               <Input
@@ -178,7 +178,7 @@ export default function TodoPage() {
         </Card>
 
         {/* ── Progress + streak ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-4">
             <div className="flex items-center justify-between text-sm">
               <span className="font-semibold">
@@ -215,7 +215,7 @@ export default function TodoPage() {
         </div>
 
         {/* ── Task list ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             {visible.length === 0 ? (
               <EmptyState

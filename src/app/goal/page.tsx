@@ -174,7 +174,7 @@ export default function GoalPage() {
           />
         </div>
         {/* ── Category selector ── */}
-        <Card id="milestones">
+        <Card variant="dossier" id="milestones">
           <CardContent className="p-5">
             <p className="text-sm font-medium">Goal Category</p>
             <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -231,7 +231,7 @@ export default function GoalPage() {
         </Card>
 
         {/* ── Daily metric ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">
@@ -335,7 +335,7 @@ export default function GoalPage() {
         )}
 
         {/* ── Milestones with CRUD ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -417,7 +417,7 @@ export default function GoalPage() {
         </Card>
 
         {/* ── Outreach / reflection generator ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <h2 className="font-display font-bold">{relocationMode ? "Outreach generator" : "Daily reflection"}</h2>
             <p className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-4 text-sm leading-relaxed">{snippet}</p>

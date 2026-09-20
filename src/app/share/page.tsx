@@ -433,7 +433,7 @@ export default function SharePage() {
       badge={<SyncBadge status={status} />}
     >
       {/* ── Composer ── */}
-      <Card data-editorial-action className="editorial-dispatch-composer">
+      <Card variant="dossier" data-editorial-action className="editorial-dispatch-composer">
         <CardContent className="space-y-3 p-5">
           <div className="flex items-end justify-between gap-4">
             <ChapterLabel eyebrow="Dispatch studio // compose" status={signedIn ? "sync ready" : "local mode"} />
@@ -505,7 +505,7 @@ export default function SharePage() {
       </Card>
 
       {/* ── Search + tag filter ── */}
-      <Card>
+      <Card variant="dossier">
         <CardContent className="space-y-3 p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -546,7 +546,7 @@ export default function SharePage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {visible.map((d) => (
-            <Card key={d.id} className={cn("group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg", d.pinned && "border-primary/40")}>
+            <Card variant="dossier" key={d.id} className={cn("group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg", d.pinned && "border-primary/40")}>
               {d.image?.startsWith("data:") && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={d.image} alt="shared drop" className="max-h-56 w-full object-cover" loading="lazy" />
@@ -694,7 +694,7 @@ export default function SharePage() {
       )}
 
       {/* ── Storage limits ── */}
-      <Card>
+      <Card variant="dossier">
         <CardContent className="p-5">
           <h2 className="font-display font-bold">Storage limits</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">

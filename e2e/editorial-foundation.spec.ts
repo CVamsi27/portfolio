@@ -15,6 +15,13 @@ test("portfolio uses the paper editorial surface without changing identity", asy
   await expect(page.locator('[data-surface="paper"]')).toBeVisible();
   await expect(page).toHaveTitle(/Vamsi Krishna/i);
   await expect(page.locator("body")).toContainText("Vamsi Krishna");
+  await expect(page.locator('[data-card-variant="dossier"]')).toHaveCount(0);
+});
+
+test("personal tracker cards opt into the dossier treatment", async ({ page }) => {
+  await seed(page);
+  await page.goto("/motivation");
+  await expect.poll(() => page.locator('[data-card-variant="dossier"]').count()).toBeGreaterThan(0);
 });
 
 test("tracker shell reads as one editorial chapter", async ({ page }) => {

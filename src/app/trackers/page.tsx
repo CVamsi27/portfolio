@@ -322,7 +322,7 @@ export default function TrackersHub() {
               progress={ringPct}
               tone="red"
             />
-            <Card className="mt-4">
+            <Card variant="dossier" className="mt-4">
               <CardContent className="flex flex-col items-center gap-5 p-5">
                 <Ring segments={segments} size={210} thickness={13}>
                   <span className="font-display text-4xl font-bold tabular-nums">{ringPct}%</span>
@@ -393,7 +393,7 @@ export default function TrackersHub() {
             { l: "Task streak", v: `${taskStreak}d`, Icon: ListChecks, c: "text-amber-500" },
             { l: "Milestones", v: `${milestonesDone}/${milestones.length}`, Icon: Flag, c: "text-fuchsia-500" },
           ].map((s) => (
-            <Card key={s.l}>
+            <Card variant="dossier" key={s.l}>
               <CardContent className="flex items-center gap-2.5 p-4">
                 <s.Icon className={cn("h-5 w-5 shrink-0", s.c)} />
                 <div className="min-w-0">
@@ -407,7 +407,7 @@ export default function TrackersHub() {
 
         {/* ── Metric cards ── */}
         <div className="grid gap-3 sm:grid-cols-2">
-          <Card>
+          <Card variant="dossier">
             <CardContent className="p-5">
               <div className="flex items-baseline justify-between">
                 <h2 className="font-display font-bold">Fasting</h2>
@@ -426,7 +426,7 @@ export default function TrackersHub() {
               <MiniBars className="mt-3" data={weekFastBars} unit="h" height={48} />
             </CardContent>
           </Card>
-          <Card>
+          <Card variant="dossier">
             <CardContent className="p-5">
               <div className="flex items-baseline justify-between">
                 <h2 className="font-display font-bold">Workout volume</h2>
@@ -444,7 +444,7 @@ export default function TrackersHub() {
         </div>
 
         {/* ── Week in review ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <div className="flex items-baseline justify-between">
               <h2 className="font-display font-bold">Week in review</h2>
@@ -465,7 +465,7 @@ export default function TrackersHub() {
 
         {/* ── Goal trajectory + quote ── */}
         <div className="grid gap-3 sm:grid-cols-2">
-          <Card>
+          <Card variant="dossier">
             <CardContent className="p-5">
               <div className="flex items-baseline justify-between">
                 <h2 className="flex items-center gap-2 font-display font-bold"><TrackerIcon name={goalMeta.iconName} className="h-4 w-4 text-primary" /> {displayGoalTitle(prefs)}</h2>
@@ -487,7 +487,7 @@ export default function TrackersHub() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card variant="dossier">
             <CardContent className="p-5">
               <div className="flex items-baseline justify-between">
                 <h2 className="font-display font-bold">Fuel for today</h2>
@@ -504,7 +504,7 @@ export default function TrackersHub() {
         </div>
 
         {/* ── Recent activity ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-5">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-primary" />

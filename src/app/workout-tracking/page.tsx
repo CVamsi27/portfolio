@@ -260,7 +260,7 @@ export default function WorkoutPage() {
           />
         </div>
         {/* ── Header controls: split day tabs + unit toggle ── */}
-        <Card id="exercise-logger">
+        <Card variant="dossier" id="exercise-logger">
           <CardContent className="space-y-3 p-4">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold">
@@ -315,7 +315,7 @@ export default function WorkoutPage() {
         </Card>
 
         {/* ── Week strip ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <Button variant="outline" size="sm" onClick={() => setWeekOffset((w) => w - 1)}>
@@ -365,7 +365,7 @@ export default function WorkoutPage() {
         </Card>
 
         {/* ── Exercise logger ── */}
-        <Card>
+        <Card variant="dossier">
           <CardContent className="space-y-3 p-5">
             <div className="flex items-center justify-between">
               <h2 className="font-display font-bold">Session · {selected}</h2>
@@ -413,7 +413,7 @@ export default function WorkoutPage() {
 
         {/* ── PRs + volume ── */}
         <div className="grid gap-3 sm:grid-cols-2">
-          <Card>
+          <Card variant="dossier">
             <CardContent className="p-5">
               <h2 className="font-display font-bold">Personal records</h2>
               {prs.length === 0 ? (
@@ -437,7 +437,7 @@ export default function WorkoutPage() {
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card variant="dossier">
             <CardContent className="p-5">
               <h2 className="font-display font-bold">Weekly volume</h2>
               <p className="text-xs text-muted-foreground">Total kg lifted per week (reps count for bodyweight)</p>

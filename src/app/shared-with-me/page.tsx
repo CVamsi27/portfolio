@@ -61,7 +61,7 @@ function IncomingList({ uid, email }: { uid: string; email: string }) {
 
   if (result.unavailable) {
     return (
-      <Card>
+      <Card variant="dossier">
         <CardContent className="p-8 text-center">
           <p className="text-3xl"><Inbox className="mx-auto h-8 w-8 text-primary" /></p>
           <h2 className="font-display mt-3 text-xl font-bold">Shared items unavailable</h2>
@@ -73,7 +73,7 @@ function IncomingList({ uid, email }: { uid: string; email: string }) {
 
   if (groups.length === 0) {
     return (
-      <Card className="border-dashed">
+      <Card variant="dossier" className="border-dashed">
         <CardContent className="p-8 text-center">
               <p className="text-3xl"><Inbox className="mx-auto h-8 w-8 text-primary" /></p>
           <h2 className="font-display mt-3 text-xl font-bold">Nothing shared yet</h2>
@@ -87,7 +87,7 @@ function IncomingList({ uid, email }: { uid: string; email: string }) {
 
   return (
     <>
-      <Card>
+      <Card variant="dossier">
         <CardContent className="p-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             People sharing with you
@@ -102,7 +102,7 @@ function IncomingList({ uid, email }: { uid: string; email: string }) {
         </CardContent>
       </Card>
       {groups.map(([sender, items]) => (
-        <Card key={sender}>
+        <Card variant="dossier" key={sender}>
           <CardContent className="space-y-2 p-4">
             <h2 className="font-semibold">{sender}</h2>
             {items.map((it) => (
@@ -139,7 +139,7 @@ export default function SharedWithMePage() {
         subtitle="Drops other people allowlisted to your email. Their timers and revokes apply instantly."
       >
         {!user ? (
-          <Card>
+          <Card variant="dossier">
             <CardContent className="p-8 text-center text-sm text-muted-foreground">
               Sign in to see items shared with you.
             </CardContent>
@@ -147,7 +147,7 @@ export default function SharedWithMePage() {
         ) : (
           <Suspense
             fallback={
-              <Card>
+              <Card variant="dossier">
                 <CardContent className="p-8 text-center text-sm text-muted-foreground">
                   Loading shared items…
                 </CardContent>

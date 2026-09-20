@@ -70,7 +70,7 @@ function SharedDrop({ shareId }: { shareId: string }) {
 
   if (!row) {
     return (
-      <Card>
+      <Card variant="dossier">
         <CardContent className="p-8 text-center">
           <p className="text-3xl"><Lock className="mx-auto h-8 w-8 text-primary" /></p>
           <h2 className="font-display mt-3 text-xl font-bold">Not shared with you</h2>
@@ -86,7 +86,7 @@ function SharedDrop({ shareId }: { shareId: string }) {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card variant="dossier" className="overflow-hidden">
       {row.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={row.imageUrl} alt="shared drop" className="max-h-[480px] w-full object-contain bg-muted/30" />
@@ -113,7 +113,7 @@ export default function SharedDropPage() {
       subtitle="An access-controlled drop with short-lived media and automatic expiry."
     >
       {loading || !configured ? (
-        <Card>
+        <Card variant="dossier">
           <CardContent className="p-8 text-center text-sm text-muted-foreground">
             {loading ? "Loading shared drop…" : "Sharing isn't configured on this deployment yet."}
           </CardContent>
@@ -121,7 +121,7 @@ export default function SharedDropPage() {
       ) : (
         <Suspense
           fallback={
-            <Card>
+            <Card variant="dossier">
               <CardContent className="p-8 text-center text-sm text-muted-foreground">
                 Loading shared drop…
               </CardContent>
