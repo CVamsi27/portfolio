@@ -51,7 +51,10 @@ export default function FocusSprint({
   }, [active, onCompleted, setActive, setSessions]);
 
   useEffect(() => {
-    if (active && active.pausedAt === undefined && getFocusRemainingMs(active, now) <= 0) finish();
+    if (!active || active.pausedAt !== undefined) return;
+    const remaining = getFocusRemainingMs(active, now);
+    const timeout = window.setTimeout(finish, Math.max(0, remaining));
+    return () => window.clearTimeout(timeout);
   }, [active, finish, now]);
 
   const start = () => {
