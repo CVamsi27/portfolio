@@ -250,6 +250,8 @@ export default function MotivationPage() {
           quoteTag={current.tag}
           quoteAuthor={media.quoteAuthor}
           destination={media.destinationKey ?? mediaCountry}
+          categoryLabel={media.categoryLabel}
+          rationale={media.rationale}
           saved={isFav}
           copied={copied}
           onStartAction={() => router.push("/goal")}

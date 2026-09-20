@@ -37,6 +37,8 @@ test.describe("motivation focus scene", () => {
           imageAlt: "A path toward a distant horizon",
           attribution: "Public image source",
           sourceUrl: "https://commons.wikimedia.org/wiki/File:Example.jpg",
+          categoryLabel: "Canada relocation",
+          rationale: "A real view of Canada keeps the next chapter visible.",
           quote: "Progress becomes visible when you keep moving.",
           quoteAuthor: "NOVA//OS",
           fetchedAt: Date.now(),
@@ -47,6 +49,8 @@ test.describe("motivation focus scene", () => {
     await page.goto("/motivation");
     await expect(page.getByTestId("focus-media")).toHaveAttribute("src", "https://images.example.test/journey.jpg");
     await expect(page.getByText("Public image source")).toBeVisible();
+    await expect(page.getByTestId("focus-scene-category")).toContainText("Canada relocation");
+    await expect(page.getByTestId("focus-media-rationale")).toContainText("real view");
     await expect(page.getByTestId("focus-next-action").getByText("Next action", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Refresh transmission" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Public image source" })).toHaveAttribute("href", "https://commons.wikimedia.org/wiki/File:Example.jpg");
@@ -135,6 +139,8 @@ test.describe("motivation focus scene", () => {
 
     await expect(page.getByTestId("focus-media")).toHaveAttribute("src", /images\.unsplash\.com/);
     await expect(page.getByTestId("focus-scene")).toContainText("Unsplash");
+    await expect(page.getByTestId("focus-scene-category")).toContainText("Canada relocation");
+    await expect(page.getByTestId("focus-media-rationale")).toContainText("Canada");
   });
 
   test("focus mode remains usable when browser fullscreen is unavailable", async ({ page }) => {

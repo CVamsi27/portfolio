@@ -870,6 +870,15 @@
     text-transform: uppercase;
   }
 
+  .focus-scene__rationale {
+    max-width: 34rem;
+    color: rgb(255 255 255 / 58%);
+    font-family: var(--font-utility);
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    line-height: 1.5;
+  }
+
   .focus-scene__next-action {
     border: 1px solid color-mix(in srgb, var(--color-dossier-lime) 45%, transparent);
     border-left: 4px solid var(--color-dossier-lime);
@@ -927,12 +936,13 @@
 
   @media (max-width: 560px) {
     .focus-scene__grid {
-      gap: 1.5rem;
-      padding: 2rem 0;
+      gap: 1.1rem;
+      padding: 1.25rem 0;
     }
 
     .focus-scene__media {
-      min-height: 20rem;
+      height: clamp(15rem, 60vw, 20rem);
+      min-height: 0;
     }
 
     .focus-scene__signals {

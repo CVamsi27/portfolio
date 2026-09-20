@@ -38,6 +38,8 @@ type FocusSceneProps = {
   quoteTag?: string;
   quoteAuthor?: string;
   destination?: string;
+  categoryLabel?: string;
+  rationale?: string;
   saved?: boolean;
   copied?: boolean;
   onStartAction: () => void;
@@ -61,6 +63,8 @@ export default function FocusScene({
   quoteTag = "Daily",
   quoteAuthor,
   destination,
+  categoryLabel,
+  rationale,
   saved = false,
   copied = false,
   onStartAction,
@@ -165,7 +169,7 @@ export default function FocusScene({
           ) : null}
           <div aria-hidden className="focus-scene__media-overlay" />
           <div className="focus-scene__media-label">
-            <span className="focus-scene__eyebrow">Scene // {goalLabel}</span>
+            <span data-testid="focus-scene-category" className="focus-scene__eyebrow">Scene // {categoryLabel ?? mediaLabel}</span>
             <strong>{mediaLabel}</strong>
           </div>
           <figcaption className="focus-scene__source">
@@ -190,6 +194,8 @@ export default function FocusScene({
             <blockquote>&ldquo;{quote}&rdquo;</blockquote>
             {quoteAuthor ? <p className="focus-scene__quote-author">— {quoteAuthor}</p> : null}
           </div>
+
+          {rationale ? <p data-testid="focus-media-rationale" className="focus-scene__rationale">{rationale}</p> : null}
 
           <div className="focus-scene__next-action" data-testid="focus-next-action">
             <p className="focus-scene__eyebrow">Next action</p>
