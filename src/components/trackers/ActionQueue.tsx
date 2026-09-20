@@ -31,7 +31,7 @@ export default function ActionQueue({ rows }: { rows: ActionQueueRow[] }) {
       {rows.length ? (
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {rows.map((row) => (
-            <li key={row.id} className="group flex min-w-0 items-center gap-3 border border-border/60 bg-background/40 px-3 py-3 transition-colors hover:border-primary/40">
+            <li key={row.id} data-complete={row.complete ? "true" : "false"} className={cn("group flex min-w-0 items-center gap-3 border border-border/60 bg-background/40 px-3 py-3 transition-colors hover:border-primary/40", row.complete && "bg-muted/20 opacity-75")}>
               <span className={cn("h-8 w-1 shrink-0", toneClasses[row.tone], row.complete && "opacity-40")} aria-hidden />
               {row.complete ? <Check className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden /> : <Circle className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />}
               <div className="min-w-0 flex-1">

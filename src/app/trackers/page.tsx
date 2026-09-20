@@ -46,9 +46,9 @@ import { TrackerIcon, type TrackerIconName } from "@/components/trackers/icons";
 import { computeFastingState } from "@/lib/trackers";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
-import FocusSprint from "@/components/trackers/FocusSprint";
-import ActionQueue, { type ActionQueueRow } from "@/components/trackers/ActionQueue";
-import WeekPulse, { type WeekPulseDay } from "@/components/trackers/WeekPulse";
+import DailyCockpit from "@/components/trackers/DailyCockpit";
+import { type ActionQueueRow } from "@/components/trackers/ActionQueue";
+import { type WeekPulseDay } from "@/components/trackers/WeekPulse";
 import { buildDailyChapter, buildNextAction } from "@/lib/command-deck";
 import { focusMinutesForDates, type FocusSession } from "@/lib/focus-sprint";
 import { cn } from "@/lib/utils";
@@ -109,6 +109,7 @@ export default function TrackersHub() {
   const nextPriorityTodo = todayTodos
     .filter((t) => !t.done && (t.priority === "P1" || t.priority === "P2"))
     .sort((a, b) => (a.priority === b.priority ? a.createdAt - b.createdAt : a.priority === "P1" ? -1 : 1))[0];
+  const taskAnchor = nextPriorityTodo?.text ?? todayTodos.find((todo) => !todo.done)?.text ?? todayTodos.find((todo) => todo.done)?.text;
 
   const goalMeta = GOAL_CATEGORIES.find((gc) => gc.id === prefs.goalCategory) ?? GOAL_CATEGORIES[0];
   const goalSeg = Math.min(1, metric.target ? todayMetric / metric.target : 0);
@@ -237,7 +238,7 @@ export default function TrackersHub() {
       },
       {
         id: "task",
-        label: nextPriorityTodo?.text ?? (todayTodos.length ? "Complete the next task" : "Add today's first task"),
+        label: taskAnchor ?? (todayTodos.length ? "Complete the next task" : "Add today's first task"),
         detail: todayTodos.length ? `${doneTodos}/${todayTodos.length} task${todayTodos.length === 1 ? "" : "s"} done` : "Give the day one concrete move",
         href: "/todo",
         tone: "amber",
@@ -252,7 +253,7 @@ export default function TrackersHub() {
         complete: goalSeg >= 1,
       },
     ],
-    [doneTodos, fastSt.startedAt, fastedToday, goalSeg, metric.label, metric.target, nextPriorityTodo?.text, protocol.fastHours, todayMetric, todayTodos.length, workoutDone],
+    [doneTodos, fastSt.startedAt, fastedToday, goalSeg, metric.label, metric.target, protocol.fastHours, taskAnchor, todayMetric, todayTodos.length, workoutDone],
   );
 
   const weekPulse = useMemo<WeekPulseDay[]>(() => {
@@ -341,82 +342,81 @@ export default function TrackersHub() {
         {/* ── Install banner (shown only when the browser offers it) ── */}
         <InstallPrompt />
 
-        <section data-testid="command-center-brief" className="space-y-4">
-          <ActionBlock
-          eyebrow="Daily transmission // next move"
-          title={dailyChapter.nextAction}
-          description={dailyChapter.summary}
-          primary={
-            <Link
-              href={nextActionHref}
-              className="inline-flex min-h-11 items-center justify-center border border-[#C8FF3D] bg-[#C8FF3D] px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#071014] transition-transform hover:-translate-y-0.5"
-            >
-              Log this move
-            </Link>
-          }
-          secondary={
-            <Link
-              href="/motivation"
-              className="inline-flex min-h-11 items-center justify-center border border-current/30 px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] transition-colors hover:border-[#49E7FF] hover:text-[#49E7FF]"
-            >
-              Enter focus
-            </Link>
-          }
-          />
-
-          <FocusSprint label={nextAction} compact />
-
-          {/* ── Daily episode: goal first, then the next move ── */}
-          <div className="grid items-start gap-4 lg:grid-cols-[1.25fr_.75fr]">
-          <StoryPanel
-            eyebrow={dailyChapter.eyebrow}
-            title={<span data-testid="command-deck-title">{dailyChapter.title}</span>}
-            tone="signal"
-            action={
-              <Link href="/goal" className="text-xs font-semibold text-primary hover:underline">
-                Open goal →
-              </Link>
-            }
-          >
-            <p>{dailyChapter.summary}</p>
-            <div data-testid="next-action" className="mt-5 border-l-2 border-primary pl-4">
-              <p className="dossier-kicker">Next move</p>
-              <p className="mt-1 text-base font-semibold text-foreground">{dailyChapter.nextAction}</p>
-            </div>
-          </StoryPanel>
-
-          <div data-testid="momentum-signal">
-            <SignalPanel
-              label="Momentum signal"
-              value={ringPct === 0 ? "No signal" : `${ringPct}%`}
-              detail={`${ringPct}% daily momentum across fasting, movement, tasks, and the goal metric.`}
-              progress={ringPct}
-              tone="red"
+        <DailyCockpit
+          dailyMove={
+            <ActionBlock
+              eyebrow="Daily transmission // next move"
+              title={dailyChapter.nextAction}
+              description={dailyChapter.summary}
+              primary={
+                <Link
+                  href={nextActionHref}
+                  className="inline-flex min-h-11 items-center justify-center border border-[#C8FF3D] bg-[#C8FF3D] px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#071014] transition-transform hover:-translate-y-0.5"
+                >
+                  Log this move
+                </Link>
+              }
+              secondary={
+                <Link
+                  href="/motivation"
+                  className="inline-flex min-h-11 items-center justify-center border border-current/30 px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] transition-colors hover:border-[#49E7FF] hover:text-[#49E7FF]"
+                >
+                  Enter focus
+                </Link>
+              }
             />
-            <Card variant="dossier" className="mt-4">
-              <CardContent className="flex flex-col items-center gap-5 p-5">
-                <Ring segments={segments} size={210} thickness={13}>
-                  <span className="font-display text-4xl font-bold tabular-nums">{ringPct}%</span>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Daily momentum
-                  </span>
-                </Ring>
-                <SegmentLegend
-                  items={[
-                    { label: "Fasting", value: fastSeg, color: "#3b82f6", detail: fastedToday ? "Window complete ✓" : derived.running && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m in` : "Not started" },
-                    { label: "Workout", value: workoutDone ? 1 : 0, color: "#10b981", detail: workoutDone ? "Session logged ✓" : "No session yet" },
-                    { label: "Tasks", value: todoSeg, color: "#f59e0b", detail: todayTodos.length ? `${doneTodos}/${todayTodos.length} done` : "No tasks today" },
-                    { label: "Goal", value: goalSeg, color: "#d946ef", detail: `${todayMetric}/${metric.target} ${metric.label.toLowerCase()}` },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          </div>
-          </div>
-        </section>
-
-        <ActionQueue rows={actionQueue} />
-        <WeekPulse days={weekPulse} />
+          }
+          goalSummary={
+            <StoryPanel
+              eyebrow={dailyChapter.eyebrow}
+              title={<span data-testid="command-deck-title">{dailyChapter.title}</span>}
+              tone="signal"
+              action={
+                <Link href="/goal" className="text-xs font-semibold text-primary hover:underline">
+                  Open goal →
+                </Link>
+              }
+            >
+              <p>{dailyChapter.summary}</p>
+              <div data-testid="next-action" className="mt-4 border-l-2 border-primary pl-4">
+                <p className="dossier-kicker">Next move</p>
+                <p className="mt-1 text-base font-semibold text-foreground">{dailyChapter.nextAction}</p>
+              </div>
+            </StoryPanel>
+          }
+          momentum={
+            <>
+              <SignalPanel
+                label="Momentum signal"
+                value={ringPct === 0 ? "No signal" : `${ringPct}%`}
+                detail={`${ringPct}% daily momentum across fasting, movement, tasks, and the goal metric.`}
+                progress={ringPct}
+                tone="red"
+              />
+              <Card variant="dossier">
+                <CardContent className="flex flex-col items-center gap-5 p-5">
+                  <Ring segments={segments} size={210} thickness={13}>
+                    <span className="font-display text-4xl font-bold tabular-nums">{ringPct}%</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      Daily momentum
+                    </span>
+                  </Ring>
+                  <SegmentLegend
+                    items={[
+                      { label: "Fasting", value: fastSeg, color: "#3b82f6", detail: fastedToday ? "Window complete ✓" : derived.running && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m in` : "Not started" },
+                      { label: "Workout", value: workoutDone ? 1 : 0, color: "#10b981", detail: workoutDone ? "Session logged ✓" : "No session yet" },
+                      { label: "Tasks", value: todoSeg, color: "#f59e0b", detail: todayTodos.length ? `${doneTodos}/${todayTodos.length} done` : "No tasks today" },
+                      { label: "Goal", value: goalSeg, color: "#d946ef", detail: `${todayMetric}/${metric.target} ${metric.label.toLowerCase()}` },
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+            </>
+          }
+          focusLabel={nextAction}
+          actionQueue={actionQueue}
+          weekPulse={weekPulse}
+        />
 
         <StoryPanel eyebrow="Command inputs" title="Quick actions" tone="archive">
           <div className="grid gap-2 sm:grid-cols-2">

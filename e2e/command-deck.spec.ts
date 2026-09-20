@@ -44,3 +44,32 @@ test("command deck leads with the goal and next move", async ({ page }) => {
   await expect(page.getByTestId("week-pulse")).toContainText("25m");
   await expect(page.getByRole("button", { name: /start focus sprint/i })).toBeVisible();
 });
+
+test("command queue keeps a completed task anchor visible", async ({ page }) => {
+  const today = new Date().toISOString().slice(0, 10);
+  await seed(page, {
+    "vk:prefs": {
+      name: "Test User",
+      goalCategory: "relocation",
+      goalTitle: "",
+      goalCountry: "Canada",
+      questionnaireDone: true,
+    },
+    "vk:todos": [
+      {
+        id: "t2",
+        text: "Completed task",
+        done: true,
+        date: today,
+        priority: "P2",
+        tag: "Personal",
+        completedAt: Date.now(),
+        createdAt: 1,
+      },
+    ],
+  });
+  await page.goto("/trackers");
+
+  await expect(page.getByTestId("action-queue").getByText("Completed task")).toHaveClass(/line-through/);
+  await expect(page.getByTestId("action-queue").locator('[data-complete="true"]')).toContainText("Completed task");
+});
