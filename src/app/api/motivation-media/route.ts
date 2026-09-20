@@ -23,5 +23,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ...media,
     keywords: getMotivationKeywords(normalizedSource, normalizedCategory, country),
+    categoryLabel: media.categoryLabel,
+    rationale: media.rationale,
   });
 }

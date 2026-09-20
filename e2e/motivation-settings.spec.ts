@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { seed, daysAgoKey } from "./helpers";
+import { getMotivationCategoryLabel, getMotivationRationale } from "../src/lib/motivation-media";
+
+test("motivation media exposes destination-aware context", () => {
+  expect(getMotivationCategoryLabel("relocation", "Germany")).toBe("Germany relocation");
+  expect(getMotivationRationale("goal", "relocation", "Germany")).toContain("Germany");
+});
 
 test.describe("motivation", () => {
   test("lets the user choose goal-aware or general inspiration", async ({ page }) => {

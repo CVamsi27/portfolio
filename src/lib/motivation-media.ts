@@ -21,6 +21,8 @@ export type MotivationMedia = {
   sourceUrl?: string;
   provider?: string;
   destinationKey?: string;
+  categoryLabel?: string;
+  rationale?: string;
   quote: string;
   quoteAuthor?: string;
   fetchedAt: number;
@@ -139,6 +141,15 @@ const FALLBACK_QUOTES: Record<MotivationPersonalization, string[]> = {
   ],
 };
 
+const CATEGORY_LABELS: Record<GoalCategory, string> = {
+  relocation: "Relocation",
+  fitness: "Fitness",
+  career: "Career",
+  learning: "Learning",
+  financial: "Financial progress",
+  custom: "Personal progress",
+};
+
 export function normalizeMotivationCountry(value: unknown): MotivationCountry | undefined {
   return typeof value === "string" && RELOCATION_COUNTRIES.includes(value as (typeof RELOCATION_COUNTRIES)[number])
     ? (value as MotivationCountry)
@@ -160,6 +171,23 @@ export function getMotivationKeywords(
   return CATEGORY_KEYWORDS[category] ?? CATEGORY_KEYWORDS.custom;
 }
 
+export function getMotivationCategoryLabel(category: GoalCategory, country?: string): string {
+  const safeCountry = normalizeMotivationCountry(country);
+  return category === "relocation" && safeCountry ? `${safeCountry} relocation` : CATEGORY_LABELS[category];
+}
+
+export function getMotivationRationale(
+  source: MotivationPersonalization,
+  category: GoalCategory,
+  country?: string,
+): string {
+  if (source === "general") return "A grounded scene keeps the next move visible without forcing a goal.";
+  const safeCountry = normalizeMotivationCountry(country);
+  if (category === "relocation" && safeCountry) return `A real view of ${safeCountry} keeps the next chapter visible.`;
+  const label = getMotivationCategoryLabel(category, country).toLowerCase();
+  return `A realistic ${label} scene gives today’s next move a place to land.`;
+}
+
 export function fallbackMotivationMedia(
   source: MotivationPersonalization,
   category: GoalCategory,
@@ -173,6 +201,8 @@ export function fallbackMotivationMedia(
     : FALLBACK_VISUALS[category] ?? FALLBACK_VISUALS.custom;
   return {
     ...visual,
+    categoryLabel: getMotivationCategoryLabel(category, safeCountry),
+    rationale: getMotivationRationale(source, category, safeCountry),
     quote,
     quoteAuthor: "NOVA//OS",
     destinationKey: safeCountry,
