@@ -47,7 +47,10 @@ import { computeFastingState } from "@/lib/trackers";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
 import FocusSprint from "@/components/trackers/FocusSprint";
+import ActionQueue, { type ActionQueueRow } from "@/components/trackers/ActionQueue";
+import WeekPulse, { type WeekPulseDay } from "@/components/trackers/WeekPulse";
 import { buildDailyChapter, buildNextAction } from "@/lib/command-deck";
+import { focusMinutesForDates, type FocusSession } from "@/lib/focus-sprint";
 import { cn } from "@/lib/utils";
 import ActionBlock from "@/components/editorial/ActionBlock";
 import {
@@ -77,6 +80,7 @@ export default function TrackersHub() {
   const { value: goal, setValue: setGoal } = useGoalState();
   const { value: workouts } = useWorkouts();
   const { value: journal } = useJournal();
+  const { value: focusSessions } = useSyncedStorage<FocusSession[]>("focus:sessions", []);
 
   const fastSt = fasting ?? { protocolId: "16-8", phase: "fasting" as const, startedAt: null };
   const fastHist = useMemo(() => (fastHistory ?? []) as FastHistoryEntry[], [fastHistory]);
@@ -84,6 +88,7 @@ export default function TrackersHub() {
   const goalSt = useMemo(() => goal ?? { metricByDay: {}, milestonesByCategory: {} }, [goal]);
   const workoutLogs = useMemo(() => workouts ?? {}, [workouts]);
   const journalMap = useMemo(() => journal ?? {}, [journal]);
+  const focusHistory = useMemo(() => focusSessions ?? [], [focusSessions]);
 
   const today = dateKey();
   const metric = metricFor(prefs);
@@ -212,6 +217,68 @@ export default function TrackersHub() {
     [fastHist, workoutLogs, todoList, goalSt.metricByDay, metric.label, journalMap, now],
   );
 
+  const actionQueue = useMemo<ActionQueueRow[]>(
+    () => [
+      {
+        id: "fasting",
+        label: fastSt.startedAt !== null ? "Protect the current fast" : fastedToday ? "Meal window logged" : "Log today's meal window",
+        detail: fastSt.startedAt !== null ? `${protocol.fastHours}h target in progress` : fastedToday ? "Today's anchor is complete" : "Set the first and last meal times",
+        href: "/intermittent-fasting",
+        tone: "cyan",
+        complete: fastedToday,
+      },
+      {
+        id: "workout",
+        label: workoutDone ? "Workout session logged" : "Complete today's workout",
+        detail: workoutDone ? "Movement anchor complete" : "Open the suggested session",
+        href: "/workout-tracking",
+        tone: "lime",
+        complete: workoutDone,
+      },
+      {
+        id: "task",
+        label: nextPriorityTodo?.text ?? (todayTodos.length ? "Complete the next task" : "Add today's first task"),
+        detail: todayTodos.length ? `${doneTodos}/${todayTodos.length} task${todayTodos.length === 1 ? "" : "s"} done` : "Give the day one concrete move",
+        href: "/todo",
+        tone: "amber",
+        complete: todayTodos.length > 0 && doneTodos === todayTodos.length,
+      },
+      {
+        id: "goal",
+        label: goalSeg >= 1 ? "Daily goal target reached" : `Log ${metric.label.toLowerCase()}`,
+        detail: `${todayMetric}/${metric.target} ${metric.label.toLowerCase()} today`,
+        href: "/goal",
+        tone: "violet",
+        complete: goalSeg >= 1,
+      },
+    ],
+    [doneTodos, fastSt.startedAt, fastedToday, goalSeg, metric.label, metric.target, nextPriorityTodo?.text, protocol.fastHours, todayMetric, todayTodos.length, workoutDone],
+  );
+
+  const weekPulse = useMemo<WeekPulseDay[]>(() => {
+    const days = Array.from({ length: 7 }, (_, index) => {
+      const day = new Date(now);
+      day.setHours(12, 0, 0, 0);
+      day.setDate(day.getDate() - (6 - index));
+      const key = dateKey(day);
+      const activityCount = [
+        fastHist.some((entry) => (entry.mealDate ?? dateKey(new Date(entry.end))) === key),
+        Object.values(workoutLogs[key] ?? {}).some((entry) => entry?.done),
+        todoList.some((todo) => todo.done && todo.completedAt && dateKey(new Date(todo.completedAt)) === key),
+        Boolean(goalSt.metricByDay?.[key]),
+        Boolean(journalMap[key]?.updatedAt),
+      ].filter(Boolean).length;
+      return {
+        key,
+        label: day.toLocaleDateString("en-US", { weekday: "narrow" }),
+        activityCount,
+        focusMinutes: focusMinutesForDates(focusHistory, key),
+        isToday: key === today,
+      };
+    });
+    return days;
+  }, [fastHist, focusHistory, goalSt.metricByDay, journalMap, now, today, todoList, workoutLogs]);
+
   // ── quick actions ──
   const [quickTask, setQuickTask] = useState("");
   const [quickMetric, setQuickMetric] = useState("");
@@ -274,7 +341,8 @@ export default function TrackersHub() {
         {/* ── Install banner (shown only when the browser offers it) ── */}
         <InstallPrompt />
 
-        <ActionBlock
+        <section data-testid="command-center-brief" className="space-y-4">
+          <ActionBlock
           eyebrow="Daily transmission // next move"
           title={dailyChapter.nextAction}
           description={dailyChapter.summary}
@@ -294,12 +362,12 @@ export default function TrackersHub() {
               Enter focus
             </Link>
           }
-        />
+          />
 
-        <FocusSprint label={nextAction} />
+          <FocusSprint label={nextAction} compact />
 
-        {/* ── Daily episode: goal first, then the next move ── */}
-        <div className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]">
+          {/* ── Daily episode: goal first, then the next move ── */}
+          <div className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]">
           <StoryPanel
             eyebrow={dailyChapter.eyebrow}
             title={<span data-testid="command-deck-title">{dailyChapter.title}</span>}
@@ -344,7 +412,11 @@ export default function TrackersHub() {
               </CardContent>
             </Card>
           </div>
-        </div>
+          </div>
+        </section>
+
+        <ActionQueue rows={actionQueue} />
+        <WeekPulse days={weekPulse} />
 
         <StoryPanel eyebrow="Command inputs" title="Quick actions" tone="archive">
           <div className="grid gap-2 sm:grid-cols-2">
