@@ -22,6 +22,7 @@ import {
 import { useCustomQuotes, useGoalState, useJournal, useMigrateFasting, useMigrateGoal, useMotivationVisits, newCustomQuote } from "@/lib/tracker-store";
 import { GOAL_CATEGORIES, displayGoalTitle } from "@/lib/user-prefs";
 import Segmented from "@/components/trackers/Segmented";
+import FocusSprint from "@/components/trackers/FocusSprint";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { fallbackMotivationMedia, type MotivationMedia } from "@/lib/motivation-media";
 import {
@@ -260,6 +261,7 @@ export default function MotivationPage() {
           mediaLoading={mediaLoading}
           media={media}
         />
+        <FocusSprint label={nextMilestone === "All milestones complete" ? "Log today’s progress" : nextMilestone} compact />
 
         {/* ── Stats ── */}
         <div className="grid grid-cols-3 gap-3">

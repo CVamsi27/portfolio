@@ -2,6 +2,31 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("motivation focus scene", () => {
+  test("connects the current milestone to a focus sprint without changing goal data", async ({ page }) => {
+    await seed(page, {
+      "vk:goal": {
+        metricByDay: { [new Date().toISOString().slice(0, 10)]: 2 },
+        milestonesByCategory: {
+          relocation: [{ id: "visa-docs", title: "Collect visa documents", done: false, doneAt: null }],
+        },
+      },
+    });
+    await page.goto("/motivation");
+
+    await expect(page.getByTestId("focus-sprint")).toContainText("Collect visa documents");
+    await page.getByRole("button", { name: /start focus sprint/i }).click();
+    await page.getByRole("button", { name: /finish sprint/i }).click();
+
+    const state = await page.evaluate(() => ({
+      sessions: JSON.parse(localStorage.getItem("vk:focus:sessions") ?? "[]"),
+      journal: localStorage.getItem("vk:journal"),
+      goal: JSON.parse(localStorage.getItem("vk:goal") ?? "{}"),
+    }));
+    expect(state.sessions[0].status).toBe("completed");
+    expect(state.journal).toBe("{}");
+    expect(state.goal.metricByDay[new Date().toISOString().slice(0, 10)]).toBe(2);
+  });
+
   test("renders goal-safe media behind the full-screen focus scene", async ({ page }) => {
     await page.route("**/api/motivation-media**", async (route) => {
       await route.fulfill({

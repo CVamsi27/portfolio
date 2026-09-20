@@ -105,7 +105,7 @@ export default function FocusSprint({
             {active?.label ?? "Make room for the next move"}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            {isRunning ? "Stay with this move until the timer ends." : "A short, contained block of attention."}
+            {isRunning ? "Stay with this move until the timer ends." : label.trim() ? `For: ${label}` : "A short, contained block of attention."}
           </p>
         </div>
         {isRunning ? (
