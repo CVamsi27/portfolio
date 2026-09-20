@@ -57,6 +57,8 @@ export async function seed(page: Page, data: Record<string, unknown> = {}): Prom
       "vk:motivation:favs": [],
       "vk:motivation:custom": [],
       "vk:motivation:visits": {},
+      "vk:focus:active": null,
+      "vk:focus:sessions": [],
       "vk:share": [],
       "vk:share:links": {},
     };

@@ -46,6 +46,7 @@ import { TrackerIcon, type TrackerIconName } from "@/components/trackers/icons";
 import { computeFastingState } from "@/lib/trackers";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
+import FocusSprint from "@/components/trackers/FocusSprint";
 import { buildDailyChapter, buildNextAction } from "@/lib/command-deck";
 import { cn } from "@/lib/utils";
 import ActionBlock from "@/components/editorial/ActionBlock";
@@ -294,6 +295,8 @@ export default function TrackersHub() {
             </Link>
           }
         />
+
+        <FocusSprint label={nextAction} />
 
         {/* ── Daily episode: goal first, then the next move ── */}
         <div className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]">
