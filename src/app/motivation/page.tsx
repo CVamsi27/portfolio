@@ -147,14 +147,23 @@ export default function MotivationPage() {
   const [savedFlash, setSavedFlash] = useState(false);
 
   useEffect(() => {
-    const key = `${prefs.motivationPersonalization}:${prefs.goalCategory}`;
+    const country =
+      prefs.motivationPersonalization === "goal" && prefs.goalCategory === "relocation"
+        ? prefs.goalCountry
+        : undefined;
+    const key = `${prefs.motivationPersonalization}:${prefs.goalCategory}:${country ?? "none"}`;
     const cached = mediaCache?.[key];
     if (cached && Date.now() - cached.fetchedAt < 86_400_000) {
       setMedia(cached);
       return;
     }
     let cancelled = false;
-    fetch(`/api/motivation-media?source=${prefs.motivationPersonalization}&category=${prefs.goalCategory}`)
+    const params = new URLSearchParams({
+      source: prefs.motivationPersonalization,
+      category: prefs.goalCategory,
+    });
+    if (country) params.set("country", country);
+    fetch(`/api/motivation-media?${params.toString()}`)
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("media unavailable"))))
       .then((next: MotivationMedia) => {
         if (cancelled) return;
@@ -165,7 +174,7 @@ export default function MotivationPage() {
         if (!cancelled) setMedia(fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory));
       });
     return () => { cancelled = true; };
-  }, [mediaCache, prefs.goalCategory, prefs.motivationPersonalization, setMediaCache]);
+  }, [mediaCache, prefs.goalCategory, prefs.goalCountry, prefs.motivationPersonalization, setMediaCache]);
 
   const saveJournal = () => {
     // Event handler — stamping the wall clock is the intent.

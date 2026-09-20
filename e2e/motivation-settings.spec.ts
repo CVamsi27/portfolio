@@ -33,6 +33,51 @@ test.describe("motivation", () => {
     expect(requests.at(-1)).not.toContain("Relocate");
   });
 
+  test("relocation media uses safe destination terms without raw goal text", async ({ page }) => {
+    const requests: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/api/motivation-media")) requests.push(request.url());
+    });
+    await page.route("**/api/motivation-media**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ quote: "Keep moving.", fetchedAt: Date.now() }),
+      });
+    });
+    await seed(page, {
+      "vk:prefs": {
+        name: "Test User",
+        goalCategory: "relocation",
+        goalTitle: "Private title that must never leave the browser",
+        goalCountry: "Germany",
+        dailyMetricLabel: undefined,
+        dailyMetricTarget: undefined,
+        dailyMetricGoalTotal: undefined,
+        workoutDaysPerWeek: 4,
+        workoutSplit: "fullbody",
+        weightUnit: "kg",
+        fastingEnabled: true,
+        fastingProtocolId: "16-8",
+        motivationStyle: "discipline",
+        motivationPersonalization: "goal",
+        customSplitDays: [
+          { id: "day-1", label: "Day 1" },
+          { id: "day-2", label: "Day 2" },
+          { id: "day-3", label: "Day 3" },
+        ],
+        questionnaireDone: true,
+      },
+    });
+    await page.goto("/motivation");
+    await expect.poll(() => requests.length).toBeGreaterThan(0);
+    const url = requests.at(-1)!;
+    expect(url).toContain("category=relocation");
+    expect(url).toContain("country=Germany");
+    expect(url).not.toContain("Private%20title");
+    expect(url).not.toContain("Test%20User");
+  });
+
   test("quote deck shuffles + favorites persist", async ({ page }) => {
     await seed(page);
     await page.goto("/motivation");
