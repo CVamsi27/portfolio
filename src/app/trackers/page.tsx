@@ -44,7 +44,6 @@ import Questionnaire from "@/components/Questionnaire";
 import InstallPrompt from "@/components/InstallPrompt";
 import { TrackerIcon, type TrackerIconName } from "@/components/trackers/icons";
 import { computeFastingState } from "@/lib/trackers";
-import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
 import DailyCockpit from "@/components/trackers/DailyCockpit";
 import { type ActionQueueRow } from "@/components/trackers/ActionQueue";
@@ -385,33 +384,24 @@ export default function TrackersHub() {
             </StoryPanel>
           }
           momentum={
-            <>
-              <SignalPanel
-                label="Momentum signal"
-                value={ringPct === 0 ? "No signal" : `${ringPct}%`}
-                detail={`${ringPct}% daily momentum across fasting, movement, tasks, and the goal metric.`}
-                progress={ringPct}
-                tone="red"
-              />
-              <Card variant="dossier">
-                <CardContent className="flex flex-col items-center gap-5 p-5">
-                  <Ring segments={segments} size={210} thickness={13}>
-                    <span className="font-display text-4xl font-bold tabular-nums">{ringPct}%</span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      Daily momentum
-                    </span>
-                  </Ring>
-                  <SegmentLegend
-                    items={[
-                      { label: "Fasting", value: fastSeg, color: "#3b82f6", detail: fastedToday ? "Window complete ✓" : derived.running && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m in` : "Not started" },
-                      { label: "Workout", value: workoutDone ? 1 : 0, color: "#10b981", detail: workoutDone ? "Session logged ✓" : "No session yet" },
-                      { label: "Tasks", value: todoSeg, color: "#f59e0b", detail: todayTodos.length ? `${doneTodos}/${todayTodos.length} done` : "No tasks today" },
-                      { label: "Goal", value: goalSeg, color: "#d946ef", detail: `${todayMetric}/${metric.target} ${metric.label.toLowerCase()}` },
-                    ]}
-                  />
-                </CardContent>
-              </Card>
-            </>
+            <Card variant="dossier">
+              <CardContent className="flex flex-col items-center gap-4 p-4 sm:p-5">
+                <Ring segments={segments} size={180} thickness={13}>
+                  <span className="font-display text-4xl font-bold tabular-nums">{ringPct}%</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    Daily momentum
+                  </span>
+                </Ring>
+                <SegmentLegend
+                  items={[
+                    { label: "Fasting", value: fastSeg, color: "#3b82f6", detail: fastedToday ? "Window complete ✓" : derived.running && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m in` : "Not started" },
+                    { label: "Workout", value: workoutDone ? 1 : 0, color: "#10b981", detail: workoutDone ? "Session logged ✓" : "No session yet" },
+                    { label: "Tasks", value: todoSeg, color: "#f59e0b", detail: todayTodos.length ? `${doneTodos}/${todayTodos.length} done` : "No tasks today" },
+                    { label: "Goal", value: goalSeg, color: "#d946ef", detail: `${todayMetric}/${metric.target} ${metric.label.toLowerCase()}` },
+                  ]}
+                />
+              </CardContent>
+            </Card>
           }
           focusLabel={nextAction}
           actionQueue={actionQueue}
