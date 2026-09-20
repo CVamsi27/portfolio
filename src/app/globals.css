@@ -577,6 +577,140 @@
     color: var(--color-dossier-lime);
   }
 
+  .shared-inbox__summary {
+    overflow: hidden;
+  }
+
+  .shared-inbox__summary-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.5rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .shared-inbox__eyebrow {
+    color: var(--color-dossier-lime);
+    font-family: var(--font-utility);
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+
+  .shared-inbox__summary h2 {
+    max-width: 38rem;
+    margin-top: 0.55rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.7rem, 4vw, 3.25rem);
+    font-weight: 900;
+    letter-spacing: -0.055em;
+    line-height: 0.98;
+  }
+
+  .shared-inbox__summary-copy {
+    max-width: 42rem;
+    margin-top: 0.7rem;
+    color: var(--color-muted-foreground);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .shared-inbox__summary-mark {
+    display: grid;
+    min-width: 5rem;
+    min-height: 5rem;
+    place-items: center;
+    align-content: center;
+    gap: 0.35rem;
+    border: 1px solid color-mix(in srgb, var(--color-dossier-lime) 54%, transparent);
+    color: var(--color-dossier-lime);
+    font-family: var(--font-utility);
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .shared-inbox__state-icon {
+    display: grid;
+    flex: 0 0 auto;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-dossier-red) 55%, transparent);
+    color: var(--color-dossier-red);
+  }
+
+  .shared-inbox__retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--color-dossier-red) 44%, transparent);
+    padding: 0.55rem 0.7rem;
+    color: var(--color-foreground);
+    font-family: var(--font-utility);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .shared-inbox__retry:hover {
+    background: color-mix(in srgb, var(--color-dossier-red) 12%, transparent);
+  }
+
+  .shared-inbox__groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr));
+    gap: 1rem;
+  }
+
+  .shared-inbox__group-card {
+    min-width: 0;
+  }
+
+  .shared-inbox__count {
+    display: grid;
+    min-width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-dossier-lime) 48%, transparent);
+    color: var(--color-dossier-lime);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 900;
+  }
+
+  .shared-inbox__item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+    border: 1px solid color-mix(in srgb, var(--color-foreground) 13%, transparent);
+    padding: 0.72rem;
+    transition: border-color 150ms ease, background 150ms ease;
+  }
+
+  .shared-inbox__item:hover {
+    border-color: color-mix(in srgb, var(--color-dossier-red) 55%, transparent);
+    background: color-mix(in srgb, var(--color-dossier-red) 8%, transparent);
+  }
+
+  @media (max-width: 560px) {
+    .shared-inbox__summary-content {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .shared-inbox__summary-mark {
+      min-width: 100%;
+      min-height: 2.8rem;
+      grid-template-columns: auto auto;
+    }
+  }
+
   .focus-scene__grid {
     display: grid;
     grid-template-columns: minmax(0, 1.08fr) minmax(18rem, 0.92fr);
@@ -586,6 +720,10 @@
     max-width: 76rem;
     margin: 0 auto;
     padding: clamp(2rem, 6vw, 5rem) 0;
+  }
+
+  .focus-scene--active {
+    min-height: calc(100svh - var(--app-header-height));
   }
 
   .focus-scene__media {

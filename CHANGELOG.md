@@ -64,6 +64,8 @@ The portfolio repo now ships two products in one codebase: the public résumé a
 - 44 Playwright E2E tests across 12 specs — including onboarding, hub, fasting, workouts, goal, todos, motivation, Share UI, reduced motion, settings, and host routing — run against a real production build in local mode. Release gates are `pnpm test:e2e`, `pnpm lint`, and `pnpm build`; configured Share integration additionally requires Supabase credentials and is not covered by local mode. The suite caught and fixed three real bugs before release: an inverted fasting Start button, a hydration-broken portal link, and a visit-log effect that could erase same-day history.
 ## Unreleased
 
+- Fixed the personal Shared with me inbox so its request lifecycle resolves cleanly, keeps retry/error states distinct, and includes the signed-in owner’s own shared dispatches alongside incoming items.
+- Tightened Motivation media selection to reject scanned/illustrated Commons results, prefer photographic destination imagery, and use realistic category fallbacks when public media is unavailable.
 - Refined only the personal NOVA//OS surface: removed navbar email exposure, added a destination-aware Focus studio with Wikimedia Commons attribution and local image fallback, and added refreshable motivation transmissions without sending private goal text to public APIs.
 - Added an opt-in dossier card variant across personal tracker routes while preserving the public portfolio card treatment and `/` experience.
 - Rebranded tracker-facing product surfaces as NOVA//OS while preserving internal storage and backup compatibility identifiers.

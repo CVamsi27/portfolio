@@ -120,7 +120,7 @@ export default function FocusScene({
       data-reduced-motion="supported"
       aria-label="Motivation focus scene"
       className={cn(
-        "focus-scene dossier-reveal relative isolate flex min-h-[calc(100svh-var(--app-header-height))] flex-col overflow-hidden border border-white/10 bg-[#071014] px-5 py-5 text-white shadow-[10px_10px_0_rgba(255,59,48,0.22)] sm:px-8 sm:py-8 lg:px-12",
+        "focus-scene dossier-reveal relative isolate flex min-h-0 flex-col overflow-hidden border border-white/10 bg-[#071014] px-5 py-5 text-white shadow-[10px_10px_0_rgba(255,59,48,0.22)] sm:px-8 sm:py-8 lg:px-12",
         active && "focus-scene--active",
       )}
     >

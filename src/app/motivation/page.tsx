@@ -82,7 +82,7 @@ export default function MotivationPage() {
   const mediaCountry = prefs.motivationPersonalization === "goal" && prefs.goalCategory === "relocation"
     ? prefs.goalCountry
     : undefined;
-  const mediaKey = `${prefs.motivationPersonalization}:${prefs.goalCategory}:${mediaCountry ?? "none"}`;
+  const mediaKey = `v2:${prefs.motivationPersonalization}:${prefs.goalCategory}:${mediaCountry ?? "none"}`;
 
   // Register today's visit once, from an effect (never during render).
   // Uses the store's updater form so a stale first-render snapshot (before

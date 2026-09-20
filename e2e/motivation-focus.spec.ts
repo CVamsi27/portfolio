@@ -101,6 +101,17 @@ test.describe("motivation focus scene", () => {
     await expect(page.getByRole("img", { name: "Canada local motivation fallback" })).toBeVisible();
   });
 
+  test("API failure keeps a realistic category image in the scene", async ({ page }) => {
+    await page.route("**/api/motivation-media**", async (route) => {
+      await route.fulfill({ status: 503, body: "media unavailable" });
+    });
+    await seed(page);
+    await page.goto("/motivation");
+
+    await expect(page.getByTestId("focus-media")).toHaveAttribute("src", /images\.unsplash\.com/);
+    await expect(page.getByTestId("focus-scene")).toContainText("Unsplash");
+  });
+
   test("focus mode remains usable when browser fullscreen is unavailable", async ({ page }) => {
     await page.addInitScript(() => {
       Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
