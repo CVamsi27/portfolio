@@ -10,6 +10,7 @@ test.describe("navigation & shell", () => {
     const portal = page.getByRole("link", { name: "Open the NOVA//OS trackers" });
     await expect(portal).toBeVisible();
     await expect(portal).toHaveAttribute("href", "/trackers", { timeout: 7_000 });
+    await expect(page.getByRole("link", { name: "Study" })).toHaveAttribute("href", "https://study.buildora.work");
     await expect(page.getByTestId("nova-simple-mark")).toHaveCount(0);
   });
 
@@ -24,6 +25,7 @@ test.describe("navigation & shell", () => {
     expect(html).toContain('data-testid="tracker-public-landing"');
     expect(html).toContain("Enter NOVA//OS");
     expect(html).not.toContain("Sign in required");
+    expect(html).not.toContain("https://study.buildora.work");
   });
 
   test("portfolio host never serves tracker pages", async ({ page }) => {
@@ -38,10 +40,18 @@ test.describe("navigation & shell", () => {
     await seed(page);
     await page.goto("/todo");
     // Breadcrumb back to hub.
-    await expect(page.locator('a[href="/trackers"]').first()).toBeVisible();
+    await expect(page.locator('a[href="/hub"]').first()).toBeVisible();
     // Mobile dock is hidden at desktop widths.
     const dock = page.locator("nav, [class*='backdrop-blur']").filter({ hasText: /Hub/ }).last();
     await expect(dock).toBeHidden();
+  });
+
+  test("utility pages do not render the mobile command dock", async ({ page }) => {
+    await seed(page);
+    for (const route of ["/login", "/settings", "/archive", "/share", "/shared-with-me", "/motivation"]) {
+      await page.goto(route);
+      await expect(page.getByTestId("mobile-command-dock")).toHaveCount(0);
+    }
   });
 
   test("personal navbar does not expose account email text", async ({ page }) => {

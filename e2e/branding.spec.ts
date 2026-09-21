@@ -17,6 +17,7 @@ test.describe("product branding", () => {
     await expect(page.getByRole("link", { name: "Buildora home" })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Vamsi Krishna/i })).toBeVisible();
     await expect(page).toHaveTitle(/Buildora.*Vamsi Krishna/i);
+    await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", "/icons/buildora.svg");
   });
 
   test("personal-host landing explains the product before workspace entry", async ({ page }) => {
@@ -65,7 +66,7 @@ test.describe("product branding", () => {
     expect(manifest.start_url).toBe("/hub");
 
     await page.goto("/trackers");
-    await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", "/icon.svg");
+    await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", "/icons/nova.svg");
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#071014");
   });
 

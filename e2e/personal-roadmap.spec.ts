@@ -57,6 +57,9 @@ test.describe("personal roadmap", () => {
     await expect(page.getByTestId("world-clock-strip")).toContainText("San Francisco");
     await expect(page.getByRole("img", { name: /daily momentum/i })).toBeVisible();
     await expect(page.getByTestId("command-center-brief")).toBeVisible();
+    await expect(page.getByTestId("hub-next-action")).toBeVisible();
+    await expect(page.getByTestId("hub-anchor-grid")).toBeVisible();
+    await expect(page.getByTestId("clock-disclosure")).toBeVisible();
     await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(5);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   });
