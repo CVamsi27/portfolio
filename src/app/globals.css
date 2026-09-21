@@ -408,6 +408,50 @@
     min-height: calc(100svh - var(--app-header-height));
   }
 
+  html[data-focus-session="active"] .dossier-chapter-header,
+  html[data-focus-session="active"] .dossier-command-dock,
+  html[data-focus-session="active"] .dossier-action-bar,
+  html[data-focus-session="active"] footer {
+    display: none !important;
+  }
+
+  .dossier-world-clock {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    min-width: 0;
+    color: var(--nova-mist);
+    font-family: var(--font-utility);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .dossier-world-date,
+  .dossier-world-time,
+  .dossier-world-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+  }
+
+  .dossier-world-date { color: currentColor; }
+  .dossier-world-time strong { color: var(--color-foreground); font-size: 0.68rem; letter-spacing: 0.02em; }
+
+  @media (max-width: 640px) {
+    .dossier-world-clock {
+      justify-content: flex-start;
+      overflow-x: auto;
+      padding-bottom: 0.15rem;
+      scrollbar-width: none;
+    }
+    .dossier-world-clock::-webkit-scrollbar { display: none; }
+    .dossier-world-date { display: none; }
+    .dossier-world-status { margin-left: auto; }
+  }
+
   .dossier-chapter-header {
     position: relative;
   }

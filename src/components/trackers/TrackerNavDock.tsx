@@ -33,7 +33,10 @@ export default function TrackerNavDock() {
   // Filter: fasting link hidden when fasting is disabled is handled by pages
   // via prefs; the dock shows the core suite regardless (fasting page itself
   // communicates the protocol). Shared-with-me lives under the share entry.
-  const links = TRACKER_LINKS.filter((l) => l.href !== "/shared-with-me");
+  // A dock is for immediate switching, not a compressed sitemap. The command
+  // center exposes every secondary tracker through its quick links.
+  const mobileDestinations = new Set(["/hub", "/todo", "/weight-loss", "/goal", "/settings"]);
+  const links = TRACKER_LINKS.filter((link) => mobileDestinations.has(link.href));
 
   return (
     <nav
@@ -47,7 +50,7 @@ export default function TrackerNavDock() {
     >
       <div className="flex items-center justify-between gap-0.5">
         {links.map((l) => {
-          const active = pathname === l.href;
+          const active = pathname === l.href || (l.href === "/hub" && pathname === "/trackers");
           return (
             <Link
               key={l.href}

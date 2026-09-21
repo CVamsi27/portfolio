@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PWARegister from "@/components/PWARegister";
 import { Toaster } from "@/components/ui/toaster";
+import ReminderNudges from "@/components/ReminderNudges";
 import {
   getBrandForHost,
   isTrackerHost,
@@ -68,11 +69,13 @@ export async function generateViewport(): Promise<Viewport> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const trackerSurface = (await requestBrand()) === TRACKER_BRAND;
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -97,6 +100,7 @@ export default function RootLayout({
             <Navbar />
             <div className="flex-1">{children}</div>
             <Toaster />
+            {trackerSurface ? <ReminderNudges /> : null}
             <Footer />
             <PWARegister />
           </main>

@@ -15,6 +15,8 @@ import {
   Sparkles,
   Timer,
   Users,
+  Scale,
+  Archive,
   type LucideIcon,
 } from "lucide-react";
 
@@ -35,6 +37,8 @@ export const TRACKER_ICONS = {
   book: BookOpen,
   wallet: WalletCards,
   sparkles: Sparkles,
+  scale: Scale,
+  archive: Archive,
 } satisfies Record<string, LucideIcon>;
 
 export type TrackerIconName = keyof typeof TRACKER_ICONS;

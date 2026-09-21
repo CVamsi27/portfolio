@@ -21,6 +21,9 @@ const KEYS = [
   "motivation:visits",
   "share",
   "share:links",
+  "weight-loss",
+  "archive:items",
+  "reminders",
 ] as const;
 
 export type BackupKey = (typeof KEYS)[number];

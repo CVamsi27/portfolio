@@ -23,12 +23,16 @@ export default function DailyCockpit({
   return (
     <>
       <section data-testid="command-center-brief" className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,.85fr)]">
-        <div className="space-y-4">
+        <div className="order-1 lg:col-start-1 lg:row-start-1">
           {dailyMove}
+        </div>
+        <div className="order-3 lg:col-start-1 lg:row-start-2">
           <FocusSprint label={focusLabel} compact />
         </div>
-        <div className="space-y-4" data-testid="momentum-signal">
+        <div className="order-4 lg:col-start-2 lg:row-start-1">
           {goalSummary}
+        </div>
+        <div className="order-2 lg:col-start-2 lg:row-start-2" data-testid="momentum-signal">
           {momentum}
         </div>
       </section>

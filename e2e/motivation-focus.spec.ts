@@ -47,7 +47,7 @@ test.describe("motivation focus scene", () => {
     });
     await seed(page);
     await page.goto("/motivation");
-    await expect(page.getByTestId("focus-media")).toHaveAttribute("src", "https://images.example.test/journey.jpg");
+    await expect(page.getByTestId("focus-media")).toHaveAttribute("src", /\/api\/motivation-image\?url=https%3A/);
     await expect(page.getByText("Public image source")).toBeVisible();
     await expect(page.getByTestId("focus-scene-category")).toContainText("Canada relocation");
     await expect(page.getByTestId("focus-media-rationale")).toContainText("real view");
@@ -56,6 +56,30 @@ test.describe("motivation focus scene", () => {
     await expect(page.getByRole("link", { name: "Public image source" })).toHaveAttribute("href", "https://commons.wikimedia.org/wiki/File:Example.jpg");
     await expect(page.getByTestId("focus-goal")).toContainText("Relocate to Canada");
     await expect(page.getByTestId("focus-scene")).toHaveAttribute("data-focus-active", "false");
+  });
+
+  test("relays approved public media through the personal app", async ({ page }) => {
+    await page.route("**/api/motivation-media**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          imageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1800&q=85",
+          imageAlt: "A reliable health scene",
+          attribution: "Unsplash",
+          sourceUrl: "https://unsplash.com/s/photos/healthy-meal",
+          provider: "Unsplash",
+          categoryLabel: "Weight loss",
+          quote: "Small actions add up.",
+          fetchedAt: Date.now(),
+        }),
+      });
+    });
+    await seed(page);
+    await page.goto("/motivation");
+
+    await expect(page.getByTestId("focus-media")).toHaveAttribute("src", /\/api\/motivation-image\?url=/);
+    await expect(page.getByText("Unsplash")).toBeVisible();
   });
 
   test("motivation opens as a goal-centered focus scene", async ({ page }) => {

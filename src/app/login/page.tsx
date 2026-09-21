@@ -31,7 +31,7 @@ export default function LoginPage() {
   const signIn = () =>
     getSupabase()?.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/trackers` },
+      options: { redirectTo: `${window.location.origin}/hub` },
     });
 
   return (
@@ -66,7 +66,7 @@ export default function LoginPage() {
               <StatusIcon variant="success"><UserCheck className="h-7 w-7 text-white" /></StatusIcon>
               <h2 className="font-display mt-4 text-xl font-bold">You&apos;re signed in</h2>
               <p className="mt-2 text-sm text-muted-foreground">{user.email}</p>
-              <Link href="/trackers" className="mt-5 w-full">
+              <Link href="/hub" className="mt-5 w-full">
                 <Button className="w-full">Open my trackers</Button>
               </Link>
               <Button

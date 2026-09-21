@@ -5,12 +5,12 @@
  * - App shell (root documents + icons) precached at install.
  * - Static assets (/_next/static/*, icons): cache-first, versioned URLs.
  * - Pages: network-first with cache fallback so the app opens offline.
- * - Tracker routes get a dedicated offline shell (the cached /trackers page).
+ * - Tracker routes get a dedicated offline shell (the cached /hub page).
  *
  * Bump CACHE_VERSION to invalidate everything.
  */
-const CACHE_VERSION = "nova-os-v2";
-const OFFLINE_URL = "/trackers";
+const CACHE_VERSION = "nova-os-v3";
+const OFFLINE_URL = "/hub";
 
 const PRECACHE = [
   OFFLINE_URL,

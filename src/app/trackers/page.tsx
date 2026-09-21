@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import TrackerShell from "@/components/trackers/TrackerShell";
-import Ring, { type RingSegment } from "@/components/trackers/Ring";
+import { SimpleRing } from "@/components/trackers/Ring";
 import MiniBars from "@/components/trackers/MiniBars";
 import EmptyState from "@/components/trackers/EmptyState";
 import RequireAuth from "@/components/auth/RequireAuth";
@@ -22,6 +22,7 @@ import {
   fastHoursByDay,
   formatDelta,
   milestonesFor,
+  normalizeWeeklyCommitments,
   protocolById,
   relativeTime,
   weeklyWorkoutStats,
@@ -51,6 +52,7 @@ import { type WeekPulseDay } from "@/components/trackers/WeekPulse";
 import { buildDailyChapter, buildNextAction } from "@/lib/command-deck";
 import { focusMinutesForDates, type FocusSession } from "@/lib/focus-sprint";
 import { cn } from "@/lib/utils";
+import { DEFAULT_WEIGHT_LOSS_STATE, type WeightLossState } from "@/lib/health";
 import ActionBlock from "@/components/editorial/ActionBlock";
 import {
   Activity,
@@ -80,6 +82,7 @@ export default function TrackersHub() {
   const { value: workouts } = useWorkouts();
   const { value: journal } = useJournal();
   const { value: focusSessions } = useSyncedStorage<FocusSession[]>("focus:sessions", []);
+  const { value: weightLoss } = useSyncedStorage<WeightLossState>("weight-loss", DEFAULT_WEIGHT_LOSS_STATE);
 
   const fastSt = fasting ?? { protocolId: "16-8", phase: "fasting" as const, startedAt: null };
   const fastHist = useMemo(() => (fastHistory ?? []) as FastHistoryEntry[], [fastHistory]);
@@ -88,6 +91,7 @@ export default function TrackersHub() {
   const workoutLogs = useMemo(() => workouts ?? {}, [workouts]);
   const journalMap = useMemo(() => journal ?? {}, [journal]);
   const focusHistory = useMemo(() => focusSessions ?? [], [focusSessions]);
+  const weightLossState = useMemo(() => weightLoss ?? DEFAULT_WEIGHT_LOSS_STATE, [weightLoss]);
 
   const today = dateKey();
   const metric = metricFor(prefs);
@@ -111,7 +115,26 @@ export default function TrackersHub() {
   const taskAnchor = nextPriorityTodo?.text ?? todayTodos.find((todo) => !todo.done)?.text ?? todayTodos.find((todo) => todo.done)?.text;
 
   const goalMeta = GOAL_CATEGORIES.find((gc) => gc.id === prefs.goalCategory) ?? GOAL_CATEGORIES[0];
-  const goalSeg = Math.min(1, metric.target ? todayMetric / metric.target : 0);
+  const weightLossGoal = prefs.goalCategory === "weightloss";
+  const weightLoggedToday = Boolean(weightLossState.entries[today]);
+  const goalSeg = weightLossGoal ? (weightLoggedToday ? 1 : 0) : Math.min(1, metric.target ? todayMetric / metric.target : 0);
+  const milestones = milestonesFor(goalSt, prefs.goalCategory);
+  const nextMilestone = milestones.find((milestone) => !milestone.done)?.title;
+  const currentWeekOf = (() => {
+    const day = new Date(now);
+    day.setHours(0, 0, 0, 0);
+    day.setDate(day.getDate() - ((day.getDay() + 6) % 7));
+    return dateKey(day);
+  })();
+  const weeklyCommitment = normalizeWeeklyCommitments(goalSt).find((commitment) => commitment.weekOf === currentWeekOf && commitment.status !== "closed");
+  const recovery = weightLossState.recoveryByDay[today];
+  const recoveryCue = weightLossGoal
+    ? !recovery
+      ? { title: "Recovery check-in", detail: "Take 30 seconds to read your energy, sleep, and soreness before you choose the day’s intensity." }
+      : recovery.energy <= 2 || recovery.sleep <= 2 || recovery.soreness >= 4
+        ? { title: "Choose a lighter day", detail: "Your recovery signals are asking for a gentler pace. Keep the routine, reduce the load, and reassess tomorrow." }
+        : null
+    : null;
 
   const ringPct = Math.round(((fastSeg + (workoutDone ? 1 : 0) + todoSeg + goalSeg) / 4) * 100);
 
@@ -124,31 +147,19 @@ export default function TrackersHub() {
     goalPct: goalSeg * 100,
     metricLabel: metric.label,
     nextTask: nextPriorityTodo?.text,
+    weightLossGoal,
+    weightLoggedToday,
+    weeklyCommitment: weeklyCommitment ? { text: weeklyCommitment.text, completed: weeklyCommitment.status === "completed" } : undefined,
+    nextMilestone,
   });
-  const nextActionHref = nextAction.startsWith("Protect") || nextAction.startsWith("Log today's")
-    ? "/intermittent-fasting"
-    : nextAction === "Log the session"
-      ? "/workout-tracking"
-      : nextAction.startsWith("Write")
-        ? "/motivation"
-        : nextAction.startsWith("Log ")
-          ? "/goal"
-          : "/todo";
   const dailyChapter = buildDailyChapter({
     goalTitle: displayGoalTitle(prefs),
     goalLabel: goalMeta.label,
     goalPct: goalSeg * 100,
     ringPct,
-    nextAction,
+    nextAction: nextAction.title,
     today,
   });
-
-  const segments: RingSegment[] = [
-    { value: fastSeg, color: "#3b82f6", label: "Fasting" },
-    { value: workoutDone ? 1 : 0, color: "#10b981", label: "Workout" },
-    { value: todoSeg, color: "#f59e0b", label: "Tasks" },
-    { value: goalSeg, color: "#d946ef", label: "Goal" },
-  ];
 
   // ── analytics for cards ──
   const weekFastBars = useMemo(() => fastHoursByDay(fastHist, 7, new Date(now)), [fastHist, now]);
@@ -176,7 +187,6 @@ export default function TrackersHub() {
       .map(([k]) => k),
   );
 
-  const milestones = milestonesFor(goalSt, prefs.goalCategory);
   const milestonesDone = milestones.filter((m) => m.done).length;
 
   const quote = useMemo(() => {
@@ -245,14 +255,14 @@ export default function TrackersHub() {
       },
       {
         id: "goal",
-        label: goalSeg >= 1 ? "Daily goal target reached" : `Log ${metric.label.toLowerCase()}`,
-        detail: `${todayMetric}/${metric.target} ${metric.label.toLowerCase()} today`,
-        href: "/goal",
+        label: weightLossGoal ? (weightLoggedToday ? "Daily weigh-in recorded" : "Log today’s weigh-in") : goalSeg >= 1 ? "Daily goal target reached" : `Log ${metric.label.toLowerCase()}`,
+        detail: weightLossGoal ? (weightLoggedToday ? "Health anchor complete for today" : "One honest check-in is enough") : `${todayMetric}/${metric.target} ${metric.label.toLowerCase()} today`,
+        href: weightLossGoal ? "/weight-loss" : "/goal",
         tone: "violet",
         complete: goalSeg >= 1,
       },
     ],
-    [doneTodos, fastSt.startedAt, fastedToday, goalSeg, metric.label, metric.target, protocol.fastHours, taskAnchor, todayMetric, todayTodos.length, workoutDone],
+    [doneTodos, fastSt.startedAt, fastedToday, goalSeg, metric.label, metric.target, protocol.fastHours, taskAnchor, todayMetric, todayTodos.length, weightLoggedToday, weightLossGoal, workoutDone],
   );
 
   const weekPulse = useMemo<WeekPulseDay[]>(() => {
@@ -324,7 +334,7 @@ export default function TrackersHub() {
     return (
       <RequireAuth>
         <Questionnaire onComplete={() => setShowQ(false)} />
-        <TrackerShell icon="hub" title="Trackers" subtitle="Setting up your personalized dashboard...">
+        <TrackerShell icon="hub" title="Trackers" subtitle="Setting up your personalized dashboard..." showBack={false}>
           <div />
         </TrackerShell>
       </RequireAuth>
@@ -337,6 +347,7 @@ export default function TrackersHub() {
         icon="hub"
         title={prefs.name ? `Welcome back, ${prefs.name}` : "Command Center"}
         subtitle={`${displayGoalTitle(prefs)} · four daily anchors, one momentum ring.`}
+        showBack={false}
       >
         {/* ── Install banner (shown only when the browser offers it) ── */}
         <InstallPrompt />
@@ -349,7 +360,7 @@ export default function TrackersHub() {
               description={dailyChapter.summary}
               primary={
                 <Link
-                  href={nextActionHref}
+                  href={nextAction.href}
                   className="inline-flex min-h-11 items-center justify-center border border-[#C8FF3D] bg-[#C8FF3D] px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#071014] transition-transform hover:-translate-y-0.5"
                 >
                   Log this move
@@ -386,27 +397,40 @@ export default function TrackersHub() {
           momentum={
             <Card variant="dossier">
               <CardContent className="flex flex-col items-center gap-4 p-4 sm:p-5">
-                <Ring segments={segments} size={180} thickness={13}>
+                <SimpleRing pct={ringPct} size={180} thickness={11} from="#49e7ff" to="#c8ff3d" ariaLabel={`Daily momentum ${ringPct}%`} testId="daily-momentum-ring">
                   <span className="font-display text-4xl font-bold tabular-nums">{ringPct}%</span>
                   <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Daily momentum
                   </span>
-                </Ring>
+                </SimpleRing>
                 <SegmentLegend
                   items={[
                     { label: "Fasting", value: fastSeg, color: "#3b82f6", detail: fastedToday ? "Window complete ✓" : derived.running && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m in` : "Not started" },
                     { label: "Workout", value: workoutDone ? 1 : 0, color: "#10b981", detail: workoutDone ? "Session logged ✓" : "No session yet" },
                     { label: "Tasks", value: todoSeg, color: "#f59e0b", detail: todayTodos.length ? `${doneTodos}/${todayTodos.length} done` : "No tasks today" },
-                    { label: "Goal", value: goalSeg, color: "#d946ef", detail: `${todayMetric}/${metric.target} ${metric.label.toLowerCase()}` },
+                    { label: weightLossGoal ? "Weigh-in" : "Goal", value: goalSeg, color: "#d946ef", detail: weightLossGoal ? (weightLoggedToday ? "Daily weigh-in recorded" : "Not logged yet") : `${todayMetric}/${metric.target} ${metric.label.toLowerCase()}` },
                   ]}
                 />
               </CardContent>
             </Card>
           }
-          focusLabel={nextAction}
+          focusLabel={nextAction.title}
           actionQueue={actionQueue}
           weekPulse={weekPulse}
         />
+
+        {recoveryCue ? (
+          <Card variant="dossier" data-testid="recovery-cue">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <div>
+                <p className="dossier-kicker">Health signal</p>
+                <h2 className="mt-1 font-display text-lg font-bold">{recoveryCue.title}</h2>
+                <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{recoveryCue.detail}</p>
+              </div>
+              <Link href="/weight-loss" className="shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-primary hover:underline">Open check-in →</Link>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <StoryPanel eyebrow="Command inputs" title="Quick actions" tone="archive">
           <div className="grid gap-2 sm:grid-cols-2">
@@ -605,6 +629,8 @@ export default function TrackersHub() {
             [
               { href: "/intermittent-fasting", icon: "timer", label: "Fasting" },
               { href: "/workout-tracking", icon: "workout", label: "Workouts" },
+              { href: "/weight-loss", icon: "scale", label: "Weight loss" },
+              { href: "/archive", icon: "archive", label: "Archive" },
               { href: "/goal", icon: "flag", label: "Goal" },
               { href: "/todo", icon: "todo", label: "Todo" },
               { href: "/motivation", icon: "flame", label: "Motivation" },

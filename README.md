@@ -24,7 +24,7 @@ The system is responsive down to a 390px mobile viewport and honors `prefers-red
 ```
 Request → src/proxy.ts (host router, Next 16 middleware convention)
   ├─ buildora.work            → résumé routes; /trackers* is 307-redirected off
-  ├─ personal.* host          → tracker suite; / rewrites to /trackers
+  ├─ personal.* host          → tracker suite; / rewrites to /trackers/landing; /hub is the canonical workspace
   └─ PWA assets (manifest, sw.js, /icons/*) → exempt on every host
 
 Tracker pages (client components)
@@ -42,7 +42,7 @@ Tracker pages (client components)
 
 All state lives under the `vk:` localStorage namespace, one JSON document per tracker (mirrored 1:1 into `tracker_data` cloud rows):
 
-`prefs` · `fasting` · `fasting:history` · `workouts` · `workout:library` · `todos` · `goal` · `journal` · `motivation:favs` · `motivation:custom` · `motivation:visits` · `share` · `share:links`
+`prefs` · `fasting` · `fasting:history` · `workouts` · `workout:library` · `todos` · `goal` · `journal` · `motivation:favs` · `motivation:custom` · `motivation:visits` · `share` · `share:links` · `weight-loss` · `archive:items` · `reminders`
 
 - **Types & domain logic** — `src/lib/trackers.ts` (split presets, timestamp fasting engine, streak/PR/ETA/volume math) and `src/lib/user-prefs.ts` (onboarding preferences).
 - **Typed hooks** — `src/lib/tracker-store.ts` exposes `useWorkouts()`, `useFasting()`, `useTodos()`, `useGoalState()`, `useJournal()`, `useExerciseLibrary()`, … plus a shared `useNow()` wall-clock ticker.
@@ -51,14 +51,17 @@ All state lives under the `vk:` localStorage namespace, one JSON document per tr
 
 ### Highlights
 
-- **Hub** (`/trackers`) — Apple-Fitness-style 4-segment momentum ring (fast · workout · tasks · goal metric), quick actions, 48h activity feed, Week-in-Review with week-over-week deltas.
+- **Hub** (`/hub`, with `/trackers` retained for compatibility) — single momentum ring (fast · workout · tasks · goal anchor), one typed next action, compact world clocks, quick actions, 48h activity feed, and Week-in-Review.
 - **Workouts** — split-aware day tabs (PPL / Upper-Lower / Full Body / custom day builder), exercise library CRUD with reorder, structured `weight × reps` set rows, last-session prefill, kg⇄lbs display toggle (stored canonically in kg), rest timer with WebAudio chime, PRs and weekly volume.
 - **Fasting** — timestamp-derived elapsed time (immune to tab suspension drift), fasting/eating dual mode, manual past-fast entry, editable history, streak/avg/longest stats.
-- **Goal** — all six categories fully interactive, editable daily metric, 14-day chart, run-rate ETA, milestone CRUD with completion timestamps.
+- **Goal** — all seven categories fully interactive, editable daily metric, 14-day chart, run-rate ETA, ordered milestone CRUD, weekly commitment history, and missed-plan recovery.
+- **Weight Loss** — daily weigh-ins with unit conversion, target delta, seven-entry trend, notes, and energy/sleep/soreness recovery signals.
 - **Todos** — P1/P2/P3 priorities, tags, Today/Tomorrow/Upcoming/Done views, inline editing, Enter-chained quick add.
-- **Motivation** — daily deck + custom affirmations + 3-prompt micro-journal with a true consecutive-day streak.
+- **Motivation** — daily deck + realistic category-aware imagery with allowlisted relay/fallbacks + custom affirmations + 3-prompt micro-journal with a true consecutive-day streak.
+- **Archive** — private local-first notes, links, image references, and quotes with tags, source URLs, pinning, goal links, search, and broken-media fallbacks.
+- **Reminders** — user-configured weigh-in, focus, and end-of-day prompts while the app is open. Browser permission is opt-in; background push is deferred until production scheduling and secrets exist.
 - **Share** (`/share`) — ephemeral drops with tags, pinning, fuzzy search, explicit private/public access, private media, email allowlists, and short-lived signed image URLs.
-- **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub); the service worker precaches the shell, serves pages network-first and falls back to a cached `/trackers` offline shell.
+- **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub); the service worker precaches `/hub`, serves pages network-first, and falls back to the cached canonical hub shell offline.
 - **Editorial foundation** — shared chapter primitives (`EditorialFrame`, `ChapterLabel`, `DisplayStatement`, `ActionBlock`, `SignalRule`, `TelemetryLine`, `EditorialGrid`) keep portfolio, tracker, focus, share, settings, and onboarding surfaces visually related while preserving their distinct identities.
 
 ---
@@ -98,11 +101,11 @@ pnpm test:e2e                          # full suite
 ./node_modules/.bin/playwright test e2e/share.spec.ts --grep "hard limits|asks for access"
 ./node_modules/.bin/playwright test e2e/reduced-motion.spec.ts
 ./node_modules/.bin/playwright test --headed -g "rest timer"
-pnpm lint && pnpm build                 # release gates
+pnpm lint && pnpm run pretest:e2e       # release gates
 npx playwright show-trace test-results/<dir>/trace.zip   # debug a failure
 ```
 
-Key mechanics: the config blanks `NEXT_PUBLIC_SUPABASE_*` for the build (auth open, sync off), and `e2e/helpers.ts#seed` injects valid v2 store shapes into `localStorage` before page load — guarded by a `sessionStorage` flag so seeding runs **once per tab**, letting tests reload the page and assert persistence while every fresh context starts clean. Run `pnpm build` with the same blank public variables before invoking Playwright directly; `NEXT_PUBLIC_*` values are inlined at build time. The configured Share integration suite is separate and requires all public Supabase variables plus a server-only signing key; local-mode E2E does not verify remote RLS, storage signing, or carrier/link delivery.
+Key mechanics: the config blanks `NEXT_PUBLIC_SUPABASE_*` for the build (auth open, sync off), and `e2e/helpers.ts#seed` injects valid v2 store shapes into `localStorage` before page load — guarded by a `sessionStorage` flag so seeding runs **once per tab**, letting tests reload the page and assert persistence while every fresh context starts clean. Mobile contracts cover 320px, 390px, and 430px hub widths with no horizontal overflow. Run `pnpm run pretest:e2e` with the same blank public variables before invoking Playwright directly; `NEXT_PUBLIC_*` values are inlined at build time. The configured Share integration suite is separate and requires all public Supabase variables plus a server-only signing key; local-mode E2E does not verify remote RLS, storage signing, or carrier/link delivery.
 
 ## CI
 

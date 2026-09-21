@@ -31,6 +31,7 @@ export type MotivationMedia = {
 const CATEGORY_KEYWORDS: Record<GoalCategory, readonly string[]> = {
   relocation: ["journey", "horizon", "city"],
   fitness: ["movement", "strength", "training"],
+  weightloss: ["healthy meal", "morning walk", "wellness"],
   career: ["focus", "craft", "progress"],
   learning: ["study", "library", "discovery"],
   financial: ["growth", "building", "future"],
@@ -90,6 +91,13 @@ const FALLBACK_VISUALS: Record<string, Pick<MotivationMedia, "imageUrl" | "image
     sourceUrl: "https://unsplash.com/s/photos/fitness-training",
     provider: "Unsplash",
   },
+  weightloss: {
+    imageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1800&q=85",
+    imageAlt: "Colorful fresh meal prepared for a sustainable health routine",
+    attribution: "Unsplash",
+    sourceUrl: "https://unsplash.com/s/photos/healthy-meal",
+    provider: "Unsplash",
+  },
   career: {
     imageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1800&q=85",
     imageAlt: "Bright studio workspace prepared for focused work",
@@ -144,6 +152,7 @@ const FALLBACK_QUOTES: Record<MotivationPersonalization, string[]> = {
 const CATEGORY_LABELS: Record<GoalCategory, string> = {
   relocation: "Relocation",
   fitness: "Fitness",
+  weightloss: "Weight loss",
   career: "Career",
   learning: "Learning",
   financial: "Financial progress",

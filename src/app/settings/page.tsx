@@ -19,6 +19,7 @@ import {
   type ImportReport,
 } from "@/lib/backup";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
+import { DEFAULT_REMINDERS, REMINDER_LABELS, type ReminderPreferences } from "@/lib/reminders";
 import { useUserPrefs, DEFAULT_USER_PREFS, WORKOUT_SPLITS, MOTIVATION_STYLES, type UserPrefs } from "@/lib/user-prefs";
 import {
   useMigrateWorkouts,
@@ -36,6 +37,7 @@ import {
   Sparkles,
   Upload,
   UserRound,
+  BellRing,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SignalPanel from "@/components/trackers/SignalPanel";
@@ -49,6 +51,8 @@ export default function SettingsPage() {
   const { prefs, setPrefs, isSetup } = useUserPrefs();
   const { status, user } = useSyncedStorage<UserPrefs>("prefs", DEFAULT_USER_PREFS);
   const { toast } = useToast();
+  const { value: reminderValue, setValue: setReminders } = useSyncedStorage<ReminderPreferences>("reminders", DEFAULT_REMINDERS);
+  const reminders = reminderValue ?? DEFAULT_REMINDERS;
 
   const stats = useStorageStats();
   const [report, setReport] = useState<ImportReport | null>(null);
@@ -103,6 +107,14 @@ export default function SettingsPage() {
 
   const backupKb = stats ? (totalBackupBytes(stats) / 1024).toFixed(1) : "—";
   const activeKeys = stats ? stats.filter((s) => s.exists).length : 0;
+  const updateReminder = (key: "weighIn" | "focus" | "evening", patch: Partial<ReminderPreferences["weighIn"]>) => setReminders({ ...reminders, [key]: { ...reminders[key], ...patch } });
+  const saveReminders = () => toast({ title: "Reminders saved", description: "In-app prompts are active when NOVA//OS is open." });
+  const enableBrowserReminders = async () => {
+    if (!("Notification" in window)) { setReminders({ ...reminders, browserPermission: "unsupported" }); return; }
+    const permission = await Notification.requestPermission();
+    setReminders({ ...reminders, browserPermission: permission });
+    toast({ title: permission === "granted" ? "Browser reminders enabled" : "Browser permission not granted", description: "Background push delivery will be available after production scheduling is configured." });
+  };
 
   return (
     <RequireAuth>
@@ -146,6 +158,15 @@ export default function SettingsPage() {
               </div>
             </div>
             <AuthButton showEmail />
+          </CardContent>
+        </Card>
+
+        <Card variant="dossier" id="reminders">
+          <CardContent className="space-y-4 p-5">
+            <div className="flex items-center gap-2"><BellRing className="h-5 w-5 text-[#49E7FF]" /><h2 className="font-display font-bold">Reminders</h2></div>
+            <p className="text-sm text-muted-foreground">Choose the moments worth protecting. Prompts appear while the personal app is open; background push delivery needs the production scheduler that is not configured yet.</p>
+            <div className="space-y-3">{(["weighIn", "focus", "evening"] as const).map((key) => <div key={key} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3"><label className="flex items-center gap-2 text-sm font-medium"><input aria-label={REMINDER_LABELS[key]} type="checkbox" checked={reminders[key].enabled} onChange={(event) => updateReminder(key, { enabled: event.target.checked })} />{REMINDER_LABELS[key]}</label><Input aria-label={`${REMINDER_LABELS[key].replace(" reminder", "")} time`} className="h-9 w-28 tabular-nums" type="time" value={reminders[key].time} onChange={(event) => updateReminder(key, { time: event.target.value })} /></div>)}</div>
+            <div className="flex flex-wrap gap-2"><Button onClick={saveReminders}>Save reminders</Button><Button variant="outline" onClick={enableBrowserReminders}>Enable browser reminders</Button></div>
           </CardContent>
         </Card>
 
