@@ -429,11 +429,11 @@ export default function TrackersHub() {
           </Card>
         ) : null}
 
-        <details className="border border-border/60 bg-card/40 p-4">
-          <summary className="cursor-pointer list-none font-display font-bold [&::-webkit-details-marker]:hidden">
+        <section className="border border-border/60 bg-card/40 p-4">
+          <div className="font-display font-bold">
             <span className="dossier-kicker">Command inputs</span>
             <span className="mt-1 block text-base">Quick log</span>
-          </summary>
+          </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <div className="flex gap-2">
               <Input
@@ -473,7 +473,7 @@ export default function TrackersHub() {
               </Button>
             </Link>
           </div>
-        </details>
+        </section>
 
         {/* ── Streak row ── */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
