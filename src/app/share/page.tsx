@@ -19,6 +19,7 @@ import TelemetryLine from "@/components/editorial/TelemetryLine";
 import {
   accessMode,
   BROWSER_STORAGE_LIMIT_BYTES,
+  buildSharedDropPayload,
   CLOUD_IMAGE_LIMIT_BYTES,
   estimateDataUrlBytes,
   expiryCopy,
@@ -322,18 +323,24 @@ export default function SharePage() {
         }
       }
       const { data: sess } = await sb.auth.getSession();
+      const owner = sess.session?.user?.id;
+      if (!owner) {
+        toast({ title: "Session expired", description: "Sign in again before creating a share link." });
+        return;
+      }
       const { data, error } = await sb
-        .from("shared_drops").upsert({
-          ...(safeLinks[d.id] ? { id: safeLinks[d.id].id } : {}),
+        .from("shared_drops")
+        .upsert(buildSharedDropPayload({
+          id: safeLinks[d.id]?.id,
+          owner,
           text: d.text ?? "",
-          image_url: null,
-          image_path: imagePath,
-          is_public: shareAccess === "public",
-          expires_at: d.expiresAt,
-          created_from_drop: d.id,
-          owner_email: sess.session?.user?.email ?? null,
-          allowed_emails: shareAccess === "private" ? draftEmails : [],
-        })
+          imagePath,
+          access: shareAccess,
+          expiresAt: d.expiresAt,
+          createdFromDrop: d.id,
+          ownerEmail: sess.session?.user?.email ?? null,
+          allowedEmails: draftEmails,
+        }))
         .select("id")
         .single();
       if (error || !data) {
