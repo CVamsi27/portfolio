@@ -10,10 +10,51 @@ The public portfolio and personal tracker remain separate products. The public p
 
 This feature touches two repositories:
 
-1. `portfolio` — public navigation, host-aware favicon metadata, and regression coverage for the new study entry and icon behavior.
+1. `portfolio` — public navigation, host-aware favicon metadata, personal-shell UX redesign, and regression coverage for the new study entry, icon behavior, and mobile hierarchy.
 2. `software-developer-bible` — Cloudflare Pages access middleware, OAuth callback/session bridge, study login page, favicon, and deployment documentation.
 
 The study repository remains a static Jekyll/Cloudflare Pages deployment. Study content is not copied into the Next.js portfolio app.
+
+## Personal shell redesign
+
+The personal tracker keeps its NOVA//OS identity, routes, persisted data, and domain behavior, but the shared shell is restructured around one daily flow. The hub is the command center; child pages become quieter task surfaces.
+
+### Hub hierarchy
+
+The mobile-first hub will render in this order:
+
+```text
+[ NOVA//OS ]                                      [ menu ]
+
+Tue Sep 21 · 16:45
+
+TODAY
+Relocate to Germany
+
+NEXT MOVE
+Complete the next milestone                         [ Start action ]
+
+[ momentum ring ]       [ Fast ] [ Tasks ] [ Goal ] [ Workout ]
+
+[ Quick log ]           [ Start focus ]
+
+Recovery cue, only when needed
+Week pulse and activity, progressively disclosed
+```
+
+The hub will have one dominant next-action block, one completion ring, and compact anchor details. Existing typed next-action priority and persisted tracker calculations remain the source of truth. Recovery, weekly review, activity, install prompts, and motivation become lower-priority sections that do not compete with the next move.
+
+### Shared shell rules
+
+- Replace the oversized chapter telemetry treatment with a compact section bar and concise local date/time row.
+- Keep Munich and San Francisco clocks available through a compact disclosure rather than consuming the full header on every page.
+- Render the mobile dock only on core action pages. Login, public landing, settings, archive, sharing, and other utility pages do not show a dock that can overlap content.
+- Keep the dock to core destinations; expose archive, motivation, sharing, settings, and secondary trackers through a single More destination.
+- Child pages use a quiet back-to-Hub control, one title/subtitle pair, one primary action, and their content. They do not repeat the hub's daily dashboard panels.
+- Preserve safe-area padding, keyboard focus visibility, reduced-motion behavior, and the no-horizontal-overflow contract at 320px, 390px, and 430px.
+- Reduce decorative competition: graphite surfaces are primary, acid lime marks action, cyan marks information, and amber marks attention. Purple gradients and red rules are not used as competing primary signals.
+
+The signature interaction is the “Next move” block: it is the first actionable element after the compact date row and always leads to the same typed action destination shown by the hub calculation.
 
 ## Chosen architecture
 
@@ -81,6 +122,10 @@ Portfolio tests:
 - public host renders the Buildora favicon;
 - personal host renders the NOVA//OS favicon;
 - existing public-host regression tests continue to prevent tracker routes from appearing on `buildora.work`.
+- personal login/utility pages do not render the mobile command dock;
+- hub mobile hierarchy exposes one next-action block, one momentum ring, and no horizontal overflow;
+- compact clock disclosure does not increase the shell's default mobile height;
+- child pages return to `/hub` without repeating hub-only content.
 
 Study repository tests/checks:
 
