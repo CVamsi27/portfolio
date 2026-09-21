@@ -15,7 +15,7 @@ The tracker UI is branded NOVA//OS. Internal `vk:` localStorage keys and the `vk
 
 The repository now shares one visual grammar across both hosts: the portfolio is a paper-toned **Public Dossier**, while tracker routes are an archive-black **NOVA//OS** transmission. Full-bleed chapter openings, indexed utility rails, oversized display type, technical telemetry, signal rules, and one obvious next action replace repeated equal-weight dashboard panels. The `src/components/editorial/` primitives are presentational only; tracker hooks, share/privacy behavior, local-first persistence, and host routing remain the source of truth.
 
-The system is responsive down to a 390px mobile viewport and honors `prefers-reduced-motion` by removing non-essential reveals and transitions. Adaptive product features such as explainable momentum weighting, recovery mode, and weekly narrative review remain separate follow-up releases so this foundation can ship without changing persisted data or domain APIs.
+The system is responsive across the supported 320px, 390px, and 430px mobile viewports and honors `prefers-reduced-motion` by removing non-essential reveals and transitions. The current release includes explainable next-action prioritization, recovery mode, ordered milestones, weekly review, archive capture, and compact world clocks without changing the existing tracker-data contract.
 
 ---
 
@@ -37,6 +37,8 @@ Tracker pages (client components)
 ```
 
 **Local-first by design.** Every write hits `localStorage` synchronously and the cloud is progressive enhancement: offline-capable, zero-latency UI, and the same JSON rows sync across devices when signed in. Supabase is optional — with no public Supabase env vars the app runs entirely locally, auth stays open, and Share drops remain local-only. Cloud sync, signed-in image storage, allowlisted private links, and public signed media require the configured Supabase project and migrations.
+
+The personal release’s new weight-loss, archive, reminder, recovery, and weekly-commitment fields use the existing generic `tracker_data` sync layer and its current RLS policy. No additional Supabase migration is required for those local-first tracker stores.
 
 ### Data model
 
@@ -93,7 +95,7 @@ Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximate
 
 ## Testing
 
-The E2E suite (`e2e/`, 44 tests across 12 specs) drives the real production build in local mode on port 4111:
+The E2E suite (`e2e/`, 101 tests across 20 specs) drives the real production build in local mode on port 4111:
 
 ```bash
 pnpm test:e2e                          # full suite
