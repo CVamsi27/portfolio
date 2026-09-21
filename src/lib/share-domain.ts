@@ -5,6 +5,34 @@ export const BROWSER_STORAGE_LIMIT_BYTES = 5_000_000;
 
 export type ShareAccessMode = "private" | "public";
 
+export type SharedDropPayloadInput = {
+  id?: string;
+  owner: string;
+  text: string;
+  imagePath: string | null;
+  expiresAt: string | null;
+  createdFromDrop: string;
+  ownerEmail: string | null;
+  access: ShareAccessMode;
+  allowedEmails: string[];
+};
+
+/** Build the row shape expected by the shared_drops RLS policies. */
+export function buildSharedDropPayload(input: SharedDropPayloadInput) {
+  return {
+    ...(input.id ? { id: input.id } : {}),
+    owner: input.owner,
+    text: input.text,
+    image_url: null,
+    image_path: input.imagePath,
+    is_public: input.access === "public",
+    expires_at: input.expiresAt,
+    created_from_drop: input.createdFromDrop,
+    owner_email: input.ownerEmail,
+    allowed_emails: input.access === "private" ? input.allowedEmails : [],
+  };
+}
+
 export function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
