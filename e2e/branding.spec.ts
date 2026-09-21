@@ -28,7 +28,7 @@ test.describe("product branding", () => {
     const html = await response.text();
     expect(html).toContain('data-testid="tracker-public-landing"');
     expect(html).toContain("Goals, routines, focus");
-    expect(html).toContain('href="/trackers"');
+    expect(html).toContain('href="/hub"');
     expect(html).not.toContain("Sign in required");
   });
 
@@ -62,7 +62,7 @@ test.describe("product branding", () => {
     const manifest = await manifestResponse.json();
     expect(manifest.name).toBe("NOVA//OS");
     expect(manifest.short_name).toBe("NOVA");
-    expect(manifest.start_url).toBe("/trackers");
+    expect(manifest.start_url).toBe("/hub");
 
     await page.goto("/trackers");
     await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", "/icon.svg");
@@ -74,7 +74,7 @@ test.describe("product branding", () => {
     expect(sw.ok()).toBeTruthy();
     const source = await sw.text();
     expect(source).toContain("NOVA//OS");
-    expect(source).toContain('CACHE_VERSION = "nova-os-v2"');
+    expect(source).toContain('CACHE_VERSION = "nova-os-v3"');
     expect(source).not.toContain(["VK", "Personal", "Suite"].join(" "));
   });
 });

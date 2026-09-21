@@ -23,6 +23,8 @@ import {
   lastNDates,
   milestonesFor,
   newMilestoneId,
+  normalizeWeeklyCommitments,
+  type WeeklyCommitment,
 } from "@/lib/trackers";
 import { useGoalState, useMigrateGoal, useNow } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
@@ -57,9 +59,18 @@ export default function GoalPage() {
   const [copied, setCopied] = useState(false);
   const [msModal, setMsModal] = useState<{ mode: "add" } | { mode: "edit"; id: string } | null>(null);
   const [msDraft, setMsDraft] = useState<MilestoneDraft>({ title: "" });
+  const [weeklyCommitmentDraft, setWeeklyCommitmentDraft] = useState(safe.weeklyCommitment?.text ?? "");
+  const [weeklyReviewNotice, setWeeklyReviewNotice] = useState<string | null>(null);
 
   const today = dateKey();
+  const weekOf = useMemo(() => {
+    const day = new Date();
+    day.setHours(0, 0, 0, 0);
+    day.setDate(day.getDate() - ((day.getDay() + 6) % 7));
+    return dateKey(day);
+  }, []);
   const milestones = useMemo(() => milestonesFor(safe, goalCat), [safe, goalCat]);
+  const weeklyCommitments = useMemo(() => normalizeWeeklyCommitments(safe), [safe]);
   const doneCount = milestones.filter((m) => m.done).length;
   const goalPct = milestones.length ? Math.round((doneCount / milestones.length) * 100) : 0;
 
@@ -146,6 +157,40 @@ export default function GoalPage() {
   };
 
   const relocationMode = goalCat === "relocation";
+  const weeklyCommitment = weeklyCommitments.find((commitment) => commitment.weekOf === weekOf && commitment.status !== "closed");
+  const previousPending = [...weeklyCommitments]
+    .filter((commitment) => commitment.weekOf !== weekOf && commitment.status === "active")
+    .sort((a, b) => b.weekOf.localeCompare(a.weekOf))[0];
+  const saveCommitmentState = (next: WeeklyCommitment[]) => setG({ ...safe, weeklyCommitment: undefined, weeklyCommitments: next });
+  const saveWeeklyCommitment = () => {
+    const text = weeklyCommitmentDraft.trim();
+    if (!text) return;
+    saveCommitmentState([
+      ...weeklyCommitments.filter((commitment) => commitment.weekOf !== weekOf),
+      { id: `week-${weekOf}`, text, weekOf, status: "active" },
+    ]);
+    setWeeklyReviewNotice("This week’s commitment is set.");
+  };
+  const toggleWeeklyCommitment = () => {
+    if (!weeklyCommitment) return;
+    saveCommitmentState(weeklyCommitments.map((commitment) => commitment.id === weeklyCommitment.id
+      ? { ...commitment, status: commitment.status === "completed" ? "active" : "completed", completedAt: commitment.status === "completed" ? undefined : Date.now() }
+      : commitment));
+  };
+  const carryForward = () => {
+    if (!previousPending) return;
+    saveCommitmentState([
+      ...weeklyCommitments.map((commitment) => commitment.id === previousPending.id ? { ...commitment, status: "carried" as const } : commitment),
+      { id: `week-${weekOf}`, text: previousPending.text, weekOf, status: "active", carriedFrom: previousPending.weekOf },
+    ]);
+    setWeeklyCommitmentDraft(previousPending.text);
+    setWeeklyReviewNotice("Last week’s commitment was carried forward.");
+  };
+  const closePreviousCommitment = () => {
+    if (!previousPending) return;
+    saveCommitmentState(weeklyCommitments.map((commitment) => commitment.id === previousPending.id ? { ...commitment, status: "closed" as const } : commitment));
+    setWeeklyReviewNotice("Last week’s commitment was closed without completion.");
+  };
 
   return (
     <RequireAuth>
@@ -177,6 +222,31 @@ export default function GoalPage() {
             tone="red"
           />
         </div>
+        {previousPending ? (
+          <div data-testid="weekly-review">
+            <Card variant="dossier">
+              <CardContent className="p-5">
+                <p className="dossier-kicker">Weekly review / recovery</p>
+                <h2 className="mt-1 font-display text-xl font-bold">Last week needs a reset</h2>
+                <p className="mt-1 text-sm text-muted-foreground">“{previousPending.text}” was left open. Choose what the next week should carry.</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button onClick={carryForward}>Carry forward</Button>
+                  <Button variant="outline" onClick={closePreviousCommitment}>Close without completion</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
+        {weeklyReviewNotice ? <p className="px-1 text-sm font-medium text-primary">{weeklyReviewNotice}</p> : null}
+        <Card variant="dossier" id="weekly-commitment">
+          <CardContent className="p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div><p className="dossier-kicker">This week / one commitment</p><h2 className="mt-1 font-display text-xl font-bold">{weeklyCommitment?.text ?? "Choose the one outcome worth protecting"}</h2><p className="mt-1 text-sm text-muted-foreground">A weekly commitment gives today&apos;s next action a useful direction.</p></div>
+              {weeklyCommitment ? <Button variant={weeklyCommitment.status === "completed" ? "secondary" : "outline"} size="sm" onClick={toggleWeeklyCommitment}>{weeklyCommitment.status === "completed" ? "Completed this week" : "Mark complete"}</Button> : null}
+            </div>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Input aria-label="Weekly commitment" value={weeklyCommitmentDraft} onChange={(event) => setWeeklyCommitmentDraft(event.target.value)} placeholder="e.g. Contact three hiring managers" onKeyDown={(event) => event.key === "Enter" && saveWeeklyCommitment()} /><Button onClick={saveWeeklyCommitment} disabled={!weeklyCommitmentDraft.trim()}>Save weekly commitment</Button></div>
+          </CardContent>
+        </Card>
         {/* ── Category selector ── */}
         <Card variant="dossier" id="milestones">
           <CardContent className="p-5">
@@ -474,6 +544,7 @@ const DEFAULT_LABELS: Record<GoalCategory, string> = {
   relocation: "Applications & Outreach",
   career: "Target Applications",
   fitness: "Active Workout",
+  weightloss: "Daily weigh-in",
   learning: "Deep Study",
   financial: "Savings & Investments",
   custom: "Daily Focus Metric",
@@ -483,6 +554,7 @@ const DEFAULT_TARGETS: Record<GoalCategory, number> = {
   relocation: 3,
   career: 5,
   fitness: 45,
+  weightloss: 1,
   learning: 60,
   financial: 20,
   custom: 3,

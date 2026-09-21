@@ -83,6 +83,7 @@ export default function FocusScene({
   const mediaLabel = destination ?? goalLabel;
   const sourceLabel = media?.attribution ?? media?.provider ?? "View image source";
   const imageFailed = Boolean(media?.imageUrl && failedImageUrl === media.imageUrl);
+  const relayedImageUrl = media?.imageUrl ? `/api/motivation-image?url=${encodeURIComponent(media.imageUrl)}` : undefined;
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -158,7 +159,7 @@ export default function FocusScene({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               data-testid="focus-media"
-              src={media.imageUrl}
+              src={relayedImageUrl}
               alt={media.imageAlt || `${mediaLabel} motivation image`}
               className={cn(imageFailed && "hidden")}
               onError={() => setFailedImageUrl(media.imageUrl)}

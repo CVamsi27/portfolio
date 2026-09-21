@@ -30,7 +30,7 @@ export default function TrackerLandingPage() {
               Goals, routines, focus, and momentum in one private workspace. Use it locally without sign-in, then add sync only when you want it.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/trackers" className="inline-flex min-h-11 items-center gap-2 bg-[#c8ff3d] px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#071014] transition-transform hover:-translate-y-0.5">
+              <Link href="/hub" className="inline-flex min-h-11 items-center gap-2 bg-[#c8ff3d] px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#071014] transition-transform hover:-translate-y-0.5">
                 Enter NOVA//OS <ArrowUpRight className="h-4 w-4" />
               </Link>
               <Link href="/motivation" className="inline-flex min-h-11 items-center border border-white/20 px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] text-white transition-colors hover:border-[#49e7ff] hover:text-[#49e7ff]">

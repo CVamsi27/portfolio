@@ -6,6 +6,7 @@ import type { TrackerIconName } from "@/components/trackers/icons";
 export type GoalCategory =
   | "relocation"
   | "fitness"
+  | "weightloss"
   | "career"
   | "learning"
   | "financial"
@@ -47,6 +48,7 @@ export const DEFAULT_GOAL_METRICS: Record<GoalCategory, { label: string; target:
   relocation: { label: "Applications & Outreach", target: 3, unit: "outreaches" },
   career: { label: "Target Applications", target: 5, unit: "apps" },
   fitness: { label: "Active Workout", target: 45, unit: "mins" },
+  weightloss: { label: "Daily weigh-in", target: 1, unit: "check-in" },
   learning: { label: "Deep Study", target: 60, unit: "mins" },
   financial: { label: "Savings & Investments", target: 20, unit: "$" },
   custom: { label: "Daily Focus Metric", target: 3, unit: "items" },
@@ -94,6 +96,7 @@ export const RELOCATION_COUNTRIES = [
 export const GOAL_CATEGORIES: { id: GoalCategory; label: string; iconName: TrackerIconName; desc: string }[] = [
   { id: "relocation", label: "Relocation", iconName: "globe", desc: "Plan a move to a destination that matters to you" },
   { id: "fitness", label: "Fitness", iconName: "workout", desc: "Build strength and health" },
+  { id: "weightloss", label: "Weight Loss", iconName: "scale", desc: "Build a calmer, sustainable body-composition practice" },
   { id: "career", label: "Career Growth", iconName: "briefcase", desc: "Level up professionally" },
   { id: "learning", label: "Learning", iconName: "book", desc: "Master new skills" },
   { id: "financial", label: "Financial", iconName: "wallet", desc: "Build wealth and freedom" },

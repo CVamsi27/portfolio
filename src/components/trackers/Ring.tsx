@@ -108,6 +108,8 @@ export function SimpleRing({
   to = "#8b5cf6",
   className,
   children,
+  ariaLabel,
+  testId,
 }: {
   pct: number;
   size?: number;
@@ -116,6 +118,8 @@ export function SimpleRing({
   to?: string;
   className?: string;
   children?: React.ReactNode;
+  ariaLabel?: string;
+  testId?: string;
 }) {
   const r = (100 - thickness / 2) / 2;
   const circ = 2 * Math.PI * r;
@@ -125,7 +129,8 @@ export function SimpleRing({
       className={cn("relative", className)}
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`Progress ${Math.round(clamped)}%`}
+      aria-label={ariaLabel ?? `Progress ${Math.round(clamped)}%`}
+      data-testid={testId}
     >
       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden="true">
         <circle cx="50" cy="50" r={r} fill="none" strokeWidth={thickness} stroke="currentColor" className="text-muted" />

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getMotivationKeywords, normalizeMotivationCountry, resolveMotivationMedia } from "@/lib/motivation-media";
 import type { GoalCategory, MotivationPersonalization } from "@/lib/user-prefs";
 
-const CATEGORIES: GoalCategory[] = ["relocation", "fitness", "career", "learning", "financial", "custom"];
+const CATEGORIES: GoalCategory[] = ["relocation", "fitness", "weightloss", "career", "learning", "financial", "custom"];
 
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;

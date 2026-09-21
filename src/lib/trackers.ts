@@ -5,12 +5,14 @@ import type { GoalCategory, MotivationStyle, WorkoutSplit } from "./user-prefs";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const TRACKER_LINKS = [
-  { href: "/trackers", label: "Hub", short: "Hub", icon: "hub" },
+  { href: "/hub", label: "Hub", short: "Hub", icon: "hub" },
   { href: "/intermittent-fasting", label: "Fasting", short: "Fast", icon: "timer" },
   { href: "/workout-tracking", label: "Workouts", short: "Gym", icon: "workout" },
   { href: "/goal", label: "Goal", short: "Goal", icon: "flag" },
   { href: "/todo", label: "Todo", short: "Todo", icon: "todo" },
   { href: "/motivation", label: "Motivation", short: "Boost", icon: "flame" },
+  { href: "/archive", label: "Archive", short: "Archive", icon: "archive" },
+  { href: "/weight-loss", label: "Weight Loss", short: "Weight", icon: "scale" },
   { href: "/share", label: "Share", short: "Share", icon: "share" },
   { href: "/shared-with-me", label: "Shared", short: "Shared", icon: "shared" },
   { href: "/settings", label: "Settings", short: "More", icon: "settings" },
@@ -542,9 +544,22 @@ export const TAG_COLORS: Record<TodoTag, string> = {
 
 export type Milestone = { id: string; title: string; done: boolean; doneAt: string | null };
 
+export type WeeklyCommitmentStatus = "active" | "completed" | "carried" | "closed";
+export type WeeklyCommitment = {
+  id: string;
+  text: string;
+  weekOf: string;
+  status: WeeklyCommitmentStatus;
+  completedAt?: number;
+  carriedFrom?: string;
+};
+
 export type GoalState = {
   hub?: string;
   visa?: string;
+  /** Legacy v1 field; normalized into weeklyCommitments on read. */
+  weeklyCommitment?: { text: string; weekOf: string; completedAt?: number };
+  weeklyCommitments?: WeeklyCommitment[];
   metricByDay: Record<string, number>;
   milestonesByCategory: Partial<Record<GoalCategory, Milestone[]>>;
 };
@@ -553,6 +568,18 @@ export const DEFAULT_GOAL_STATE: GoalState = { metricByDay: {}, milestonesByCate
 
 export function newMilestoneId(): string {
   return `ms_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+}
+
+export function normalizeWeeklyCommitments(state: GoalState): WeeklyCommitment[] {
+  if (state.weeklyCommitments?.length) return state.weeklyCommitments;
+  if (!state.weeklyCommitment?.text) return [];
+  return [{
+    id: `week-${state.weeklyCommitment.weekOf}`,
+    text: state.weeklyCommitment.text,
+    weekOf: state.weeklyCommitment.weekOf,
+    status: state.weeklyCommitment.completedAt ? "completed" : "active",
+    completedAt: state.weeklyCommitment.completedAt,
+  }];
 }
 
 /** Default milestone set per category (also used to migrate v1 check indexes). */
@@ -576,6 +603,7 @@ export const GOAL_TOTAL_PRESETS: Record<GoalCategory, number> = {
   relocation: 120,
   career: 150,
   fitness: 1800,
+  weightloss: 90,
   learning: 2400,
   financial: 3000,
   custom: 100,
@@ -603,6 +631,12 @@ export const GOAL_MILESTONES: Record<GoalCategory, string[]> = {
     "Complete 4 consecutive weeks of training",
     "Hit first major strength milestone",
     "Achieve target body composition or endurance goal",
+  ],
+  weightloss: [
+    "Set a sustainable target weight",
+    "Log seven consecutive daily weigh-ins",
+    "Review the first weekly trend",
+    "Reach the next healthy checkpoint",
   ],
   career: [
     "Update resume and LinkedIn to target role",
@@ -635,6 +669,8 @@ export const GOAL_SNIPPETS: Record<GoalCategory, (hub?: string) => string> = {
     `Hallo! I'm a Full Stack Engineer specializing in TypeScript (React, Node, NestJS, PostgreSQL). I love the tech ecosystem in ${hub ?? "your city"} and notice your team is scaling up. Would love to connect and share how my background aligns with your current architecture needs. Vielen Dank!`,
   fitness: () =>
     `Training update: ${new Date().toLocaleDateString()} — Every rep counts. Every session compounds. The version of me that shows up today is building the version of me that wins tomorrow.`,
+  weightloss: () =>
+    `Health check-in: ${new Date().toLocaleDateString()} — I am building a sustainable routine, one honest check-in at a time.`,
   career: () =>
     `Career development check-in: ${new Date().toLocaleDateString()} — Focused on continuous improvement. Building skills, shipping projects, and making connections that matter.`,
   learning: () =>
