@@ -358,12 +358,13 @@ export default function TrackersHub() {
               eyebrow="Daily transmission // next move"
               title={dailyChapter.nextAction}
               description={dailyChapter.summary}
+              testId="next-action"
               primary={
                 <Link
                   href={nextAction.href}
                   className="inline-flex min-h-11 items-center justify-center border border-[#C8FF3D] bg-[#C8FF3D] px-5 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#071014] transition-transform hover:-translate-y-0.5"
                 >
-                  Log this move
+                  Start this move
                 </Link>
               }
               secondary={
@@ -388,10 +389,6 @@ export default function TrackersHub() {
               }
             >
               <p>{dailyChapter.summary}</p>
-              <div data-testid="next-action" className="mt-4 border-l-2 border-primary pl-4">
-                <p className="dossier-kicker">Next move</p>
-                <p className="mt-1 text-base font-semibold text-foreground">{dailyChapter.nextAction}</p>
-              </div>
             </StoryPanel>
           }
           momentum={
@@ -432,8 +429,12 @@ export default function TrackersHub() {
           </Card>
         ) : null}
 
-        <StoryPanel eyebrow="Command inputs" title="Quick actions" tone="archive">
-          <div className="grid gap-2 sm:grid-cols-2">
+        <section className="border border-border/60 bg-card/40 p-4">
+          <div className="font-display font-bold">
+            <span className="dossier-kicker">Command inputs</span>
+            <span className="mt-1 block text-base">Quick log</span>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <div className="flex gap-2">
               <Input
                 className="h-9"
@@ -472,7 +473,7 @@ export default function TrackersHub() {
               </Button>
             </Link>
           </div>
-        </StoryPanel>
+        </section>
 
         {/* ── Streak row ── */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

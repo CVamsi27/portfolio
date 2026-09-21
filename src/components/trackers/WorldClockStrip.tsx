@@ -33,17 +33,30 @@ export default function WorldClockStrip({ badge }: { badge?: ReactNode }) {
   }, []);
 
   const date = now == null ? "Today" : new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" }).format(now);
+  const local = CLOCKS[0];
+  const remote = CLOCKS.slice(1);
 
   return (
     <div data-testid="world-clock-strip" data-editorial-telemetry className="dossier-world-clock" aria-label="World clocks">
-      <span className="dossier-world-date">{date}</span>
-      {CLOCKS.map((clock) => (
-        <span key={clock.label} className="dossier-world-time">
-          <span>{clock.label}</span>
-          <strong className="tabular-nums">{now == null ? "--:--:--" : formatClock(now, clock.timeZone)}</strong>
-        </span>
-      ))}
-      {badge ? <span className="dossier-world-status">{badge}</span> : null}
+      <details data-testid="clock-disclosure" className="dossier-clock-disclosure">
+        <summary>
+          <span className="dossier-world-date">{date}</span>
+          <span className="dossier-world-time">
+            <span>{local.label}</span>
+            <strong className="tabular-nums">{now == null ? "--:--:--" : formatClock(now, local.timeZone)}</strong>
+          </span>
+          <span className="dossier-clock-summary-label">World clocks</span>
+        </summary>
+        <div className="dossier-clock-details">
+          {remote.map((clock) => (
+            <span key={clock.label} className="dossier-world-time">
+              <span>{clock.label}</span>
+              <strong className="tabular-nums">{now == null ? "--:--:--" : formatClock(now, clock.timeZone)}</strong>
+            </span>
+          ))}
+          {badge ? <span className="dossier-world-status">{badge}</span> : null}
+        </div>
+      </details>
     </div>
   );
 }

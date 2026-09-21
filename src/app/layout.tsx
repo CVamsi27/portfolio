@@ -55,8 +55,8 @@ export async function generateMetadata(): Promise<Metadata> {
       statusBarStyle: "black-translucent",
     },
     icons: {
-      icon: "/icon.svg",
-      apple: "/icons/icon-192.png",
+      icon: brand.iconPath,
+      apple: isTracker ? "/icons/icon-192.png" : "/icons/buildora.svg",
     },
   };
 }
@@ -74,12 +74,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const trackerSurface = (await requestBrand()) === TRACKER_BRAND;
+  const brand = await requestBrand();
+  const trackerSurface = brand === TRACKER_BRAND;
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="icon" href={brand.iconPath} type="image/svg+xml" />
       </head>
       <body
         className={cn(

@@ -20,11 +20,12 @@ const toneClasses = {
 
 export default function ActionQueue({ rows }: { rows: ActionQueueRow[] }) {
   return (
-    <section data-testid="action-queue" className="border border-border/60 bg-card/50 p-4 sm:p-5">
+    <section data-testid="action-queue" className="border border-border/60 bg-card/50 p-4 sm:p-5" aria-label="Today anchors">
+      <div data-testid="hub-anchor-grid">
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <p className="dossier-kicker">Action queue // today</p>
-          <h2 className="mt-1 font-display text-xl font-extrabold tracking-tight">Keep the next moves visible.</h2>
+          <h2 className="mt-1 font-display text-xl font-extrabold tracking-tight">Four anchors. One clear day.</h2>
         </div>
         <span className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{rows.length} anchors</span>
       </div>
@@ -47,6 +48,7 @@ export default function ActionQueue({ rows }: { rows: ActionQueueRow[] }) {
       ) : (
         <p className="mt-4 border border-dashed border-border/60 px-3 py-4 text-sm text-muted-foreground">The day is clear. Add one small task or step into focus.</p>
       )}
+      </div>
     </section>
   );
 }

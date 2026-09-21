@@ -63,7 +63,10 @@ const Navbar = () => {
 
   const menuItems = isTracker
     ? TRACKER_LINKS.map((t) => ({ label: t.label, href: t.href }))
-    : MENU_LIST.map((m) => ({ label: m, href: `#${m}` }));
+    : [
+        ...MENU_LIST.map((m) => ({ label: m, href: `#${m}` })),
+        { label: "Study", href: "https://study.buildora.work" },
+      ];
 
   const isMenuActive = (href: string) =>
     isTracker ? pathname === href : active === href.replace("#", "");

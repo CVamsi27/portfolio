@@ -7,6 +7,7 @@ import ChapterHeader from "./ChapterHeader";
 import EditorialFrame from "@/components/editorial/EditorialFrame";
 import TrackerActionBar from "./TrackerActionBar";
 import WorldClockStrip from "./WorldClockStrip";
+import { cn } from "@/lib/utils";
 
 export default function TrackerShell({
   icon,
@@ -15,6 +16,7 @@ export default function TrackerShell({
   badge,
   actions,
   showBack = true,
+  showDock = true,
   children,
 }: {
   icon?: TrackerIconName;
@@ -24,11 +26,13 @@ export default function TrackerShell({
   actions?: { primary: ReactNode; secondary?: ReactNode };
   /** The command center is the root of the personal app, not a child chapter. */
   showBack?: boolean;
+  /** Utility pages can opt out of the mobile action dock. */
+  showDock?: boolean;
   children: ReactNode;
 }) {
   return (
     <EditorialFrame surface="archive" className="dossier-frame">
-      <div className="mx-auto w-full max-w-6xl pb-24 sm:pb-8">
+      <div className={cn("mx-auto w-full max-w-6xl", showDock ? "pb-24 sm:pb-8" : "pb-8")}>
       <ChapterHeader
         eyebrow="NOVA//OS // Chapter 01"
         title={
@@ -51,7 +55,7 @@ export default function TrackerShell({
       />
       {actions ? <TrackerActionBar {...actions} /> : null}
       <main className="mt-6 space-y-5">{children}</main>
-      <TrackerNavDock />
+      <TrackerNavDock showDock={showDock} />
       </div>
     </EditorialFrame>
   );

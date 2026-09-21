@@ -41,14 +41,22 @@ test("desktop and mobile shells keep the primary action visible", async ({ page 
   await expect(page.locator("[data-editorial-action]").first()).toBeVisible();
 });
 
-test("product routes use distinct editorial chapters", async ({ page }) => {
+  test("product routes use distinct editorial chapters", async ({ page }) => {
   await seed(page);
   for (const route of ["/trackers", "/share", "/shared-with-me", "/settings", "/login", "/motivation"]) {
     await page.goto(route);
     await expect(page.locator("[data-editorial-chapter]").first()).toBeVisible();
     await expect(page.locator("[data-editorial-kicker]").first()).toBeVisible();
   }
-});
+  });
+
+  test("utility routes keep the shell quiet", async ({ page }) => {
+    await seed(page);
+    for (const route of ["/login", "/settings", "/archive", "/share", "/shared-with-me", "/motivation"]) {
+      await page.goto(route);
+      await expect(page.getByTestId("mobile-command-dock")).toHaveCount(0);
+    }
+  });
 
 test("share limits remain visible near the dispatch action", async ({ page }) => {
   await seed(page);

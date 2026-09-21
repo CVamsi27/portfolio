@@ -199,6 +199,7 @@ export default function SharedWithMePage() {
     <RequireAuth>
       <TrackerShell
         icon="shared"
+        showDock={false}
         title="Shared with me"
         subtitle="A calm inbox for your own dispatches and the drops people have allowlisted to your account."
         actions={{

@@ -216,6 +216,7 @@ export default function MotivationPage() {
     <RequireAuth>
       <TrackerShell
         icon="flame"
+        showDock={false}
         title="Motivation"
         subtitle={`Daily ${prefs.motivationStyle} deck with your own affirmations, favorites, and a three-prompt reflection anchor.`}
         badge={<SyncBadge status={status} />}

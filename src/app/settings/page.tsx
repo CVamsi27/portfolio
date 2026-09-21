@@ -120,6 +120,7 @@ export default function SettingsPage() {
     <RequireAuth>
       <TrackerShell
         icon="settings"
+        showDock={false}
         title="Settings"
         subtitle="Your data, your device — export the full suite, restore from a backup, or manage local storage."
         badge={<SyncBadge status={status} />}
