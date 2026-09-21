@@ -25,7 +25,6 @@ test.describe("navigation & shell", () => {
     expect(html).toContain('data-testid="tracker-public-landing"');
     expect(html).toContain("Enter NOVA//OS");
     expect(html).not.toContain("Sign in required");
-    expect(html).not.toContain("https://study.buildora.work");
   });
 
   test("portfolio host never serves tracker pages", async ({ page }) => {
@@ -52,6 +51,12 @@ test.describe("navigation & shell", () => {
       await page.goto(route);
       await expect(page.getByTestId("mobile-command-dock")).toHaveCount(0);
     }
+  });
+
+  test("personal navigation does not expose the public Study entry", async ({ page }) => {
+    await seed(page);
+    await page.goto("/trackers");
+    await expect(page.getByRole("link", { name: "Study" })).toHaveCount(0);
   });
 
   test("personal navbar does not expose account email text", async ({ page }) => {
