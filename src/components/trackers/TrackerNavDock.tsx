@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  * Mobile-only command dock for the tracker suite.
  * It keeps route semantics stable while making the active chapter explicit.
  */
-export default function TrackerNavDock() {
+export default function TrackerNavDock({ showDock = true }: { showDock?: boolean }) {
   const pathname = usePathname();
   const [hidden, setHidden] = useState(false);
   const lastY = useRef(0);
@@ -38,10 +38,13 @@ export default function TrackerNavDock() {
   const mobileDestinations = new Set(["/hub", "/todo", "/weight-loss", "/goal", "/settings"]);
   const links = TRACKER_LINKS.filter((link) => mobileDestinations.has(link.href));
 
+  if (!showDock) return null;
+
   return (
     <nav
       aria-label="Tracker navigation"
       data-testid="mobile-command-dock"
+      data-dock-context="core"
       className={cn(
         "dossier-command-dock fixed inset-x-2 bottom-2 z-[70] transition-transform duration-300 sm:hidden",
         hidden ? "pointer-events-none translate-y-[130%]" : "translate-y-0",

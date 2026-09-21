@@ -7,15 +7,17 @@ export default function ActionBlock({
   description,
   primary,
   secondary,
+  testId,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   primary: ReactNode;
   secondary?: ReactNode;
+  testId?: string;
 }) {
   return (
-    <section data-editorial-action className="editorial-action-block">
+    <section data-editorial-action data-testid={testId} className="editorial-action-block">
       {eyebrow ? <ChapterLabel eyebrow={eyebrow} /> : null}
       <div className="editorial-action-copy">
         <h2>{title}</h2>

@@ -23,7 +23,7 @@ export default function DailyCockpit({
   return (
     <>
       <section data-testid="command-center-brief" className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,.85fr)]">
-        <div className="order-1 lg:col-start-1 lg:row-start-1">
+        <div className="order-1 lg:col-start-1 lg:row-start-1" data-testid="hub-next-action">
           {dailyMove}
         </div>
         <div className="order-3 lg:col-start-1 lg:row-start-2">

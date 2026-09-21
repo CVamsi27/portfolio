@@ -440,6 +440,41 @@
   .dossier-world-date { color: currentColor; }
   .dossier-world-time strong { color: var(--color-foreground); font-size: 0.68rem; letter-spacing: 0.02em; }
 
+  .dossier-clock-disclosure {
+    min-width: 0;
+  }
+
+  .dossier-clock-disclosure > summary {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .dossier-clock-disclosure > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .dossier-clock-disclosure > summary::after {
+    color: var(--color-dossier-cyan, #49e7ff);
+    content: "⌄";
+    font-size: 0.8rem;
+  }
+
+  .dossier-clock-summary-label {
+    color: var(--color-dossier-cyan, #49e7ff);
+  }
+
+  .dossier-clock-details {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    margin-top: 0.3rem;
+  }
+
   @media (max-width: 640px) {
     .dossier-world-clock {
       justify-content: flex-start;
@@ -450,6 +485,8 @@
     .dossier-world-clock::-webkit-scrollbar { display: none; }
     .dossier-world-date { display: none; }
     .dossier-world-status { margin-left: auto; }
+    .dossier-clock-details { flex-wrap: wrap; justify-content: flex-start; }
+    .dossier-clock-summary-label { display: none; }
   }
 
   .dossier-chapter-header {
@@ -457,13 +494,7 @@
   }
 
   .dossier-chapter-header::after {
-    position: absolute;
-    right: 0;
-    bottom: -1.25rem;
-    left: 0;
-    height: 1px;
-    background: linear-gradient(90deg, var(--color-dossier-red), transparent 72%);
-    content: "";
+    content: none;
   }
 
   .dossier-kicker {
@@ -1009,9 +1040,9 @@
   }
 
   .dossier-command-dock {
-    border: 1px solid var(--color-dossier-red);
+    border: 1px solid color-mix(in srgb, var(--color-dossier-cyan, #49e7ff) 46%, transparent);
     background: color-mix(in srgb, var(--color-card) 94%, transparent);
-    box-shadow: 5px 5px 0 color-mix(in srgb, var(--color-dossier-red) 30%, transparent);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.24);
     padding: 0.25rem;
     backdrop-filter: blur(14px);
   }
@@ -1039,7 +1070,7 @@
   }
 
   .editorial-frame.dossier-frame {
-    padding: clamp(1.5rem, 3vw, 3rem) clamp(0.75rem, 3vw, 3rem);
+    padding: clamp(1rem, 2vw, 2rem) clamp(0.75rem, 3vw, 2rem);
   }
 
   .editorial-frame::before {

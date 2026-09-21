@@ -37,6 +37,7 @@ export default function LoginPage() {
   return (
     <TrackerShell
       icon="login"
+      showDock={false}
       title="Login"
       subtitle="One Google account unlocks all private trackers on every device. Public pages never need this."
     >
