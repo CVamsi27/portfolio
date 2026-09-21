@@ -55,7 +55,7 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
 
   return (
     <div data-surface="archive" className="fixed inset-0 z-[100] flex items-center justify-center bg-[#071014]/95 px-4 backdrop-blur-sm">
-      <Card className="mx-4 w-full max-w-lg overflow-hidden border-[#49E7FF]/30 bg-[#071014] text-white shadow-[10px_10px_0_rgba(255,85,77,0.35)]">
+      <Card className="mx-4 max-h-[calc(100svh-2rem)] w-full max-w-lg overflow-y-auto border-[#49E7FF]/30 bg-[#071014] text-white shadow-[10px_10px_0_rgba(255,85,77,0.35)]">
         {/* progress bar */}
         <div className="h-1 w-full bg-muted">
           <div

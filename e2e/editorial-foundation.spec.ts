@@ -4,7 +4,7 @@ import { seed } from "./helpers";
 test("editorial foundation exposes semantic surfaces and an action hierarchy", async ({ page }) => {
   await seed(page);
   await page.goto("/trackers");
-  await expect(page.locator('[data-surface="archive"]')).toBeVisible();
+  await expect(page.locator('section.editorial-frame[data-surface="archive"]')).toBeVisible();
   await expect(page.locator("[data-editorial-kicker]").first()).toBeVisible();
   await expect(page.locator("[data-editorial-action]").first()).toBeVisible();
   await expect(page.locator("[data-editorial-telemetry]").first()).toBeVisible();
