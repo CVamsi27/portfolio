@@ -62,7 +62,7 @@ test.describe("onboarding questionnaire", () => {
     await page.getByRole("button", { name: /Get started/ }).click();
 
     // Prefs persisted + onboarding dismissed.
-    await expect(page.getByText("Welcome back, E2E Runner")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId("today-header")).toContainText("E2E Runner", { timeout: 10_000 });
     const prefs = JSON.parse(
       (await page.evaluate(() => window.localStorage.getItem("vk:prefs"))) ?? "{}",
     );
@@ -93,7 +93,7 @@ test.describe("onboarding questionnaire", () => {
 });
 
 test.describe("hub command center", () => {
-  test("momentum ring, quick actions, and week-in-review render from seeded data", async ({ page }) => {
+  test("Today cockpit, quick logging, and details render from seeded data", async ({ page }) => {
     const now = Date.now();
     const today = daysAgoKey(0);
     await seed(page, {
@@ -118,31 +118,24 @@ test.describe("hub command center", () => {
 
     await page.goto("/trackers");
 
-    await expect(page.getByText("Welcome back, Test User")).toBeVisible();
-
-    // Momentum ring shows a percentage and the four legend anchors.
-    const pct = await page.locator("span.font-display.text-4xl").first().textContent();
-    expect(pct).toMatch(/^\d+%$/);
-    // Legend labels (nav links share these words — scope to the legend spans).
-    for (const anchor of ["Fasting", "Workout", "Tasks", "Goal"]) {
-      await expect(page.locator("span.w-16", { hasText: anchor }).first()).toBeVisible();
-    }
+    await expect(page.getByTestId("today-header")).toContainText("Test User");
+    await expect(page.getByTestId("progress-rail")).toBeVisible();
+    await page.getByTestId("today-details").locator("summary").click();
 
     // Streak cards are seeded correctly.
     await expect(page.getByText("1d", { exact: true }).first()).toBeVisible();
 
     // Week-in-review digest present.
-    await expect(page.getByText("Week in review")).toBeVisible();
-    await expect(page.getByText(/active days/)).toBeVisible();
+    await expect(page.getByTestId("week-pulse")).toBeVisible();
 
     // Quick action: add a task from the hub → lands in todo store.
-    await page.getByPlaceholder("+ Quick add task…").fill("From the hub");
+    await page.getByPlaceholder("Add a task…").fill("From the hub");
     await page.keyboard.press("Enter");
     const todos = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ?? "[]");
     expect(todos.some((t: { text: string }) => t.text === "From the hub")).toBe(true);
 
     // Quick action: log goal metric.
-    await page.getByPlaceholder(/\+ Log/).fill("2");
+    await page.getByPlaceholder(/Log/).fill("2");
     await page.keyboard.press("Enter");
     const goal = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:goal"))) ?? "{}");
     expect(goal.metricByDay[today]).toBe(5);
@@ -151,7 +144,7 @@ test.describe("hub command center", () => {
   test("all clear state: fresh seed shows 0% momentum and empty activity", async ({ page }) => {
     await seed(page);
     await page.goto("/trackers");
-    await expect(page.getByText("0%", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("progress-rail")).toContainText("0%");
     await expect(page.getByRole("heading", { name: "Log today’s meal window" })).toBeVisible();
   });
 });

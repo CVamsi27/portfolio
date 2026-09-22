@@ -45,17 +45,20 @@ test("desktop and mobile shells keep the primary action visible", async ({ page 
   await seed(page);
   for (const route of ["/trackers", "/share", "/shared-with-me", "/settings", "/login", "/motivation"]) {
     await page.goto(route);
-    await expect(page.locator("[data-editorial-chapter]").first()).toBeVisible();
-    await expect(page.locator("[data-editorial-kicker]").first()).toBeVisible();
+    await expect(page.locator("[data-editorial-chapter], [data-testid='today-header']").first()).toBeVisible();
+    await expect(page.locator("[data-editorial-kicker], .dossier-kicker").first()).toBeVisible();
   }
   });
 
-  test("utility routes keep the shell quiet", async ({ page }) => {
+  test("authenticated utility routes keep primary navigation available", async ({ page }) => {
     await seed(page);
-    for (const route of ["/login", "/settings", "/archive", "/share", "/shared-with-me", "/motivation"]) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const route of ["/settings", "/archive", "/share", "/shared-with-me", "/motivation", "/log", "/more"]) {
       await page.goto(route);
-      await expect(page.getByTestId("mobile-command-dock")).toHaveCount(0);
+      await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
     }
+    await page.goto("/login");
+    await expect(page.getByTestId("mobile-command-dock")).toHaveCount(0);
   });
 
 test("share limits remain visible near the dispatch action", async ({ page }) => {

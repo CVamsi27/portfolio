@@ -6,14 +6,14 @@ test.describe("personal roadmap", () => {
     await seed(page);
 
     await page.goto("/hub");
-    await expect(page.getByRole("heading", { name: /welcome back|command center/i })).toBeVisible();
+    await expect(page.getByTestId("today-header").getByRole("heading")).toBeVisible();
     await expect(page.locator(".dossier-back-link")).toHaveCount(0);
 
     await page.goto("/todo");
-    await expect(page.getByTestId("chapter-header").getByRole("link", { name: "Hub" })).toHaveAttribute("href", "/hub");
+    await expect(page.getByTestId("chapter-header").getByRole("link", { name: "Today" })).toHaveAttribute("href", "/hub");
 
     await page.goto("/trackers");
-    await expect(page.getByRole("heading", { name: /welcome back|command center/i })).toBeVisible();
+    await expect(page.getByTestId("today-header").getByRole("heading")).toBeVisible();
 
     const manifest = await page.request.get("/manifest.webmanifest");
     expect(await manifest.json()).toMatchObject({ start_url: "/hub" });
@@ -44,23 +44,22 @@ test.describe("personal roadmap", () => {
     await expect(page.getByRole("heading", { name: "Logged 82.4 kg" })).toBeVisible();
 
     await page.goto("/hub");
-    await expect(page.getByTestId("command-rail").getByRole("link", { name: "Weight Loss" })).toBeVisible();
+    await page.getByTestId("today-details").locator("summary").click();
     await expect(page.getByTestId("action-queue").getByText("Daily weigh-in recorded")).toBeVisible();
   });
 
-  test("keeps the mobile hub focused with a world clock strip and a single momentum ring", async ({ page }) => {
+  test("keeps the mobile hub focused with compact clocks and a progress rail", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await seed(page);
     await page.goto("/hub");
 
-    await expect(page.getByTestId("world-clock-strip")).toContainText("Munich");
-    await expect(page.getByTestId("world-clock-strip")).toContainText("San Francisco");
-    await expect(page.getByRole("img", { name: /daily momentum/i })).toBeVisible();
-    await expect(page.getByTestId("command-center-brief")).toBeVisible();
-    await expect(page.getByTestId("hub-next-action")).toBeVisible();
-    await expect(page.getByTestId("hub-anchor-grid")).toBeVisible();
+    await expect(page.getByTestId("today-header").getByTestId("world-clock-strip")).toContainText("Munich");
+    await expect(page.getByTestId("today-header").getByTestId("world-clock-strip")).toContainText("San Francisco");
+    await expect(page.getByTestId("progress-rail").getByRole("progressbar")).toBeVisible();
+    await expect(page.getByTestId("next-move-card")).toBeVisible();
+    await expect(page.getByTestId("up-next-lane")).toBeVisible();
     await expect(page.getByTestId("clock-disclosure")).toBeVisible();
-    await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(5);
+    await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(4);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   });
 

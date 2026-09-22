@@ -35,21 +35,21 @@ test.describe("navigation & shell", () => {
     expect([307, 308, 302]).toContain(resp.status());
   });
 
-  test("tracker top bar shows breadcrumbs and the dock is hidden on desktop", async ({ page }) => {
+  test("tracker top bar shows a Today breadcrumb and the dock is hidden on desktop", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
     // Breadcrumb back to hub.
     await expect(page.locator('a[href="/hub"]').first()).toBeVisible();
     // Mobile dock is hidden at desktop widths.
-    const dock = page.locator("nav, [class*='backdrop-blur']").filter({ hasText: /Hub/ }).last();
-    await expect(dock).toBeHidden();
+    await expect(page.getByTestId("mobile-command-dock")).toBeHidden();
   });
 
-  test("utility pages do not render the mobile command dock", async ({ page }) => {
+  test("authenticated Personal pages share the mobile command dock", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await seed(page);
-    for (const route of ["/login", "/settings", "/archive", "/share", "/shared-with-me", "/motivation"]) {
+    for (const route of ["/settings", "/archive", "/share", "/shared-with-me", "/motivation", "/log", "/more"]) {
       await page.goto(route);
-      await expect(page.getByTestId("mobile-command-dock")).toHaveCount(0);
+      await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
     }
   });
 
@@ -74,6 +74,30 @@ test.describe("navigation & shell", () => {
 
     await expect(page.getByTestId("nova-simple-mark")).toBeVisible();
     await expect(page.getByRole("link", { name: "NOVA//OS home" })).toContainText("NOVA//OS");
+  });
+
+  test("personal navbar keeps Today, Focus, Log, and More visible", async ({ page }) => {
+    await seed(page);
+    await page.goto("/todo");
+
+    const rail = page.getByTestId("command-rail");
+    await expect(rail.getByTestId("tracker-primary-nav")).toBeVisible();
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link")).toHaveCount(4);
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Today" })).toBeVisible();
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Focus" })).toBeVisible();
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Log" })).toBeVisible();
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "More" })).toBeVisible();
+  });
+
+  test("mobile personal navigation keeps the four destinations in the dock", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await seed(page);
+    await page.goto("/todo");
+
+    await expect(page.getByTestId("tracker-primary-nav")).toBeHidden();
+    await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
+    await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(4);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   });
 
   test("settings keeps account controls outside the navbar", async ({ page }) => {
