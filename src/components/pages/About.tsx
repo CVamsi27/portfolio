@@ -93,12 +93,12 @@ const About = () => {
     <section
       id="Top"
       data-chapter-index="00"
-      className="portfolio-hero relative overflow-hidden px-6 pb-24 pt-20 sm:px-10 sm:pb-32 sm:pt-28 lg:px-16"
+      className="portfolio-hero relative overflow-hidden px-6 pb-20 pt-6 sm:px-10 sm:pb-28 sm:pt-8 lg:px-16 lg:pt-10"
     >
       <div aria-hidden className="portfolio-hero__wash" />
       <div aria-hidden className="portfolio-hero__ambient" />
 
-      <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end lg:gap-16">
+      <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start lg:gap-16">
         <div className="max-w-5xl">
           <div className="portfolio-status-pill">
             <span className="portfolio-status-dot" aria-hidden="true" />

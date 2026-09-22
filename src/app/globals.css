@@ -1506,6 +1506,7 @@ html.dark body.portfolio-surface {
 .portfolio-surface .editorial-frame[data-surface="paper"] {
   background: var(--portfolio-paper);
   color: var(--portfolio-ink);
+  padding: 0;
 }
 
 .portfolio-surface .editorial-frame[data-surface="paper"]::before {
@@ -1544,7 +1545,7 @@ html.dark body.portfolio-surface {
 
 .portfolio-surface .portfolio-hero {
   position: relative;
-  min-height: calc(100svh - var(--app-header-height));
+  min-height: auto;
 }
 
 .portfolio-hero__wash {
