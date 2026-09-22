@@ -38,7 +38,7 @@ test.describe("Personal lockdown", () => {
     await page.getByTestId("tracker-primary-nav").getByRole("link", { name: "Focus" }).click();
     await expect(page).toHaveURL(/\/trackers$/);
     await expect(page.getByTestId("focus-lock-status")).toContainText(/focus is active/i);
-    await expect(page.getByText(/1 interruption/i)).toBeVisible();
+    await expect(page.getByTestId("focus-lock-status").getByText(/1 interruption/i)).toBeVisible();
   });
 
   test("keeps the gate within supported mobile widths", async ({ page }) => {

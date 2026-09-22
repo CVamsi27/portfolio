@@ -17,6 +17,7 @@ import {
   type FocusSessionMode,
 } from "@/lib/focus-sprint";
 import { enterFullscreen, exitFullscreen } from "@/lib/focus-mode";
+import DevicePreparation from "./DevicePreparation";
 
 const MAX_SESSIONS = 100;
 
@@ -72,20 +73,12 @@ export default function FocusSprint({
     const onFullscreen = () => {
       if (active.fullscreen && !document.fullscreenElement) interrupt();
     };
-    const onLinkClick = (event: MouseEvent) => {
-      const anchor = (event.target as HTMLElement | null)?.closest("a[href]");
-      if (!anchor || !anchor.getAttribute("href")?.startsWith("/")) return;
-      event.preventDefault();
-      setMessage("Focus is active. Finish or cancel the session before navigating.");
-    };
     document.addEventListener("visibilitychange", onVisibility);
     document.addEventListener("fullscreenchange", onFullscreen);
-    document.addEventListener("click", onLinkClick, true);
     return () => {
       document.documentElement.removeAttribute("data-focus-session");
       document.removeEventListener("visibilitychange", onVisibility);
       document.removeEventListener("fullscreenchange", onFullscreen);
-      document.removeEventListener("click", onLinkClick, true);
     };
   }, [active, setActive]);
 
@@ -136,6 +129,7 @@ export default function FocusSprint({
   return (
     <section
       data-testid="focus-sprint"
+      data-focus-lock={isRunning ? "active" : "inactive"}
       className={compact ? "dossier-panel dossier-focus-sprint" : "dossier-panel dossier-focus-sprint"}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -174,6 +168,9 @@ export default function FocusSprint({
               <X className="mr-1.5 h-3.5 w-3.5" /> Cancel
             </Button>
           </div>
+          <p data-testid="focus-interruptions" className="mt-3 text-[11px] text-muted-foreground">
+            {active?.interruptions ?? 0} interruption{active?.interruptions === 1 ? "" : "s"} recorded
+          </p>
         </div>
       ) : (
         <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -205,6 +202,13 @@ export default function FocusSprint({
       )}
 
       {!isRunning ? <p className="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#49E7FF]" />Focus hides in-app navigation and warns if you leave the tab. Turn on Do Not Disturb and app limits from your device before starting.</p> : null}
+
+      {!isRunning ? (
+        <details className="mt-4 border-t border-border/60 pt-3">
+          <summary className="cursor-pointer list-none text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground">Prepare your device</summary>
+          <div className="mt-3"><DevicePreparation compact /></div>
+        </details>
+      ) : null}
 
       {message ? (
         <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-emerald-500" role="status">

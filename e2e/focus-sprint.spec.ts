@@ -7,11 +7,13 @@ test.describe("focus sprint", () => {
     await page.goto("/trackers");
 
     await page.getByRole("button", { name: /start focus sprint/i }).click();
+    await expect(page.getByTestId("focus-sprint")).toHaveAttribute("data-focus-lock", "active");
     await expect(page.getByRole("button", { name: /pause sprint/i })).toBeVisible();
     await page.getByRole("button", { name: /pause sprint/i }).click();
     await expect(page.getByRole("button", { name: /resume sprint/i })).toBeVisible();
     await page.getByRole("button", { name: /finish sprint/i }).click();
     await expect(page.getByText(/focus sprint complete/i)).toBeVisible();
+    await expect(page.getByTestId("focus-sprint")).toHaveAttribute("data-focus-lock", "inactive");
 
     const sessions = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:focus:sessions") ?? "[]"));
     expect(sessions[0].status).toBe("completed");
