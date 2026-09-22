@@ -44,7 +44,7 @@ The personal release’s new weight-loss, archive, reminder, recovery, and weekl
 
 All state lives under the `vk:` localStorage namespace, one JSON document per tracker (mirrored 1:1 into `tracker_data` cloud rows):
 
-`prefs` · `fasting` · `fasting:history` · `workouts` · `workout:library` · `todos` · `goal` · `journal` · `motivation:favs` · `motivation:custom` · `motivation:visits` · `share` · `share:links` · `weight-loss` · `archive:items` · `reminders`
+`prefs` · `fasting` · `fasting:history` · `workouts` · `workout:library` · `todos` · `goal` · `journal` · `motivation:favs` · `motivation:custom` · `motivation:visits` · `share` · `share:links` · `weight-loss` · `archive:items` · `reminders` · `lockdown:preferences`
 
 - **Types & domain logic** — `src/lib/trackers.ts` (split presets, timestamp fasting engine, streak/PR/ETA/volume math) and `src/lib/user-prefs.ts` (onboarding preferences).
 - **Typed hooks** — `src/lib/tracker-store.ts` exposes `useWorkouts()`, `useFasting()`, `useTodos()`, `useGoalState()`, `useJournal()`, `useExerciseLibrary()`, … plus a shared `useNow()` wall-clock ticker.
@@ -62,6 +62,7 @@ All state lives under the `vk:` localStorage namespace, one JSON document per tr
 - **Motivation** — daily deck + realistic category-aware imagery with allowlisted relay/fallbacks + custom affirmations + 3-prompt micro-journal with a true consecutive-day streak.
 - **Archive** — private local-first notes, links, image references, and quotes with tags, source URLs, pinning, goal links, search, and broken-media fallbacks.
 - **Reminders** — user-configured weigh-in, focus, and end-of-day prompts while the app is open. Browser permission is opt-in; background push is deferred until production scheduling and secrets exist.
+- **Protection** — optional, user-configured bedtime windows and focus-session navigation locks. The browser/PWA can cover Personal and record interruptions, but it cannot disable other phone/laptop apps or activate system Do Not Disturb; users complete the OS Focus/DND/app-limit checklist manually. Bedtime is disabled until a user chooses valid times and active days.
 - **Share** (`/share`) — ephemeral drops with tags, pinning, fuzzy search, explicit private/public access, private media, email allowlists, and short-lived signed image URLs.
 - **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub); the service worker precaches `/hub`, serves pages network-first, and falls back to the cached canonical hub shell offline.
 - **Editorial foundation** — shared chapter primitives (`EditorialFrame`, `ChapterLabel`, `DisplayStatement`, `ActionBlock`, `SignalRule`, `TelemetryLine`, `EditorialGrid`) keep portfolio, tracker, focus, share, settings, and onboarding surfaces visually related while preserving their distinct identities.
