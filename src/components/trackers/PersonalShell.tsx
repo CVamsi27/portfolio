@@ -8,6 +8,7 @@ import EditorialFrame from "@/components/editorial/EditorialFrame";
 import TrackerActionBar from "./TrackerActionBar";
 import WorldClockStrip from "./WorldClockStrip";
 import { cn } from "@/lib/utils";
+import LockdownGate from "./LockdownGate";
 
 export default function PersonalShell({
   icon,
@@ -55,8 +56,10 @@ export default function PersonalShell({
           />
         )}
         {actions ? <TrackerActionBar {...actions} /> : null}
-        <main className="mt-5 space-y-5">{children}</main>
-        <TrackerNavDock showDock={showDock} />
+        <LockdownGate>
+          <main className="mt-5 space-y-5">{children}</main>
+          <TrackerNavDock showDock={showDock} />
+        </LockdownGate>
       </div>
     </EditorialFrame>
   );
