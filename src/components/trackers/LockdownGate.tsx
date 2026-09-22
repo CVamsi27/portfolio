@@ -6,22 +6,19 @@ import { ArrowRight, Moon, ShieldAlert } from "lucide-react";
 import DevicePreparation from "./DevicePreparation";
 import { useNow } from "@/lib/tracker-store";
 import {
-  DEFAULT_LOCKDOWN_PREFERENCES,
   formatLockEnd,
   isBedtimeLocked,
   nextBedtimeWindow,
-  normalizeLockdownPreferences,
-  type LockdownPreferences,
 } from "@/lib/lockdown";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
+import { useLockdownPreferences } from "@/lib/lockdown-store";
 import type { FocusActiveState } from "@/lib/focus-sprint";
 
 export default function LockdownGate({ children }: { children: React.ReactNode }) {
-  const { value: rawPreferences } = useSyncedStorage<LockdownPreferences>("lockdown:preferences", DEFAULT_LOCKDOWN_PREFERENCES);
+  const { value: preferences } = useLockdownPreferences();
   const { value: activeFocus, setValue: setActiveFocus } = useSyncedStorage<FocusActiveState | null>("focus:active", null);
   const [bedtimeDismissed, setBedtimeDismissed] = useState(false);
   const now = useNow(1_000);
-  const preferences = normalizeLockdownPreferences(rawPreferences);
   const bedtimeWindow = nextBedtimeWindow(preferences, new Date(now));
   const bedtimeLocked = !bedtimeDismissed && isBedtimeLocked(preferences, new Date(now));
   const focusLocked = Boolean(activeFocus);

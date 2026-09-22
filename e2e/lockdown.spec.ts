@@ -51,4 +51,29 @@ test.describe("Personal lockdown", () => {
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     }
   });
+
+  test("configures and persists an explicit bedtime schedule in Settings", async ({ page }) => {
+    await seed(page, {
+      "vk:lockdown:preferences": { bedtimeEnabled: false, bedtimeStart: "22:30", bedtimeEnd: "07:00", bedtimeDays: [] },
+    });
+    await page.goto("/settings");
+
+    const enable = page.getByLabel("Enable bedtime lock");
+    await expect(enable).not.toBeChecked();
+    await expect(enable).toBeDisabled();
+    await page.getByLabel("Bedtime start").fill("22:45");
+    await page.getByLabel("Bedtime end").fill("06:45");
+    await page.getByLabel("Bedtime Monday").check();
+    await expect(enable).toBeEnabled();
+    await enable.check();
+    await page.getByRole("button", { name: /save bedtime schedule/i }).click();
+    await expect(page.locator("#bedtime").getByRole("status")).toContainText(/bedtime schedule saved/i);
+
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("vk:lockdown:preferences") ?? "{}"))).toMatchObject({
+      bedtimeEnabled: true,
+      bedtimeStart: "22:45",
+      bedtimeEnd: "06:45",
+      bedtimeDays: [1],
+    });
+  });
 });

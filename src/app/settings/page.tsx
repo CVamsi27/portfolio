@@ -20,6 +20,8 @@ import {
 } from "@/lib/backup";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { DEFAULT_REMINDERS, REMINDER_LABELS, type ReminderPreferences } from "@/lib/reminders";
+import { formatLockEnd, nextBedtimeWindow, type LockdownPreferences } from "@/lib/lockdown";
+import { useLockdownPreferences } from "@/lib/lockdown-store";
 import { useUserPrefs, DEFAULT_USER_PREFS, WORKOUT_SPLITS, MOTIVATION_STYLES, type UserPrefs } from "@/lib/user-prefs";
 import {
   useMigrateWorkouts,
@@ -53,10 +55,12 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const { value: reminderValue, setValue: setReminders } = useSyncedStorage<ReminderPreferences>("reminders", DEFAULT_REMINDERS);
   const reminders = reminderValue ?? DEFAULT_REMINDERS;
+  const { value: lockdown, setValue: setLockdown, status: lockdownStatus } = useLockdownPreferences();
 
   const stats = useStorageStats();
   const [report, setReport] = useState<ImportReport | null>(null);
   const [confirmWipe, setConfirmWipe] = useState("");
+  const [bedtimeSaved, setBedtimeSaved] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const doExport = () => {
@@ -115,6 +119,17 @@ export default function SettingsPage() {
     setReminders({ ...reminders, browserPermission: permission });
     toast({ title: permission === "granted" ? "Browser reminders enabled" : "Browser permission not granted", description: "Background push delivery will be available after production scheduling is configured." });
   };
+  const bedtimeTimesValid = /^\d{2}:\d{2}$/.test(lockdown.bedtimeStart) && /^\d{2}:\d{2}$/.test(lockdown.bedtimeEnd);
+  const bedtimeCanEnable = bedtimeTimesValid && lockdown.bedtimeDays.length > 0;
+  const updateLockdown = (patch: Partial<LockdownPreferences>) => {
+    setLockdown({ ...lockdown, ...patch });
+    setBedtimeSaved(false);
+  };
+  const bedtimeWindow = nextBedtimeWindow(lockdown, new Date());
+  const saveBedtime = () => {
+    setBedtimeSaved(true);
+    toast({ title: "Bedtime schedule saved", description: lockdown.bedtimeEnabled ? "The Personal app will protect the selected window." : "Bedtime protection remains disabled until you enable it." });
+  };
 
   return (
     <RequireAuth>
@@ -167,6 +182,40 @@ export default function SettingsPage() {
             <p className="text-sm text-muted-foreground">Choose the moments worth protecting. Prompts appear while the personal app is open; background push delivery needs the production scheduler that is not configured yet.</p>
             <div className="space-y-3">{(["weighIn", "focus", "evening"] as const).map((key) => <div key={key} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3"><label className="flex items-center gap-2 text-sm font-medium"><input aria-label={REMINDER_LABELS[key]} type="checkbox" checked={reminders[key].enabled} onChange={(event) => updateReminder(key, { enabled: event.target.checked })} />{REMINDER_LABELS[key]}</label><Input aria-label={`${REMINDER_LABELS[key].replace(" reminder", "")} time`} className="h-9 w-28 tabular-nums" type="time" value={reminders[key].time} onChange={(event) => updateReminder(key, { time: event.target.value })} /></div>)}</div>
             <div className="flex flex-wrap gap-2"><Button onClick={saveReminders}>Save reminders</Button><Button variant="outline" onClick={enableBrowserReminders}>Enable browser reminders</Button></div>
+          </CardContent>
+        </Card>
+
+        <Card variant="dossier" id="bedtime">
+          <CardContent className="space-y-4 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="dossier-kicker">Bedtime boundary</p>
+                <h2 className="mt-1 font-display font-bold">Protect the hours you chose.</h2>
+              </div>
+              <span className="text-xs text-muted-foreground">{lockdownStatus === "synced" ? "synced" : "local"}</span>
+            </div>
+            <p className="text-sm text-muted-foreground">There is no active default. Choose a local-time window and days before enabling the in-app lock.</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-sm font-medium">Bedtime start<Input aria-label="Bedtime start" className="mt-1.5 h-10" type="time" value={lockdown.bedtimeStart} onChange={(event) => updateLockdown({ bedtimeStart: event.target.value })} /></label>
+              <label className="text-sm font-medium">Bedtime end<Input aria-label="Bedtime end" className="mt-1.5 h-10" type="time" value={lockdown.bedtimeEnd} onChange={(event) => updateLockdown({ bedtimeEnd: event.target.value })} /></label>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Active days</p>
+              <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
+                {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day, index) => (
+                  <label key={day} className="flex min-h-11 items-center justify-center gap-1.5 border border-border/60 px-2 text-xs font-semibold">
+                    <input aria-label={`Bedtime ${day}`} type="checkbox" checked={lockdown.bedtimeDays.includes(index)} onChange={() => updateLockdown({ bedtimeDays: lockdown.bedtimeDays.includes(index) ? lockdown.bedtimeDays.filter((value) => value !== index) : [...lockdown.bedtimeDays, index].sort((a, b) => a - b) })} />
+                    {day.slice(0, 3)}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <label className="flex min-h-11 items-center gap-3 border border-[#49e7ff]/30 bg-[#49e7ff]/5 px-3 text-sm font-semibold">
+              <input aria-label="Enable bedtime lock" type="checkbox" checked={lockdown.bedtimeEnabled} disabled={!bedtimeCanEnable && !lockdown.bedtimeEnabled} onChange={(event) => updateLockdown({ bedtimeEnabled: event.target.checked })} />
+              Enable bedtime lock inside Personal Buildora
+            </label>
+            <p className="text-xs text-muted-foreground">{bedtimeWindow ? `Next protected window ends at ${formatLockEnd(bedtimeWindow.end)} local time.` : "Choose a valid time and at least one day to preview the next window."}</p>
+            <div className="flex flex-wrap items-center gap-2"><Button onClick={saveBedtime}>Save bedtime schedule</Button>{bedtimeSaved ? <span role="status" className="text-xs font-semibold text-emerald-500">Bedtime schedule saved</span> : null}</div>
           </CardContent>
         </Card>
 

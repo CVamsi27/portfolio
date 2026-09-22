@@ -1,17 +1,10 @@
 "use client";
 
-import { useSyncedStorage } from "@/lib/use-synced-storage";
-import {
-  DEFAULT_LOCKDOWN_PREFERENCES,
-  LOCKDOWN_PLATFORMS,
-  normalizeLockdownPreferences,
-  type LockdownPlatform,
-  type LockdownPreferences,
-} from "@/lib/lockdown";
+import { LOCKDOWN_PLATFORMS, type LockdownPlatform } from "@/lib/lockdown";
+import { useLockdownPreferences } from "@/lib/lockdown-store";
 
 export default function DevicePreparation({ compact = false }: { compact?: boolean }) {
-  const { value: rawPreferences, setValue } = useSyncedStorage<LockdownPreferences>("lockdown:preferences", DEFAULT_LOCKDOWN_PREFERENCES);
-  const preferences = normalizeLockdownPreferences(rawPreferences);
+  const { value: preferences, setValue } = useLockdownPreferences();
 
   const togglePlatform = (platform: LockdownPlatform) => {
     setValue({
