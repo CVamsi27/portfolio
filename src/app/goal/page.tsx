@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
 import MiniBars from "@/components/trackers/MiniBars";
+import ConsistencyGrid from "@/components/trackers/ConsistencyGrid";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +32,7 @@ import { useGoalState, useMigrateGoal, useNow } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
-import { Check, ChevronDown, ChevronUp, Copy, Pencil, Plus, Target, Trash2, TrendingUp, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Copy, Pencil, Plus, Target, Timer, Trash2, TrendingUp, X } from "lucide-react";
 import { TrackerIcon } from "@/components/trackers/icons";
 
 type MilestoneDraft = { title: string };
@@ -408,6 +410,46 @@ export default function GoalPage() {
           </p>
         )}
 
+        <ConsistencyGrid metricByDay={metricByDay} target={metric.target} label={metric.label} />
+
+        {/* Weekly commitment progress */}
+        {weeklyCommitment && (
+          <div className="rounded-xl border border-border/70 bg-card/50 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="font-semibold text-muted-foreground uppercase tracking-[0.1em]">This week&apos;s commitment</span>
+              <span className={`font-mono font-bold tabular-nums ${weeklyCommitment.status === "completed" ? "text-emerald-500" : "text-primary"}`}>
+                {weeklyCommitment.status === "completed" ? "Done" : "Active"}
+              </span>
+            </div>
+            <p className="mt-1 truncate text-sm font-medium">{weeklyCommitment.text}</p>
+            {(() => {
+              // Count days this week where the metric was logged at or above target
+              const mon = new Date(now);
+              mon.setHours(0, 0, 0, 0);
+              mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+              let hitDays = 0;
+              for (let i = 0; i < 7; i++) {
+                const d = new Date(mon);
+                d.setDate(mon.getDate() + i);
+                const k = d.toISOString().slice(0, 10);
+                if ((metricByDay[k] ?? 0) >= metric.target) hitDays++;
+              }
+              const pct = Math.round((hitDays / 7) * 100);
+              return (
+                <div className="mt-2">
+                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                    <span>{hitDays}/7 days on target</span>
+                    <span>{pct}%</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full bg-[var(--color-dossier-lime)] transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
         {/* ── Milestones with CRUD ── */}
         <Card variant="dossier">
           <CardContent className="p-5">
@@ -452,6 +494,16 @@ export default function GoalPage() {
                     )}
                   </div>
                   <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                    {!m.done && (
+                      <Link
+                        href={`/focus?task=${encodeURIComponent(m.title)}`}
+                        title={`Launch focus sprint for ${m.title}`}
+                        aria-label={`Focus sprint for ${m.title}`}
+                        className="rounded-lg p-1 text-primary/80 transition-colors hover:text-primary"
+                      >
+                        <Timer className="h-3.5 w-3.5" />
+                      </Link>
+                    )}
                     <button onClick={() => moveMilestone(m.id, -1)} disabled={i === 0} aria-label="Move up" className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30">
                       <ChevronUp className="h-3.5 w-3.5" />
                     </button>

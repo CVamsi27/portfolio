@@ -6,6 +6,7 @@ export default function TrackerShell({
   icon,
   title,
   subtitle,
+  eyebrow,
   badge,
   actions,
   showBack = true,
@@ -15,6 +16,7 @@ export default function TrackerShell({
   icon?: TrackerIconName;
   title: string;
   subtitle: string;
+  eyebrow?: string;
   badge?: ReactNode;
   actions?: { primary: ReactNode; secondary?: ReactNode };
   /** The command center is the root of the personal app, not a child chapter. */
@@ -23,5 +25,5 @@ export default function TrackerShell({
   showDock?: boolean;
   children: ReactNode;
 }) {
-  return <PersonalShell {...{ icon, title, subtitle, badge, actions, showBack, showDock, children }} />;
+  return <PersonalShell {...{ icon, title, subtitle, eyebrow, badge, actions, showBack, showDock, children }} />;
 }

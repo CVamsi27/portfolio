@@ -10,10 +10,21 @@ import WorldClockStrip from "./WorldClockStrip";
 import { cn } from "@/lib/utils";
 import LockdownGate from "./LockdownGate";
 
+const DEFAULT_EYEBROWS: Partial<Record<TrackerIconName, string>> = {
+  todo: "NOVA // Chapter 01",
+  timer: "NOVA // Fasting & Nutrition",
+  workout: "NOVA // Physical Training",
+  flag: "NOVA // Trajectory & Milestones",
+  scale: "NOVA // Body & Recovery",
+  archive: "NOVA // Second Brain",
+  settings: "NOVA // System Settings",
+};
+
 export default function PersonalShell({
   icon,
   title,
   subtitle,
+  eyebrow,
   badge,
   actions,
   showBack = true,
@@ -23,19 +34,22 @@ export default function PersonalShell({
   icon?: TrackerIconName;
   title: ReactNode;
   subtitle?: ReactNode;
+  eyebrow?: string;
   badge?: ReactNode;
   actions?: { primary: ReactNode; secondary?: ReactNode };
   showBack?: boolean;
   showDock?: boolean;
   children: ReactNode;
 }) {
+  const effectiveEyebrow = eyebrow ?? (icon ? DEFAULT_EYEBROWS[icon] : undefined) ?? "NOVA // Chapter 01";
+
   return (
     <EditorialFrame surface="archive" className="dossier-frame personal-shell">
       <div className={cn("mx-auto w-full max-w-6xl", showDock ? "pb-28 sm:pb-8" : "pb-8")}>
         {title == null ? null : (
           <ChapterHeader
             compact
-            eyebrow="NOVA // Chapter 01"
+            eyebrow={effectiveEyebrow}
             title={
               <span className="inline-flex items-center gap-3">
                 {icon ? (

@@ -120,6 +120,12 @@ export default function TrackersHub() {
   const taskPercent = todayTodos.length ? (doneTodos / todayTodos.length) * 100 : 0;
   const momentumPercent = Math.round((fastPercent + (workoutDone ? 100 : 0) + taskPercent + goalPercent) / 4);
   const completedAnchors = [fastedToday, workoutDone, todayTodos.length > 0 && doneTodos === todayTodos.length, goalPercent >= 100].filter(Boolean).length;
+  const anchors = [
+    { id: "fast" as const, label: "Fasting", completed: Boolean(fastedToday), href: "/intermittent-fasting" },
+    { id: "workout" as const, label: "Workout", completed: Boolean(workoutDone), href: "/workout-tracking" },
+    { id: "tasks" as const, label: "Tasks", completed: todayTodos.length > 0 && doneTodos === todayTodos.length, href: "/todo" },
+    { id: "goal" as const, label: weightLossGoal ? "Weigh-in" : metric.label, completed: goalPercent >= 100, href: weightLossGoal ? "/weight-loss" : "/goal" },
+  ];
   const nextAction = buildNextAction({
     fastRunning: fastSt.startedAt !== null,
     fastLogged: fastedToday,
@@ -184,10 +190,10 @@ export default function TrackersHub() {
   return (
     <RequireAuth>
       <PersonalShell showBack={false} showDock title={null}>
-        <TodayHeader name={prefs.name} goalTitle={displayGoalTitle(prefs)} />
+        <TodayHeader name={prefs.name} goalTitle={displayGoalTitle(prefs)} momentumPercent={momentumPercent} />
         <InstallPrompt />
         <NextMoveCard action={nextAction} summary={`Your ${goalMeta.label.toLowerCase()} plan is at ${Math.round(goalPercent)}% today. One useful move is enough to keep the sequence alive.`} />
-        <ProgressRail percent={momentumPercent} completed={completedAnchors} total={4} />
+        <ProgressRail percent={momentumPercent} completed={completedAnchors} total={4} anchors={anchors} />
         <UpNextLane cue={upNextCue} />
         <FocusSprint label={nextAction.title} compact />
         {recoveryCue ? <Card variant="dossier" data-testid="recovery-cue"><CardContent className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="dossier-kicker">Health signal</p><h2 className="mt-1 font-display text-lg font-bold">{recoveryCue.title}</h2><p className="mt-1 max-w-2xl text-sm text-muted-foreground">{recoveryCue.detail}</p></div><Link href={recoveryCue.href} className="shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-primary hover:underline">Open check-in →</Link></CardContent></Card> : null}
@@ -201,6 +207,32 @@ export default function TrackersHub() {
           <div className="grid gap-3 sm:grid-cols-2"><Card variant="dossier"><CardContent className="p-5"><div className="flex items-baseline justify-between"><h2 className="font-display font-bold">Fasting</h2><Link href="/intermittent-fasting" className="text-xs text-primary hover:underline">Open →</Link></div><p className="mt-2 font-display text-2xl font-bold tabular-nums">{fastSt.startedAt !== null && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m` : "Idle"}<span className="ml-1.5 text-xs font-medium text-muted-foreground">/ {protocol.fastHours}h target</span></p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-[#32b8c8]" style={{ width: `${fastPercent}%` }} /></div><div className="mt-3"><MiniBars data={fastHoursByDay(fastHist, 7, new Date(now))} unit="h" height={42} /></div></CardContent></Card><Card variant="dossier"><CardContent className="p-5"><div className="flex items-baseline justify-between"><h2 className="font-display font-bold">Workout volume</h2><Link href="/workout-tracking" className="text-xs text-primary hover:underline">Open →</Link></div><p className="mt-2 font-display text-2xl font-bold tabular-nums">{weeklyWorkoutStats(workoutLogs, 1, new Date(now))[0]?.sessions ?? 0}<span className="ml-1.5 text-xs font-medium text-muted-foreground">sessions this week</span></p></CardContent></Card></div>
           <Card variant="dossier"><CardContent className="p-5"><div className="flex items-center gap-2"><Activity className="h-4 w-4 text-primary" /><h2 className="font-display font-bold">Last 48 hours</h2></div>{activity.length === 0 ? <div className="mt-3"><EmptyState icon={Zap} title="No activity yet" hint="Complete a fast, log a workout, finish a task, or write a note." /></div> : <ul className="mt-3 space-y-1.5">{activity.map((event) => <li key={event.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2 text-sm"><span className="min-w-0 truncate"><ActivityDot kind={event.kind} /> {event.title}{event.detail ? <span className="text-muted-foreground"> · {event.detail}</span> : null}</span><span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{relativeTime(event.at, now)}</span></li>)}</ul>}</CardContent></Card>
           <div className="flex flex-wrap items-center gap-2">{[{ href: "/goal", icon: "flag" as const, label: "Goals" }, { href: "/weight-loss", icon: "scale" as const, label: "Health" }, { href: "/archive", icon: "archive" as const, label: "Archive" }, { href: "/more", icon: "settings" as const, label: "More" }].map((link) => <Link key={link.href} href={link.href} className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-2 text-sm transition-colors hover:border-primary/60"><TrackerIcon name={link.icon} className="h-3.5 w-3.5" />{link.label}</Link>)}<button onClick={() => setShowQ(true)} className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"><Sparkles className="h-3.5 w-3.5" /> Re-run setup</button></div>
+
+          {/* ── Year in Numbers ── */}
+          <Card variant="dossier">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <h2 className="font-display font-bold">Year in Numbers</h2>
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">Compound proof. Everything logged, since day one.</p>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {[
+                  { label: "Fasting hours", value: `${Math.round(fastHist.reduce((acc, e) => acc + (e.end - e.start) / 3_600_000, 0))}h`, color: "text-[#32b8c8]" },
+                  { label: "Workout sessions", value: String(Object.values(workoutLogs).filter((day) => Object.values(day).some((e) => e?.done)).length), color: "text-[#c9ff4f]" },
+                  { label: "Tasks completed", value: String(todoList.filter((t) => t.done).length), color: "text-amber-400" },
+                  { label: "Reflection days", value: String(Object.keys(journalMap).length), color: "text-[#49e7ff]" },
+                  { label: "Best fast streak", value: `${fastStreak}d`, color: "text-[#32b8c8]" },
+                  { label: "Best task streak", value: `${taskStreak}d`, color: "text-amber-400" },
+                ].map((s) => (
+                  <div key={s.label} className="rounded-xl border border-border/60 bg-card/40 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{s.label}</p>
+                    <p className={`mt-1 font-display text-xl font-bold tabular-nums ${s.color}`}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TodayDetails>
       </PersonalShell>
     </RequireAuth>

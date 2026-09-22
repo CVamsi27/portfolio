@@ -41,9 +41,11 @@ import {
 import { cn } from "@/lib/utils";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
+import PlateCalculator from "@/components/trackers/PlateCalculator";
 import {
   ArrowDown,
   ArrowUp,
+  Calculator,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -85,6 +87,7 @@ export default function WorkoutPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [selected, setSelected] = useState(() => dateKey());
   const [restTimer, setRestTimer] = useState<{ seconds: number } | null>(null);
+  const [plateCalcOpen, setPlateCalcOpen] = useState(false);
   const [exModal, setExModal] = useState<{ mode: "add" } | { mode: "edit"; index: number } | null>(null);
 
   // Custom split day builder state
@@ -282,6 +285,15 @@ export default function WorkoutPage() {
                     <Dumbbell className="mr-1 h-3.5 w-3.5" /> Days
                   </Button>
                 )}
+                <Button
+                  variant={plateCalcOpen ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setPlateCalcOpen((prev) => !prev)}
+                  className="h-8 text-xs font-medium"
+                >
+                  <Calculator className="mr-1.5 h-3.5 w-3.5" />
+                  Plates
+                </Button>
                 <Segmented
                   label="Weight unit"
                   variant="soft"
@@ -317,6 +329,10 @@ export default function WorkoutPage() {
             </p>
           </CardContent>
         </Card>
+
+        {plateCalcOpen ? (
+          <PlateCalculator unit={unit} onClose={() => setPlateCalcOpen(false)} />
+        ) : null}
 
         {/* ── Week strip ── */}
         <Card variant="dossier">
@@ -414,6 +430,37 @@ export default function WorkoutPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* ── Post-session summary ── */}
+        {dayPct === 100 && exercises.length > 0 && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-4">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-500">Session complete</p>
+            <p className="mt-1 font-display text-lg font-bold">Full session logged. Outstanding effort.</p>
+            <div className="mt-3 grid grid-cols-3 gap-3 text-center text-xs">
+              <div>
+                <p className="font-mono text-xl font-bold tabular-nums text-emerald-400">
+                  {exercises.reduce((acc, ex) => acc + (dayLog[ex.id]?.sets?.length ?? 0), 0)}
+                </p>
+                <p className="text-muted-foreground">Sets logged</p>
+              </div>
+              <div>
+                <p className="font-mono text-xl font-bold tabular-nums text-emerald-400">
+                  {Math.round(exercises.reduce((acc, ex) => {
+                    const sets = dayLog[ex.id]?.sets ?? [];
+                    return acc + sets.reduce((s, set) => s + (set.weightKg ?? 0) * (set.reps ?? 0), 0);
+                  }, 0))} kg
+                </p>
+                <p className="text-muted-foreground">Volume</p>
+              </div>
+              <div>
+                <p className="font-mono text-lg font-bold tabular-nums text-emerald-400 truncate">
+                  {prs[0]?.ex?.name?.split(" ")[0] ?? "—"}
+                </p>
+                <p className="text-muted-foreground">Top PR</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── PRs + volume ── */}
         <div className="grid gap-3 sm:grid-cols-2">
@@ -669,6 +716,11 @@ function ExerciseCard({
                   value={s.reps || ""}
                   onChange={(e) => onSetField(i, "reps", Number(e.target.value) || 0)}
                 />
+                {s.weightKg && s.reps ? (
+                  <span className="hidden sm:inline-block rounded bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+                    e1RM {Math.round(kgToDisplay(est1RM(s.weightKg, s.reps), unit))} {unit}
+                  </span>
+                ) : null}
                 <button
                   onClick={() => onRemoveSet(i)}
                   aria-label={`Remove set ${i + 1}`}

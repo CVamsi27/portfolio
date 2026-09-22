@@ -9,12 +9,12 @@ export default function Home() {
   return (
     <EditorialFrame surface="paper" className="min-h-full">
       <div data-public-dossier className="mx-auto w-full max-w-7xl">
-      <About />
-      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-      <Experience />
-      <Projects />
-      <Skills />
-      <Contact />
+        <About />
+        <div className="h-px bg-gradient-to-r from-transparent via-[var(--portfolio-accent)]/30 to-transparent" />
+        <Projects />
+        <Experience />
+        <Skills />
+        <Contact />
       </div>
     </EditorialFrame>
   );

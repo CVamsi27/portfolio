@@ -53,6 +53,7 @@ export default function FocusSprint({
     void exitFullscreen();
     document.documentElement.removeAttribute("data-focus-session");
     setMessage(`Focus sprint complete · ${session.durationMinutes} min saved`);
+    beep();
     onCompleted?.(session);
   }, [active, onCompleted, setActive, setSessions]);
 
@@ -223,4 +224,30 @@ export default function FocusSprint({
       <span className="sr-only"><Square aria-hidden /> Focus sprint controls</span>
     </section>
   );
+}
+
+function beep() {
+  if (typeof window === "undefined") return;
+  try {
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const play = (freq: number, at: number, dur: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime + at);
+      gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + at);
+      osc.stop(ctx.currentTime + at + dur + 0.05);
+    };
+    play(880, 0, 0.15);
+    play(1320, 0.18, 0.25);
+    setTimeout(() => void ctx.close(), 800);
+  } catch {
+    // audio unavailable
+  }
 }

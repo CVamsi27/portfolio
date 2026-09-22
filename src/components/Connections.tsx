@@ -8,7 +8,15 @@ import {
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { Code2 } from "lucide-react";
 
-const Connections = () => {
+import { cn } from "@/lib/utils";
+
+const Connections = ({
+  className,
+  itemClassName,
+}: {
+  className?: string;
+  itemClassName?: string;
+}) => {
   const socialMediaLinks = [
     { href: "https://x.com/Vamsikrishna99C", icon: faXTwitter, label: "X" },
     {
@@ -35,20 +43,24 @@ const Connections = () => {
   ];
 
   return (
-    <div className="flex items-center gap-3">
+    <div className={cn("flex flex-wrap items-center gap-2.5", className)}>
       {socialMediaLinks.map((link) => (
         <a
           key={link.label}
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:text-primary hover:shadow-md hover:shadow-primary/10"
+          className={cn(
+            "flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-muted)] shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] hover:shadow-xs",
+            itemClassName,
+          )}
           title={link.label}
+          aria-label={link.label}
         >
           {link.icon ? (
-            <FontAwesomeIcon icon={link.icon} className="h-4 w-4" />
+            <FontAwesomeIcon icon={link.icon} className="h-3.5 w-3.5" />
           ) : (
-            <Code2 className="h-4 w-4" />
+            <Code2 className="h-3.5 w-3.5" />
           )}
         </a>
       ))}

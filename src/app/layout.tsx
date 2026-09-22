@@ -124,11 +124,11 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <main className="relative flex flex-col min-h-screen">
-            <Navbar />
+            <Navbar initialIsTracker={trackerSurface} />
             <div className="flex-1">{children}</div>
             <Toaster />
             {trackerSurface ? <ReminderNudges /> : null}
-            <Footer />
+            <Footer initialIsTracker={trackerSurface} />
             <PWARegister />
           </main>
         </ThemeProvider>

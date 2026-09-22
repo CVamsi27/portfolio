@@ -1,15 +1,94 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Connections from "../Connections";
 import { Button } from "@/components/ui/button";
-import { Download, ArrowUpRight } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+import { NAME_TRANSLATIONS } from "@/lib/const";
+import {
+  Download,
+  ArrowUpRight,
+  Check,
+  Copy,
+  Clock,
+  Building2,
+  Activity,
+  ShieldCheck,
+  MapPin,
+  Languages,
+} from "lucide-react";
 
 const STATS = [
-  { value: "5+", label: "Years shipping" },
-  { value: "25+", label: "Clinics live" },
-  { value: "1k+", label: "Appts / month" },
-  { value: "85%+", label: "Test coverage" },
+  {
+    value: "5+",
+    label: "Years shipping",
+    subtext: "Healthcare SaaS, enterprise & distributed systems",
+    icon: Clock,
+  },
+  {
+    value: "25+",
+    label: "Clinics in production",
+    subtext: "Pan-India multi-tenant clinical deployment",
+    icon: Building2,
+  },
+  {
+    value: "1k+",
+    label: "Workflows / month",
+    subtext: "Active appointments, records & billing",
+    icon: Activity,
+  },
+  {
+    value: "85%+",
+    label: "Test coverage",
+    subtext: "Unit, integration & Playwright E2E assurance",
+    icon: ShieldCheck,
+  },
 ];
 
 const About = () => {
+  const [copied, setCopied] = useState(false);
+  const [nameLangIndex, setNameLangIndex] = useState(0);
+  const [currentTime, setCurrentTime] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      try {
+        const timeStr = new Intl.DateTimeFormat("en-US", {
+          timeZone: "Asia/Kolkata",
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+        }).format(new Date());
+        setCurrentTime(timeStr);
+      } catch {
+        // fallback
+      }
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentTranslation =
+    NAME_TRANSLATIONS[nameLangIndex % NAME_TRANSLATIONS.length];
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText("cvamsik99@gmail.com");
+      setCopied(true);
+      toast({
+        title: "Email copied to clipboard",
+        description: "cvamsik99@gmail.com is ready to paste.",
+      });
+      setTimeout(() => setCopied(false), 2400);
+    } catch {
+      toast({
+        title: "cvamsik99@gmail.com",
+        description: "Click to email or copy manually.",
+      });
+    }
+  };
+
   return (
     <section
       id="Top"
@@ -17,63 +96,142 @@ const About = () => {
       className="portfolio-hero relative overflow-hidden px-6 pb-24 pt-20 sm:px-10 sm:pb-32 sm:pt-28 lg:px-16"
     >
       <div aria-hidden className="portfolio-hero__wash" />
-      <div className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:gap-20">
+      <div aria-hidden className="portfolio-hero__ambient" />
+
+      <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end lg:gap-16">
         <div className="max-w-5xl">
-          <div className="portfolio-kicker">
-            <span className="portfolio-kicker__dot" />
-            Available for thoughtful product engineering work
+          <div className="portfolio-status-pill">
+            <span className="portfolio-status-dot" aria-hidden="true" />
+            <span>Available for Senior / Staff Product Engineering Roles</span>
           </div>
-          <p className="mt-7 font-utility text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[var(--portfolio-muted)]">
-            Vamsi Krishna Chandaluri · Full Stack Engineer
-          </p>
-          <h1 className="portfolio-hero__title mt-5 max-w-5xl">
+
+          <div className="mt-7 flex flex-wrap items-center gap-2">
+            <p className="font-utility text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[var(--portfolio-muted)]">
+              {currentTranslation.vamsi} {currentTranslation.krishna} {currentTranslation.chandaluri} · Senior Full Stack & Systems Engineer
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                setNameLangIndex((prev) => (prev + 1) % NAME_TRANSLATIONS.length)
+              }
+              className="inline-flex items-center gap-1 rounded-md border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-2 py-0.5 font-utility text-[0.62rem] font-medium text-[var(--portfolio-accent)] transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)]"
+              title="Click to cycle name script across languages"
+            >
+              <Languages className="h-3 w-3" />
+              <span>{currentTranslation.language}</span>
+            </button>
+          </div>
+
+          <h1 className="portfolio-hero__title mt-4 max-w-5xl">
             I build software
             <br />
             <span>that earns its place.</span>
           </h1>
+
           <p className="mt-8 max-w-2xl text-lg leading-8 text-[var(--portfolio-muted)] sm:text-xl">
-            I work across product interfaces, dependable APIs, and the systems
-            that carry them into production — making complex workflows feel
-            clear, useful, and durable.
+            I architect and ship high-reliability web applications, resilient backend APIs,
+            and multi-tenant platforms. Currently engineering clinical operating systems
+            trusted by clinics across India.
           </p>
+
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <a href="#Work" className="portfolio-primary-action">
-              See selected work
+              Explore selected work
               <ArrowUpRight className="h-4 w-4" />
             </a>
+
             <Button asChild variant="outline" className="portfolio-secondary-action">
               <a href="/VamsiKrishna_Resume.pdf" download="VamsiKrishna_Resume">
-                Download resume
                 <Download className="h-4 w-4" />
+                Download resume
               </a>
             </Button>
+
+            <button
+              type="button"
+              onClick={handleCopyEmail}
+              className="portfolio-copy-action"
+              title="Copy email address"
+              aria-label="Copy cvamsik99@gmail.com"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="text-emerald-500 font-semibold">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3.5 w-3.5" />
+                  <span>Copy email</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
         <aside className="portfolio-hero__aside">
-          <p className="portfolio-meta-label">Currently</p>
-          <p className="mt-3 text-lg font-medium leading-7 text-[var(--portfolio-ink)]">
-            Building multi-tenant healthcare workflows for clinics across India.
-          </p>
-          <div className="mt-8 border-t border-[var(--portfolio-rule)] pt-4">
-            <p className="portfolio-meta-label">Focus</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--portfolio-muted)]">
-              TypeScript · React · NestJS · PostgreSQL
+          <div className="flex items-center justify-between gap-2 border-b border-[var(--portfolio-rule)] pb-3">
+            <p className="portfolio-meta-label">Current Focus</p>
+            <span className="portfolio-impact-pill">In Production</span>
+          </div>
+
+          <div className="mt-3.5">
+            <h2 className="font-display text-xl font-bold tracking-tight text-[var(--portfolio-ink)]">
+              Docita · Multi-Tenant Healthcare OS
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--portfolio-muted)]">
+              Powering patient queues, clinical documentation, Rx prescriptions, and multi-tier billing for 25+ healthcare facilities.
             </p>
           </div>
-          <div className="mt-8">
+
+          <div className="mt-6 border-t border-[var(--portfolio-rule)] pt-4">
+            <p className="portfolio-meta-label">Core Technologies</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {["TypeScript", "React", "NestJS", "PostgreSQL", "Prisma"].map((tech) => (
+                <span key={tech} className="portfolio-tag-pill">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center justify-between border-t border-[var(--portfolio-rule)] pt-4 text-xs text-[var(--portfolio-muted)]">
+            <div className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
+              <span className="text-[var(--portfolio-ink)] font-medium">Hyderabad, India</span>
+            </div>
+            {currentTime ? (
+              <span className="font-utility text-[0.66rem] font-semibold text-[var(--portfolio-accent)]">
+                {currentTime} IST (UTC+5:30)
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-6 border-t border-[var(--portfolio-rule)] pt-4">
+            <p className="portfolio-meta-label mb-2.5">Connect & Channels</p>
             <Connections />
           </div>
         </aside>
       </div>
 
-      <div className="relative mx-auto mt-20 grid max-w-7xl grid-cols-2 border-y border-[var(--portfolio-rule)] sm:grid-cols-4">
-        {STATS.map((stat) => (
-          <div key={stat.label} className="portfolio-stat">
-            <p className="portfolio-stat__value">{stat.value}</p>
-            <p className="portfolio-meta-label mt-1">{stat.label}</p>
-          </div>
-        ))}
+      <div className="relative mx-auto mt-16 max-w-7xl">
+        <div className="portfolio-stat-grid">
+          {STATS.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className="portfolio-stat-card">
+                <div className="flex items-center justify-between">
+                  <p className="portfolio-stat__value">{stat.value}</p>
+                  <Icon className="h-4 w-4 text-[var(--portfolio-accent)] opacity-80" />
+                </div>
+                <p className="portfolio-meta-label mt-2">{stat.label}</p>
+                <p className="mt-1 text-xs text-[var(--portfolio-muted)] line-clamp-1">
+                  {stat.subtext}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

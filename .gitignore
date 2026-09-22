@@ -44,3 +44,8 @@ supabase/.temp/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# local tool caches
+.freebuff/
+.superpowers/
+

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -21,7 +22,7 @@ import {
 } from "@/lib/trackers";
 import { useMigrateTodos, useTodos, newTodo } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
-import { CalendarDays, Check, ListChecks, Pencil, Plus, Trash2, X } from "lucide-react";
+import { CalendarDays, Check, ListChecks, Pencil, Play, Plus, Trash2, X } from "lucide-react";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
 
@@ -44,23 +45,31 @@ export default function TodoPage() {
   const [dateDraft, setDateDraft] = useState<"today" | "tomorrow">("today");
   const [view, setView] = useState<View>("today");
   const [tagFilter, setTagFilter] = useState<TodoTag | "all">("all");
+  const [priorityFilter, setPriorityFilter] = useState<TodoPriority | "all">("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
 
   const today = dateKey();
   const tomorrow = tomorrowKey();
 
+  const overdueTasks = useMemo(() => safe.filter((t) => t.date < today && !t.done), [safe, today]);
+
   const visible = useMemo(() => {
     let list: Todo[];
-    if (view === "today") list = safe.filter((t) => t.date === today && !t.done);
+    if (view === "today") list = safe.filter((t) => (t.date === today || t.date < today) && !t.done);
     else if (view === "tomorrow") list = safe.filter((t) => t.date === tomorrow && !t.done);
     else if (view === "upcoming") list = safe.filter((t) => t.date > tomorrow && !t.done);
     else list = safe.filter((t) => t.done);
     if (tagFilter !== "all") list = list.filter((t) => t.tag === tagFilter);
-    // P1 first, then by date
+    if (priorityFilter !== "all") list = list.filter((t) => t.priority === priorityFilter);
+    // P1 first, overdue floats up within same priority, then by date
     const prioRank: Record<TodoPriority, number> = { P1: 0, P2: 1, P3: 2 };
-    return [...list].sort((a, b) => prioRank[a.priority] - prioRank[b.priority] || a.date.localeCompare(b.date));
-  }, [safe, view, tagFilter, today, tomorrow]);
+    return [...list].sort((a, b) => {
+      const aOverdue = a.date < today ? -1 : 0;
+      const bOverdue = b.date < today ? -1 : 0;
+      return prioRank[a.priority] - prioRank[b.priority] || aOverdue - bOverdue || a.date.localeCompare(b.date);
+    });
+  }, [safe, view, tagFilter, priorityFilter, today, tomorrow]);
 
   const todayList = safe.filter((t) => t.date === today || (t.date < today && !t.done));
   const doneToday = todayList.filter((t) => t.done).length;
@@ -106,6 +115,10 @@ export default function TodoPage() {
   };
 
   const clearDone = () => setTodos(safe.filter((t) => !t.done));
+
+  // Push all overdue tasks to today
+  const rescheduleOverdue = () =>
+    setTodos(safe.map((t) => (t.date < today && !t.done ? { ...t, date: today } : t)));
 
   return (
     <RequireAuth>
@@ -197,7 +210,7 @@ export default function TodoPage() {
         </Card>
 
         {/* ── Views + tag filter ── */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <Segmented
             label="Task view"
             options={[
@@ -209,14 +222,43 @@ export default function TodoPage() {
             value={view}
             onChange={setView}
           />
-          <Segmented
-            label="Tag filter"
-            variant="soft"
-            options={[{ value: "all" as const, label: "All" }, ...TODO_TAGS.map((t) => ({ value: t, label: t }))]}
-            value={tagFilter}
-            onChange={setTagFilter}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <Segmented
+              label="Priority filter"
+              variant="soft"
+              options={[
+                { value: "all" as const, label: "All P" },
+                { value: "P1" as const, label: "P1" },
+                { value: "P2" as const, label: "P2" },
+                { value: "P3" as const, label: "P3" },
+              ]}
+              value={priorityFilter}
+              onChange={setPriorityFilter}
+            />
+            <Segmented
+              label="Tag filter"
+              variant="soft"
+              options={[{ value: "all" as const, label: "All" }, ...TODO_TAGS.map((t) => ({ value: t, label: t }))]}
+              value={tagFilter}
+              onChange={setTagFilter}
+            />
+          </div>
         </div>
+
+        {/* ── Overdue rescue banner ── */}
+        {view === "today" && overdueTasks.length > 0 && (
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3 py-2.5">
+            <p className="text-xs font-semibold text-rose-400">
+              {overdueTasks.length} overdue task{overdueTasks.length === 1 ? "" : "s"} carried from previous days
+            </p>
+            <button
+              onClick={rescheduleOverdue}
+              className="shrink-0 rounded-lg border border-rose-500/40 px-2.5 py-1 text-[11px] font-bold text-rose-400 transition-colors hover:border-rose-400 hover:text-rose-300"
+            >
+              Push all to today
+            </button>
+          </div>
+        )}
 
         {/* ── Task list ── */}
         <Card variant="dossier">
@@ -242,7 +284,7 @@ export default function TodoPage() {
                     key={t.id}
                     className={cn(
                       "group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
-                      t.done ? "border-emerald-500/30 bg-emerald-500/5" : "border-border/60 hover:border-primary/30",
+                      t.done ? "border-emerald-500/30 bg-emerald-500/5" : t.date < today ? "border-rose-500/30 bg-rose-500/5 hover:border-rose-500/50" : "border-border/60 hover:border-primary/30",
                     )}
                   >
                     <button
@@ -281,6 +323,13 @@ export default function TodoPage() {
                       </button>
                     )}
 
+                    {/* Overdue badge */}
+                    {!t.done && t.date < today && (
+                      <span className="shrink-0 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-500">
+                        Overdue
+                      </span>
+                    )}
+
                     <span className="hidden shrink-0 sm:block">
                       <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold", TAG_COLORS[t.tag])}>{t.tag}</span>
                     </span>
@@ -298,6 +347,17 @@ export default function TodoPage() {
                     <span className="w-12 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
                       {t.date === today ? "" : t.date.slice(5)}
                     </span>
+
+                    {!t.done ? (
+                      <Link
+                        href="/motivation"
+                        title={`Focus on "${t.text}"`}
+                        aria-label={`Focus on "${t.text}"`}
+                        className="shrink-0 text-muted-foreground transition-colors hover:text-primary sm:opacity-0 sm:group-hover:opacity-100"
+                      >
+                        <Play className="h-3.5 w-3.5" />
+                      </Link>
+                    ) : null}
 
                     <button
                       onClick={() => remove(t.id)}

@@ -24,7 +24,7 @@ import {
   longestFastHours,
   totalFastHours,
 } from "@/lib/trackers";
-import { useFasting, useFastingHistory, useMigrateFasting } from "@/lib/tracker-store";
+import { useFasting, useFastingHistory, useMigrateFasting, useNow } from "@/lib/tracker-store";
 import {
   calculateMealWindow,
   mealWindowTimestamps,
@@ -34,6 +34,8 @@ import {
 import { CalendarClock, Check, Clock3, Pencil, Save, Trash2 } from "lucide-react";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
+import FastingStages from "@/components/trackers/FastingStages";
+import HydrationTracker from "@/components/trackers/HydrationTracker";
 
 type MealDraft = { firstMealTime: string; lastMealTime: string };
 type AutoClearHours = 24 | 168 | 720;
@@ -46,6 +48,7 @@ const AUTO_CLEAR_OPTIONS = [
 
 export default function FastingPage() {
   useMigrateFasting();
+  const now = useNow(10_000);
   const { value: state, setValue: setState, status } = useFasting();
   const { value: history, setValue: setHistory } = useFastingHistory();
   const today = dateKey();
@@ -85,6 +88,14 @@ export default function FastingPage() {
   const calculated = effectiveDraft.firstMealTime && effectiveDraft.lastMealTime && !validateMealWindow(effectiveDraft.firstMealTime, effectiveDraft.lastMealTime)
     ? calculateMealWindow(effectiveDraft.firstMealTime, effectiveDraft.lastMealTime)
     : null;
+
+  const elapsedHours = todayEntry
+    ? (todayEntry.end - todayEntry.start) / 3_600_000
+    : safeState.startedAt !== null && safeState.phase === "fasting"
+      ? Math.max(0, (now - safeState.startedAt) / 3_600_000)
+      : calculated
+        ? calculated.fastHours
+        : 16;
 
   const saveWindow = (date: string, note?: string) => {
     const validation = validateMealWindow(effectiveDraft.firstMealTime, effectiveDraft.lastMealTime);
@@ -203,6 +214,11 @@ export default function FastingPage() {
           </CardContent>
         </Card>
 
+        <div className="grid gap-3 lg:grid-cols-2">
+          <FastingStages elapsedHours={elapsedHours} />
+          <HydrationTracker />
+        </div>
+
         <Card variant="dossier" id="fasting-history">
           <CardContent className="p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -223,8 +239,10 @@ export default function FastingPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Card variant="dossier">
             <CardContent className="p-5">
-              <h2 className="font-display font-bold">Fasting hours · 7 days</h2>
-              <MiniBars className="mt-3" data={weekBars} unit="h" />
+              <h2 className="font-display font-bold">Today&apos;s meal window</h2>
+              <MealWindowTimeline entry={todayEntry} now={now} />
+              <h3 className="mt-4 font-display text-sm font-bold text-muted-foreground">Fasting hours · 7 days</h3>
+              <MiniBars className="mt-2" data={weekBars} unit="h" />
             </CardContent>
           </Card>
           <Card variant="dossier">
@@ -279,6 +297,50 @@ export default function FastingPage() {
         </Modal>
       </TrackerShell>
     </RequireAuth>
+  );
+}
+
+/** 24-hour horizontal band visualizing the eating window vs. fasting zone. */
+function MealWindowTimeline({ entry, now }: { entry: ReturnType<typeof Array.prototype.find>; now: number }) {
+  const W = 400, H = 48, pad = 4;
+  const toX = (frac: number) => pad + frac * (W - pad * 2);
+  const nowFrac = (new Date(now).getHours() * 60 + new Date(now).getMinutes()) / 1440;
+  const nowX = toX(nowFrac);
+
+  if (!entry || !entry.firstMealTime || !entry.lastMealTime) {
+    return (
+      <div className="mt-3 flex h-12 items-center justify-center rounded-lg border border-dashed border-border/60 text-xs text-muted-foreground">
+        Log a meal window to see the timeline
+      </div>
+    );
+  }
+
+  const toFrac = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return ((h ?? 0) * 60 + (m ?? 0)) / 1440;
+  };
+  const startFrac = toFrac(entry.firstMealTime);
+  const endFrac = toFrac(entry.lastMealTime);
+  const eatStart = toX(Math.min(startFrac, endFrac));
+  const eatEnd = toX(Math.max(startFrac, endFrac));
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full" aria-label="Meal window timeline" role="img">
+      {/* Full-day fasting background */}
+      <rect x={pad} y={H / 2 - 8} width={W - pad * 2} height={16} rx={4} fill="#102027" />
+      {/* Eating window */}
+      <rect x={eatStart} y={H / 2 - 8} width={Math.max(0, eatEnd - eatStart)} height={16} rx={2} fill="rgba(200,255,61,0.22)" />
+      <rect x={eatStart} y={H / 2 - 8} width={Math.max(0, eatEnd - eatStart)} height={16} rx={2} fill="none" stroke="#c8ff3d" strokeWidth="1" opacity="0.6" />
+      {/* Labels */}
+      <text x={eatStart + 4} y={H / 2 - 10} fontSize="9" fill="#c8ff3d" fontFamily="monospace">{entry.firstMealTime}</text>
+      <text x={eatEnd - 4} y={H / 2 - 10} fontSize="9" fill="#c8ff3d" fontFamily="monospace" textAnchor="end">{entry.lastMealTime}</text>
+      {/* 0h / 12h axis labels */}
+      <text x={pad} y={H - 2} fontSize="8" fill="var(--color-muted-foreground)" fontFamily="monospace">0h</text>
+      <text x={W / 2} y={H - 2} fontSize="8" fill="var(--color-muted-foreground)" fontFamily="monospace" textAnchor="middle">12h</text>
+      <text x={W - pad} y={H - 2} fontSize="8" fill="var(--color-muted-foreground)" fontFamily="monospace" textAnchor="end">24h</text>
+      {/* Current time cursor */}
+      <line x1={nowX} y1={H / 2 - 12} x2={nowX} y2={H / 2 + 12} stroke="#49e7ff" strokeWidth="1.5" />
+    </svg>
   );
 }
 

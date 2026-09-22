@@ -19,7 +19,7 @@ import {
   dateKey,
   milestonesFor,
 } from "@/lib/trackers";
-import { useCustomQuotes, useGoalState, useJournal, useMigrateFasting, useMigrateGoal, useMotivationVisits, newCustomQuote } from "@/lib/tracker-store";
+import { useCustomQuotes, useGoalState, useJournal, useMigrateFasting, useMigrateGoal, useMotivationVisits, newCustomQuote, newTodo, useTodos } from "@/lib/tracker-store";
 import { GOAL_CATEGORIES, displayGoalTitle } from "@/lib/user-prefs";
 import Segmented from "@/components/trackers/Segmented";
 import FocusSprint from "@/components/trackers/FocusSprint";
@@ -59,6 +59,7 @@ export default function MotivationPage() {
   const { value: visits, setValue: setVisits } = useMotivationVisits();
   const { value: customQuotes, setValue: setCustomQuotes } = useCustomQuotes();
   const { value: journal, setValue: setJournal } = useJournal();
+  const { value: todos, setValue: setTodos } = useTodos();
   const { value: mediaCache, setValue: setMediaCache } = useSyncedStorage<Record<string, MotivationMedia>>("motivation:media", {});
 
   const safeFavs = favs ?? [];
@@ -74,6 +75,7 @@ export default function MotivationPage() {
 
   const today = dateKey();
   const [copied, setCopied] = useState(false);
+  const [taskAdded, setTaskAdded] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteDraft, setQuoteDraft] = useState({ text: "", tag: "Mine" });
   const [media, setMedia] = useState<MotivationMedia>(() => fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory, prefs.goalCountry));
@@ -124,12 +126,35 @@ export default function MotivationPage() {
     [presetQuotes, safeCustom],
   );
 
+  const qotdKey = `${today}:${prefs.motivationStyle}`;
+  const { value: storedQotdKey, setValue: setStoredQotdKey } = useSyncedStorage<string>("motivation:qotd:key", "");
+  const { value: storedQotdIdx, setValue: setStoredQotdIdx } = useSyncedStorage<number>("motivation:qotd:idx", 0);
+
+  // Compute deterministic day seed once per day
   const daySeed = useMemo(() => {
     let h = 0;
     for (const c of today) h = (h * 31 + c.charCodeAt(0)) % 997;
     return h;
   }, [today]);
-  const [idx, setIdx] = useState(daySeed % Math.max(1, deck.length));
+
+  // Stable index: stored per (date + style) so it persists across revisits
+  const stableIdx = useMemo(() => {
+    if (storedQotdKey === qotdKey && storedQotdIdx !== null) return storedQotdIdx;
+    return daySeed % Math.max(1, deck.length);
+  }, [storedQotdKey, storedQotdIdx, qotdKey, daySeed, deck.length]);
+
+  const [idx, setIdx] = useState(stableIdx);
+
+  // Sync stored qotd when key changes (new day or style change)
+  useEffect(() => {
+    if (storedQotdKey !== qotdKey) {
+      const newIdx = daySeed % Math.max(1, deck.length);
+      setStoredQotdKey(qotdKey);
+      setStoredQotdIdx(newIdx);
+      setIdx(newIdx);
+    }
+  }, [qotdKey, storedQotdKey, daySeed, deck.length, setStoredQotdKey, setStoredQotdIdx]);
+
   const current = deck[((idx % deck.length) + deck.length) % deck.length];
   const currentText = current.text;
   const isFav = safeFavs.includes(currentText);
@@ -141,7 +166,18 @@ export default function MotivationPage() {
   );
   const streak = calculateStreak(activeDays);
 
-  const shuffle = () => setIdx((i) => i + 1 + Math.floor(Math.random() * (deck.length - 1)));
+  // Reflection-only streak (days with a saved journal entry)
+  const reflectionStreak = useMemo(
+    () => calculateStreak(Object.keys(safeJournal)),
+    [safeJournal],
+  );
+
+  const shuffle = () => {
+    const nextIdx = (idx + 1 + Math.floor(Math.random() * (deck.length - 1))) % Math.max(1, deck.length);
+    setIdx(nextIdx);
+    setStoredQotdIdx(nextIdx);
+    setStoredQotdKey(qotdKey);
+  };
 
   const toggleFav = () =>
     setFavs(isFav ? safeFavs.filter((f) => f !== currentText) : [...safeFavs, currentText]);
@@ -221,6 +257,18 @@ export default function MotivationPage() {
   const nextAction = nextMilestone === "All milestones complete"
     ? "Log today's progress"
     : `Move toward: ${nextMilestone}`;
+
+  const convertFocusToTask = () => {
+    const focusText = draftState.focus.trim();
+    if (!focusText) return;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = dateKey(tomorrow);
+    const currentTodos = todos ?? [];
+    setTodos([...currentTodos, newTodo(focusText, { date: tomorrowStr, priority: "P1", tag: "Goal" })]);
+    setTaskAdded(true);
+    setTimeout(() => setTaskAdded(false), 2000);
+  };
 
   const saveJournal = () => {
     // Event handler — stamping the wall clock is the intent.
@@ -320,12 +368,29 @@ export default function MotivationPage() {
                 </span>
               ) : null}
             </div>
+            {reflectionStreak > 0 && (
+              <p className="mt-1.5 text-xs font-medium text-[#32b8c8]">
+                Reflected {reflectionStreak} day{reflectionStreak === 1 ? "" : "s"} in a row
+              </p>
+            )}
             <div className="mt-3 space-y-3">
               {JOURNAL_PROMPTS.map((p) => (
                 <div key={p.key}>
-                  <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    <p.icon className="h-3.5 w-3.5 text-primary" /> {p.label}
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <p.icon className="h-3.5 w-3.5 text-primary" /> {p.label}
+                    </label>
+                    {p.key === "focus" && draftState.focus.trim() && (
+                      <button
+                        type="button"
+                        onClick={convertFocusToTask}
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                      >
+                        {taskAdded ? <Check className="h-3 w-3 text-emerald-500" /> : <Plus className="h-3 w-3" />}
+                        {taskAdded ? "Added to tomorrow" : "Add as tomorrow's P1"}
+                      </button>
+                    )}
+                  </div>
                   <Input
                     className="mt-1.5"
                     placeholder={p.placeholder}
