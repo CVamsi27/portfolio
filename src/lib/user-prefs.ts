@@ -4,6 +4,7 @@ import { useSyncedStorage } from "./use-synced-storage";
 import type { TrackerIconName } from "@/components/trackers/icons";
 
 export type GoalCategory =
+  | "general"
   | "relocation"
   | "fitness"
   | "weightloss"
@@ -45,6 +46,7 @@ export type UserPrefs = {
 };
 
 export const DEFAULT_GOAL_METRICS: Record<GoalCategory, { label: string; target: number; unit: string }> = {
+  general: { label: "Useful moves", target: 1, unit: "move" },
   relocation: { label: "Applications & Outreach", target: 3, unit: "outreaches" },
   career: { label: "Target Applications", target: 5, unit: "apps" },
   fitness: { label: "Active Workout", target: 45, unit: "mins" },
@@ -56,7 +58,7 @@ export const DEFAULT_GOAL_METRICS: Record<GoalCategory, { label: string; target:
 
 const DEFAULT_PREFS: UserPrefs = {
   name: "",
-  goalCategory: "relocation",
+  goalCategory: "general",
   goalTitle: "",
   goalCountry: undefined,
   dailyMetricLabel: undefined,
@@ -94,6 +96,7 @@ export const RELOCATION_COUNTRIES = [
 ] as const;
 
 export const GOAL_CATEGORIES: { id: GoalCategory; label: string; iconName: TrackerIconName; desc: string }[] = [
+  { id: "general", label: "General momentum", iconName: "sparkles", desc: "Build momentum around whatever matters next" },
   { id: "relocation", label: "Relocation", iconName: "globe", desc: "Plan a move to a destination that matters to you" },
   { id: "fitness", label: "Fitness", iconName: "workout", desc: "Build strength and health" },
   { id: "weightloss", label: "Weight Loss", iconName: "scale", desc: "Build a calmer, sustainable body-composition practice" },
@@ -141,9 +144,13 @@ export function metricFor(prefs: UserPrefs, category?: GoalCategory): { label: s
 
 export function useUserPrefs() {
   const { value: prefs, setValue: setPrefs } = useSyncedStorage<UserPrefs>("prefs", DEFAULT_PREFS);
+  const validGoalCategory = prefs?.goalCategory && GOAL_CATEGORIES.some((category) => category.id === prefs.goalCategory)
+    ? prefs.goalCategory
+    : DEFAULT_PREFS.goalCategory;
   const safe: UserPrefs = {
     ...DEFAULT_PREFS,
     ...(prefs ?? {}),
+    goalCategory: validGoalCategory,
     weightUnit: prefs?.weightUnit === "lbs" ? "lbs" : "kg",
     motivationPersonalization: prefs?.motivationPersonalization === "general" ? "general" : "goal",
     customSplitDays: prefs?.customSplitDays?.length ? prefs.customSplitDays : DEFAULT_PREFS.customSplitDays,

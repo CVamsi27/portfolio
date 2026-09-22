@@ -608,6 +608,7 @@ export function milestonesFor(state: GoalState, cat: GoalCategory): Milestone[] 
 
 /** Suggested cumulative goal totals per category — drives the ETA estimate. */
 export const GOAL_TOTAL_PRESETS: Record<GoalCategory, number> = {
+  general: 100,
   relocation: 120,
   career: 150,
   fitness: 1800,
@@ -628,6 +629,12 @@ export function goalEtaDays(totalLogged: number, goalTotal: number | undefined, 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const GOAL_MILESTONES: Record<GoalCategory, string[]> = {
+  general: [
+    "Define what matters most this season",
+    "Choose one repeatable weekly action",
+    "Complete the first meaningful move",
+    "Review what is working and adjust",
+  ],
   relocation: [
     "Recognized university degree (Anabin H+ confirmation)",
     "Concrete job offer from a target-country entity",
@@ -673,6 +680,8 @@ export const GOAL_MILESTONES: Record<GoalCategory, string[]> = {
 };
 
 export const GOAL_SNIPPETS: Record<GoalCategory, (hub?: string) => string> = {
+  general: () =>
+    `Daily progress: ${new Date().toLocaleDateString()} — One useful move is enough to keep the sequence alive. Notice what works, then return tomorrow.`,
   relocation: (hub) =>
     `Hallo! I'm a Full Stack Engineer specializing in TypeScript (React, Node, NestJS, PostgreSQL). I love the tech ecosystem in ${hub ?? "your city"} and notice your team is scaling up. Would love to connect and share how my background aligns with your current architecture needs. Vielen Dank!`,
   fitness: () =>

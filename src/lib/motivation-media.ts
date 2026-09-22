@@ -29,6 +29,7 @@ export type MotivationMedia = {
 };
 
 const CATEGORY_KEYWORDS: Record<GoalCategory, readonly string[]> = {
+  general: ["focus", "resilience", "progress"],
   relocation: ["journey", "horizon", "city"],
   fitness: ["movement", "strength", "training"],
   weightloss: ["healthy meal", "morning walk", "wellness"],
@@ -150,6 +151,7 @@ const FALLBACK_QUOTES: Record<MotivationPersonalization, string[]> = {
 };
 
 const CATEGORY_LABELS: Record<GoalCategory, string> = {
+  general: "General momentum",
   relocation: "Relocation",
   fitness: "Fitness",
   weightloss: "Weight loss",

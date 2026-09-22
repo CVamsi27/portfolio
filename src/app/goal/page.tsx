@@ -541,6 +541,7 @@ export default function GoalPage() {
 }
 
 const DEFAULT_LABELS: Record<GoalCategory, string> = {
+  general: "Useful moves",
   relocation: "Applications & Outreach",
   career: "Target Applications",
   fitness: "Active Workout",
@@ -551,6 +552,7 @@ const DEFAULT_LABELS: Record<GoalCategory, string> = {
 };
 
 const DEFAULT_TARGETS: Record<GoalCategory, number> = {
+  general: 1,
   relocation: 3,
   career: 5,
   fitness: 45,
