@@ -93,7 +93,7 @@ const About = () => {
     <section
       id="Top"
       data-chapter-index="00"
-      className="portfolio-hero relative overflow-hidden px-5 pb-16 pt-5 sm:px-10 sm:pb-24 sm:pt-8 lg:px-16 lg:pt-10"
+      className="portfolio-hero relative overflow-hidden px-5 pb-16 pt-1 sm:px-10 sm:pb-24 sm:pt-2 lg:px-16 lg:pt-3"
     >
       <div aria-hidden className="portfolio-hero__wash" />
       <div aria-hidden className="portfolio-hero__ambient" />

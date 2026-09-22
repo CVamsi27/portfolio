@@ -55,8 +55,8 @@ const CORE_CAPABILITIES = [
 
 export default function TrackerLandingPage() {
   return (
-    <EditorialFrame surface="archive" className="min-h-[calc(100svh-var(--app-header-height))]">
-      <main data-testid="tracker-public-landing" className="mx-auto w-full max-w-6xl px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-14 lg:px-10">
+    <EditorialFrame surface="archive" className="min-h-[calc(100svh-var(--app-header-height))] !pt-0">
+      <main data-testid="tracker-public-landing" className="mx-auto w-full max-w-6xl px-4 pb-16 pt-3 sm:px-6 sm:pb-20 sm:pt-5 lg:px-10">
         {/* Hero Section */}
         <section className="grid gap-10 border-b border-border/70 pb-14 lg:grid-cols-[1.15fr_.85fr] lg:items-end lg:gap-16 lg:pb-20">
           <div>
