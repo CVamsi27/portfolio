@@ -1,6 +1,6 @@
 import type { TrackerIconName } from "@/components/trackers/icons";
 
-export type PersonalPrimaryId = "today" | "focus" | "log" | "more";
+export type PersonalPrimaryId = "today" | "focus" | "log" | "sharing" | "more";
 
 export type PersonalNavItem = {
   id: PersonalPrimaryId;
@@ -14,6 +14,7 @@ export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
   { id: "today", href: "/hub", label: "Today", short: "Today", icon: "hub" },
   { id: "focus", href: "/motivation", label: "Focus", short: "Focus", icon: "flame" },
   { id: "log", href: "/log", label: "Log", short: "Log", icon: "todo" },
+  { id: "sharing", href: "/share", label: "Sharing", short: "Share", icon: "share" },
   { id: "more", href: "/more", label: "More", short: "More", icon: "settings" },
 ] as const;
 
@@ -23,8 +24,6 @@ export const PERSONAL_MORE_NAV: readonly PersonalNavItem[] = [
   { id: "more", href: "/intermittent-fasting", label: "Fasting", short: "Fast", icon: "timer" },
   { id: "more", href: "/workout-tracking", label: "Workouts", short: "Workouts", icon: "workout" },
   { id: "more", href: "/archive", label: "Archive", short: "Archive", icon: "archive" },
-  { id: "more", href: "/share", label: "Sharing", short: "Share", icon: "share" },
-  { id: "more", href: "/shared-with-me", label: "Shared with me", short: "Shared", icon: "shared" },
   { id: "more", href: "/settings", label: "Settings", short: "Settings", icon: "settings" },
 ];
 

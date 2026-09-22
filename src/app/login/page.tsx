@@ -59,7 +59,7 @@ export default function LoginPage() {
                 setup steps), then this button signs you in with Google.
               </p>
               <Link href="/share" className="mt-4 inline-block text-sm text-primary hover:underline">
-                Continue to the Share page
+                Continue to Sharing
               </Link>
             </>
           ) : user ? (
@@ -91,7 +91,7 @@ export default function LoginPage() {
               </Button>
               <p className="mt-3 text-xs text-muted-foreground">
                 Public pages stay open: <Link href="/" className="hover:underline">home</Link> ·{" "}
-                <Link href="/share" className="hover:underline">share</Link>
+                <Link href="/share" className="hover:underline">Sharing</Link>
               </p>
             </>
           )}

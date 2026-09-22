@@ -13,8 +13,6 @@ const descriptions: Record<string, string> = {
   "/intermittent-fasting": "Protect your meal window and fasting rhythm.",
   "/workout-tracking": "Record sessions and keep movement visible.",
   "/archive": "Keep private notes, links, images, and quotes.",
-  "/share": "Choose what you want to share and for how long.",
-  "/shared-with-me": "Review items shared with you or by you.",
   "/settings": "Tune reminders, sync, and your Personal setup.",
 };
 

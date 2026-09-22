@@ -388,7 +388,7 @@ export default function SettingsPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               Want a safety net first? <button onClick={doExport} className="text-primary hover:underline">Export a backup</button> —{" "}
-              or visit <Link href="/share" className="text-primary hover:underline">Share</Link> for per-drop exports.
+              or visit <Link href="/share" className="text-primary hover:underline">Sharing</Link> for per-drop exports.
             </p>
           </CardContent>
         </Card>

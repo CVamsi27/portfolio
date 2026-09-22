@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import TrackerShell from "@/components/trackers/TrackerShell";
+import SharedInbox from "@/components/trackers/SharedInbox";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
 import { Card, CardContent } from "@/components/ui/card";
@@ -86,6 +89,8 @@ function fuzzyScore(text: string, query: string): number {
 }
 
 export default function SharePage() {
+  const searchParams = useSearchParams();
+  const showInbox = searchParams.get("view") === "incoming";
   const { value: drops, setValue: setDrops, status, user } = useSyncedStorage<Drop[]>("share", []);
   const { value: links, setValue: setLinks } = useSyncedStorage<Record<string, SharedLink>>("share:links", {});
   const { toast } = useToast();
@@ -435,14 +440,35 @@ export default function SharePage() {
   return (
     <TrackerShell
       icon="share"
-      title="Share"
-      subtitle="A timed drop archive with explicit access controls, private media, and automatic cleanup."
+      title="Sharing"
+      subtitle={showInbox ? "Review your shared items and the drops allowlisted to you." : "Create timed drops with explicit access controls, private media, and automatic cleanup."}
       badge={<SyncBadge status={status} />}
-      actions={{
+      actions={showInbox ? {
+        primary: <a href="#shared-inbox" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Review incoming items</a>,
+        secondary: <Link href="/share" className="text-xs font-semibold text-primary hover:underline">Create a share →</Link>,
+      } : {
         primary: <a href="#share-editor" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Create share</a>,
         secondary: <a href="#sent-drops" className="text-xs font-semibold text-primary hover:underline">View sent drops →</a>,
       }}
     >
+      <nav aria-label="Sharing views" data-testid="sharing-view-switcher" className="grid grid-cols-2 gap-1 rounded-xl border border-border/70 bg-card/55 p-1">
+        <Link
+          href="/share"
+          aria-current={!showInbox ? "page" : undefined}
+          className={cn("rounded-lg px-3 py-2.5 text-center text-xs font-semibold transition-colors", !showInbox ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}
+        >
+          Create &amp; sent
+        </Link>
+        <Link
+          href="/share?view=incoming"
+          aria-current={showInbox ? "page" : undefined}
+          className={cn("rounded-lg px-3 py-2.5 text-center text-xs font-semibold transition-colors", showInbox ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}
+        >
+          Inbox
+        </Link>
+      </nav>
+      {showInbox ? <SharedInbox userId={user?.id ?? null} /> : (
+      <>
       {/* ── Composer ── */}
       <Card variant="dossier" id="share-editor" data-editorial-action className="editorial-dispatch-composer">
         <CardContent className="space-y-3 p-5">
@@ -712,13 +738,15 @@ export default function SharePage() {
             <li><strong className="text-foreground">Drops:</strong> {MAX_DROPS} active drops maximum. Expired drops clear from this list automatically.</li>
             <li><strong className="text-foreground">Images:</strong> 5 MB per signed-in image, or approximately 1.2 MB per local-only image.</li>
             <li><strong className="text-foreground">Browser:</strong> approximately {(BROWSER_STORAGE_LIMIT_BYTES / 1000).toLocaleString()} KB display capacity. Export before making large changes.</li>
-            <li><strong className="text-foreground">Sharing:</strong> private allowlists match signed-in emails; public mode is an explicit link-access choice. <a href="/shared-with-me" className="text-primary hover:underline">Shared with me</a> shows incoming private drops.</li>
+            <li><strong className="text-foreground">Sharing:</strong> private allowlists match signed-in emails; public mode is an explicit link-access choice. <Link href="/share?view=incoming" className="text-primary hover:underline">Inbox</Link> shows incoming private drops.</li>
           </ul>
           <Button variant="secondary" size="sm" className="mt-3" onClick={exportAll} disabled={visible.length === 0}>
             Export JSON backup
           </Button>
         </CardContent>
       </Card>
+      </>
+      )}
     </TrackerShell>
   );
 }

@@ -9,7 +9,7 @@ import { Lock } from "lucide-react";
 
 /**
  * Gate for private tracker pages. Public pages: `/`, `/portfolio`,
- * `/login`, `/share`, `/share/[id]`, `/shared-with-me` handles its own
+ * `/login`, `/share`, and `/share/[id]` handles its own
  * signed-out state (it is only useful signed in).
  * When Supabase isn't configured yet (local mode), everything stays open.
  */
@@ -46,7 +46,7 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
               href="/share"
               className="text-sm text-muted-foreground hover:text-foreground"
             >
-              …or open the Share page
+              …or open Sharing
             </Link>
           </div>
         </CardContent>

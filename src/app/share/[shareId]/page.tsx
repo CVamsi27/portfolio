@@ -77,7 +77,7 @@ function SharedDrop({ shareId }: { shareId: string }) {
           <p className="mt-2 text-sm text-muted-foreground">
             This email isn&apos;t on the allowlist, or the link expired / was revoked.
           </p>
-          <Link href="/shared-with-me">
+          <Link href="/share?view=incoming">
             <Button variant="outline" className="mt-4 w-full">See what&apos;s shared with me</Button>
           </Link>
         </CardContent>

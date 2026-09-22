@@ -13,8 +13,7 @@ export const TRACKER_LINKS = [
   { href: "/motivation", label: "Motivation", short: "Boost", icon: "flame" },
   { href: "/archive", label: "Archive", short: "Archive", icon: "archive" },
   { href: "/weight-loss", label: "Weight Loss", short: "Weight", icon: "scale" },
-  { href: "/share", label: "Share", short: "Share", icon: "share" },
-  { href: "/shared-with-me", label: "Shared", short: "Shared", icon: "shared" },
+  { href: "/share", label: "Sharing", short: "Share", icon: "share" },
   { href: "/settings", label: "Settings", short: "More", icon: "settings" },
 ] as const;
 
