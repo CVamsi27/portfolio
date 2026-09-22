@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Archive, Image as ImageIcon, Link2, Pin, Quote, Search, StickyNote } from "lucide-react";
 import RequireAuth from "@/components/auth/RequireAuth";
 import TrackerShell from "@/components/trackers/TrackerShell";
@@ -39,11 +39,9 @@ export default function ArchivePage() {
   const [sourceUrl, setSourceUrl] = useState("");
   const [query, setQuery] = useState("");
   const [goalFilter, setGoalFilter] = useState<"current" | "all" | "unlinked">("current");
-  const [linkGoal, setLinkGoal] = useState<GoalCategory | "none">(prefs.goalCategory);
+  const [linkGoalOverride, setLinkGoalOverride] = useState<GoalCategory | "none" | null>(null);
   const currentGoalLabel = GOAL_CATEGORIES.find((category) => category.id === prefs.goalCategory)?.label ?? "Current goal";
-  useEffect(() => {
-    setLinkGoal(prefs.goalCategory);
-  }, [prefs.goalCategory]);
+  const linkGoal = linkGoalOverride ?? prefs.goalCategory;
   const filteredItems = useMemo(() => items.filter((item) => goalFilter === "all" || (goalFilter === "unlinked" ? !item.goalCategory : item.goalCategory === prefs.goalCategory)), [goalFilter, items, prefs.goalCategory]);
   const matches = useMemo(() => searchArchive(filteredItems, query), [filteredItems, query]);
 
@@ -64,7 +62,7 @@ export default function ArchivePage() {
       <div className="mt-4"><Segmented label="Archive item type" options={KINDS.map(({ value, label }) => ({ value, label }))} value={kind} onChange={setKind} /></div>
       <Textarea aria-label="Capture" className="mt-3 min-h-24" value={body} onChange={(event) => setBody(event.target.value)} placeholder={kind === "quote" ? "Save the exact words worth returning to…" : "Write the useful thing before it disappears…"} />
       <div className="mt-3 grid gap-3 sm:grid-cols-2"><Input aria-label="Tags" value={tags} onChange={(event) => setTags(event.target.value)} placeholder="Tags, comma separated" /><Input aria-label="Source URL" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder={kind === "image" ? "HTTPS image URL" : "Source URL (optional)"} /></div>
-      <div className="mt-3"><Segmented label="Link to goal" options={[{ value: prefs.goalCategory, label: currentGoalLabel }, { value: "none", label: "No goal" }]} value={linkGoal} onChange={setLinkGoal} /></div>
+      <div className="mt-3"><Segmented label="Link to goal" options={[{ value: prefs.goalCategory, label: currentGoalLabel }, { value: "none", label: "No goal" }]} value={linkGoal} onChange={setLinkGoalOverride} /></div>
       <div className="mt-3 flex justify-end"><Button onClick={save} disabled={!body.trim()}>Save to archive</Button></div>
     </CardContent></Card>
     <Card variant="dossier"><CardContent className="p-5">
