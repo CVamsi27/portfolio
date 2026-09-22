@@ -115,6 +115,25 @@ export default function LockdownGate({ children }: { children: React.ReactNode }
               </div>
             </div>
 
+            {/* Wind-Down Breathing Pacer */}
+            <div className="mt-5 flex items-center justify-between rounded-xl border border-indigo-500/25 bg-indigo-950/30 p-3.5">
+              <div className="flex items-center gap-3">
+                <span className="relative flex h-8 w-8 items-center justify-center">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-25" />
+                  <span className="relative inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500/30 text-[10px] font-mono font-bold text-indigo-300">
+                    4s
+                  </span>
+                </span>
+                <div>
+                  <p className="text-xs font-semibold text-indigo-200">Wind-Down Breathing Pacer</p>
+                  <p className="text-[11px] text-slate-400">4-second rhythmic breathing to reset and downshift.</p>
+                </div>
+              </div>
+              <span className="hidden font-mono text-[10px] uppercase tracking-wider text-indigo-300/80 sm:inline-block">
+                Inhale • Rest
+              </span>
+            </div>
+
             <div data-testid="lockdown-limitations" className="mt-5 border border-[#ff554d]/30 bg-[#071014]/60 p-4 text-xs text-white/80 rounded-xl leading-relaxed">
               NOVA locks this workspace to protect your rest. It cannot disable other phone apps or enforce hardware DND. Use the device preparation steps below for full physical isolation.
             </div>
