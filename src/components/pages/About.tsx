@@ -198,15 +198,21 @@ const About = () => {
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-between border-t border-[var(--portfolio-rule)] pt-4 text-xs text-[var(--portfolio-muted)]">
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--portfolio-rule)] pt-4 text-xs text-[var(--portfolio-muted)]">
             <div className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
               <span className="text-[var(--portfolio-ink)] font-medium">Hyderabad, India</span>
             </div>
             {currentTime ? (
-              <span className="font-utility text-[0.66rem] font-semibold text-[var(--portfolio-accent)]">
-                {currentTime} IST (UTC+5:30)
-              </span>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-2.5 py-1 text-[0.66rem] font-semibold text-[var(--portfolio-accent)] shadow-2xs">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                </span>
+                <Clock className="h-3 w-3 shrink-0 opacity-80" />
+                <span className="font-utility tabular-nums">{currentTime} IST</span>
+                <span className="hidden sm:inline font-utility text-[0.6rem] text-[var(--portfolio-muted)] font-normal">(UTC+5:30)</span>
+              </div>
             ) : null}
           </div>
 

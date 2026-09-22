@@ -568,6 +568,12 @@
     color: var(--color-dossier-cyan, #49e7ff);
     content: "⌄";
     font-size: 0.8rem;
+    display: inline-block;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dossier-clock-disclosure[open] > summary::after {
+    transform: rotate(180deg);
   }
 
   .dossier-clock-summary-label {
@@ -579,7 +585,19 @@
     align-items: center;
     justify-content: flex-end;
     gap: 0.55rem;
-    margin-top: 0.3rem;
+    margin-top: 0.35rem;
+    animation: dossier-clock-expand 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes dossier-clock-expand {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @media (max-width: 640px) {
@@ -1480,27 +1498,43 @@
 }
 
 body.portfolio-surface {
-  --portfolio-paper: #f4f1ea;
-  --portfolio-ink: #17191c;
-  --portfolio-muted: #6f7478;
-  --portfolio-accent: #315cff;
-  --portfolio-rule: #cfd7e4;
-  --portfolio-blue-soft: #e9efff;
+  --portfolio-paper: #f7f5f0;
+  --portfolio-ink: #12151a;
+  --portfolio-muted: #5a626d;
+  --portfolio-accent: #2955ff;
+  --portfolio-rule: #d8dfe8;
+  --portfolio-blue-soft: #eef3ff;
   --portfolio-clay: #c97755;
   background: var(--portfolio-paper);
   color: var(--portfolio-ink);
 }
 
 html.dark body.portfolio-surface {
-  --portfolio-paper: #101319;
-  --portfolio-ink: #f4f1ea;
-  --portfolio-muted: #a8b0bd;
-  --portfolio-accent: #8da3ff;
-  --portfolio-rule: #2b3442;
-  --portfolio-blue-soft: #192344;
+  --portfolio-paper: #0a0d14;
+  --portfolio-ink: #f4f6fb;
+  --portfolio-muted: #9aa4b4;
+  --portfolio-accent: #7a96ff;
+  --portfolio-rule: #222938;
+  --portfolio-blue-soft: #131b30;
   --portfolio-clay: #e09270;
   background: var(--portfolio-paper);
   color: var(--portfolio-ink);
+}
+
+body.portfolio-surface,
+body.tracker-surface,
+.portfolio-section,
+.portfolio-hero__aside,
+.portfolio-stat-card,
+.portfolio-flagship-card,
+.portfolio-work-row,
+.portfolio-capability-group,
+.portfolio-tech-shelf,
+.portfolio-contact-form,
+.dossier-card {
+  transition: background-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .portfolio-surface .editorial-frame[data-surface="paper"] {
@@ -1719,6 +1753,12 @@ html.dark body.portfolio-surface {
   background: color-mix(in srgb, var(--portfolio-accent) 86%, var(--portfolio-ink));
   transform: translateY(-2px);
   box-shadow: 0 4px 14px -2px color-mix(in srgb, var(--portfolio-accent) 55%, transparent);
+}
+
+.portfolio-primary-action:active,
+.portfolio-submit-action:active,
+.portfolio-secondary-action:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .portfolio-secondary-action {

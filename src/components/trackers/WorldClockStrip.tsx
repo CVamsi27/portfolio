@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { Moon, Sun } from "lucide-react";
 
 type Clock = { label: string; timeZone?: string };
 
@@ -21,6 +22,20 @@ function formatClock(now: number, timeZone?: string) {
   }).format(now);
 }
 
+function isDaytime(now: number, timeZone?: string): boolean {
+  try {
+    const hourStr = new Intl.DateTimeFormat("en-GB", {
+      hour: "numeric",
+      hour12: false,
+      ...(timeZone ? { timeZone } : {}),
+    }).format(now);
+    const hour = parseInt(hourStr, 10);
+    return hour >= 6 && hour < 20;
+  } catch {
+    return true;
+  }
+}
+
 /** A deliberately compact replacement for the former multi-row telemetry block. */
 export default function WorldClockStrip({ badge }: { badge?: ReactNode }) {
   const [now, setNow] = useState<number | null>(null);
@@ -35,25 +50,39 @@ export default function WorldClockStrip({ badge }: { badge?: ReactNode }) {
   const date = now == null ? "Today" : new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" }).format(now);
   const local = CLOCKS[0];
   const remote = CLOCKS.slice(1);
+  const localDay = now != null ? isDaytime(now, local.timeZone) : true;
 
   return (
     <div data-testid="world-clock-strip" data-editorial-telemetry className="dossier-world-clock" aria-label="World clocks">
-      <details data-testid="clock-disclosure" className="dossier-clock-disclosure">
-        <summary>
+      <details data-testid="clock-disclosure" className="dossier-clock-disclosure transition-all">
+        <summary className="cursor-pointer select-none">
           <span className="dossier-world-date">{date}</span>
-          <span className="dossier-world-time">
+          <span className="dossier-world-time flex items-center gap-1.5">
+            {localDay ? (
+              <Sun className="h-3 w-3 text-amber-400 shrink-0" />
+            ) : (
+              <Moon className="h-3 w-3 text-[#32b8c8] shrink-0" />
+            )}
             <span>{local.label}</span>
-            <strong className="tabular-nums">{now == null ? "--:--:--" : formatClock(now, local.timeZone)}</strong>
+            <strong className="tabular-nums font-mono">{now == null ? "--:--:--" : formatClock(now, local.timeZone)}</strong>
           </span>
           <span className="dossier-clock-summary-label">World clocks</span>
         </summary>
         <div className="dossier-clock-details">
-          {remote.map((clock) => (
-            <span key={clock.label} className="dossier-world-time">
-              <span>{clock.label}</span>
-              <strong className="tabular-nums">{now == null ? "--:--:--" : formatClock(now, clock.timeZone)}</strong>
-            </span>
-          ))}
+          {remote.map((clock) => {
+            const day = now != null ? isDaytime(now, clock.timeZone) : true;
+            return (
+              <span key={clock.label} className="dossier-world-time flex items-center gap-1.5">
+                {day ? (
+                  <Sun className="h-3 w-3 text-amber-400 shrink-0" />
+                ) : (
+                  <Moon className="h-3 w-3 text-[#32b8c8] shrink-0" />
+                )}
+                <span>{clock.label}</span>
+                <strong className="tabular-nums font-mono">{now == null ? "--:--:--" : formatClock(now, clock.timeZone)}</strong>
+              </span>
+            );
+          })}
           {badge ? <span className="dossier-world-status">{badge}</span> : null}
         </div>
       </details>
