@@ -2,12 +2,12 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("navigation & shell", () => {
-  test("portfolio root renders and exposes the NOVA//OS portal", async ({ page }) => {
+  test("portfolio root renders and exposes the NOVA portal", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("body")).toContainText(/Vamsi|Full Stack/i);
     // Portal link is host-aware: on localhost it points at the tracker hub.
     // (host is read in an effect, so allow the href to settle after hydration.)
-    const portal = page.getByRole("link", { name: "Open the NOVA//OS trackers" });
+    const portal = page.getByRole("link", { name: "Open the NOVA trackers" });
     await expect(portal).toBeVisible();
     await expect(portal).toHaveAttribute("href", "/trackers", { timeout: 7_000 });
     await expect(page.getByRole("link", { name: "Study" })).toHaveAttribute("href", "https://study.buildora.work");
@@ -23,7 +23,7 @@ test.describe("navigation & shell", () => {
     expect(resp.status()).toBe(200);
     const html = await resp.text();
     expect(html).toContain('data-testid="tracker-public-landing"');
-    expect(html).toContain("Enter NOVA//OS");
+    expect(html).toContain("Enter NOVA");
     expect(html).not.toContain("Sign in required");
   });
 
@@ -73,7 +73,7 @@ test.describe("navigation & shell", () => {
     await page.goto("/todo");
 
     await expect(page.getByTestId("nova-simple-mark")).toBeVisible();
-    await expect(page.getByRole("link", { name: "NOVA//OS home" })).toContainText("NOVA//OS");
+    await expect(page.getByRole("link", { name: "NOVA home" })).toContainText("NOVA");
   });
 
   test("personal navbar keeps Today, Focus, Log, and More visible", async ({ page }) => {
@@ -126,7 +126,7 @@ test.describe("navigation & shell", () => {
     });
     expect(manifest.status()).toBe(200);
     const json = await manifest.json();
-    expect(json.name).toBe("NOVA//OS");
+    expect(json.name).toBe("NOVA");
     const sw = await page.request.get("http://127.0.0.1:4111/sw.js", { headers: { Host: "buildora.work" } });
     expect(sw.status()).toBe(200);
   });

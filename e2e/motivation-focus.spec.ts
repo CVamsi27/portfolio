@@ -40,10 +40,13 @@ test.describe("motivation focus scene", () => {
           categoryLabel: "Canada relocation",
           rationale: "A real view of Canada keeps the next chapter visible.",
           quote: "Progress becomes visible when you keep moving.",
-          quoteAuthor: "NOVA//OS",
+          quoteAuthor: "NOVA",
           fetchedAt: Date.now(),
         }),
       });
+    });
+    await page.route("**/api/motivation-image**", async (route) => {
+      await route.fulfill({ status: 200, contentType: "image/svg+xml", body: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><rect width=\"10\" height=\"10\" fill=\"#17343a\"/></svg>" });
     });
     await seed(page);
     await page.goto("/motivation");
@@ -56,6 +59,73 @@ test.describe("motivation focus scene", () => {
     await expect(page.getByRole("link", { name: "Public image source" })).toHaveAttribute("href", "https://commons.wikimedia.org/wiki/File:Example.jpg");
     await expect(page.getByTestId("focus-goal")).toContainText("Relocate to Canada");
     await expect(page.getByTestId("focus-scene")).toHaveAttribute("data-focus-active", "false");
+  });
+
+  test("rotates approved images without blanking the previous scene on failure", async ({ page }) => {
+    await page.route("**/api/motivation-media**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          imageUrl: "https://images.example.test/rotation-first.jpg",
+          imageAlt: "First motivating scene",
+          attribution: "Public image source",
+          sourceUrl: "https://commons.wikimedia.org/wiki/File:Example.jpg",
+          quote: "Progress becomes visible when you keep moving.",
+          quoteAuthor: "NOVA",
+          imageOptions: [
+            {
+              imageUrl: "https://images.example.test/rotation-second.jpg",
+              imageAlt: "Second motivating scene",
+              attribution: "Public image source",
+              sourceUrl: "https://commons.wikimedia.org/wiki/File:Example-2.jpg",
+            },
+            {
+              imageUrl: "https://images.example.test/rotation-third.jpg",
+              imageAlt: "Third motivating scene",
+              attribution: "Public image source",
+              sourceUrl: "https://commons.wikimedia.org/wiki/File:Example-3.jpg",
+            },
+          ],
+          fetchedAt: Date.now(),
+        }),
+      });
+    });
+    await page.route("**/api/motivation-image**", async (route) => {
+      const source = new URL(route.request().url()).searchParams.get("url") ?? "";
+      if (source.includes("rotation-third")) {
+        await route.abort();
+        return;
+      }
+      await route.fulfill({ status: 200, contentType: "image/svg+xml", body: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><rect width=\"10\" height=\"10\" fill=\"#17343a\"/></svg>" });
+    });
+    await seed(page);
+    await page.goto("/motivation");
+
+    await expect(page.getByTestId("focus-media")).toHaveAttribute("src", /rotation-first/);
+    await page.waitForTimeout(10_500);
+    await expect(page.getByTestId("focus-media")).toHaveAttribute("src", /rotation-second/);
+    await page.waitForTimeout(10_500);
+    await expect(page.getByTestId("focus-media")).toHaveAttribute("src", /rotation-second/);
+    await expect(page.getByTestId("focus-scene")).toBeVisible();
+  });
+
+  test("fills the viewport with the motivation scene at supported mobile widths", async ({ page }) => {
+    for (const width of [320, 390, 430]) {
+      await page.setViewportSize({ width, height: 844 });
+      await seed(page);
+      await page.goto("/motivation");
+
+      const scene = page.getByTestId("focus-scene");
+      const media = page.getByTestId("focus-media");
+      const sceneBox = await scene.boundingBox();
+      const mediaBox = await media.boundingBox();
+      expect(sceneBox?.height ?? 0).toBeGreaterThan(700);
+      // Chromium reserves a fractional scrollbar gutter at some viewport widths.
+      expect(mediaBox?.width ?? 0).toBeGreaterThanOrEqual(width - 2);
+      expect(mediaBox?.x ?? width).toBeLessThanOrEqual(1);
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
   });
 
   test("relays approved public media through the personal app", async ({ page }) => {
@@ -116,7 +186,7 @@ test.describe("motivation focus scene", () => {
           attribution: "Public image source",
           sourceUrl: "https://commons.wikimedia.org/wiki/File:Example.jpg",
           quote: "Progress becomes visible when you keep moving.",
-          quoteAuthor: "NOVA//OS",
+          quoteAuthor: "NOVA",
           fetchedAt: Date.now(),
         }),
       });
@@ -142,7 +212,7 @@ test.describe("motivation focus scene", () => {
           attribution: "Public image source",
           sourceUrl: "https://commons.wikimedia.org/wiki/File:Example.jpg",
           quote: "Progress becomes visible when you keep moving.",
-          quoteAuthor: "NOVA//OS",
+          quoteAuthor: "NOVA",
           fetchedAt: Date.now(),
         }),
       });

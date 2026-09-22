@@ -79,11 +79,27 @@ export default function MotivationPage() {
   const [media, setMedia] = useState<MotivationMedia>(() => fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory, prefs.goalCountry));
   const [mediaLoading, setMediaLoading] = useState(false);
   const [mediaRefreshKey, setMediaRefreshKey] = useState<string | null>(null);
+  const [rotationIndex, setRotationIndex] = useState(0);
 
   const mediaCountry = prefs.motivationPersonalization === "goal" && prefs.goalCategory === "relocation"
     ? prefs.goalCountry
     : undefined;
   const mediaKey = `v2:${prefs.motivationPersonalization}:${prefs.goalCategory}:${mediaCountry ?? "none"}`;
+  const mediaDeck = useMemo(() => {
+    const fallbackOptions = fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory, mediaCountry).imageOptions ?? [];
+    return [media, ...(media.imageOptions ?? fallbackOptions)].filter((option, index, options) => (
+      option.imageUrl && options.findIndex((candidate) => candidate.imageUrl === option.imageUrl) === index
+    ));
+  }, [media, mediaCountry, prefs.goalCategory, prefs.motivationPersonalization]);
+  const activeMedia = mediaDeck[rotationIndex % Math.max(1, mediaDeck.length)] ?? media;
+
+  useEffect(() => {
+    if (mediaDeck.length < 2) return;
+    const timer = window.setInterval(() => {
+      setRotationIndex((current) => (current + 1) % mediaDeck.length);
+    }, 10_000);
+    return () => window.clearInterval(timer);
+  }, [mediaDeck.length]);
 
   // Register today's visit once, from an effect (never during render).
   // Uses the store's updater form so a stale first-render snapshot (before
@@ -193,6 +209,7 @@ export default function MotivationPage() {
   }, [mediaCache, mediaCountry, mediaKey, mediaRefreshKey, prefs.goalCategory, prefs.motivationPersonalization, prefs.questionnaireDone, setMediaCache]);
 
   const refreshMedia = () => {
+    setRotationIndex(0);
     setMediaRefreshKey(mediaKey);
     setMediaCache((prev) => {
       const next = { ...(prev ?? {}) };
@@ -264,7 +281,7 @@ export default function MotivationPage() {
           onOpenGoal={() => router.push("/goal")}
           onRefreshMedia={refreshMedia}
           mediaLoading={mediaLoading}
-          media={media}
+          media={activeMedia}
         />
         <FocusSprint label={nextMilestone === "All milestones complete" ? "Log today’s progress" : nextMilestone} compact />
 

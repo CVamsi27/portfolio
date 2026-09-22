@@ -113,7 +113,7 @@ export default function SettingsPage() {
   const backupKb = stats ? (totalBackupBytes(stats) / 1024).toFixed(1) : "—";
   const activeKeys = stats ? stats.filter((s) => s.exists).length : 0;
   const updateReminder = (key: "weighIn" | "focus" | "evening", patch: Partial<ReminderPreferences["weighIn"]>) => setReminders({ ...reminders, [key]: { ...reminders[key], ...patch } });
-  const saveReminders = () => toast({ title: "Reminders saved", description: "In-app prompts are active when NOVA//OS is open." });
+  const saveReminders = () => toast({ title: "Reminders saved", description: "In-app prompts are active when NOVA is open." });
   const enableBrowserReminders = async () => {
     if (!("Notification" in window)) { setReminders({ ...reminders, browserPermission: "unsupported" }); return; }
     const permission = await Notification.requestPermission();

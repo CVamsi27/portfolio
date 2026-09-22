@@ -25,6 +25,7 @@ type FocusMedia = {
   sourceUrl?: string;
   provider?: string;
   destinationKey?: string;
+  isFallback?: boolean;
 };
 
 type FocusSceneProps = {
@@ -79,11 +80,34 @@ export default function FocusScene({
   const sceneRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(false);
   const [failedImageUrl, setFailedImageUrl] = useState<string | undefined>();
+  const [readyImageKey, setReadyImageKey] = useState<string | undefined>();
+  const [displayedMedia, setDisplayedMedia] = useState<{ key: string; media?: FocusMedia }>(() => ({
+    key: media?.imageUrl ?? "fallback",
+    media,
+  }));
   const safePct = Math.max(0, Math.min(100, goalPct));
   const mediaLabel = destination ?? goalLabel;
   const sourceLabel = media?.attribution ?? media?.provider ?? "View image source";
-  const imageFailed = Boolean(media?.imageUrl && failedImageUrl === media.imageUrl);
-  const relayedImageUrl = media?.imageUrl ? `/api/motivation-image?url=${encodeURIComponent(media.imageUrl)}` : undefined;
+  const mediaKey = media?.imageUrl ?? "fallback";
+  const shownMedia = displayedMedia.media;
+  const pendingMedia = displayedMedia.key === mediaKey ? undefined : media;
+  const imageFailed = Boolean(shownMedia?.imageUrl && failedImageUrl === displayedMedia.key);
+  const pendingImageFailed = Boolean(pendingMedia?.imageUrl && failedImageUrl === mediaKey);
+  const relayedImageUrl = shownMedia?.imageUrl ? `/api/motivation-image?url=${encodeURIComponent(shownMedia.imageUrl)}` : undefined;
+  const pendingRelayedImageUrl = pendingMedia?.imageUrl ? `/api/motivation-image?url=${encodeURIComponent(pendingMedia.imageUrl)}` : undefined;
+
+  const commitPendingImage = () => {
+    if (!pendingMedia) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDisplayedMedia({ key: mediaKey, media: pendingMedia });
+      return;
+    }
+    setReadyImageKey(mediaKey);
+    window.setTimeout(() => {
+      setDisplayedMedia({ key: mediaKey, media: pendingMedia });
+      setReadyImageKey(undefined);
+    }, 650);
+  };
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -126,7 +150,7 @@ export default function FocusScene({
       data-reduced-motion="supported"
       aria-label="Motivation focus scene"
       className={cn(
-        "focus-scene dossier-reveal relative isolate flex min-h-0 flex-col overflow-hidden border border-white/10 bg-[#071014] px-5 py-5 text-white shadow-[10px_10px_0_rgba(255,59,48,0.22)] sm:px-8 sm:py-8 lg:px-12",
+        "focus-scene dossier-reveal relative isolate flex min-h-0 flex-col overflow-hidden border border-white/10 bg-[#071014] py-5 text-white shadow-[10px_10px_0_rgba(255,59,48,0.22)] sm:py-8",
         active && "focus-scene--active",
       )}
     >
@@ -154,18 +178,33 @@ export default function FocusScene({
 
       <div className="focus-scene__grid">
         <figure className="focus-scene__media">
-          {media?.imageUrl ? (
+          {shownMedia?.imageUrl ? (
             // Remote public-art media is normalized server-side and kept behind a readable overlay.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               data-testid="focus-media"
               src={relayedImageUrl}
-              alt={media.imageAlt || `${mediaLabel} motivation image`}
-              className={cn(imageFailed && "hidden")}
-              onError={() => setFailedImageUrl(media.imageUrl)}
+              alt={shownMedia.imageAlt || `${mediaLabel} motivation image`}
+              className={cn(imageFailed && "focus-scene__media-image--failed")}
+              onError={() => setFailedImageUrl(displayedMedia.key)}
             />
           ) : null}
-          {!media?.imageUrl || imageFailed ? (
+          {pendingMedia?.imageUrl && !pendingImageFailed ? (
+            // Keep the displayed image underneath until this replacement is ready.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              data-testid="focus-media-pending"
+              src={pendingRelayedImageUrl}
+              alt={pendingMedia.imageAlt || `${mediaLabel} motivation image`}
+              className={cn("focus-scene__media-pending", readyImageKey === mediaKey && "is-ready")}
+              onLoad={commitPendingImage}
+              onError={() => {
+                setFailedImageUrl(mediaKey);
+                if (shownMedia?.isFallback) setFailedImageUrl(displayedMedia.key);
+              }}
+            />
+          ) : null}
+          {!shownMedia?.imageUrl || imageFailed ? (
             <div className="focus-scene__media-fallback" role="img" aria-label={`${mediaLabel} local motivation fallback`} />
           ) : null}
           <div aria-hidden className="focus-scene__media-overlay" />

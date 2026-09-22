@@ -85,7 +85,7 @@ export default function NovaMark({
       </svg>
       {variant !== "mark" ? (
         <span className={cn("nova-wordmark font-normal uppercase leading-none", styles.text)}>
-          NOVA<span className="text-[#49E7FF]">{"//"}</span>OS
+          NOVA
         </span>
       ) : null}
     </span>

@@ -26,7 +26,7 @@ test.describe("motivation", () => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ quote: "Keep moving.", quoteAuthor: "NOVA//OS", fetchedAt: Date.now() }),
+        body: JSON.stringify({ quote: "Keep moving.", quoteAuthor: "NOVA", fetchedAt: Date.now() }),
       });
     });
     await seed(page);

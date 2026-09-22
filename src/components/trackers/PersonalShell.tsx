@@ -35,7 +35,7 @@ export default function PersonalShell({
         {title == null ? null : (
           <ChapterHeader
             compact
-            eyebrow="NOVA//OS // Chapter 01"
+            eyebrow="NOVA // Chapter 01"
             title={
               <span className="inline-flex items-center gap-3">
                 {icon ? (

@@ -1,5 +1,5 @@
 /**
- * NOVA//OS service worker.
+ * NOVA service worker.
  *
  * Strategy:
  * - App shell (root documents + icons) precached at install.

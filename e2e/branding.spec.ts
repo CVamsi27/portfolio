@@ -2,18 +2,19 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("product branding", () => {
-  test("tracker shell exposes the NOVA//OS product identity", async ({ page }) => {
+  test("tracker shell exposes the NOVA product identity", async ({ page }) => {
     await seed(page);
     await page.goto("/trackers");
     await expect(page.getByTestId("nova-mark").first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /NOVA\/\/OS/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /NOVA/i }).first()).toBeVisible();
     await expect(page.locator("body")).toContainText("Your next chapter, in motion.");
-    await expect(page).toHaveTitle(/NOVA\/\/OS/i);
+    await expect(page).toHaveTitle(/NOVA/i);
+    await expect(page.locator("body")).not.toContainText("NOVA//OS");
   });
 
   test("portfolio shell keeps the personal identity", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("link", { name: "Open the NOVA//OS trackers" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open the NOVA trackers" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Buildora home" })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Vamsi Krishna/i })).toBeVisible();
     await expect(page).toHaveTitle(/Buildora.*Vamsi Krishna/i);
@@ -33,13 +34,14 @@ test.describe("product branding", () => {
     expect(html).not.toContain("Sign in required");
   });
 
-  test("tracker navigation and footer use NOVA//OS", async ({ page }) => {
+  test("tracker navigation and footer use NOVA", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
-    await expect(page.getByRole("link", { name: /NOVA\/\/OS/i }).first()).toBeVisible();
-    await expect(page.locator("footer")).toContainText("NOVA//OS");
+    await expect(page.getByRole("link", { name: /NOVA/i }).first()).toBeVisible();
+    await expect(page.locator("footer")).toContainText("NOVA");
     await expect(page.locator("footer")).toContainText("Your next chapter, in motion.");
-    await expect(page.getByText("NOVA//OS // Chapter 01")).toBeVisible();
+    await expect(page.getByText("NOVA // Chapter 01")).toBeVisible();
+    await expect(page.locator("body")).not.toContainText("NOVA//OS");
   });
 
   test("tracker product copy is consistent", async ({ page }) => {
@@ -52,16 +54,16 @@ test.describe("product branding", () => {
     await page.reload();
     await expect(page.locator("body")).not.toContainText(["Personal", "Suite"].join(" "));
     await expect(page.locator("body")).not.toContainText(["VK", "Personal", "Suite"].join(" "));
-    await expect(page.getByText("Welcome to NOVA//OS")).toBeVisible();
+    await expect(page.getByText("Welcome to NOVA")).toBeVisible();
     await page.goto("/motivation");
     await expect(page.getByTestId("focus-scene")).toBeVisible();
   });
 
-  test("PWA metadata exposes the NOVA//OS identity", async ({ page }) => {
+  test("PWA metadata exposes the NOVA identity", async ({ page }) => {
     const manifestResponse = await page.request.get("/manifest.webmanifest");
     expect(manifestResponse.ok()).toBeTruthy();
     const manifest = await manifestResponse.json();
-    expect(manifest.name).toBe("NOVA//OS");
+    expect(manifest.name).toBe("NOVA");
     expect(manifest.short_name).toBe("NOVA");
     expect(manifest.start_url).toBe("/hub");
 
@@ -74,7 +76,8 @@ test.describe("product branding", () => {
     const sw = await page.request.get("/sw.js");
     expect(sw.ok()).toBeTruthy();
     const source = await sw.text();
-    expect(source).toContain("NOVA//OS");
+    expect(source).toContain("NOVA service worker");
+    expect(source).not.toContain("NOVA//OS");
     expect(source).toContain('CACHE_VERSION = "nova-os-v3"');
     expect(source).not.toContain(["VK", "Personal", "Suite"].join(" "));
   });

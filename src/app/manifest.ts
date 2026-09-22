@@ -6,10 +6,10 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "NOVA//OS",
+    name: "NOVA",
     short_name: "NOVA",
     description:
-      "NOVA//OS by Buildora — a personal operating system for goals, habits, focus, and shared momentum.",
+      "NOVA by Buildora — a personal workspace for goals, habits, focus, and shared momentum.",
     start_url: "/hub",
     scope: "/",
     display: "standalone",

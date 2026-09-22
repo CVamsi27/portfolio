@@ -1,9 +1,9 @@
 export const TRACKER_BRAND = {
-  name: "NOVA//OS",
+  name: "NOVA",
   parentBrand: "Buildora",
   tagline: "Your next chapter, in motion.",
   description:
-    "A personal operating system for goals, habits, focus, and shared momentum.",
+    "A personal workspace for goals, habits, focus, and shared momentum.",
   themeColor: "#071014",
   iconPath: "/icons/nova.svg",
 } as const;

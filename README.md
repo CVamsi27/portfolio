@@ -7,13 +7,13 @@ One Next.js 16 codebase serving two experiences, split by host at the edge:
 | `buildora.work` (and `/`) | Public developer résumé — hero, experience, projects, skills, live contact |
 | `personal.buildora.work` (and `localhost:3000`) | Private life-OS command center — fasting, workouts, goals, todos, motivation, journal |
 
-The résumé carries a subtle **NOVA//OS** portal link; the tracker side is gated by auth when Supabase is configured, and fully usable signed-out (local-only mode).
+The résumé carries a subtle **NOVA** portal link; the tracker side is gated by auth when Supabase is configured, and fully usable signed-out (local-only mode).
 
-The tracker UI is branded NOVA//OS. Internal `vk:` localStorage keys and the `vk-tracker-suite` backup discriminator remain stable for existing data.
+The tracker UI is branded NOVA. Internal `vk:` localStorage keys and the `vk-tracker-suite` backup discriminator remain stable for existing data.
 
 ### Editorial product system
 
-The repository now shares one visual grammar across both hosts: the portfolio is a paper-toned **Public Dossier**, while tracker routes are an archive-black **NOVA//OS** transmission. Full-bleed chapter openings, indexed utility rails, oversized display type, technical telemetry, signal rules, and one obvious next action replace repeated equal-weight dashboard panels. The `src/components/editorial/` primitives are presentational only; tracker hooks, share/privacy behavior, local-first persistence, and host routing remain the source of truth.
+The repository now shares one visual grammar across both hosts: the portfolio is a paper-toned **Public Dossier**, while tracker routes are an archive-black **NOVA** transmission. Full-bleed chapter openings, indexed utility rails, oversized display type, technical telemetry, signal rules, and one obvious next action replace repeated equal-weight dashboard panels. The `src/components/editorial/` primitives are presentational only; tracker hooks, share/privacy behavior, local-first persistence, and host routing remain the source of truth.
 
 The system is responsive across the supported 320px, 390px, and 430px mobile viewports and honors `prefers-reduced-motion` by removing non-essential reveals and transitions. The current release includes explainable next-action prioritization, recovery mode, ordered milestones, weekly review, archive capture, and compact world clocks without changing the existing tracker-data contract.
 

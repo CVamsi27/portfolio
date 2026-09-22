@@ -894,14 +894,30 @@
   }
 
   .focus-scene__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.08fr) minmax(18rem, 0.92fr);
+    position: relative;
+    display: flex;
     flex: 1;
-    gap: clamp(1.25rem, 3vw, 3rem);
+    min-height: 0;
     width: 100%;
-    max-width: 76rem;
+    max-width: none;
     margin: 0 auto;
-    padding: clamp(2rem, 6vw, 5rem) 0;
+    padding: clamp(1.5rem, 5vw, 4rem) 0;
+  }
+
+  .focus-scene {
+    min-height: calc(100svh - var(--app-header-height));
+  }
+
+  .personal-shell #focus-scene {
+    width: calc(100% + 1.5rem);
+    margin-right: -0.75rem;
+    margin-left: -0.75rem;
+  }
+
+  .focus-scene > header,
+  .focus-scene > footer {
+    margin-right: clamp(1.25rem, 5vw, 4rem);
+    margin-left: clamp(1.25rem, 5vw, 4rem);
   }
 
   .focus-scene--active {
@@ -909,10 +925,14 @@
   }
 
   .focus-scene__media {
-    position: relative;
-    min-height: 32rem;
+    position: absolute;
+    top: 0;
+    right: -1px;
+    bottom: 0;
+    left: -1px;
+    min-height: 100%;
     overflow: hidden;
-    border: 1px solid rgb(255 255 255 / 15%);
+    border: 0;
     background: linear-gradient(145deg, #17343a, #081316 64%, #361b22);
     isolation: isolate;
   }
@@ -927,8 +947,23 @@
   }
 
   .focus-scene__media img {
+    z-index: 0;
     opacity: 0.76;
     transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .focus-scene__media-image--failed {
+    opacity: 0;
+  }
+
+  .focus-scene__media-pending {
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 650ms ease;
+  }
+
+  .focus-scene__media-pending.is-ready {
+    opacity: 0.76;
   }
 
   .focus-scene__media:hover img {
@@ -1010,11 +1045,19 @@
   }
 
   .focus-scene__brief {
+    position: relative;
+    z-index: 3;
     display: flex;
+    width: min(100%, 46rem);
     min-width: 0;
     flex-direction: column;
     justify-content: center;
     gap: clamp(1.25rem, 3vw, 2rem);
+    margin-left: auto;
+    border: 1px solid rgb(255 255 255 / 16%);
+    background: rgb(7 16 20 / 76%);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    backdrop-filter: blur(14px);
   }
 
   .focus-scene__brief-heading h1 {
@@ -1107,24 +1150,27 @@
   }
 
   @media (max-width: 900px) {
-    .focus-scene__grid {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
     .focus-scene__media {
-      min-height: clamp(20rem, 60vw, 30rem);
+      min-height: 100%;
     }
   }
 
   @media (max-width: 560px) {
     .focus-scene__grid {
-      gap: 1.1rem;
-      padding: 1.25rem 0;
+      min-height: calc(100svh - 9.5rem);
+      padding: 1rem 0;
     }
 
     .focus-scene__media {
-      height: clamp(15rem, 60vw, 20rem);
       min-height: 0;
+    }
+
+    .focus-scene__brief {
+      align-self: flex-end;
+      width: 100%;
+      margin-top: auto;
+      gap: 1rem;
+      padding: 1rem;
     }
 
     .focus-scene__signals {
@@ -1137,7 +1183,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .focus-scene__media img {
+    .focus-scene__media img,
+    .focus-scene__media-pending {
       transition: none;
     }
 

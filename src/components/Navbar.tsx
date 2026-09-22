@@ -97,11 +97,11 @@ const Navbar = () => {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
           <a
             href={isTracker ? "/hub" : "#About"}
-            aria-label={isTracker ? "NOVA//OS home" : "Buildora home"}
+            aria-label={isTracker ? "NOVA home" : "Buildora home"}
             className="transition-colors hover:text-primary"
           >
             {isTracker ? (
-              <NovaMark variant="wordmark" simple label="NOVA//OS" />
+              <NovaMark variant="wordmark" simple label="NOVA" />
             ) : (
               <BuildoraMark variant="wordmark" label="Buildora" />
             )}
@@ -138,17 +138,17 @@ const Navbar = () => {
                 ),
               )}
             </div>
-            {/* NOVA//OS portal — subtle entry from the resume */}
+            {/* NOVA portal — subtle entry from the resume */}
             {!isTracker && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
                     href={portalHref}
-                    aria-label="Open the NOVA//OS trackers"
+                    aria-label="Open the NOVA trackers"
                     className="dossier-portal-link ml-1 inline-flex h-9 items-center gap-1.5 px-3 text-xs font-semibold text-muted-foreground transition-all"
                   >
                     <NovaMark variant="mark" className="[&>svg]:h-3.5 [&>svg]:w-3.5" />
-                    <span className="hidden lg:inline">NOVA//OS</span>
+                    <span className="hidden lg:inline">NOVA</span>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">

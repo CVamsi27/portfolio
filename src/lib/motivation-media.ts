@@ -14,18 +14,23 @@ const RELOCATION_COUNTRIES = [
   "Other",
 ] as const;
 
-export type MotivationMedia = {
+export type MotivationVisual = {
   imageUrl?: string;
   imageAlt?: string;
   attribution?: string;
   sourceUrl?: string;
   provider?: string;
+  isFallback?: boolean;
+};
+
+export type MotivationMedia = MotivationVisual & {
   destinationKey?: string;
   categoryLabel?: string;
   rationale?: string;
   quote: string;
   quoteAuthor?: string;
   fetchedAt: number;
+  imageOptions?: MotivationVisual[];
 };
 
 const CATEGORY_KEYWORDS: Record<GoalCategory, readonly string[]> = {
@@ -70,7 +75,7 @@ const NON_PHOTOGRAPHIC_HINTS = [
   "manuscript",
 ] as const;
 
-const FALLBACK_VISUALS: Record<string, Pick<MotivationMedia, "imageUrl" | "imageAlt" | "attribution" | "sourceUrl" | "provider">> = {
+const FALLBACK_VISUALS: Record<string, MotivationVisual> = {
   general: {
     imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=85",
     imageAlt: "Sunlit mountain landscape opening toward a clear horizon",
@@ -129,7 +134,7 @@ const FALLBACK_VISUALS: Record<string, Pick<MotivationMedia, "imageUrl" | "image
   },
 };
 
-const DESTINATION_FALLBACK_VISUALS: Partial<Record<MotivationCountry, Pick<MotivationMedia, "imageUrl" | "imageAlt" | "attribution" | "sourceUrl" | "provider">>> = {
+const DESTINATION_FALLBACK_VISUALS: Partial<Record<MotivationCountry, MotivationVisual>> = {
   Germany: {
     imageUrl: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1800&q=85",
     imageAlt: "European city architecture in warm evening light",
@@ -137,6 +142,57 @@ const DESTINATION_FALLBACK_VISUALS: Partial<Record<MotivationCountry, Pick<Motiv
     sourceUrl: "https://unsplash.com/s/photos/berlin-germany",
     provider: "Unsplash",
   },
+};
+
+const CATEGORY_ROTATION_IMAGES: Record<GoalCategory, readonly string[]> = {
+  general: [
+    FALLBACK_VISUALS.general.imageUrl!,
+    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1800&q=85",
+    "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=1800&q=85",
+  ],
+  relocation: [
+    FALLBACK_VISUALS.relocation.imageUrl!,
+    "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=1800&q=85",
+    "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1800&q=85",
+  ],
+  fitness: [
+    FALLBACK_VISUALS.fitness.imageUrl!,
+    "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1800&q=85",
+    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1800&q=85",
+  ],
+  weightloss: [
+    FALLBACK_VISUALS.weightloss.imageUrl!,
+    "https://images.unsplash.com/photo-1498837167922-ddd27525d0d8?auto=format&fit=crop&w=1800&q=85",
+    "https://images.unsplash.com/photo-1505576399279-3dc29d42c22e?auto=format&fit=crop&w=1800&q=85",
+  ],
+  career: [
+    FALLBACK_VISUALS.career.imageUrl!,
+    "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=85",
+    "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1800&q=85",
+  ],
+  learning: [
+    FALLBACK_VISUALS.learning.imageUrl!,
+    "https://images.unsplash.com/photo-1521587760476-6c12a4de4e48?auto=format&fit=crop&w=1800&q=85",
+    "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1800&q=85",
+  ],
+  financial: [
+    FALLBACK_VISUALS.financial.imageUrl!,
+    "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1800&q=85",
+    "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85",
+  ],
+  custom: [
+    FALLBACK_VISUALS.custom.imageUrl!,
+    "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1800&q=85",
+    "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1800&q=85",
+  ],
+};
+
+const DESTINATION_ROTATION_IMAGES: Partial<Record<MotivationCountry, readonly string[]>> = {
+  Germany: [
+    DESTINATION_FALLBACK_VISUALS.Germany!.imageUrl!,
+    "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=1800&q=85",
+    "https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?auto=format&fit=crop&w=1800&q=85",
+  ],
 };
 
 const FALLBACK_QUOTES: Record<MotivationPersonalization, string[]> = {
@@ -210,12 +266,25 @@ export function fallbackMotivationMedia(
   const visual = category === "relocation" && safeCountry
     ? DESTINATION_FALLBACK_VISUALS[safeCountry] ?? FALLBACK_VISUALS.relocation
     : FALLBACK_VISUALS[category] ?? FALLBACK_VISUALS.custom;
+  const rotationImages = (category === "relocation" && safeCountry ? DESTINATION_ROTATION_IMAGES[safeCountry] : undefined)
+    ?? CATEGORY_ROTATION_IMAGES[category]
+    ?? CATEGORY_ROTATION_IMAGES.custom;
+  const imageOptions = rotationImages
+    .filter((imageUrl) => imageUrl && imageUrl !== visual.imageUrl)
+    .map((imageUrl, index) => ({
+      ...visual,
+      imageUrl,
+      imageAlt: `${visual.imageAlt ?? "Motivation scene"} — alternate ${index + 1}`,
+      isFallback: true,
+    }));
   return {
     ...visual,
+    isFallback: true,
+    imageOptions,
     categoryLabel: getMotivationCategoryLabel(category, safeCountry),
     rationale: getMotivationRationale(source, category, safeCountry),
     quote,
-    quoteAuthor: "NOVA//OS",
+    quoteAuthor: "NOVA",
     destinationKey: safeCountry,
     fetchedAt: Date.now(),
   };
@@ -301,7 +370,7 @@ export async function resolveMotivationMedia({
   const safeCountry = normalizeMotivationCountry(country);
   const fallback = fallbackMotivationMedia(source, category, safeCountry);
   const keywords = getMotivationKeywords(source, category, safeCountry);
-  let image: Pick<MotivationMedia, "imageUrl" | "imageAlt" | "attribution" | "sourceUrl" | "provider"> = {};
+  let image: MotivationVisual = {};
   let quote: Pick<MotivationMedia, "quote" | "quoteAuthor"> = fallback;
 
   try {
@@ -350,6 +419,10 @@ export async function resolveMotivationMedia({
     ...fallback,
     ...quote,
     ...image,
+    imageOptions: [
+      ...(image.imageUrl ? [image] : []),
+      ...(fallback.imageOptions ?? []),
+    ].filter((option, index, options) => option.imageUrl && options.findIndex((candidate) => candidate.imageUrl === option.imageUrl) === index),
     imageUrl: safeHttpsUrl(image.imageUrl),
     destinationKey: safeCountry,
     fetchedAt: Date.now(),

@@ -22,7 +22,7 @@ export default function DevicePreparation({ compact = false }: { compact?: boole
         <p className="dossier-kicker">Device preparation</p>
         <h2 className="mt-1 font-display text-lg font-bold">Make the boundary real on your device.</h2>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          NOVA//OS can protect this app. It cannot disable other apps or turn on system Do Not Disturb for you.
+          NOVA can protect this app. It cannot disable other apps or turn on system Do Not Disturb for you.
         </p>
       </div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">

@@ -130,7 +130,7 @@ export default function FastingPage() {
       <TrackerShell
         icon="timer"
         title="Intermittent Fasting"
-        subtitle="Add the time of your first and last meal. NOVA//OS calculates the fasting window from what you actually logged."
+        subtitle="Add the time of your first and last meal. NOVA calculates the fasting window from what you actually logged."
         badge={<SyncBadge status={status} />}
         actions={{
           primary: <a href="#meal-window" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">{safeState.mealRoutine ? "Save today's window" : "Save routine and use for today"}</a>,
