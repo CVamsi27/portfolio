@@ -2310,12 +2310,29 @@ body.tracker-surface,
     font-size: 16px !important;
   }
 
+  .portfolio-topic-chip {
+    padding: 0.42rem 0.8rem;
+    font-size: 0.7rem;
+    min-height: 2.1rem;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .portfolio-primary-action,
+  .portfolio-secondary-action,
+  .portfolio-submit-action {
+    min-height: 2.75rem;
+    font-size: 0.84rem;
+  }
+
   .portfolio-filter-tabs {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 0.5rem;
     scrollbar-width: none;
+    mask-image: linear-gradient(to right, black 88%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 88%, transparent 100%);
   }
 
   .portfolio-filter-tabs::-webkit-scrollbar {
@@ -2325,6 +2342,26 @@ body.tracker-surface,
   .portfolio-filter-tab {
     white-space: nowrap;
     flex-shrink: 0;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .portfolio-hero__title {
+    font-size: clamp(2.1rem, 9.8vw, 2.85rem);
+  }
+
+  .portfolio-section-heading .editorial-statement {
+    font-size: clamp(1.85rem, 8.8vw, 2.5rem);
+  }
+
+  .portfolio-hero__aside {
+    padding: 1rem;
+  }
+
+  .portfolio-stat-card {
+    padding: 0.9rem 0.75rem;
   }
 }
 
