@@ -76,4 +76,25 @@ test.describe("Personal lockdown", () => {
       bedtimeDays: [1],
     });
   });
+
+  test("allows engaging bedtime routine and checklist manually from Cockpit", async ({ page }) => {
+    await seed(page);
+    await page.goto("/trackers");
+
+    await page.getByTestId("today-details").locator("summary").click();
+    await expect(page.getByTestId("bedtime-routine-card")).toBeVisible();
+    await page.getByRole("button", { name: /engage bedtime lock now/i }).click();
+
+    await expect(page.getByTestId("bedtime-lock-screen")).toBeVisible();
+    await expect(page.getByText("Evening Wind-Down Checklist")).toBeVisible();
+
+    const step1 = page.getByRole("button", { name: /tomorrow's #1 outcome/i });
+    await expect(step1).toBeVisible();
+    await step1.click();
+
+    await page.getByRole("button", { name: /exit bedtime lock/i }).click();
+    await expect(page.getByTestId("bedtime-lock-screen")).toHaveCount(0);
+    await expect(page.getByTestId("today-header")).toBeVisible();
+  });
 });
+

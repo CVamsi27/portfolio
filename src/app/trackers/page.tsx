@@ -53,7 +53,8 @@ import { buildNextAction, buildUpNextCue } from "@/lib/command-deck";
 import { focusMinutesForDates, type FocusSession } from "@/lib/focus-sprint";
 import { cn } from "@/lib/utils";
 import { DEFAULT_WEIGHT_LOSS_STATE, type WeightLossState } from "@/lib/health";
-import { Activity, Dumbbell, Flag, ListChecks, Plus, Scale, Sparkles, Timer, TrendingUp, Zap } from "lucide-react";
+import { Activity, Dumbbell, Flag, ListChecks, Moon, Plus, Scale, Sparkles, Timer, TrendingUp, Zap } from "lucide-react";
+import { useLockdownPreferences } from "@/lib/lockdown-store";
 
 export default function TrackersHub() {
   useMigrateWorkouts();
@@ -72,6 +73,8 @@ export default function TrackersHub() {
   const { value: journal } = useJournal();
   const { value: focusSessions } = useSyncedStorage<FocusSession[]>("focus:sessions", []);
   const { value: weightLoss } = useSyncedStorage<WeightLossState>("weight-loss", DEFAULT_WEIGHT_LOSS_STATE);
+  const { value: lockdownPrefs } = useLockdownPreferences();
+  const { setValue: setManualBedtime } = useSyncedStorage<boolean>("bedtime:manual", false);
 
   const fastSt = fasting ?? { protocolId: "16-8", phase: "fasting" as const, startedAt: null };
   const fastHist = useMemo(() => (fastHistory ?? []) as FastHistoryEntry[], [fastHistory]);
@@ -207,6 +210,45 @@ export default function TrackersHub() {
           <div className="grid gap-3 sm:grid-cols-2"><Card variant="dossier"><CardContent className="p-5"><div className="flex items-baseline justify-between"><h2 className="font-display font-bold">Fasting</h2><Link href="/intermittent-fasting" className="text-xs text-primary hover:underline">Open →</Link></div><p className="mt-2 font-display text-2xl font-bold tabular-nums">{fastSt.startedAt !== null && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m` : "Idle"}<span className="ml-1.5 text-xs font-medium text-muted-foreground">/ {protocol.fastHours}h target</span></p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-[#32b8c8]" style={{ width: `${fastPercent}%` }} /></div><div className="mt-3"><MiniBars data={fastHoursByDay(fastHist, 7, new Date(now))} unit="h" height={42} /></div></CardContent></Card><Card variant="dossier"><CardContent className="p-5"><div className="flex items-baseline justify-between"><h2 className="font-display font-bold">Workout volume</h2><Link href="/workout-tracking" className="text-xs text-primary hover:underline">Open →</Link></div><p className="mt-2 font-display text-2xl font-bold tabular-nums">{weeklyWorkoutStats(workoutLogs, 1, new Date(now))[0]?.sessions ?? 0}<span className="ml-1.5 text-xs font-medium text-muted-foreground">sessions this week</span></p></CardContent></Card></div>
           <Card variant="dossier"><CardContent className="p-5"><div className="flex items-center gap-2"><Activity className="h-4 w-4 text-primary" /><h2 className="font-display font-bold">Last 48 hours</h2></div>{activity.length === 0 ? <div className="mt-3"><EmptyState icon={Zap} title="No activity yet" hint="Complete a fast, log a workout, finish a task, or write a note." /></div> : <ul className="mt-3 space-y-1.5">{activity.map((event) => <li key={event.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2 text-sm"><span className="min-w-0 truncate"><ActivityDot kind={event.kind} /> {event.title}{event.detail ? <span className="text-muted-foreground"> · {event.detail}</span> : null}</span><span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{relativeTime(event.at, now)}</span></li>)}</ul>}</CardContent></Card>
           <div className="flex flex-wrap items-center gap-2">{[{ href: "/goal", icon: "flag" as const, label: "Goals" }, { href: "/weight-loss", icon: "scale" as const, label: "Health" }, { href: "/archive", icon: "archive" as const, label: "Archive" }, { href: "/more", icon: "settings" as const, label: "More" }].map((link) => <Link key={link.href} href={link.href} className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-2 text-sm transition-colors hover:border-primary/60"><TrackerIcon name={link.icon} className="h-3.5 w-3.5" />{link.label}</Link>)}<button onClick={() => setShowQ(true)} className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"><Sparkles className="h-3.5 w-3.5" /> Re-run setup</button></div>
+
+          {/* Bedtime Routine & Evening Lockdown */}
+          <Card variant="dossier" id="bedtime-routine-card" data-testid="bedtime-routine-card">
+            <CardContent className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">
+                    <Moon className="h-5 w-5 text-[#c8ff3d]" />
+                  </div>
+                  <div>
+                    <span className="dossier-kicker text-indigo-400">Evening Sanctuary</span>
+                    <h2 className="font-display text-lg font-bold">Bedtime Routine & Device Lockdown</h2>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {lockdownPrefs.bedtimeEnabled
+                        ? `Protected schedule: ${lockdownPrefs.bedtimeStart} – ${lockdownPrefs.bedtimeEnd}. Enforce quiet hours and seal today's progress.`
+                        : "Protect your rest. Engage strict lockdown to blank distractions and complete your evening wind-down."}
+                    </p>
+                  </div>
+                </div>
+                <Link href="/settings#bedtime" className="shrink-0 text-xs font-mono font-medium text-primary hover:underline">
+                  Settings →
+                </Link>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                <Button
+                  onClick={() => setManualBedtime(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs uppercase tracking-wider"
+                >
+                  <Moon className="mr-1.5 h-3.5 w-3.5" />
+                  Engage Bedtime Lock Now
+                </Button>
+                <Link href="/settings#bedtime">
+                  <Button variant="outline" size="sm" className="h-9 text-xs">
+                    Configure Schedule
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* ── Year in Numbers ── */}
           <Card variant="dossier">

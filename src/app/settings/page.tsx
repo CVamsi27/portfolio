@@ -40,6 +40,7 @@ import {
   Upload,
   UserRound,
   BellRing,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SignalPanel from "@/components/trackers/SignalPanel";
@@ -57,6 +58,7 @@ export default function SettingsPage() {
   const { value: reminderValue, setValue: setReminders } = useSyncedStorage<ReminderPreferences>("reminders", DEFAULT_REMINDERS);
   const reminders = reminderValue ?? DEFAULT_REMINDERS;
   const { value: lockdown, setValue: setLockdown, status: lockdownStatus } = useLockdownPreferences();
+  const { setValue: setManualBedtime } = useSyncedStorage<boolean>("bedtime:manual", false);
 
   const stats = useStorageStats();
   const [report, setReport] = useState<ImportReport | null>(null);
@@ -216,7 +218,19 @@ export default function SettingsPage() {
               Enable bedtime lock inside Personal Buildora
             </label>
             <p className="text-xs text-muted-foreground">{bedtimeWindow ? `Next protected window ends at ${formatLockEnd(bedtimeWindow.end)} local time.` : "Choose a valid time and at least one day to preview the next window."}</p>
-            <div className="flex flex-wrap items-center gap-2"><Button onClick={saveBedtime}>Save bedtime schedule</Button>{bedtimeSaved ? <span role="status" className="text-xs font-semibold text-emerald-500">Bedtime schedule saved</span> : null}</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={saveBedtime}>Save bedtime schedule</Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setManualBedtime(true)}
+                className="border-indigo-500/40 text-indigo-400 hover:bg-indigo-500/10"
+              >
+                <Moon className="mr-1.5 h-3.5 w-3.5" />
+                Test / Engage Bedtime Lock Now
+              </Button>
+              {bedtimeSaved ? <span role="status" className="text-xs font-semibold text-emerald-500">Bedtime schedule saved</span> : null}
+            </div>
             <DevicePreparation compact />
           </CardContent>
         </Card>
