@@ -92,8 +92,8 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
           {step === 1 && (
             <div className="space-y-4">
               <div className="text-center">
-                <h2 className="font-display text-xl font-bold">What&apos;s your main goal?</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Pick the category that fits best.</p>
+                <h2 className="font-display text-xl font-bold">What do you want to move forward?</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Choose a direction, then keep the next move small.</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {GOAL_CATEGORIES.map((g) => (
@@ -133,9 +133,13 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
                   placeholder={
                     local.goalCategory === "relocation"
                       ? "Name the outcome you want"
+                      : local.goalCategory === "general"
+                        ? "e.g. Build a steady weekly rhythm"
                       : local.goalCategory === "fitness"
                         ? "e.g. Run a half marathon"
-                        : "e.g. Get promoted to senior"
+                        : local.goalCategory === "career"
+                          ? "e.g. Grow into a new role"
+                          : "e.g. Make meaningful progress"
                   }
                   value={local.goalTitle}
                   onChange={(e) => setLocal({ ...local, goalTitle: e.target.value })}
