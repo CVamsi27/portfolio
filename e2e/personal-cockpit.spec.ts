@@ -24,17 +24,17 @@ test.describe("personal today cockpit", () => {
     await expect(page.getByTestId("week-pulse")).toBeVisible();
   });
 
-  test("exposes four execution destinations on desktop and mobile", async ({ page }) => {
+  test("exposes five execution destinations on desktop and mobile", async ({ page }) => {
     await seed(page);
     await page.goto("/hub");
     const primary = page.getByTestId("tracker-primary-nav");
-    await expect(primary.getByRole("link")).toHaveCount(4);
-    for (const [label, href] of [["Today", "/hub"], ["Focus", "/motivation"], ["Log", "/log"], ["More", "/more"]] as const) {
+    await expect(primary.getByRole("link")).toHaveCount(5);
+    for (const [label, href] of [["Today", "/hub"], ["Focus", "/motivation"], ["Log", "/log"], ["Sharing", "/share"], ["More", "/more"]] as const) {
       await expect(primary.getByRole("link", { name: label })).toHaveAttribute("href", href);
     }
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(4);
+    await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(5);
     await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "Log" })).toHaveAttribute("href", "/log");
   });
 
