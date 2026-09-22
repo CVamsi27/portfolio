@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Archive, Image as ImageIcon, Link2, Pin, Quote, Search, StickyNote } from "lucide-react";
 import RequireAuth from "@/components/auth/RequireAuth";
 import TrackerShell from "@/components/trackers/TrackerShell";
@@ -41,6 +41,9 @@ export default function ArchivePage() {
   const [goalFilter, setGoalFilter] = useState<"current" | "all" | "unlinked">("current");
   const [linkGoal, setLinkGoal] = useState<GoalCategory | "none">(prefs.goalCategory);
   const currentGoalLabel = GOAL_CATEGORIES.find((category) => category.id === prefs.goalCategory)?.label ?? "Current goal";
+  useEffect(() => {
+    setLinkGoal(prefs.goalCategory);
+  }, [prefs.goalCategory]);
   const filteredItems = useMemo(() => items.filter((item) => goalFilter === "all" || (goalFilter === "unlinked" ? !item.goalCategory : item.goalCategory === prefs.goalCategory)), [goalFilter, items, prefs.goalCategory]);
   const matches = useMemo(() => searchArchive(filteredItems, query), [filteredItems, query]);
 

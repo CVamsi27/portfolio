@@ -10,16 +10,17 @@ test.describe("onboarding questionnaire", () => {
     });
     await page.goto("/trackers");
     await page.getByPlaceholder("Your name").fill("Destination Test");
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: /Relocation/i }).click();
 
     await expect(page.getByLabel("Destination country")).toBeVisible();
     await expect(page.getByRole("option", { name: "United States" })).toHaveCount(1);
     await expect(page.getByRole("option", { name: "Japan" })).toHaveCount(1);
     await expect(page.locator('input[placeholder*="Relocate to"]')).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Next" }).click();
-    await page.getByRole("button", { name: "Next" }).click();
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(page.getByRole("button", { name: "Goal-aware" })).toBeVisible();
     await expect(page.getByRole("button", { name: "General inspiration" })).toBeVisible();
   });
@@ -38,24 +39,24 @@ test.describe("onboarding questionnaire", () => {
 
     // Step 0: name.
     await page.getByPlaceholder("Your name").fill("E2E Runner");
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
 
     // Step 1: goal — pick Financial, override metric target. Labels aren't
     // programmatically associated; step 1 has inputs [title, metric, target].
     await page.getByText("Financial", { exact: false }).first().click();
     await page.locator("input").nth(0).fill("Emergency fund");
     await page.locator("input").nth(2).fill("25");
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
 
     // Step 2: workout — pick Push / Pull / Legs and kg.
     await page.getByRole("button", { name: "Push / Pull / Legs" }).click();
     await page.getByRole("button", { name: "Kilograms (kg)" }).click();
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
 
     // Step 3: fasting — No disables the protocol picker.
     await page.getByText("No", { exact: true }).click();
     await expect(page.getByText("Preferred protocol")).not.toBeVisible();
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
 
     // Step 4: motivation — Stoic, then finish.
     await page.getByText("Calm, focused, unstoppable").click();
@@ -84,7 +85,7 @@ test.describe("onboarding questionnaire", () => {
     await page.goto("/trackers");
     await expect(page.getByText("Welcome to NOVA//OS")).toBeVisible();
     await page.getByPlaceholder("Your name").fill("Halfway");
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
     // Reload — nothing was finished, so questionnaireDone is still false and
     // the questionnaire must reappear (storage survives the reload).
     await page.reload();
