@@ -347,7 +347,7 @@ export default function GoalPage() {
 
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all"
+                className="h-full bg-[var(--color-dossier-lime)] transition-all"
                 style={{ width: `${Math.min(100, metric.target ? (todayValue / metric.target) * 100 : 0)}%` }}
               />
             </div>
@@ -421,7 +421,7 @@ export default function GoalPage() {
               </span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${goalPct}%` }} />
+              <div className="h-full bg-[var(--color-dossier-lime)] transition-all" style={{ width: `${goalPct}%` }} />
             </div>
 
             <ul className="mt-4 space-y-2">

@@ -9,19 +9,25 @@ import {
 
 const HeaderMenu = ({
   items,
+  ariaLabel = "Open menu",
+  testId,
+  alwaysVisible = false,
 }: {
   items: { label: string; href: string }[];
+  ariaLabel?: string;
+  testId?: string;
+  alwaysVisible?: boolean;
 }) => {
   return (
-    <div className="flex md:hidden">
+    <div className={alwaysVisible ? "flex" : "flex md:hidden"} data-testid={testId}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-9 w-9">
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-none" aria-label={ariaLabel}>
             <Menu className="h-4 w-4" />
             <span className="sr-only">Menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48 rounded-xl">
+        <DropdownMenuContent align="end" className="w-56 rounded-none border-border/80 p-1">
           {items.map((item) => (
             <DropdownMenuItem key={item.href} asChild>
               <a href={item.href} className="w-full cursor-pointer rounded-lg">

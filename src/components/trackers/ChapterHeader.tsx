@@ -7,18 +7,20 @@ export default function ChapterHeader({
   subtitle,
   action,
   utility,
+  compact = false,
 }: {
   eyebrow: string;
   title: ReactNode;
   subtitle: ReactNode;
   action?: ReactNode;
   utility?: ReactNode;
+  compact?: boolean;
 }) {
   return (
     <header
       data-testid="chapter-header"
       data-editorial-chapter="true"
-      className="dossier-reveal dossier-chapter-header"
+      className={`dossier-reveal dossier-chapter-header${compact ? " dossier-chapter-header--compact" : ""}`}
     >
       <div data-testid="personal-section-header">
         <div className="flex flex-wrap items-center justify-between gap-3">

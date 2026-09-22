@@ -74,11 +74,10 @@ function subscribeLocal(localKey: string, cb: () => void) {
     if (e.key === null || e.key === localKey) notifyLocal(localKey);
   };
   window.addEventListener("storage", onStorage);
-  if (!mounted) {
-    mounted = true;
-    // Re-read past first paint (server + first client render used initial).
-    queueMicrotask(cb);
-  }
+  if (!mounted) mounted = true;
+  // Every subscriber gets a post-hydration refresh. A sibling component may
+  // have claimed the module-level mounted flag before this store subscribed.
+  queueMicrotask(cb);
   return () => {
     localListeners.get(localKey)?.delete(cb);
     window.removeEventListener("storage", onStorage);

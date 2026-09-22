@@ -18,6 +18,14 @@ export const TRACKER_LINKS = [
   { href: "/settings", label: "Settings", short: "More", icon: "settings" },
 ] as const;
 
+export const TRACKER_PRIMARY_LINKS = TRACKER_LINKS.filter((link) =>
+  ["/hub", "/todo", "/goal", "/weight-loss"].includes(link.href),
+);
+
+export const TRACKER_SECONDARY_LINKS = TRACKER_LINKS.filter(
+  (link) => !TRACKER_PRIMARY_LINKS.some((primary) => primary.href === link.href),
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Date utilities
 // ─────────────────────────────────────────────────────────────────────────────
@@ -533,8 +541,8 @@ export const TODO_TAGS: TodoTag[] = ["Work", "Health", "Goal", "Personal", "Deep
 export const TAG_COLORS: Record<TodoTag, string> = {
   Work: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
   Health: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-  Goal: "bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400 border-fuchsia-500/30",
-  Personal: "bg-violet-500/15 text-violet-600 dark:text-violet-400 border-violet-500/30",
+  Goal: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30",
+  Personal: "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30",
   "Deep Work": "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
 };
 

@@ -120,7 +120,6 @@ export default function SettingsPage() {
     <RequireAuth>
       <TrackerShell
         icon="settings"
-        showDock={false}
         title="Settings"
         subtitle="Your data, your device — export the full suite, restore from a backup, or manage local storage."
         badge={<SyncBadge status={status} />}
@@ -148,8 +147,8 @@ export default function SettingsPage() {
         <Card variant="dossier">
           <CardContent className="flex items-center justify-between gap-3 p-5">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-fuchsia-500">
-                <UserRound className="h-5 w-5 text-white" />
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-dossier-lime)] text-[#071014]">
+                <UserRound className="h-5 w-5" />
               </span>
               <div>
                 <p className="text-sm font-semibold">Account & sync</p>

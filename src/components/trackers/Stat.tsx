@@ -15,7 +15,7 @@ export default function Stat({
       className={cn(
         "rounded-xl border px-3 py-2.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
         accent
-          ? "border-primary/30 bg-gradient-to-b from-primary/10 to-fuchsia-500/5"
+          ? "border-[color-mix(in_srgb,var(--color-dossier-lime)_30%,transparent)] bg-[color-mix(in_srgb,var(--color-dossier-lime)_10%,transparent)]"
           : "border-border/60 bg-card hover:border-primary/30",
       )}
     >

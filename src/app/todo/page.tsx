@@ -191,7 +191,7 @@ export default function TodoPage() {
               <span className="text-xs text-muted-foreground">{streak}-day completion streak</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${pct}%` }} />
+              <div className="h-full bg-[var(--color-dossier-lime)] transition-all" style={{ width: `${pct}%` }} />
             </div>
           </CardContent>
         </Card>

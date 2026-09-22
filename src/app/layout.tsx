@@ -89,6 +89,7 @@ export default async function RootLayout({
           ibmPlexMono.variable,
           novaDisplay.variable,
           "font-sans antialiased",
+          trackerSurface ? "tracker-surface" : "portfolio-surface",
         )}
       >
         <ThemeProvider

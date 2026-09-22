@@ -435,7 +435,6 @@ export default function SharePage() {
   return (
     <TrackerShell
       icon="share"
-      showDock={false}
       title="Share"
       subtitle="A timed drop archive with explicit access controls, private media, and automatic cleanup."
       badge={<SyncBadge status={status} />}

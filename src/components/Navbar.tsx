@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MENU_LIST } from "@/lib/const";
-import { TRACKER_LINKS } from "@/lib/trackers";
+import { PERSONAL_PRIMARY_NAV, isPersonalPrimaryPath } from "@/lib/personal-nav";
 import { ModeToggle } from "./common/ModeToggle";
 import HeaderMenu from "./HeaderMenu";
 import AuthButton from "./auth/AuthButton";
@@ -62,18 +62,22 @@ const Navbar = () => {
   }, [isTracker]);
 
   const menuItems = isTracker
-    ? TRACKER_LINKS.map((t) => ({ label: t.label, href: t.href }))
+    ? PERSONAL_PRIMARY_NAV.map((item) => ({ label: item.label, href: item.href }))
     : [
         ...MENU_LIST.map((m) => ({ label: m, href: `#${m}` })),
         { label: "Study", href: "https://study.buildora.work" },
       ];
 
   const isMenuActive = (href: string) =>
-    isTracker ? pathname === href : active === href.replace("#", "");
+    isTracker ? isPersonalPrimaryPath(pathname, href) : active === href.replace("#", "");
 
   // The proxy (host router) blocks /trackers on the portfolio host in production,
   // so the portal points at the personal subdomain there; locally it's /trackers.
-  const portalHref = isPersonalHost || host === "localhost" || host.startsWith("127.") ? "/trackers" : "https://personal.buildora.work";
+  const portalHref = isPersonalHost
+    ? "/hub"
+    : host === "localhost" || host.startsWith("127.")
+      ? "/trackers"
+      : "https://personal.buildora.work";
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -83,13 +87,16 @@ const Navbar = () => {
           className="absolute inset-x-0 top-0 h-0.5 bg-transparent"
         >
           <div
-            className="h-full bg-gradient-to-r from-primary via-primary to-fuchsia-500 transition-[width] duration-150 ease-out"
+            className={cn(
+              "h-full transition-[width] duration-150 ease-out",
+              isTracker ? "bg-[var(--color-dossier-lime)]" : "bg-gradient-to-r from-primary via-primary to-fuchsia-500",
+            )}
             style={{ width: `${progress}%` }}
           />
         </div>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
           <a
-            href={isTracker ? "/trackers" : "#About"}
+            href={isTracker ? "/hub" : "#About"}
             aria-label={isTracker ? "NOVA//OS home" : "Buildora home"}
             className="transition-colors hover:text-primary"
           >
@@ -99,9 +106,9 @@ const Navbar = () => {
               <BuildoraMark variant="wordmark" label="Buildora" />
             )}
           </a>
-          <div className="flex items-center gap-1">
-            <div data-editorial-index className="hidden items-center gap-1 md:flex">
-              {menuItems.map((item) =>
+          <div className="flex items-center gap-1.5">
+            <div data-editorial-index className="hidden items-center gap-1 md:flex" data-testid={isTracker ? "tracker-primary-nav" : undefined}>
+              {(isTracker ? menuItems : menuItems).map((item) =>
                 isTracker ? (
                   <Link
                     key={item.href}
@@ -149,13 +156,9 @@ const Navbar = () => {
                 </TooltipContent>
               </Tooltip>
             )}
-            {isTracker && (
-              <div className="hidden md:block">
-                <AuthButton />
-              </div>
-            )}
+            {isTracker ? <div className="hidden md:block"><AuthButton /></div> : null}
             <ModeToggle />
-            <HeaderMenu items={menuItems} />
+            {!isTracker ? <HeaderMenu items={menuItems} ariaLabel="Open portfolio menu" /> : null}
           </div>
         </div>
       </nav>

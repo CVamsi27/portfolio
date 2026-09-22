@@ -363,7 +363,7 @@ export default function WorkoutPage() {
               <Stat label="Complete" value={`${dayPct}%`} accent />
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all" style={{ width: `${dayPct}%` }} />
+              <div className="h-full bg-[var(--color-dossier-lime)] transition-all" style={{ width: `${dayPct}%` }} />
             </div>
           </CardContent>
         </Card>

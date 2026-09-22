@@ -17,7 +17,7 @@ function StatusIcon({ children, variant }: { children: React.ReactNode; variant:
           ? "bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/25"
           : variant === "warn"
             ? "bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/25"
-            : "bg-gradient-to-br from-primary to-fuchsia-500 shadow-primary/25"
+            : "bg-[var(--color-dossier-lime)] text-[#071014] shadow-[rgba(200,255,61,0.2)]"
       }`}
     >
       {children}
@@ -44,7 +44,7 @@ export default function LoginPage() {
       <StoryPanel eyebrow="Access chapter" title="Unlock your private archive">
         Sign in once to carry your tracker chapters across devices. Public portfolio pages remain open to everyone.
       </StoryPanel>
-      <Card variant="dossier" className="overflow-hidden border-primary/20 bg-gradient-to-b from-primary/10 via-card to-card shadow-xl shadow-primary/5">
+      <Card variant="dossier" className="overflow-hidden border-[color-mix(in_srgb,var(--color-dossier-lime)_30%,transparent)] bg-card shadow-xl shadow-[rgba(200,255,61,0.05)]">
         <CardContent className="flex flex-col items-center p-8 text-center">
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading...</p>

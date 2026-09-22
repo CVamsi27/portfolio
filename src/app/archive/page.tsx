@@ -55,7 +55,7 @@ export default function ArchivePage() {
 
   const togglePin = (id: string) => setValue(items.map((item) => item.id === id ? { ...item, pinned: !item.pinned } : item));
 
-  return <RequireAuth><TrackerShell icon="archive" showDock={false} title="Personal Archive" subtitle="Capture what matters now. Retrieve it when it matters again.">
+  return <RequireAuth><TrackerShell icon="archive" title="Personal Archive" subtitle="Capture what matters now. Retrieve it when it matters again.">
     <Card variant="dossier"><CardContent className="p-5">
       <div className="flex items-center gap-2"><Archive className="h-4 w-4 text-[#49E7FF]" /><h2 className="font-display font-bold">Quick capture</h2></div>
       <div className="mt-4"><Segmented label="Archive item type" options={KINDS.map(({ value, label }) => ({ value, label }))} value={kind} onChange={setKind} /></div>

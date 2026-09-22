@@ -30,7 +30,7 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
 
   return (
     <div className="mx-auto w-full max-w-md px-4 pb-16 pt-16">
-      <Card className="overflow-hidden border-primary/20 bg-gradient-to-b from-primary/10 via-card to-card shadow-xl shadow-primary/5">
+      <Card className="overflow-hidden border-[color-mix(in_srgb,var(--color-dossier-lime)_30%,transparent)] bg-card shadow-xl shadow-[rgba(200,255,61,0.05)]">
         <CardContent className="p-8 text-center">
             <p className="text-3xl"><Lock className="mx-auto h-8 w-8 text-primary" /></p>
           <h1 className="font-display mt-3 text-2xl font-bold">Sign in required</h1>

@@ -1,19 +1,19 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ArrowUp } from "lucide-react";
 import { PORTFOLIO_BRAND, TRACKER_BRAND } from "@/lib/brand";
 
-const emptySubscribe = () => () => {};
-const getHostname = () =>
-  typeof window === "undefined" ? "" : window.location.hostname;
-const getPathname = () =>
-  typeof window === "undefined" ? "/" : window.location.pathname;
-
 const Footer = () => {
   const year = new Date().getFullYear();
-  const host = useSyncExternalStore(emptySubscribe, getHostname, () => "");
-  const pathname = useSyncExternalStore(emptySubscribe, getPathname, () => "/");
+  const pathname = usePathname();
+  const [host, setHost] = useState("");
+
+  useEffect(() => {
+    setHost(window.location.hostname);
+  }, []);
+
   const isTracker = host.startsWith("personal.") || pathname !== "/";
 
   return (

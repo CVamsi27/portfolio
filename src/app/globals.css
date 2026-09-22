@@ -79,6 +79,107 @@
 }
 
 @layer base {
+  .tracker-surface {
+    --color-primary: #c9ff4f;
+    --color-primary-foreground: #102027;
+    --color-ring: #c9ff4f;
+    --color-dossier-violet: #32b8c8;
+    --nova-violet: #32b8c8;
+  }
+
+  .tracker-surface:not(.dark) {
+    --color-background: #f4f0e7;
+    --color-foreground: #102027;
+    --color-card: #fffdf8;
+    --color-card-foreground: #102027;
+    --color-popover: #fffdf8;
+    --color-popover-foreground: #102027;
+    --color-secondary: #e9e4d9;
+    --color-secondary-foreground: #102027;
+    --color-muted: #e9e4d9;
+    --color-muted-foreground: #68736f;
+    --color-accent: #e9e4d9;
+    --color-accent-foreground: #102027;
+    --color-border: #dcd6ca;
+    --color-input: #dcd6ca;
+  }
+
+  .dark .tracker-surface {
+    --color-background: #102027;
+    --color-foreground: #f4f0e7;
+    --color-card: #152c33;
+    --color-card-foreground: #f4f0e7;
+    --color-popover: #152c33;
+    --color-popover-foreground: #f4f0e7;
+    --color-secondary: #1d383f;
+    --color-secondary-foreground: #f4f0e7;
+    --color-muted: #1d383f;
+    --color-muted-foreground: #a9b4af;
+    --color-accent: #1d383f;
+    --color-accent-foreground: #f4f0e7;
+    --color-border: #2b474d;
+    --color-input: #2b474d;
+  }
+
+  .tracker-surface {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  .tracker-surface .dossier-command-rail {
+    --color-dossier-lime: #c9ff4f;
+    --color-dossier-cyan: #32b8c8;
+    --color-dossier-red: #32b8c8;
+    background-color: color-mix(in srgb, var(--color-background) 92%, transparent);
+  }
+
+  .tracker-surface .dossier-frame {
+    background: var(--color-background);
+  }
+
+  .tracker-surface .dossier-card,
+  .tracker-surface .dossier-panel {
+    box-shadow: none;
+  }
+
+  .tracker-surface .dossier-card::before,
+  .tracker-surface .dossier-panel::before {
+    background: #32b8c8;
+  }
+
+  .tracker-surface .dossier-chapter-header--compact {
+    padding-bottom: 0.25rem;
+  }
+
+  .tracker-surface .dossier-chapter-header--compact h1 {
+    font-size: clamp(1.7rem, 5vw, 2.8rem);
+    letter-spacing: -0.045em;
+    text-transform: none;
+  }
+
+  .tracker-surface .dossier-chapter-header--compact > div > div:last-child {
+    margin-top: 0.75rem;
+  }
+
+  .tracker-surface .dossier-command-dock {
+    border-color: color-mix(in srgb, #32b8c8 42%, var(--color-border));
+    background: color-mix(in srgb, var(--color-card) 96%, transparent);
+    box-shadow: 0 12px 32px rgb(16 32 39 / 0.22);
+  }
+
+  .tracker-surface .dossier-command-link.is-active {
+    border-color: #c9ff4f;
+    background: color-mix(in srgb, #c9ff4f 14%, transparent);
+    color: #c9ff4f;
+  }
+
+  .tracker-surface .bg-gradient-to-r.from-primary.to-fuchsia-500 {
+    background-image: none;
+    background-color: #c9ff4f;
+    color: #102027;
+    box-shadow: none;
+  }
+
   html {
     scroll-behavior: smooth;
   }
@@ -99,6 +200,12 @@
     background-image: linear-gradient(135deg, transparent 0 49%, rgba(200, 255, 61, 0.025) 50% 51%, transparent 52%), radial-gradient(rgba(255, 255, 255, 0.075) 1px, transparent 1px);
     background-size: 34px 34px, 24px 24px;
     color: hsl(0 0% 98%);
+  }
+
+  body.tracker-surface {
+    background-color: var(--color-background);
+    background-image: none;
+    color: var(--color-foreground);
   }
 
   :focus-visible {

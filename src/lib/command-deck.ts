@@ -6,6 +6,14 @@ export type NextAction = {
   href: string;
 };
 
+export type UpNextCue = {
+  title: string;
+  detail: string;
+  href: string;
+  effortMinutes?: number;
+  kind: NextActionKind;
+};
+
 export type NextActionInput = {
   fastRunning: boolean;
   fastLogged?: boolean;
@@ -44,6 +52,40 @@ export function buildNextAction(input: NextActionInput): NextAction {
   if (!goalComplete) return { kind: "goal", title: `Log ${input.metricLabel}`, href: "/goal" };
 
   return { kind: "reflection", title: "Write today’s reflection", href: "/motivation" };
+}
+
+export function buildUpNextCue(input: {
+  nextAction: NextAction;
+  recoveryCue?: { title: string; detail: string; href: string };
+  nextMilestone?: string;
+}): UpNextCue {
+  if (input.recoveryCue) {
+    return {
+      title: input.recoveryCue.title,
+      detail: input.recoveryCue.detail,
+      href: input.recoveryCue.href,
+      effortMinutes: 1,
+      kind: "reflection",
+    };
+  }
+
+  if (input.nextMilestone?.trim() && input.nextAction.kind !== "milestone") {
+    return {
+      title: `Prepare: ${input.nextMilestone.trim()}`,
+      detail: "Your next ordered milestone is waiting in the roadmap.",
+      href: "/goal#milestones",
+      effortMinutes: 10,
+      kind: "milestone",
+    };
+  }
+
+  return {
+    title: input.nextAction.kind === "reflection" ? "Close the loop with a reflection" : "Keep the sequence moving",
+    detail: input.nextAction.kind === "reflection" ? "Name what worked and what should change tomorrow." : "Finish the current move, then return here for the next cue.",
+    href: input.nextAction.href,
+    effortMinutes: input.nextAction.kind === "reflection" ? 3 : undefined,
+    kind: input.nextAction.kind,
+  };
 }
 
 export function buildDailyChapter(input: {

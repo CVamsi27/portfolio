@@ -59,7 +59,7 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
         {/* progress bar */}
         <div className="h-1 w-full bg-muted">
           <div
-            className="h-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all duration-500"
+            className="h-full bg-[var(--color-dossier-lime)] transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -68,7 +68,7 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
           {step === 0 && (
             <div className="space-y-4 text-center">
               <p className="dossier-kicker">{TRACKER_BRAND.name}{" // Onboarding chapter"}</p>
-              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-fuchsia-500 shadow-lg shadow-primary/25">
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-dossier-lime)] text-[#071014] shadow-lg shadow-[rgba(200,255,61,0.2)]">
                 <NovaMark variant="mark" simple label={TRACKER_BRAND.name} className="[&>svg]:h-12 [&>svg]:w-12" />
               </span>
               <h1 className="font-display text-2xl font-bold">Welcome to {TRACKER_BRAND.name}</h1>

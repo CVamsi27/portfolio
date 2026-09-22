@@ -39,8 +39,8 @@ export default function MiniBars({
                 "w-full rounded-md transition-all",
                 d.value
                   ? isLast
-                    ? "bg-gradient-to-t from-primary to-fuchsia-500 shadow-md shadow-primary/25"
-                    : "bg-gradient-to-t from-primary/80 to-fuchsia-500/70"
+                    ? "bg-[var(--color-dossier-lime)] shadow-md shadow-[rgba(200,255,61,0.2)]"
+                    : "bg-[color-mix(in_srgb,var(--color-dossier-lime)_70%,transparent)]"
                   : "bg-muted",
               )}
               style={{ height: `${h}px` }}

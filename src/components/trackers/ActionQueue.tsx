@@ -15,7 +15,7 @@ const toneClasses = {
   cyan: "bg-[#49E7FF]",
   lime: "bg-[#C8FF3D]",
   amber: "bg-amber-400",
-  violet: "bg-fuchsia-400",
+  violet: "bg-[#ff554d]",
 } as const;
 
 export default function ActionQueue({ rows }: { rows: ActionQueueRow[] }) {

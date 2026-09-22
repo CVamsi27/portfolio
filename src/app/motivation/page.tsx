@@ -155,6 +155,9 @@ export default function MotivationPage() {
   const [savedFlash, setSavedFlash] = useState(false);
 
   useEffect(() => {
+    // The synced preference store renders with its server-safe defaults first.
+    // Do not request generic media before the saved goal/country has hydrated.
+    if (!prefs.questionnaireDone) return;
     const forceRefresh = mediaRefreshKey === mediaKey;
     const cached = mediaCache?.[mediaKey];
     if (!forceRefresh && cached && Date.now() - cached.fetchedAt < 86_400_000) {
@@ -187,7 +190,7 @@ export default function MotivationPage() {
     return () => {
       cancelled = true;
     };
-  }, [mediaCache, mediaCountry, mediaKey, mediaRefreshKey, prefs.goalCategory, prefs.motivationPersonalization, setMediaCache]);
+  }, [mediaCache, mediaCountry, mediaKey, mediaRefreshKey, prefs.goalCategory, prefs.motivationPersonalization, prefs.questionnaireDone, setMediaCache]);
 
   const refreshMedia = () => {
     setMediaRefreshKey(mediaKey);
@@ -216,7 +219,6 @@ export default function MotivationPage() {
     <RequireAuth>
       <TrackerShell
         icon="flame"
-        showDock={false}
         title="Motivation"
         subtitle={`Daily ${prefs.motivationStyle} deck with your own affirmations, favorites, and a three-prompt reflection anchor.`}
         badge={<SyncBadge status={status} />}
@@ -269,17 +271,17 @@ export default function MotivationPage() {
         {/* ── Stats ── */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { l: "Day streak", v: `${streak}`, Icon: Zap, gradient: "from-amber-500 to-orange-600" },
-            { l: "Saved", v: `${safeFavs.length}`, Icon: Bookmark, gradient: "from-rose-500 to-pink-600" },
-            { l: "Deck size", v: `${deck.length}`, Icon: Quote, gradient: "from-primary to-fuchsia-500" },
+            { l: "Day streak", v: `${streak}`, Icon: Zap, color: "bg-amber-500" },
+            { l: "Saved", v: `${safeFavs.length}`, Icon: Bookmark, color: "bg-[#ff554d]" },
+            { l: "Deck size", v: `${deck.length}`, Icon: Quote, color: "bg-[#49e7ff]" },
           ].map((s) => (
             <Card variant="dossier" key={s.l} className="group overflow-hidden">
               <div className="flex items-center gap-3 p-4">
                 <span
                   aria-hidden
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${s.gradient} shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg`}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${s.color} text-[#071014] shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg`}
                 >
-                  <s.Icon className="h-5 w-5 text-white" />
+                  <s.Icon className="h-5 w-5" />
                 </span>
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">{s.l}</p>
