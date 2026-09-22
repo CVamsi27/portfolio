@@ -93,20 +93,21 @@ const About = () => {
     <section
       id="Top"
       data-chapter-index="00"
-      className="portfolio-hero relative overflow-hidden px-6 pb-20 pt-6 sm:px-10 sm:pb-28 sm:pt-8 lg:px-16 lg:pt-10"
+      className="portfolio-hero relative overflow-hidden px-5 pb-16 pt-5 sm:px-10 sm:pb-24 sm:pt-8 lg:px-16 lg:pt-10"
     >
       <div aria-hidden className="portfolio-hero__wash" />
       <div aria-hidden className="portfolio-hero__ambient" />
 
-      <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start lg:gap-16">
+      <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start lg:gap-16">
         <div className="max-w-5xl">
           <div className="portfolio-status-pill">
             <span className="portfolio-status-dot" aria-hidden="true" />
-            <span>Available for Senior / Staff Product Engineering Roles</span>
+            <span className="hidden sm:inline">Available for Senior / Staff Product Engineering Roles</span>
+            <span className="inline sm:hidden">Available for Senior / Staff Roles</span>
           </div>
 
-          <div className="mt-7 flex flex-wrap items-center gap-2">
-            <p className="font-utility text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[var(--portfolio-muted)]">
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <p className="font-utility text-[0.68rem] sm:text-[0.7rem] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.16em] text-[var(--portfolio-muted)]">
               {currentTranslation.vamsi} {currentTranslation.krishna} {currentTranslation.chandaluri} · Senior Full Stack & Systems Engineer
             </p>
             <button
@@ -122,50 +123,52 @@ const About = () => {
             </button>
           </div>
 
-          <h1 className="portfolio-hero__title mt-4 max-w-5xl">
+          <h1 className="portfolio-hero__title mt-3.5 max-w-5xl">
             I build software
             <br />
             <span>that earns its place.</span>
           </h1>
 
-          <p className="mt-8 max-w-2xl text-lg leading-8 text-[var(--portfolio-muted)] sm:text-xl">
+          <p className="mt-6 sm:mt-8 max-w-2xl text-base sm:text-lg leading-relaxed sm:leading-8 text-[var(--portfolio-muted)]">
             I architect and ship high-reliability web applications, resilient backend APIs,
             and multi-tenant platforms. Currently engineering clinical operating systems
             trusted by clinics across India.
           </p>
 
-          <div className="mt-9 flex flex-wrap items-center gap-3">
-            <a href="#Work" className="portfolio-primary-action">
+          <div className="mt-7 sm:mt-9 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3">
+            <a href="#Work" className="portfolio-primary-action w-full sm:w-auto text-center">
               Explore selected work
               <ArrowUpRight className="h-4 w-4" />
             </a>
 
-            <Button asChild variant="outline" className="portfolio-secondary-action">
-              <a href="/VamsiKrishna_Resume.pdf" download="VamsiKrishna_Resume">
-                <Download className="h-4 w-4" />
-                Download resume
-              </a>
-            </Button>
+            <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:gap-3">
+              <Button asChild variant="outline" className="portfolio-secondary-action w-full sm:w-auto">
+                <a href="/VamsiKrishna_Resume.pdf" download="VamsiKrishna_Resume">
+                  <Download className="h-4 w-4" />
+                  <span>Resume</span>
+                </a>
+              </Button>
 
-            <button
-              type="button"
-              onClick={handleCopyEmail}
-              className="portfolio-copy-action"
-              title="Copy email address"
-              aria-label="Copy cvamsik99@gmail.com"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="text-emerald-500 font-semibold">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" />
-                  <span>Copy email</span>
-                </>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={handleCopyEmail}
+                className="portfolio-copy-action w-full sm:w-auto"
+                title="Copy email address"
+                aria-label="Copy cvamsik99@gmail.com"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                    <span className="text-emerald-500 font-semibold">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    <span>Copy email</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

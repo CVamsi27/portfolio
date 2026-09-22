@@ -96,21 +96,21 @@ const Projects = () => {
       : PROJECTS.filter((p) => PROJECT_EXTRAS[p.title]?.category === activeTab);
 
   return (
-    <section id="Work" className="portfolio-section portfolio-work-section px-6 py-24 sm:px-10 lg:px-16">
+    <section id="Work" className="portfolio-section portfolio-work-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="01 / Selected Work"
-          title="Featured systems & applications"
+          eyebrow="01 / Featured Systems"
+          title="Selected work"
           description="Production systems and engineered products, chosen for the operational problems they solve, their architectural resilience, and the lessons they carry into every new codebase."
         />
 
         {/* Flagship Showcase Card: Docita */}
-        <Reveal delay={40} className="portfolio-flagship-card mb-16">
+        <Reveal delay={40} className="portfolio-flagship-card mb-10 sm:mb-16">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--portfolio-rule)] pb-4">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <span className="portfolio-status-dot" aria-hidden="true" />
               <span className="font-utility text-xs font-bold tracking-wider uppercase text-[var(--portfolio-accent)]">
-                Flagship Production System · Live in Indian Healthcare
+                Flagship Production System · Indian Healthcare
               </span>
             </div>
             <span className="portfolio-impact-pill">25+ Clinics Active</span>
@@ -196,7 +196,7 @@ const Projects = () => {
         </Reveal>
 
         {/* Filter Tabs */}
-        <div className="portfolio-filter-tabs">
+        <div className="portfolio-filter-tabs flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none">
           {[
             { id: "all", label: `All Systems (${PROJECTS.length})` },
             { id: "saas", label: "Production SaaS" },
@@ -238,8 +238,8 @@ const Projects = () => {
                 </div>
 
                 <div className="portfolio-work-copy">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <h3>{project.title}</h3>
                       {extra?.categoryLabel ? (
                         <span className="portfolio-impact-pill">
@@ -257,7 +257,7 @@ const Projects = () => {
                       href={project.URL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[var(--portfolio-accent)]"
+                      className="self-end sm:self-auto text-[var(--portfolio-accent)] p-1 -mr-1"
                       aria-label={`Open ${project.title}`}
                     >
                       <ArrowUpRight className="portfolio-work-arrow h-5 w-5 shrink-0" />

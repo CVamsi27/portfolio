@@ -30,7 +30,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
     <footer data-editorial-footer className="border-t border-border/40">
       <div className={cn(
         "mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 py-8 text-sm text-muted-foreground",
-        isTracker ? "max-w-3xl px-6" : "max-w-7xl px-6 sm:px-10 lg:px-16"
+        isTracker ? "max-w-3xl px-6" : "max-w-7xl px-5 sm:px-10 lg:px-16"
       )}>
         {isTracker ? (
           <p className="font-display text-sm font-bold tracking-[-0.02em] text-foreground">
@@ -53,7 +53,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         )}
 
         {!isTracker ? (
-          <div className="flex flex-wrap items-center gap-4 text-xs font-utility text-[var(--portfolio-muted)]">
+          <div className="flex flex-wrap justify-center sm:justify-start items-center gap-4 text-xs font-utility text-[var(--portfolio-muted)]">
             <a href="#Work" className="transition-colors hover:text-[var(--portfolio-accent)]">Work</a>
             <a href="#Experience" className="transition-colors hover:text-[var(--portfolio-accent)]">Experience</a>
             <a href="#Capabilities" className="transition-colors hover:text-[var(--portfolio-accent)]">Stack</a>

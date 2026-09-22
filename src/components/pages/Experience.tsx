@@ -11,7 +11,7 @@ const COMPANY_HIGHLIGHTS: Record<string, string[]> = {
 
 const Experience = () => {
   return (
-    <section id="Experience" className="portfolio-section px-6 py-24 sm:px-10 lg:px-16">
+    <section id="Experience" className="portfolio-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="02 / Career Record"

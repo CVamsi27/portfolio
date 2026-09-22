@@ -22,16 +22,27 @@ const HeaderMenu = ({
     <div className={alwaysVisible ? "flex" : "flex md:hidden"} data-testid={testId}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-none" aria-label={ariaLabel}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-lg border border-border/60 bg-muted/20 transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)]"
+            aria-label={ariaLabel}
+          >
             <Menu className="h-4 w-4" />
             <span className="sr-only">Menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 rounded-none border-border/80 p-1">
+        <DropdownMenuContent
+          align="end"
+          className="w-52 rounded-xl border border-border/70 bg-background/95 p-1.5 shadow-xl backdrop-blur-lg"
+        >
           {items.map((item) => (
             <DropdownMenuItem key={item.href} asChild>
-              <a href={item.href} className="w-full cursor-pointer rounded-lg">
-                {item.label}
+              <a
+                href={item.href}
+                className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 font-utility text-xs font-medium text-foreground transition-colors hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)]"
+              >
+                <span>{item.label}</span>
               </a>
             </DropdownMenuItem>
           ))}

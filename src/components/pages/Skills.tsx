@@ -103,7 +103,7 @@ const Skills = () => {
       : ADDITIONAL_TECH.filter((s) => s.category === activeCategory);
 
   return (
-    <section id="Capabilities" className="portfolio-section px-6 py-24 sm:px-10 lg:px-16">
+    <section id="Capabilities" className="portfolio-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="03 / Disciplines & Stack"
@@ -156,7 +156,7 @@ const Skills = () => {
             </div>
 
             {/* Category Filter */}
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap scrollbar-none -mx-1 px-1">
               {[
                 { id: "all", label: "All Tools" },
                 { id: "frontend", label: "Frontend & UI" },

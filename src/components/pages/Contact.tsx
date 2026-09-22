@@ -117,7 +117,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="Contact" className="portfolio-section portfolio-contact-section px-6 py-24 sm:px-10 lg:px-16">
+    <section id="Contact" className="portfolio-section portfolio-contact-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="04 / Start a Conversation"
@@ -125,26 +125,26 @@ const Contact = () => {
           description="If you are building an important product, modernizing clinical workflows, or need an engineer who can move fluidly between product design and production backend systems, I'd like to hear from you."
         />
 
-        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
           {/* Left Column: Direct coordinates */}
-          <Reveal direction="left" className="space-y-6">
+          <Reveal direction="left" className="space-y-5 sm:space-y-6">
             {/* Primary Email Card */}
-            <div className="rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 shadow-xs">
+            <div className="rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-5 sm:p-6 shadow-xs">
               <p className="portfolio-meta-label">Primary Inbox</p>
 
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <a
                   href="mailto:cvamsik99@gmail.com"
-                  className="portfolio-contact-email"
+                  className="portfolio-contact-email text-lg sm:text-2xl break-all sm:break-normal"
                 >
-                  <Mail className="h-5 w-5 text-[var(--portfolio-accent)]" />
+                  <Mail className="h-5 w-5 text-[var(--portfolio-accent)] shrink-0" />
                   <span>cvamsik99@gmail.com</span>
                 </a>
 
                 <button
                   type="button"
                   onClick={handleCopyEmail}
-                  className="portfolio-copy-action"
+                  className="portfolio-copy-action w-full sm:w-auto"
                   title="Copy email to clipboard"
                   aria-label="Copy cvamsik99@gmail.com"
                 >
