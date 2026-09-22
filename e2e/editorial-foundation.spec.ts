@@ -10,11 +10,12 @@ test("editorial foundation exposes semantic surfaces and an action hierarchy", a
   await expect(page.locator("[data-editorial-telemetry]").first()).toBeVisible();
 });
 
-test("portfolio uses the paper editorial surface without changing identity", async ({ page }) => {
+test("portfolio uses the personal paper editorial surface", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator('[data-surface="paper"]')).toBeVisible();
-  await expect(page).toHaveTitle(/Vamsi Krishna/i);
-  await expect(page.locator("body")).toContainText("Vamsi Krishna");
+  await expect(page).toHaveTitle(/Vamsi Krishna.*Portfolio/i);
+  await expect(page.getByRole("heading", { name: /Selected work/i })).toBeVisible();
+  await expect(page.locator("[data-project-index]").first()).toBeVisible();
   await expect(page.locator('[data-card-variant="dossier"]')).toHaveCount(0);
 });
 

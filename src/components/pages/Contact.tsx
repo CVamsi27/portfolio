@@ -3,9 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { ArrowUpRight, Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -35,117 +35,94 @@ const FormSchema = z.object({
 const Contact = () => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      message: "",
-    },
+    defaultValues: { name: "", email: "", message: "" },
   });
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
-      const requestOptions = {
+      const response = await fetch(`/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      };
-
-      const response = await fetch(`/api/contact`, requestOptions);
+      });
       const res = await response.json();
 
       if (res.status === 200) {
-        toast({
-          title: "Message sent successfully!",
-        });
+        toast({ title: "Message sent successfully!" });
         form.reset();
       } else {
-        toast({
-          title: "Message sending failed!",
-        });
+        toast({ title: "Message sending failed!" });
       }
     } catch (error) {
-      toast({
-        title: JSON.stringify(error),
-      });
+      toast({ title: JSON.stringify(error) });
     }
   };
 
   return (
-    <section
-      id="Contact"
-      data-chapter-index="04"
-      className="w-full bg-secondary/30 px-6 py-16 md:py-20"
-    >
-      <div className="max-w-3xl mx-auto">
+    <section id="Contact" className="portfolio-section portfolio-contact-section px-6 py-24 sm:px-10 lg:px-16">
+      <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Contact"
-          title="Let&apos;s work together"
-          description="Open to full-time, hybrid, and on-site roles across locations — or a conversation about your next product."
+          eyebrow="Start a conversation"
+          title="Let’s work together"
+          description="If you are building something useful and need someone who can move between product thinking and production detail, I would like to hear about it."
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <Reveal direction="left" className="flex flex-col gap-8">
-            <div className="flex flex-col gap-4">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
-                Get in Touch
-              </h3>
-              <div className="flex flex-col gap-3">
-                {PERSONAL_DETAILS.map((value, index) => (
-                  <a
-                    key={index}
-                    href={value.value.includes("@") ? `mailto:${value.value}` : value.value.includes("+") ? `tel:${value.value}` : value.value.startsWith("https") ? value.value : `https://maps.google.com/?q=${encodeURIComponent(value.value)}`}
-                    target={value.value.includes("@") || value.value.includes("+") ? undefined : "_blank"}
-                    rel={value.value.includes("@") || value.value.includes("+") ? undefined : "noopener noreferrer"}
-                    className="flex gap-3 items-center group rounded-xl border border-border/60 bg-card/60 px-3 py-2.5 transition-colors hover:border-primary/40"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground group-hover:text-primary transition-all shrink-0">
-                      <value.icon className="h-4 w-4" />
-                    </div>
-                    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors break-all">
-                      {value.value}
-                    </span>
-                  </a>
-                ))}
+        <div className="grid gap-14 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
+          <Reveal direction="left" className="portfolio-contact-copy">
+            <a className="portfolio-contact-email" href="mailto:cvamsik99@gmail.com">
+              <Mail className="h-5 w-5" />
+              cvamsik99@gmail.com
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+            <div className="mt-10">
+              <p className="portfolio-meta-label">Elsewhere</p>
+              <div className="mt-4">
+                <Connections />
               </div>
             </div>
-            <div className="flex flex-col gap-4">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
-                Connect
-              </h3>
-              <Connections />
+            <div className="mt-10 border-t border-[var(--portfolio-rule)] pt-5">
+              <p className="portfolio-meta-label">Based in</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--portfolio-muted)]">
+                Hyderabad, India · open to remote, hybrid, and on-site roles
+              </p>
+            </div>
+            <div className="mt-8 flex flex-col gap-3 text-sm">
+              {PERSONAL_DETAILS.filter((detail) => detail.value.includes("+" ) || detail.value.startsWith("https")).map((detail) => (
+                <a
+                  key={detail.value}
+                  href={detail.value.includes("+") ? `tel:${detail.value}` : detail.value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--portfolio-muted)] underline decoration-[var(--portfolio-rule)] underline-offset-4 transition-colors hover:text-[var(--portfolio-accent)]"
+                >
+                  {detail.value}
+                </a>
+              ))}
             </div>
           </Reveal>
 
-          <Reveal direction="right" className="animate-slide-in-right">
-            <Card className="rounded-2xl shadow-sm">
-              <CardContent className="p-6">
+          <Reveal direction="right" className="portfolio-contact-form">
             <Form {...form}>
-              <form
-                method="POST"
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                {FORM_DETAILS.map((value, index) => (
+              <form method="POST" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                {FORM_DETAILS.map((field) => (
                   <FormField
-                    key={index}
+                    key={field.name}
                     control={form.control}
-                    name={value.name}
-                    render={({ field }) => (
+                    name={field.name}
+                    render={({ field: controllerField }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-foreground">
-                          {value.label}
-                        </FormLabel>
+                        <FormLabel>{field.label}</FormLabel>
                         <FormControl>
-                          {value.name === "message" ? (
+                          {field.name === "message" ? (
                             <Textarea
-                              className="min-h-[120px] resize-none"
-                              placeholder="Your message..."
-                              {...field}
+                              className="min-h-[140px] resize-none"
+                              placeholder="What are you working on?"
+                              {...controllerField}
                             />
                           ) : (
                             <Input
-                              placeholder={`Enter your ${value.name}...`}
-                              {...field}
+                              placeholder={`Enter your ${field.name}...`}
+                              {...controllerField}
                             />
                           )}
                         </FormControl>
@@ -154,13 +131,12 @@ const Contact = () => {
                     )}
                   />
                 ))}
-                <Button type="submit" className="w-full rounded-xl">
-                  Send Message
+                <Button type="submit" className="portfolio-submit-action w-full">
+                  Send message
+                  <ArrowUpRight className="h-4 w-4" />
                 </Button>
               </form>
             </Form>
-              </CardContent>
-            </Card>
           </Reveal>
         </div>
       </div>

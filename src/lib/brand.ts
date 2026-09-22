@@ -9,13 +9,14 @@ export const TRACKER_BRAND = {
 } as const;
 
 export const PORTFOLIO_BRAND = {
-  siteName: "Buildora",
-  personName: "Vamsi Krishna",
+  siteName: "Vamsi Krishna",
+  personName: "Vamsi Krishna Chandaluri",
   name: "Vamsi Krishna",
-  title: "Buildora — Vamsi Krishna | Full Stack Engineer",
-  iconPath: "/icons/buildora.svg",
+  title: "Vamsi Krishna — Portfolio | Full Stack Engineer",
+  iconPath: "/icons/vk.svg",
+  ogImagePath: "/portfolio-og.png",
   description:
-    "Product-focused Full Stack Engineer with 5+ years of experience delivering production web applications with TypeScript, React, Node.js, NestJS, and PostgreSQL.",
+    "Full Stack Engineer building reliable, thoughtful software with TypeScript, React, Node.js, NestJS, and PostgreSQL.",
 } as const;
 
 export function isTrackerHost(hostname: string): boolean {

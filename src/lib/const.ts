@@ -18,10 +18,9 @@ import react from "../../public/react.svg";
 import typescript from "../../public/typescript.svg";
 
 export const MENU_LIST = [
-  "About",
+  "Work",
   "Experience",
-  "Projects",
-  "Skills",
+  "Capabilities",
   "Contact",
 ];
 

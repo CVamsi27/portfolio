@@ -3,7 +3,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MENU_LIST } from "@/lib/const";
 import { PERSONAL_PRIMARY_NAV, isPersonalPrimaryPath } from "@/lib/personal-nav";
 import { ModeToggle } from "./common/ModeToggle";
@@ -11,7 +10,7 @@ import HeaderMenu from "./HeaderMenu";
 import AuthButton from "./auth/AuthButton";
 import { cn } from "@/lib/utils";
 import NovaMark from "@/components/brand/NovaMark";
-import BuildoraMark from "@/components/brand/BuildoraMark";
+import VamsiMark from "@/components/brand/VamsiMark";
 
 const emptySubscribe = () => () => {};
 const getHostname = () =>
@@ -63,25 +62,13 @@ const Navbar = () => {
 
   const menuItems = isTracker
     ? PERSONAL_PRIMARY_NAV.map((item) => ({ label: item.label, href: item.href }))
-    : [
-        ...MENU_LIST.map((m) => ({ label: m, href: `#${m}` })),
-        { label: "Study", href: "https://study.buildora.work" },
-      ];
+    : MENU_LIST.map((m) => ({ label: m, href: `#${m}` }));
 
   const isMenuActive = (href: string) =>
     isTracker ? isPersonalPrimaryPath(pathname, href) : active === href.replace("#", "");
 
-  // The proxy (host router) blocks /trackers on the portfolio host in production,
-  // so the portal points at the personal subdomain there; locally it's /trackers.
-  const portalHref = isPersonalHost
-    ? "/hub"
-    : host === "localhost" || host.startsWith("127.")
-      ? "/trackers"
-      : "https://personal.buildora.work";
-
   return (
-    <TooltipProvider delayDuration={200}>
-      <nav data-testid="command-rail" className="dossier-command-rail sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg">
+    <nav data-testid="command-rail" className="dossier-command-rail sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg">
         <div
           aria-hidden
           className="absolute inset-x-0 top-0 h-0.5 bg-transparent"
@@ -96,14 +83,14 @@ const Navbar = () => {
         </div>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
           <a
-            href={isTracker ? "/hub" : "#About"}
-            aria-label={isTracker ? "NOVA home" : "Buildora home"}
+            href={isTracker ? "/hub" : "#Top"}
+            aria-label={isTracker ? "NOVA home" : "Vamsi Krishna portfolio"}
             className="transition-colors hover:text-primary"
           >
             {isTracker ? (
               <NovaMark variant="wordmark" simple label="NOVA" />
             ) : (
-              <BuildoraMark variant="wordmark" label="Buildora" />
+              <VamsiMark variant="wordmark" label="Vamsi Krishna portfolio" />
             )}
           </a>
           <div className="flex items-center gap-1.5">
@@ -138,31 +125,12 @@ const Navbar = () => {
                 ),
               )}
             </div>
-            {/* NOVA portal — subtle entry from the resume */}
-            {!isTracker && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href={portalHref}
-                    aria-label="Open the NOVA trackers"
-                    className="dossier-portal-link ml-1 inline-flex h-9 items-center gap-1.5 px-3 text-xs font-semibold text-muted-foreground transition-all"
-                  >
-                    <NovaMark variant="mark" className="[&>svg]:h-3.5 [&>svg]:w-3.5" />
-                    <span className="hidden lg:inline">NOVA</span>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  Your next chapter, in motion — fasting, workouts, goals & more
-                </TooltipContent>
-              </Tooltip>
-            )}
             {isTracker ? <div className="hidden md:block"><AuthButton /></div> : null}
             <ModeToggle />
             {!isTracker ? <HeaderMenu items={menuItems} ariaLabel="Open portfolio menu" /> : null}
           </div>
         </div>
       </nav>
-    </TooltipProvider>
   );
 };
 

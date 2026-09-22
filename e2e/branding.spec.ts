@@ -14,11 +14,10 @@ test.describe("product branding", () => {
 
   test("portfolio shell keeps the personal identity", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("link", { name: "Open the NOVA trackers" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Buildora home" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Vamsi Krishna/i })).toBeVisible();
-    await expect(page).toHaveTitle(/Buildora.*Vamsi Krishna/i);
-    await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", "/icons/buildora.svg");
+    await expect(page.getByRole("link", { name: /Vamsi Krishna portfolio/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /I build software/i })).toBeVisible();
+    await expect(page).toHaveTitle(/Vamsi Krishna.*Portfolio/i);
+    await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", "/icons/vk.svg");
   });
 
   test("personal-host landing explains the product before workspace entry", async ({ page }) => {
@@ -60,7 +59,9 @@ test.describe("product branding", () => {
   });
 
   test("PWA metadata exposes the NOVA identity", async ({ page }) => {
-    const manifestResponse = await page.request.get("/manifest.webmanifest");
+    const manifestResponse = await page.request.get("/manifest.webmanifest", {
+      headers: { Host: "personal.buildora.work" },
+    });
     expect(manifestResponse.ok()).toBeTruthy();
     const manifest = await manifestResponse.json();
     expect(manifest.name).toBe("NOVA");

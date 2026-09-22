@@ -36,7 +36,7 @@ const Footer = () => {
           <p>
             © {year}{" "}
             <span className="font-medium text-foreground">
-              {PORTFOLIO_BRAND.siteName} <span className="text-muted-foreground">· {PORTFOLIO_BRAND.personName}</span>
+              {PORTFOLIO_BRAND.personName}
             </span>
           </p>
         )}
@@ -46,7 +46,7 @@ const Footer = () => {
           </p>
         ) : null}
         <a
-          href={isTracker ? "/trackers" : "#About"}
+          href={isTracker ? "/trackers" : "#Top"}
           className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs transition-colors hover:border-primary/50 hover:text-foreground"
         >
           {isTracker ? "Hub" : "Top"}

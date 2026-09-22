@@ -1,16 +1,6 @@
-"use client";
 import Connections from "../Connections";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Download } from "lucide-react";
-import ChapterHeader from "@/components/trackers/ChapterHeader";
-
-const PHRASES = [
-  "Full Stack Engineer",
-  "TypeScript · React · NestJS · PostgreSQL",
-  "Multi-tenant SaaS @ Docita",
-  "25+ clinics · 1,000+ appts/mo",
-];
+import { Download, ArrowUpRight } from "lucide-react";
 
 const STATS = [
   { value: "5+", label: "Years shipping" },
@@ -20,143 +10,71 @@ const STATS = [
 ];
 
 const About = () => {
-  const [typed, setTyped] = useState("");
-
-  useEffect(() => {
-    let phrase = 0;
-    let char = 0;
-    let deleting = false;
-    let timer: ReturnType<typeof setTimeout>;
-    const tick = () => {
-      const current = PHRASES[phrase];
-      if (!deleting) {
-        char += 1;
-        setTyped(current.slice(0, char));
-        if (char >= current.length) {
-          deleting = true;
-          timer = setTimeout(tick, 1600);
-          return;
-        }
-        timer = setTimeout(tick, 55);
-      } else {
-        char -= 1;
-        setTyped(current.slice(0, char));
-        if (char <= 0) {
-          deleting = false;
-          phrase = (phrase + 1) % PHRASES.length;
-          timer = setTimeout(tick, 350);
-          return;
-        }
-        timer = setTimeout(tick, 28);
-      }
-    };
-    timer = setTimeout(tick, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <section
-      id="About"
+      id="Top"
       data-chapter-index="00"
-      className="relative flex min-h-[calc(100svh-var(--app-header-height))] flex-col justify-center overflow-hidden px-6 py-16 sm:py-20"
+      className="portfolio-hero relative overflow-hidden px-6 pb-24 pt-20 sm:px-10 sm:pb-32 sm:pt-28 lg:px-16"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[420px] w-[420px] rounded-full bg-primary/10 blur-[120px]"
-      />
-      <div className="max-w-3xl mx-auto w-full relative">
-          <div className="flex flex-col gap-8 text-center">
-          <ChapterHeader
-            eyebrow="BUILDORA // Public portfolio // Chapter 00"
-            title={
-              <>
-                Vamsi Krishna <span className="gradient-text">Chandaluri</span>
-              </>
-            }
-            subtitle="Product-focused Full Stack Engineer building resilient SaaS chapters from interface to delivery."
-          />
-
-          <p className="-mt-4 font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-primary">BUILDORA</p>
-
-          <div className="flex flex-col gap-4">
-
-            <div className="flex justify-center animate-fade-in-delayed">
-              <div className="w-full max-w-xl rounded-2xl border border-border bg-card/80 px-4 py-3 text-left shadow-xl shadow-primary/10 backdrop-blur">
-                <div className="mb-2 flex items-center gap-1.5" aria-hidden>
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
-                  <span className="ml-2 font-mono text-[11px] text-muted-foreground">
-                    vamsi@portfolio: ~
-                  </span>
-                </div>
-                <p className="font-mono text-sm sm:text-base" aria-live="polite">
-                  <span className="text-emerald-500">$</span>{" "}
-                  <span className="text-foreground">{typed}</span>
-                  <span className="ml-0.5 inline-block h-4 w-2 translate-y-0.5 animate-pulse bg-primary" />
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-center animate-fade-in-delayed-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1.5 text-xs text-muted-foreground">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                Open to relocation · Hybrid / On-site / Remote
-              </span>
-            </div>
+      <div aria-hidden className="portfolio-hero__wash" />
+      <div className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:gap-20">
+        <div className="max-w-5xl">
+          <div className="portfolio-kicker">
+            <span className="portfolio-kicker__dot" />
+            Available for thoughtful product engineering work
           </div>
-
-          <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto animate-fade-in-delayed-3">
-            Product-focused Full Stack Engineer with 5+ years of experience
-            delivering business-critical SaaS features end to end with React,
-            TypeScript, Node.js, NestJS, and PostgreSQL. Currently building
-            multi-tenant healthcare workflows for 25+ clinics and 1,000+
-            appointment workflows per month.
+          <p className="mt-7 font-utility text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[var(--portfolio-muted)]">
+            Vamsi Krishna Chandaluri · Full Stack Engineer
           </p>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-2xl mx-auto animate-fade-in-delayed-3">
-            {STATS.map((s) => (
-              <div
-                key={s.label}
-                className="rounded-xl border border-border bg-card/60 px-3 py-3 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
-              >
-                <p className="font-display text-2xl font-bold tabular-nums">
-                  {s.value}
-                </p>
-                <p className="mt-0.5 text-[11px] uppercase tracking-widest text-muted-foreground">
-                  {s.label}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col items-center gap-6 pt-2 animate-fade-in-delayed-4">
-            <Connections />
-
-            <Button asChild variant="outline" className="rounded-full px-6">
-              <a
-                href="/VamsiKrishna_Resume.pdf"
-                download="VamsiKrishna_Resume"
-                className="gap-2"
-              >
-                Download Resume
+          <h1 className="portfolio-hero__title mt-5 max-w-5xl">
+            I build software
+            <br />
+            <span>that earns its place.</span>
+          </h1>
+          <p className="mt-8 max-w-2xl text-lg leading-8 text-[var(--portfolio-muted)] sm:text-xl">
+            I work across product interfaces, dependable APIs, and the systems
+            that carry them into production — making complex workflows feel
+            clear, useful, and durable.
+          </p>
+          <div className="mt-9 flex flex-wrap items-center gap-3">
+            <a href="#Work" className="portfolio-primary-action">
+              See selected work
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+            <Button asChild variant="outline" className="portfolio-secondary-action">
+              <a href="/VamsiKrishna_Resume.pdf" download="VamsiKrishna_Resume">
+                Download resume
                 <Download className="h-4 w-4" />
               </a>
             </Button>
-            </div>
           </div>
         </div>
-      <a
-        href="#Experience"
-        aria-label="Scroll to experience"
-        className="absolute bottom-5 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <span className="text-[10px] uppercase tracking-[0.25em]">Scroll</span>
-        <ChevronDown className="h-4 w-4 animate-bounce" />
-      </a>
+
+        <aside className="portfolio-hero__aside">
+          <p className="portfolio-meta-label">Currently</p>
+          <p className="mt-3 text-lg font-medium leading-7 text-[var(--portfolio-ink)]">
+            Building multi-tenant healthcare workflows for clinics across India.
+          </p>
+          <div className="mt-8 border-t border-[var(--portfolio-rule)] pt-4">
+            <p className="portfolio-meta-label">Focus</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--portfolio-muted)]">
+              TypeScript · React · NestJS · PostgreSQL
+            </p>
+          </div>
+          <div className="mt-8">
+            <Connections />
+          </div>
+        </aside>
+      </div>
+
+      <div className="relative mx-auto mt-20 grid max-w-7xl grid-cols-2 border-y border-[var(--portfolio-rule)] sm:grid-cols-4">
+        {STATS.map((stat) => (
+          <div key={stat.label} className="portfolio-stat">
+            <p className="portfolio-stat__value">{stat.value}</p>
+            <p className="portfolio-meta-label mt-1">{stat.label}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 };

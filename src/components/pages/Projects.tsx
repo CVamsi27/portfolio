@@ -1,4 +1,5 @@
 "use client";
+
 import { PROJECTS } from "@/lib/const";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
@@ -8,63 +9,44 @@ import { ArrowUpRight } from "lucide-react";
 
 const Projects = () => {
   return (
-    <section id="Projects" data-chapter-index="02" className="w-full px-6 py-16 md:py-20">
-      <div className="max-w-3xl mx-auto">
+    <section id="Work" className="portfolio-section portfolio-work-section px-6 py-24 sm:px-10 lg:px-16">
+      <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Selected work"
-          title="Projects"
-          description="Production systems and side projects — each built to solve a real problem and to sharpen the stack."
+          eyebrow="A few things I have made"
+          title="Selected work"
+          description="Production systems and side projects, chosen for the problems they solve and the lessons they carry forward."
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {PROJECTS.map((value, index) => (
+        <div className="portfolio-work-index">
+          {PROJECTS.map((project, index) => (
             <Reveal
-              key={index}
-              delay={(index % 2) * 80}
-              className="group relative flex flex-col gap-3 p-6 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300"
+              key={project.title}
+              delay={(index % 2) * 70}
+              data-project-index={String(index + 1).padStart(2, "0")}
+              className={index === 0 ? "portfolio-work-row portfolio-work-row--lead" : "portfolio-work-row"}
             >
-              <div className="flex items-start justify-between">
-                <h3 className="font-display text-base font-semibold group-hover:text-primary transition-colors">
-                  {value.title}
-                </h3>
-                <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 shrink-0 mt-0.5" />
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {value.description}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {value.tech.split(", ").map((tech, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-background text-muted-foreground border border-border/70"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
-              <div className="flex items-center gap-3 pt-1 mt-auto">
-                {value.gitLink && (
-                  <a
-                    href={value.gitLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <FontAwesomeIcon
-                      icon={faGithub}
-                      className="h-3.5 w-3.5"
-                    />
-                    Source
+              <div className="portfolio-work-number">{String(index + 1).padStart(2, "0")}</div>
+              <div className="portfolio-work-copy">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <h3>{project.title}</h3>
+                  <ArrowUpRight className="portfolio-work-arrow h-5 w-5 shrink-0" />
+                </div>
+                <p>{project.description}</p>
+                <div className="portfolio-tag-list">
+                  {project.tech.split(", ").map((tech) => (
+                    <span key={tech}>{tech}</span>
+                  ))}
+                </div>
+                <div className="portfolio-work-links">
+                  {project.gitLink ? (
+                    <a href={project.gitLink} target="_blank" rel="noopener noreferrer">
+                      <FontAwesomeIcon icon={faGithub} className="h-3.5 w-3.5" />
+                      Source
+                    </a>
+                  ) : null}
+                  <a href={project.URL} target="_blank" rel="noopener noreferrer">
+                    Live project <ArrowUpRight className="h-3.5 w-3.5" />
                   </a>
-                )}
-                <a
-                  href={value.URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Live Demo
-                  <ArrowUpRight className="h-3 w-3" />
-                </a>
+                </div>
               </div>
             </Reveal>
           ))}

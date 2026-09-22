@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#F4F1EA"/>
+  <path d="M78 82H1122" stroke="#DCE5FF" stroke-width="2"/>
+  <path d="M78 548H1122" stroke="#DCE5FF" stroke-width="2"/>
+  <rect x="78" y="110" width="74" height="74" rx="18" fill="#17191C"/>
+  <path d="m96 128 22 48 15-33.3L148 176l22-48" stroke="#F4F1EA" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M105 181h54" stroke="#315CFF" stroke-width="5" stroke-linecap="round"/>
+  <text x="183" y="159" fill="#17191C" font-family="Arial, sans-serif" font-size="25" font-weight="700">VAMSI KRISHNA</text>
+  <text x="78" y="337" fill="#17191C" font-family="Arial, sans-serif" font-size="88" font-weight="700" letter-spacing="-4">SELECTED WORK</text>
+  <text x="82" y="395" fill="#6F7478" font-family="Arial, sans-serif" font-size="28">Full Stack Engineer · Product-minded systems builder</text>
+  <rect x="82" y="463" width="170" height="8" rx="4" fill="#315CFF"/>
+  <text x="1030" y="514" fill="#6F7478" font-family="monospace" font-size="18" text-anchor="end">BUILDORA.WORK</text>
+</svg>

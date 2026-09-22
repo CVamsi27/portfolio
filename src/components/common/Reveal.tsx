@@ -8,6 +8,7 @@ type RevealProps = {
   className?: string;
   delay?: number;
   direction?: "up" | "left" | "right" | "none";
+  "data-project-index"?: string;
 };
 
 export const Reveal = ({
@@ -15,6 +16,7 @@ export const Reveal = ({
   className,
   delay = 0,
   direction = "up",
+  "data-project-index": projectIndex,
 }: RevealProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -39,6 +41,7 @@ export const Reveal = ({
   return (
     <div
       ref={ref}
+      data-project-index={projectIndex}
       style={{ transitionDelay: `${delay}ms` }}
       className={cn(
         "reveal",

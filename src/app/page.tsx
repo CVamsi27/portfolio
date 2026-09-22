@@ -12,11 +12,8 @@ export default function Home() {
       <About />
       <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <Experience />
-      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <Projects />
-      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <Skills />
-      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <Contact />
       </div>
     </EditorialFrame>

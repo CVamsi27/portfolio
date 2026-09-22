@@ -46,6 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const isTracker = brand === TRACKER_BRAND;
 
   return {
+    metadataBase: new URL("https://buildora.work"),
     title: isTracker ? `${TRACKER_BRAND.name} | Personal Operating System` : PORTFOLIO_BRAND.title,
     description: brand.description,
     manifest: "/manifest.webmanifest",
@@ -56,8 +57,32 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: brand.iconPath,
-      apple: isTracker ? "/icons/icon-192.png" : "/icons/buildora.svg",
+      apple: isTracker ? "/icons/icon-192.png" : PORTFOLIO_BRAND.iconPath,
     },
+    ...(isTracker
+      ? {}
+      : {
+          openGraph: {
+            type: "website" as const,
+            url: "https://buildora.work",
+            title: PORTFOLIO_BRAND.title,
+            description: PORTFOLIO_BRAND.description,
+            images: [
+              {
+                url: PORTFOLIO_BRAND.ogImagePath,
+                width: 1200,
+                height: 630,
+                alt: "Vamsi Krishna portfolio",
+              },
+            ],
+          },
+          twitter: {
+            card: "summary_large_image" as const,
+            title: PORTFOLIO_BRAND.title,
+            description: PORTFOLIO_BRAND.description,
+            images: [PORTFOLIO_BRAND.ogImagePath],
+          },
+        }),
   };
 }
 
@@ -94,7 +119,7 @@ export default async function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme={trackerSurface ? "dark" : "light"}
           enableSystem
           disableTransitionOnChange
         >
