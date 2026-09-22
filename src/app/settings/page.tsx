@@ -44,6 +44,7 @@ import {
 import { cn } from "@/lib/utils";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
+import DevicePreparation from "@/components/trackers/DevicePreparation";
 
 export default function SettingsPage() {
   useMigrateWorkouts();
@@ -216,6 +217,7 @@ export default function SettingsPage() {
             </label>
             <p className="text-xs text-muted-foreground">{bedtimeWindow ? `Next protected window ends at ${formatLockEnd(bedtimeWindow.end)} local time.` : "Choose a valid time and at least one day to preview the next window."}</p>
             <div className="flex flex-wrap items-center gap-2"><Button onClick={saveBedtime}>Save bedtime schedule</Button>{bedtimeSaved ? <span role="status" className="text-xs font-semibold text-emerald-500">Bedtime schedule saved</span> : null}</div>
+            <DevicePreparation compact />
           </CardContent>
         </Card>
 
