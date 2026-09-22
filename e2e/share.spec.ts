@@ -2,6 +2,19 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("share", () => {
+  test("combines sent drops and incoming items behind one Sharing route", async ({ page }) => {
+    await seed(page);
+    await page.goto("/share");
+
+    await expect(page.getByRole("link", { name: "Create & sent" })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByTestId("sharing-view-switcher").getByRole("link", { name: "Inbox" })).toHaveAttribute("href", "/share?view=incoming");
+    await expect(page.getByText("Storage limits")).toBeVisible();
+
+    await page.goto("/share?view=incoming");
+    await expect(page.getByRole("link", { name: "Inbox" })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByTestId("shared-inbox-summary")).toBeVisible();
+  });
+
   test("share page shows hard limits and explicit auto-clear choices", async ({ page }) => {
     await seed(page);
     await page.goto("/share");

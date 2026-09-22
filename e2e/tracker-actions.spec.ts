@@ -12,7 +12,7 @@ test.describe("tracker action bar", () => {
       ["/todo", /add task/i],
       ["/motivation", /start focus/i],
       ["/share", /create share/i],
-      ["/shared-with-me", /review|retry/i],
+      ["/share?view=incoming", /review|retry/i],
       ["/settings", /open backup controls/i],
     ] as const;
 

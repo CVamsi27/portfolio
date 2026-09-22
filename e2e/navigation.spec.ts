@@ -2,15 +2,11 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("navigation & shell", () => {
-  test("portfolio root renders and exposes the NOVA portal", async ({ page }) => {
+  test("portfolio root renders as a personal work index", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("body")).toContainText(/Vamsi|Full Stack/i);
-    // Portal link is host-aware: on localhost it points at the tracker hub.
-    // (host is read in an effect, so allow the href to settle after hydration.)
-    const portal = page.getByRole("link", { name: "Open the NOVA trackers" });
-    await expect(portal).toBeVisible();
-    await expect(portal).toHaveAttribute("href", "/trackers", { timeout: 7_000 });
-    await expect(page.getByRole("link", { name: "Study" })).toHaveAttribute("href", "https://study.buildora.work");
+    await expect(page.getByRole("heading", { name: /Selected work/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Study" })).toHaveCount(0);
     await expect(page.getByTestId("nova-simple-mark")).toHaveCount(0);
   });
 
@@ -76,28 +72,38 @@ test.describe("navigation & shell", () => {
     await expect(page.getByRole("link", { name: "NOVA home" })).toContainText("NOVA");
   });
 
-  test("personal navbar keeps Today, Focus, Log, and More visible", async ({ page }) => {
+  test("personal navbar keeps Today, Focus, Log, Sharing, and More visible", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
 
     const rail = page.getByTestId("command-rail");
     await expect(rail.getByTestId("tracker-primary-nav")).toBeVisible();
-    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link")).toHaveCount(4);
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link")).toHaveCount(5);
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Today" })).toBeVisible();
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Focus" })).toBeVisible();
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Log" })).toBeVisible();
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Sharing" })).toHaveAttribute("href", "/share");
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "More" })).toBeVisible();
   });
 
-  test("mobile personal navigation keeps the four destinations in the dock", async ({ page }) => {
+  test("mobile personal navigation keeps the five destinations in the dock", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await seed(page);
     await page.goto("/todo");
 
     await expect(page.getByTestId("tracker-primary-nav")).toBeHidden();
     await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
-    await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(4);
+    await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(5);
+    await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "Sharing" })).toHaveAttribute("href", "/share");
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  });
+
+  test("More does not duplicate the primary Sharing destination", async ({ page }) => {
+    await seed(page);
+    await page.goto("/more");
+
+    await expect(page.getByTestId("more-links").locator('a[href="/share"]')).toHaveCount(0);
+    await expect(page.getByTestId("more-links").locator('a[href="/shared-with-me"]')).toHaveCount(0);
   });
 
   test("settings keeps account controls outside the navbar", async ({ page }) => {
@@ -114,7 +120,7 @@ test.describe("navigation & shell", () => {
 
   test("every primary chapter exposes the shared visual shell", async ({ page }) => {
     await seed(page);
-    for (const route of ["/intermittent-fasting", "/workout-tracking", "/goal", "/todo", "/settings", "/portfolio"]) {
+    for (const route of ["/intermittent-fasting", "/workout-tracking", "/goal", "/todo", "/settings"]) {
       await page.goto(route);
       await expect(page.getByTestId("chapter-header")).toBeVisible();
     }
@@ -126,7 +132,7 @@ test.describe("navigation & shell", () => {
     });
     expect(manifest.status()).toBe(200);
     const json = await manifest.json();
-    expect(json.name).toBe("NOVA");
+    expect(json.name).toBe("Vamsi Krishna — Portfolio");
     const sw = await page.request.get("http://127.0.0.1:4111/sw.js", { headers: { Host: "buildora.work" } });
     expect(sw.status()).toBe(200);
   });
