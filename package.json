@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
-    "pretest:e2e": "NEXT_TELEMETRY_DISABLED=1 NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY= next build",
+    "pretest:e2e": "test -f .env && mv .env .env.local_save || true; NEXT_TELEMETRY_DISABLED=1 NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY= next build; STATUS=$?; test -f .env.local_save && mv .env.local_save .env || true; exit $STATUS",
     "test:e2e": "playwright test"
   },
   "pnpm": {

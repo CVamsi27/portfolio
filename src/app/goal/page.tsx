@@ -416,12 +416,11 @@ export default function GoalPage() {
         {weeklyCommitment && (
           <div className="rounded-xl border border-border/70 bg-card/50 px-4 py-3">
             <div className="flex items-center justify-between gap-3 text-xs">
-              <span className="font-semibold text-muted-foreground uppercase tracking-[0.1em]">This week&apos;s commitment</span>
+              <span className="font-semibold text-muted-foreground uppercase tracking-[0.1em]">Weekly Commitment Progress</span>
               <span className={`font-mono font-bold tabular-nums ${weeklyCommitment.status === "completed" ? "text-emerald-500" : "text-primary"}`}>
-                {weeklyCommitment.status === "completed" ? "Done" : "Active"}
+                {weeklyCommitment.status === "completed" ? "Target Achieved" : "In Progress"}
               </span>
             </div>
-            <p className="mt-1 truncate text-sm font-medium">{weeklyCommitment.text}</p>
             {(() => {
               // Count days this week where the metric was logged at or above target
               const mon = new Date(now);
