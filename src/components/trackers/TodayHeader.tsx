@@ -2,6 +2,7 @@
 
 import WorldClockStrip from "./WorldClockStrip";
 import { useNow } from "@/lib/tracker-store";
+import { cn } from "@/lib/utils";
 
 function formatDate(now: number) {
   return new Intl.DateTimeFormat("en-US", {
@@ -43,6 +44,64 @@ function getTagline(now: number, momentumPercent: number): string {
   return "Rest is the next move.";
 }
 
+/** SVG circular momentum arc — 56×56 viewport, r=24, circumference≈150.8. */
+function MomentumRing({ percent }: { percent: number }) {
+  const r = 24;
+  const circ = 2 * Math.PI * r;
+  const safePercent = Math.max(0, Math.min(100, percent));
+  const dashOffset = circ - (circ * safePercent) / 100;
+  const allDone = safePercent >= 100;
+
+  return (
+    <svg
+      width="56"
+      height="56"
+      viewBox="0 0 56 56"
+      aria-label={`Momentum: ${safePercent}%`}
+      role="img"
+      className="shrink-0"
+    >
+      {/* Track */}
+      <circle
+        cx="28"
+        cy="28"
+        r={r}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="4"
+        className="text-muted/30"
+      />
+      {/* Arc */}
+      <circle
+        cx="28"
+        cy="28"
+        r={r}
+        fill="none"
+        stroke={allDone ? "#c8ff3d" : "#32b8c8"}
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeDasharray={circ}
+        strokeDashoffset={dashOffset}
+        transform="rotate(-90 28 28)"
+        className="transition-[stroke-dashoffset,stroke] duration-700 motion-reduce:transition-none"
+      />
+      {/* Center percentage */}
+      <text
+        x="28"
+        y="28"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="11"
+        fontWeight="700"
+        fontFamily="monospace"
+        fill={allDone ? "#c8ff3d" : "#32b8c8"}
+      >
+        {safePercent}
+      </text>
+    </svg>
+  );
+}
+
 export default function TodayHeader({
   name,
   goalTitle,
@@ -56,6 +115,7 @@ export default function TodayHeader({
   const greeting = getGreeting(now);
   const tagline = getTagline(now, momentumPercent);
   const { hours, minutes, seconds, dayProgressPct } = formatTimeParts(now);
+  const allDone = momentumPercent >= 100;
 
   return (
     <section data-testid="today-header" className="grid gap-4 border-b border-border/70 pb-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
@@ -70,12 +130,20 @@ export default function TodayHeader({
             <span className="text-[#32b8c8] font-bold tabular-nums">{dayProgressPct}%</span> of day elapsed
           </span>
         </div>
-        <h1 className="mt-2 max-w-xl font-display text-[clamp(2.15rem,9vw,4.6rem)] font-black leading-[0.9] tracking-[-0.06em]">
-          {name ? `${greeting}, ${name}.` : "Make the next move."}
-        </h1>
-        <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-          {tagline}{goalTitle ? ` ${goalTitle}` : ""}
-        </p>
+        <div className="mt-2 flex items-center gap-3">
+          <MomentumRing percent={momentumPercent} />
+          <div className="min-w-0">
+            <h1 className={cn(
+              "font-display text-[clamp(1.7rem,7vw,3.8rem)] font-black leading-[0.9] tracking-[-0.06em] transition-colors duration-700",
+              allDone ? "text-[#c8ff3d]" : "text-foreground",
+            )}>
+              {name ? `${greeting}, ${name}.` : "Make the next move."}
+            </h1>
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+              {tagline}{goalTitle ? ` ${goalTitle}` : ""}
+            </p>
+          </div>
+        </div>
       </div>
       <div className="sm:min-w-[18rem]">
         <div className="mb-1.5 flex items-baseline justify-between gap-3 sm:justify-end">

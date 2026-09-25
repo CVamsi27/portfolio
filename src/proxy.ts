@@ -34,14 +34,27 @@ export default function proxy(req: NextRequest) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  // PWA assets are app-agnostic — serve them from any host so the manifest,
-  // service worker and icons never hit the portfolio redirect.
-  const isPwaAsset =
-    url.pathname === "/manifest.webmanifest" ||
-    url.pathname === "/sw.js" ||
-    url.pathname.startsWith("/icons/");
+  // Static image/font/document assets are app-agnostic — serve from any host
+  // without the portfolio redirect and without a product-surface header.
+  const isStaticAsset =
+    url.pathname.startsWith("/icons/") ||
+    /\.(?:svg|png|jpg|jpeg|gif|webp|pdf|ico)$/i.test(url.pathname);
 
-  if (!isLocal && !isPwaAsset && url.pathname !== "/" && !url.pathname.startsWith("/api/")) {
+  if (isStaticAsset) {
+    return NextResponse.next();
+  }
+
+  // PWA manifest and service worker: forward the tracker surface header so the
+  // manifest route can serve the correct NOVA payload on local and personal hosts.
+  const isPwaAsset =
+    url.pathname === "/manifest.webmanifest" || url.pathname === "/sw.js";
+  if (isPwaAsset) {
+    return isTrackerSurface
+      ? NextResponse.next({ request: { headers: requestHeaders } })
+      : NextResponse.next();
+  }
+
+  if (!isLocal && url.pathname !== "/" && !url.pathname.startsWith("/api/")) {
     url.pathname = "/";
     url.search = "";
     return NextResponse.redirect(url, 307);
@@ -52,5 +65,7 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|pdf|ico)$).*)",
+  ],
 };

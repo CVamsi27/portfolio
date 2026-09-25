@@ -53,10 +53,39 @@ const CORE_CAPABILITIES = [
   },
 ];
 
-export default function TrackerLandingPage() {
+export default async function TrackerLandingPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ study?: string }>;
+}) {
+  const params = await searchParams;
+  const isStudyDenied = params?.study === "access-denied";
+
   return (
     <EditorialFrame surface="archive" className="min-h-[calc(100svh-var(--app-header-height))] !pt-0">
       <main data-testid="tracker-public-landing" className="mx-auto w-full max-w-6xl px-4 pb-16 pt-3 sm:px-6 sm:pb-20 sm:pt-5 lg:px-10">
+        {isStudyDenied && (
+          <div
+            data-testid="study-access-denied-notice"
+            className="mb-8 flex items-start gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-amber-200"
+          >
+            <Shield className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+            <div className="text-sm">
+              <p className="font-semibold text-amber-300">Study Reference Access Restricted</p>
+              <p className="mt-1 text-xs text-amber-200/80 leading-relaxed">
+                The engineering reference corpus at <code className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-[11px]">study.buildora.work</code> is restricted to the owner Google account (<code className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-[11px]">cvamsik99@gmail.com</code>). You have been safely returned to the personal workspace.
+              </p>
+              <div className="mt-3 flex gap-3">
+                <a
+                  href="https://study.buildora.work/auth/start"
+                  className="inline-flex items-center text-xs font-semibold text-amber-400 hover:underline"
+                >
+                  Retry Study Sign-in →
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Hero Section */}
         <section className="grid gap-10 border-b border-border/70 pb-14 lg:grid-cols-[1.15fr_.85fr] lg:items-end lg:gap-16 lg:pb-20">
           <div>
