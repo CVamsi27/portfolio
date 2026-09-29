@@ -11,7 +11,9 @@ export type PersonalPrimaryId =
   | "fasting"
   | "workouts"
   | "archive"
-  | "settings";
+  | "settings"
+  | "roadmap"
+  | "study";
 
 export type PersonalNavItem = {
   id: PersonalPrimaryId;
@@ -30,6 +32,7 @@ export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
 ] as const;
 
 export const PERSONAL_MORE_NAV: readonly PersonalNavItem[] = [
+  { id: "roadmap", href: "/roadmap", label: "100-Day Roadmap", short: "Roadmap", icon: "book" },
   { id: "goal", href: "/goal", label: "Goals", short: "Goals", icon: "flag" },
   { id: "health", href: "/weight-loss", label: "Health / Weight loss", short: "Health", icon: "scale" },
   { id: "fasting", href: "/intermittent-fasting", label: "Fasting", short: "Fast", icon: "timer" },
