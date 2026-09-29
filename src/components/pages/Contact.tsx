@@ -178,11 +178,11 @@ const Contact = () => {
               <div className="mt-4 space-y-3 text-xs text-[var(--portfolio-muted)]">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-[var(--portfolio-accent)] shrink-0" />
-                  <span className="text-[var(--portfolio-ink)] font-medium">Hyderabad, India (IST / UTC+5:30)</span>
+                  <span className="text-[var(--portfolio-ink)] font-medium">Open to Relocation (Germany / Remote)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-[var(--portfolio-accent)] shrink-0" />
-                  <span>Comfortable with US Eastern/Pacific, European, and APAC working hour overlaps.</span>
+                  <span>Comfortable with European, US Eastern/Pacific, and APAC working hour overlaps.</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-[var(--portfolio-accent)] shrink-0" />

@@ -144,7 +144,7 @@ export const PERSONAL_DETAILS: PersonalDetails[] = [
   },
   {
     icon: MapPin,
-    value: "Hyderabad, India",
+    value: "Open to Relocation (Germany)",
   },
   {
     icon: Globe,
