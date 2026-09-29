@@ -43,8 +43,9 @@ async function fetchSharedDrop(shareId: string, signedIn: boolean): Promise<Shar
     let imageUrl: string | null = null;
     if (imagePath) {
       const signed = await sb.storage.from("drops").createSignedUrl(imagePath, 300);
-      if (signed.error || !signed.data?.signedUrl) return null;
-      imageUrl = signed.data.signedUrl;
+      if (!signed.error && signed.data?.signedUrl) {
+        imageUrl = signed.data.signedUrl;
+      }
     }
     return {
       text: data.text,
@@ -73,13 +74,27 @@ function SharedDrop({ shareId }: { shareId: string }) {
       <Card variant="dossier">
         <CardContent className="p-8 text-center">
           <p className="text-3xl"><Lock className="mx-auto h-8 w-8 text-primary" /></p>
-          <h2 className="font-display mt-3 text-xl font-bold">Not shared with you</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            This email isn&apos;t on the allowlist, or the link expired / was revoked.
-          </p>
-          <Link href="/share?view=incoming">
-            <Button variant="outline" className="mt-4 w-full">See what&apos;s shared with me</Button>
-          </Link>
+          {user ? (
+            <>
+              <h2 className="font-display mt-3 text-xl font-bold">Not shared with you</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {user.email} isn&apos;t on the allowlist for this drop, or the link has expired.
+              </p>
+              <Link href="/share?view=incoming">
+                <Button variant="outline" className="mt-4 w-full">See what&apos;s shared with me</Button>
+              </Link>
+            </>
+          ) : (
+            <>
+              <h2 className="font-display mt-3 text-xl font-bold">Sign in to view</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                This drop may be shared privately with your email address, or the link has expired.
+              </p>
+              <Link href="/login">
+                <Button className="mt-4 w-full">Sign in with Google</Button>
+              </Link>
+            </>
+          )}
         </CardContent>
       </Card>
     );
@@ -94,7 +109,7 @@ function SharedDrop({ shareId }: { shareId: string }) {
       <CardContent className="p-5">
         {row.text && <p className="whitespace-pre-wrap leading-relaxed">{row.text}</p>}
         <p className="mt-3 text-xs tabular-nums text-muted-foreground">
-          From {row.ownerEmail ?? "someone"} · {row.created_at.slice(0, 16).replace("T", " ")}
+          From {row.ownerEmail ?? "someone"} · {row.created_at ? row.created_at.slice(0, 16).replace("T", " ") : "recently"}
           {row.expiresAt ? ` · vanishes ${row.expiresAt.slice(0, 16).replace("T", " ")}` : " · never expires"}
         </p>
       </CardContent>

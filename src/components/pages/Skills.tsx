@@ -156,7 +156,11 @@ const Skills = () => {
             </div>
 
             {/* Category Filter */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap scrollbar-none -mx-1 px-1">
+            <div
+              role="tablist"
+              aria-label="Filter skills by discipline"
+              className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap scrollbar-none -mx-1 px-1"
+            >
               {[
                 { id: "all", label: "All Tools" },
                 { id: "frontend", label: "Frontend & UI" },
@@ -166,6 +170,8 @@ const Skills = () => {
                 <button
                   key={tab.id}
                   type="button"
+                  role="tab"
+                  aria-selected={activeCategory === tab.id}
                   onClick={() => setActiveCategory(tab.id as TechCategory)}
                   className={
                     activeCategory === tab.id

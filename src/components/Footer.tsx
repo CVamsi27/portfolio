@@ -3,10 +3,12 @@
 import { useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { ArrowUp } from "lucide-react";
-import { PORTFOLIO_BRAND, TRACKER_BRAND } from "@/lib/brand";
+import { isTrackerHost, isTrackerPath, PORTFOLIO_BRAND, TRACKER_BRAND } from "@/lib/brand";
+import { RESUME_PATH } from "@/lib/const";
 import { cn } from "@/lib/utils";
 
 const subscribeHostname = (callback: () => void) => {
+  if (typeof window === "undefined") return () => {};
   window.addEventListener("popstate", callback);
   window.addEventListener("hashchange", callback);
   return () => {
@@ -23,8 +25,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const pathname = usePathname();
   const host = useSyncExternalStore(subscribeHostname, getHostname, getServerHostname);
 
-  const isPersonalHost = host.startsWith("personal.") || (typeof window !== "undefined" && window.location.hostname.startsWith("personal."));
-  const isTracker = Boolean(initialIsTracker || isPersonalHost || pathname !== "/");
+  const isTracker = Boolean(initialIsTracker || isTrackerHost(host) || isTrackerPath(pathname));
 
   return (
     <footer data-editorial-footer className="border-t border-border/40">
@@ -58,7 +59,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             <a href="#Experience" className="transition-colors hover:text-[var(--portfolio-accent)]">Experience</a>
             <a href="#Capabilities" className="transition-colors hover:text-[var(--portfolio-accent)]">Stack</a>
             <a href="#Contact" className="transition-colors hover:text-[var(--portfolio-accent)]">Contact</a>
-            <a href="/VamsiKrishna_Resume.pdf" download="VamsiKrishna_Resume" className="transition-colors hover:text-[var(--portfolio-accent)]">Resume</a>
+            <a href={RESUME_PATH} download="VamsiKrishna_Resume" className="transition-colors hover:text-[var(--portfolio-accent)]">Resume</a>
           </div>
         ) : null}
 

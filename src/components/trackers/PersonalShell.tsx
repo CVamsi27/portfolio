@@ -12,6 +12,7 @@ import LockdownGate from "./LockdownGate";
 
 const DEFAULT_EYEBROWS: Partial<Record<TrackerIconName, string>> = {
   todo: "NOVA // Chapter 01",
+  log: "NOVA // Signal & Log Capture",
   timer: "NOVA // Fasting & Nutrition",
   workout: "NOVA // Physical Training",
   flag: "NOVA // Trajectory & Milestones",

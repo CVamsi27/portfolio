@@ -377,7 +377,7 @@ export default function MotivationPage() {
               {JOURNAL_PROMPTS.map((p) => (
                 <div key={p.key}>
                   <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <label htmlFor={`journal-${p.key}`} className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       <p.icon className="h-3.5 w-3.5 text-primary" /> {p.label}
                     </label>
                     {p.key === "focus" && draftState.focus.trim() && (
@@ -392,6 +392,7 @@ export default function MotivationPage() {
                     )}
                   </div>
                   <Input
+                    id={`journal-${p.key}`}
                     className="mt-1.5"
                     placeholder={p.placeholder}
                     value={draftState[p.key]}

@@ -88,6 +88,35 @@ function fuzzyScore(text: string, query: string): number {
   return score;
 }
 
+/** Renders drop images regardless of whether they are inline data: URLs or
+ *  Supabase storage paths. Storage paths get a short-lived signed URL so the
+ *  image is visible to the owner on the private drop list. */
+function DropImage({ src, className }: { src: string; className?: string }) {
+  const isDirect = src.startsWith("data:") || src.startsWith("http");
+  const [cloudSrc, setCloudSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isDirect) return;
+    let cancelled = false;
+    const sb = getSupabase();
+    if (!sb) return;
+    void sb.storage
+      .from("drops")
+      .createSignedUrl(src, 300)
+      .then(({ data, error }) => {
+        if (!cancelled && !error && data?.signedUrl) {
+          setCloudSrc(data.signedUrl);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [src, isDirect]);
+
+  const resolvedSrc = isDirect ? src : cloudSrc;
+  if (!resolvedSrc) return null;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={resolvedSrc} alt="shared drop" className={className} loading="lazy" />;
+}
+
 export default function SharePage() {
   const searchParams = useSearchParams();
   const showInbox = searchParams.get("view") === "incoming";
@@ -584,9 +613,8 @@ export default function SharePage() {
         <div className="grid gap-3 sm:grid-cols-2">
           {visible.map((d) => (
             <Card variant="dossier" key={d.id} className={cn("group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg", d.pinned && "border-primary/40")}>
-              {d.image?.startsWith("data:") && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={d.image} alt="shared drop" className="max-h-56 w-full object-cover" loading="lazy" />
+              {d.image && (
+                <DropImage src={d.image} className="max-h-56 w-full object-cover" />
               )}
               <CardContent className="p-4">
                 {d.text && <p className="whitespace-pre-wrap text-sm leading-relaxed">{d.text}</p>}

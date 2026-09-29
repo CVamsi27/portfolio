@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ImageIcon, Inbox, PenLine, RefreshCw, Users } from "lucide-react";
 import { accessMode, expiryCopy } from "@/lib/share-domain";
@@ -191,7 +192,14 @@ export default function SharedInbox({ userId }: { userId: string | null }) {
       <InboxSummary />
       <div id="shared-inbox">
         {!userId ? (
-          <StateCard title="Sign in to see incoming drops">
+          <StateCard
+            title="Sign in to see incoming drops"
+            action={
+              <Link href="/login">
+                <Button size="sm">Sign in with Google</Button>
+              </Link>
+            }
+          >
             Your local workspace is still available. Sign in when you want to receive allowlisted items across devices.
           </StateCard>
         ) : (

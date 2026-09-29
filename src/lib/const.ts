@@ -17,6 +17,10 @@ import python from "../../public/python.svg";
 import react from "../../public/react.svg";
 import typescript from "../../public/typescript.svg";
 
+export const RESUME_PATH = "/VamsiKrishna_Resume.pdf";
+export const CONTACT_EMAIL = "cvamsik99@gmail.com";
+export const CONTACT_PHONE = "+91 7702148303";
+
 export const MENU_LIST = [
   "Work",
   "Experience",
@@ -86,28 +90,28 @@ export const PROJECTS: Projects[] = [
   },
   {
     title: "Super Tic Tac Toe",
-    description: "Advanced version of classic Tic Tac Toe with strategic gameplay",
+    description: "Strategic 9-board Tic Tac Toe with recursive win conditions, Minimax AI, and mobile-optimized touch mechanics",
     tech: "React, Next.js, TypeScript, Tailwind CSS",
     gitLink: "https://github.com/CVamsi27/super-tic-tac-toe",
     URL: "https://super-tic-tac-toe.buildora.work/",
   },
   {
     title: "Digital Library",
-    description: "A place to purchase books",
+    description: "Full-stack bookstore with end-to-end type safety from database to UI — tRPC contracts, Zod validation, and relational queries via Prisma",
     tech: "React, Next.JS, TypeScript, Tailwind, tRPC, Zod, Prisma ORM",
     gitLink: "https://github.com/CVamsi27/digital-library",
     URL: "https://digital-library.buildora.work/",
   },
   {
     title: "Task Manager",
-    description: "A place to manage your tasks",
+    description: "State-driven Kanban with automated workflow transitions, drag-and-drop mechanics, and full relational persistence via Prisma and PostgreSQL",
     tech: "React, Next.JS, TypeScript, Tailwind, Zod, Prisma ORM",
     gitLink: "https://github.com/CVamsi27/task-manager-1",
     URL: "https://task-manager.buildora.work/",
   },
   {
     title: "Portfolio",
-    description: "A place to learn about Vamsi Krishna",
+    description: "Editorial portfolio and personal operating system — host-based edge routing, design system with fluid typography, dark/light fidelity, and PWA support",
     tech: "React, Next.JS, TypeScript, Tailwind",
     gitLink: "https://github.com/CVamsi27/portfolio",
     URL: "https://portfolio.buildora.work/",

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Connections from "../Connections";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { NAME_TRANSLATIONS } from "@/lib/const";
+import { CONTACT_EMAIL, NAME_TRANSLATIONS, RESUME_PATH } from "@/lib/const";
 import {
   Download,
   ArrowUpRight,
@@ -65,8 +65,17 @@ const About = () => {
       }
     };
     updateTime();
-    const interval = setInterval(updateTime, 30000);
-    return () => clearInterval(interval);
+    // Align the first tick to the top of the next minute, then run every 60s.
+    const msUntilNextMinute = 60_000 - (Date.now() % 60_000);
+    let interval: ReturnType<typeof setInterval>;
+    const timeout = setTimeout(() => {
+      updateTime();
+      interval = setInterval(updateTime, 60_000);
+    }, msUntilNextMinute);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, []);
 
   const currentTranslation =
@@ -74,16 +83,16 @@ const About = () => {
 
   const handleCopyEmail = async () => {
     try {
-      await navigator.clipboard.writeText("cvamsik99@gmail.com");
+      await navigator.clipboard.writeText(CONTACT_EMAIL);
       setCopied(true);
       toast({
         title: "Email copied to clipboard",
-        description: "cvamsik99@gmail.com is ready to paste.",
+        description: `${CONTACT_EMAIL} is ready to paste.`,
       });
       setTimeout(() => setCopied(false), 2400);
     } catch {
       toast({
-        title: "cvamsik99@gmail.com",
+        title: CONTACT_EMAIL,
         description: "Click to email or copy manually.",
       });
     }
@@ -92,6 +101,7 @@ const About = () => {
   return (
     <section
       id="Top"
+      aria-label="About and Introduction"
       data-chapter-index="00"
       className="portfolio-hero relative overflow-hidden px-5 pb-16 pt-1 sm:px-10 sm:pb-24 sm:pt-2 lg:px-16 lg:pt-3"
     >
@@ -103,7 +113,7 @@ const About = () => {
           <div className="portfolio-status-pill">
             <span className="portfolio-status-dot" aria-hidden="true" />
             <span className="hidden sm:inline">Available for Senior / Staff Product Engineering Roles</span>
-            <span className="inline sm:hidden">Available for Senior / Staff Roles</span>
+            <span className="inline sm:hidden">Open to Senior / Staff Eng Roles</span>
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -115,6 +125,7 @@ const About = () => {
               onClick={() =>
                 setNameLangIndex((prev) => (prev + 1) % NAME_TRANSLATIONS.length)
               }
+              aria-label={`Cycle name language (currently ${currentTranslation.language})`}
               className="inline-flex items-center gap-1 rounded-md border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-2 py-0.5 font-utility text-[0.62rem] font-medium text-[var(--portfolio-accent)] transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)]"
               title="Click to cycle name script across languages"
             >
@@ -143,7 +154,7 @@ const About = () => {
 
             <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:gap-3">
               <Button asChild variant="outline" className="portfolio-secondary-action w-full sm:w-auto">
-                <a href="/VamsiKrishna_Resume.pdf" download="VamsiKrishna_Resume">
+                <a href={RESUME_PATH} download="VamsiKrishna_Resume">
                   <Download className="h-4 w-4" />
                   <span>Resume</span>
                 </a>
@@ -154,7 +165,7 @@ const About = () => {
                 onClick={handleCopyEmail}
                 className="portfolio-copy-action w-full sm:w-auto"
                 title="Copy email address"
-                aria-label="Copy cvamsik99@gmail.com"
+                aria-label={`Copy ${CONTACT_EMAIL}`}
               >
                 {copied ? (
                   <>

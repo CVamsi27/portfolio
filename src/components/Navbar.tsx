@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { MENU_LIST } from "@/lib/const";
+import { MENU_LIST, RESUME_PATH } from "@/lib/const";
 import { PERSONAL_PRIMARY_NAV, isPersonalPrimaryPath } from "@/lib/personal-nav";
 import { ModeToggle } from "./common/ModeToggle";
 import HeaderMenu from "./HeaderMenu";
@@ -13,6 +13,7 @@ import NovaMark from "@/components/brand/NovaMark";
 import VamsiMark from "@/components/brand/VamsiMark";
 import CommandPalette from "@/components/trackers/CommandPalette";
 import KeyboardShortcutsModal from "@/components/trackers/KeyboardShortcutsModal";
+import { isTrackerHost, isTrackerPath } from "@/lib/brand";
 import { ArrowUpRight, Keyboard, Search } from "lucide-react";
 
 const subscribeHostname = (callback: () => void) => {
@@ -37,8 +38,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const gPressedRef = useRef(false);
   const gTimerRef = useRef<number | null>(null);
 
-  const isPersonalHost = host.startsWith("personal.") || (typeof window !== "undefined" && window.location.hostname.startsWith("personal."));
-  const isTracker = Boolean(initialIsTracker || isPersonalHost || pathname !== "/");
+  const isTracker = Boolean(initialIsTracker || isTrackerHost(host) || isTrackerPath(pathname));
   const [active, setActive] = useState(MENU_LIST[0]);
   const [progress, setProgress] = useState(0);
 
@@ -163,7 +163,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
           </a>
           <div className="flex items-center gap-1.5">
             <div data-editorial-index className="hidden items-center gap-1 md:flex" data-testid={isTracker ? "tracker-primary-nav" : undefined}>
-              {(isTracker ? menuItems : menuItems).map((item) =>
+              {menuItems.map((item) =>
                 isTracker ? (
                   <Link
                     key={item.href}
@@ -219,7 +219,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             {isTracker ? <div className="hidden md:block"><AuthButton /></div> : null}
             {!isTracker ? (
               <a
-                href="/VamsiKrishna_Resume.pdf"
+                href={RESUME_PATH}
                 download="VamsiKrishna_Resume"
                 className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-3 py-1.5 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
               >
@@ -232,7 +232,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
               <HeaderMenu
                 items={[
                   ...menuItems,
-                  { label: "Resume (PDF)", href: "/VamsiKrishna_Resume.pdf" },
+                  { label: "Resume (PDF)", href: RESUME_PATH },
                 ]}
                 ariaLabel="Open portfolio menu"
               />

@@ -14,8 +14,8 @@ export default function TrackerShell({
   children,
 }: {
   icon?: TrackerIconName;
-  title: string;
-  subtitle: string;
+  title: ReactNode;
+  subtitle: ReactNode;
   eyebrow?: string;
   badge?: ReactNode;
   actions?: { primary: ReactNode; secondary?: ReactNode };

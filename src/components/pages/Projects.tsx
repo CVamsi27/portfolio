@@ -128,7 +128,7 @@ const Projects = () => {
               </div>
 
               <p className="mt-4 text-base leading-relaxed text-[var(--portfolio-muted)]">
-                {flagshipProject.description}. Built to replace fragmented paper systems with a unified, high-security digital workflow handling patient demographics, real-time queues, clinical diagnoses, digital prescriptions, and multi-tier billing.
+                {flagshipProject.description.replace(/\.$/, "")}. Built to replace fragmented paper systems with a unified, high-security digital workflow handling patient demographics, real-time queues, clinical diagnoses, digital prescriptions, and multi-tier billing.
               </p>
 
               <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -196,7 +196,11 @@ const Projects = () => {
         </Reveal>
 
         {/* Filter Tabs */}
-        <div className="portfolio-filter-tabs flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none">
+        <div
+          role="tablist"
+          aria-label="Filter projects by category"
+          className="portfolio-filter-tabs flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none"
+        >
           {[
             { id: "all", label: `All Systems (${PROJECTS.length})` },
             { id: "saas", label: "Production SaaS" },
@@ -206,6 +210,8 @@ const Projects = () => {
             <button
               key={tab.id}
               type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id as ProjectCategory)}
               className={
                 activeTab === tab.id

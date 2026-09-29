@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-store";
-import { KeyRound, UserCheck, Wrench } from "lucide-react";
+import { KeyRound, Loader2, UserCheck, Wrench } from "lucide-react";
 import StoryPanel from "@/components/trackers/StoryPanel";
+import { useToast } from "@/components/ui/use-toast";
 
 function StatusIcon({ children, variant }: { children: React.ReactNode; variant: "primary" | "success" | "warn" }) {
   return (
@@ -27,12 +29,33 @@ function StatusIcon({ children, variant }: { children: React.ReactNode; variant:
 
 export default function LoginPage() {
   const { user, loading, configured } = useAuth();
+  const [signingIn, setSigningIn] = useState(false);
+  const { toast } = useToast();
 
-  const signIn = () =>
-    getSupabase()?.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/hub` },
-    });
+  const signIn = async () => {
+    const sb = getSupabase();
+    if (!sb) return;
+    setSigningIn(true);
+    try {
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/hub` },
+      });
+      if (error) {
+        toast({
+          title: "Sign in failed",
+          description: error.message || "Could not connect to Google sign in.",
+        });
+      }
+    } catch {
+      toast({
+        title: "Sign in error",
+        description: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setSigningIn(false);
+    }
+  };
 
   return (
     <TrackerShell
@@ -47,7 +70,10 @@ export default function LoginPage() {
       <Card variant="dossier" className="overflow-hidden border-[color-mix(in_srgb,var(--color-dossier-lime)_30%,transparent)] bg-card shadow-xl shadow-[rgba(200,255,61,0.05)]">
         <CardContent className="flex flex-col items-center p-8 text-center">
           {loading ? (
-            <p className="text-sm text-muted-foreground">Loading...</p>
+            <div className="flex flex-col items-center justify-center gap-3 py-6">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Checking authentication…</p>
+            </div>
           ) : !configured ? (
             <>
               <StatusIcon variant="warn"><Wrench className="h-7 w-7 text-white" /></StatusIcon>
@@ -86,8 +112,15 @@ export default function LoginPage() {
                 Free, no password. Your fasting, workouts, todos, goal board and
                 motivation sync across phone + laptop.
               </p>
-              <Button className="mt-5 w-full" onClick={signIn}>
-                Continue with Google
+              <Button className="mt-5 w-full" onClick={signIn} disabled={signingIn}>
+                {signingIn ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in…
+                  </>
+                ) : (
+                  "Continue with Google"
+                )}
               </Button>
               <p className="mt-3 text-xs text-muted-foreground">
                 Public pages stay open: <Link href="/" className="hover:underline">home</Link> ·{" "}

@@ -1,13 +1,27 @@
 import { WORK_EXPERIENCE } from "@/lib/const";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
-import { ArrowUpRight, Briefcase } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 const COMPANY_HIGHLIGHTS: Record<string, string[]> = {
   Docita: ["25+ Clinics Live", "1,000+ Appts / Mo", "PostgreSQL RLS", "Outbox & Queues"],
   "MAQ Software": ["-30% p95 Latency", "25% Faster Delivery", "85%+ Test Coverage", "Mentored 4 Devs"],
   Cognizant: ["4 Microservices", "Spring Boot & Eureka", "Zuul Gateway", "E-Commerce"],
 };
+
+const KEY_PHRASES = [
+  "25+ clinics and 1,000+ appointment workflows per month",
+  "PostgreSQL Row-Level Security, deny-by-default ABAC",
+  "PostgreSQL queues, transactional outbox, idempotency, retries",
+  "tenant-scoped queries, migrations, indexes, pagination, and transactional writes",
+  "TanStack Query and shared Zod schemas",
+  "cut rest api p95 latency by 30%",
+  "reduced delivery time for recruitment and internal-workflow modules by 25%",
+  "85%+ test coverage",
+  "mentored four engineers",
+  "4 Spring Boot microservices",
+  "Eureka service discovery, Zuul gateway routing, JWT authorization",
+];
 
 const Experience = () => {
   return (
@@ -63,22 +77,6 @@ const Experience = () => {
                   {value.details?.length ? (
                     <ul className="portfolio-experience-details">
                       {value.details.map((detail) => {
-                        const KEY_PHRASES = [
-                          "25+ clinics and 1,000+ appointment workflows per month",
-                          "PostgreSQL Row-Level Security, deny-by-default ABAC",
-                          "PostgreSQL queues, transactional outbox, idempotency, retries",
-                          "tenant-scoped queries, migrations, indexes, pagination, and transactional writes",
-                          "TanStack Query and shared Zod schemas",
-                          "cut rest api p95 latency by 30%",
-                          "p95 latency by 30%",
-                          "reduced delivery time for recruitment and internal-workflow modules by 25%",
-                          "by 25%",
-                          "85%+ test coverage",
-                          "mentored four engineers",
-                          "4 Spring Boot microservices",
-                          "Eureka service discovery, Zuul gateway routing, JWT authorization",
-                        ];
-
                         const phrase = KEY_PHRASES.find((p) =>
                           detail.toLowerCase().includes(p.toLowerCase())
                         );

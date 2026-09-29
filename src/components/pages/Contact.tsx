@@ -32,6 +32,7 @@ import Connections from "../Connections";
 import { Textarea } from "../ui/textarea";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
+import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/const";
 
 const FormSchema = z.object({
   name: z.string().min(2, {
@@ -64,16 +65,16 @@ const Contact = () => {
 
   const handleCopyEmail = async () => {
     try {
-      await navigator.clipboard.writeText("cvamsik99@gmail.com");
+      await navigator.clipboard.writeText(CONTACT_EMAIL);
       setCopied(true);
       toast({
         title: "Email copied to clipboard",
-        description: "cvamsik99@gmail.com is ready to paste.",
+        description: `${CONTACT_EMAIL} is ready to paste.`,
       });
       setTimeout(() => setCopied(false), 2400);
     } catch {
       toast({
-        title: "cvamsik99@gmail.com",
+        title: CONTACT_EMAIL,
         description: "Click to email or copy manually.",
       });
     }
@@ -103,13 +104,13 @@ const Contact = () => {
       } else {
         toast({
           title: "Message transmission failed",
-          description: "Please email me directly at cvamsik99@gmail.com",
+          description: `Please email me directly at ${CONTACT_EMAIL}`,
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Could not send message",
-        description: "Please email directly at cvamsik99@gmail.com",
+        description: `Please email directly at ${CONTACT_EMAIL}`,
       });
     } finally {
       setIsSubmitting(false);
@@ -134,11 +135,11 @@ const Contact = () => {
 
               <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <a
-                  href="mailto:cvamsik99@gmail.com"
+                  href={`mailto:${CONTACT_EMAIL}`}
                   className="portfolio-contact-email text-lg sm:text-2xl break-all sm:break-normal"
                 >
                   <Mail className="h-5 w-5 text-[var(--portfolio-accent)] shrink-0" />
-                  <span>cvamsik99@gmail.com</span>
+                  <span>{CONTACT_EMAIL}</span>
                 </a>
 
                 <button
@@ -146,7 +147,7 @@ const Contact = () => {
                   onClick={handleCopyEmail}
                   className="portfolio-copy-action w-full sm:w-auto"
                   title="Copy email to clipboard"
-                  aria-label="Copy cvamsik99@gmail.com"
+                  aria-label={`Copy ${CONTACT_EMAIL}`}
                 >
                   {copied ? (
                     <>
@@ -186,10 +187,11 @@ const Contact = () => {
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-[var(--portfolio-accent)] shrink-0" />
                   <a
-                    href="tel:+917702148303"
+                    href={`tel:${CONTACT_PHONE.replace(/\s+/g, "")}`}
+                    aria-label={`Call ${CONTACT_PHONE}`}
                     className="text-[var(--portfolio-ink)] underline decoration-[var(--portfolio-rule)] underline-offset-4 hover:text-[var(--portfolio-accent)]"
                   >
-                    +91 7702148303
+                    {CONTACT_PHONE}
                   </a>
                 </div>
               </div>
@@ -285,28 +287,37 @@ const Contact = () => {
                   )}
                 />
 
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="portfolio-submit-action w-full cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Sending message...</span>
-                    </>
-                  ) : submitted ? (
-                    <>
-                      <Check className="h-4 w-4" />
-                      <span>Sent! Send another?</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Send message</span>
-                      <Send className="h-4 w-4" />
-                    </>
-                  )}
-                </Button>
+                {submitted ? (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setSubmitted(false);
+                      form.reset();
+                    }}
+                    className="portfolio-submit-action w-full cursor-pointer"
+                  >
+                    <Check className="h-4 w-4 text-emerald-500" />
+                    <span>Sent! Click to send another</span>
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="portfolio-submit-action w-full cursor-pointer"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Sending message...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Send message</span>
+                        <Send className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                )}
               </form>
             </Form>
           </Reveal>

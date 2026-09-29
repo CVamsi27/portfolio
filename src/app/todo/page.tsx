@@ -71,7 +71,9 @@ export default function TodoPage() {
     });
   }, [safe, view, tagFilter, priorityFilter, today, tomorrow]);
 
-  const todayList = safe.filter((t) => t.date === today || (t.date < today && !t.done));
+  // Include ALL overdue tasks (done or pending) so completed overdue tasks
+  // count toward today's progress instead of being silently excluded.
+  const todayList = safe.filter((t) => t.date === today || t.date < today);
   const doneToday = todayList.filter((t) => t.done).length;
   const openToday = todayList.filter((t) => !t.done).length;
   const pct = todayList.length ? Math.round((doneToday / todayList.length) * 100) : 0;

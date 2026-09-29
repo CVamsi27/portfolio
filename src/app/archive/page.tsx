@@ -51,7 +51,9 @@ export default function ArchivePage() {
     const cleanBody = body.trim();
     if (!cleanBody) return;
     const cleanUrl = sourceUrl.trim();
-    const safeUrl = cleanUrl && /^https:\/\//i.test(cleanUrl) ? cleanUrl : undefined;
+    const safeUrl = cleanUrl
+      ? (/^https?:\/\//i.test(cleanUrl) ? cleanUrl : `https://${cleanUrl}`)
+      : undefined;
     setValue([{ id: `archive_${Date.now().toString(36)}`, body: cleanBody, kind, tags: normalizeTags(tags), sourceUrl: safeUrl, goalCategory: linkGoal === "none" ? null : linkGoal, pinned: false, createdAt: Date.now() }, ...items]);
     setBody(""); setTags(""); setSourceUrl("");
   };

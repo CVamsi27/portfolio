@@ -48,7 +48,7 @@ export async function GET(_request: Request, context: Context) {
   return NextResponse.json({
     text: data.text,
     imageUrl,
-    createdAt: data.created_at,
+    created_at: data.created_at,
     expiresAt: data.expires_at,
     ownerEmail: data.owner_email,
   }, { headers: { "Cache-Control": "private, no-store" } });

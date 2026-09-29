@@ -23,6 +23,25 @@ export function isTrackerHost(hostname: string): boolean {
   return hostname.startsWith("personal.");
 }
 
+export function isTrackerPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/hub") ||
+    pathname.startsWith("/trackers") ||
+    pathname.startsWith("/motivation") ||
+    pathname.startsWith("/log") ||
+    pathname.startsWith("/todo") ||
+    pathname.startsWith("/goal") ||
+    pathname.startsWith("/workout-tracking") ||
+    pathname.startsWith("/intermittent-fasting") ||
+    pathname.startsWith("/weight-loss") ||
+    pathname.startsWith("/archive") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/share") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/more")
+  );
+}
+
 export function getBrandForHost(hostname: string) {
   return isTrackerHost(hostname) ? TRACKER_BRAND : PORTFOLIO_BRAND;
 }

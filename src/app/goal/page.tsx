@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Stat from "@/components/trackers/Stat";
@@ -37,6 +37,28 @@ import { TrackerIcon } from "@/components/trackers/icons";
 
 type MilestoneDraft = { title: string };
 
+const DEFAULT_LABELS: Record<GoalCategory, string> = {
+  general: "Useful moves",
+  relocation: "Applications & Outreach",
+  career: "Target Applications",
+  fitness: "Active Workout",
+  weightloss: "Daily weigh-in",
+  learning: "Deep Study",
+  financial: "Savings & Investments",
+  custom: "Daily Focus Metric",
+};
+
+const DEFAULT_TARGETS: Record<GoalCategory, number> = {
+  general: 1,
+  relocation: 3,
+  career: 5,
+  fitness: 45,
+  weightloss: 1,
+  learning: 60,
+  financial: 20,
+  custom: 3,
+};
+
 export default function GoalPage() {
   useMigrateGoal();
   const { prefs, setPrefs } = useUserPrefs();
@@ -61,7 +83,7 @@ export default function GoalPage() {
   const [copied, setCopied] = useState(false);
   const [msModal, setMsModal] = useState<{ mode: "add" } | { mode: "edit"; id: string } | null>(null);
   const [msDraft, setMsDraft] = useState<MilestoneDraft>({ title: "" });
-  const [weeklyCommitmentDraft, setWeeklyCommitmentDraft] = useState(safe.weeklyCommitment?.text ?? "");
+  const [commitmentInput, setCommitmentInput] = useState<string | null>(null);
   const [weeklyReviewNotice, setWeeklyReviewNotice] = useState<string | null>(null);
 
   const today = dateKey();
@@ -164,13 +186,16 @@ export default function GoalPage() {
     .filter((commitment) => commitment.weekOf !== weekOf && commitment.status === "active")
     .sort((a, b) => b.weekOf.localeCompare(a.weekOf))[0];
   const saveCommitmentState = (next: WeeklyCommitment[]) => setG({ ...safe, weeklyCommitment: undefined, weeklyCommitments: next });
+
+  const commitmentText = commitmentInput ?? weeklyCommitment?.text ?? "";
   const saveWeeklyCommitment = () => {
-    const text = weeklyCommitmentDraft.trim();
+    const text = commitmentText.trim();
     if (!text) return;
     saveCommitmentState([
       ...weeklyCommitments.filter((commitment) => commitment.weekOf !== weekOf),
       { id: `week-${weekOf}`, text, weekOf, status: "active" },
     ]);
+    setCommitmentInput(null);
     setWeeklyReviewNotice("This week’s commitment is set.");
   };
   const toggleWeeklyCommitment = () => {
@@ -185,7 +210,7 @@ export default function GoalPage() {
       ...weeklyCommitments.map((commitment) => commitment.id === previousPending.id ? { ...commitment, status: "carried" as const } : commitment),
       { id: `week-${weekOf}`, text: previousPending.text, weekOf, status: "active", carriedFrom: previousPending.weekOf },
     ]);
-    setWeeklyCommitmentDraft(previousPending.text);
+    setCommitmentInput(null);
     setWeeklyReviewNotice("Last week’s commitment was carried forward.");
   };
   const closePreviousCommitment = () => {
@@ -246,7 +271,7 @@ export default function GoalPage() {
               <div><p className="dossier-kicker">This week / one commitment</p><h2 className="mt-1 font-display text-xl font-bold">{weeklyCommitment?.text ?? "Choose the one outcome worth protecting"}</h2><p className="mt-1 text-sm text-muted-foreground">A weekly commitment gives today&apos;s next action a useful direction.</p></div>
               {weeklyCommitment ? <Button variant={weeklyCommitment.status === "completed" ? "secondary" : "outline"} size="sm" onClick={toggleWeeklyCommitment}>{weeklyCommitment.status === "completed" ? "Completed this week" : "Mark complete"}</Button> : null}
             </div>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Input aria-label="Weekly commitment" value={weeklyCommitmentDraft} onChange={(event) => setWeeklyCommitmentDraft(event.target.value)} placeholder="e.g. Contact three hiring managers" onKeyDown={(event) => event.key === "Enter" && saveWeeklyCommitment()} /><Button onClick={saveWeeklyCommitment} disabled={!weeklyCommitmentDraft.trim()}>Save weekly commitment</Button></div>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Input aria-label="Weekly commitment" value={commitmentText} onChange={(event) => setCommitmentInput(event.target.value)} placeholder="e.g. Contact three hiring managers" onKeyDown={(event) => event.key === "Enter" && saveWeeklyCommitment()} /><Button onClick={saveWeeklyCommitment} disabled={!commitmentText.trim()}>Save weekly commitment</Button></div>
           </CardContent>
         </Card>
         {/* ── Category selector ── */}
@@ -590,25 +615,3 @@ export default function GoalPage() {
     </RequireAuth>
   );
 }
-
-const DEFAULT_LABELS: Record<GoalCategory, string> = {
-  general: "Useful moves",
-  relocation: "Applications & Outreach",
-  career: "Target Applications",
-  fitness: "Active Workout",
-  weightloss: "Daily weigh-in",
-  learning: "Deep Study",
-  financial: "Savings & Investments",
-  custom: "Daily Focus Metric",
-};
-
-const DEFAULT_TARGETS: Record<GoalCategory, number> = {
-  general: 1,
-  relocation: 3,
-  career: 5,
-  fitness: 45,
-  weightloss: 1,
-  learning: 60,
-  financial: 20,
-  custom: 3,
-};
