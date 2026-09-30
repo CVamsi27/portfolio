@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ShieldAlert, ShieldCheck, Flame, ExternalLink, ArrowRight,
   AlertTriangle, Lock, Unlock, Clock, RefreshCw, X, Copy,
-  CheckCheck, Globe, CheckCircle2, ChevronRight, Ban
+  CheckCheck, Globe, CheckCircle2, ChevronRight, Ban, Brain,
 } from "lucide-react";
 import {
   type DistractionShieldState,
@@ -255,6 +255,18 @@ export default function DistractionShieldModal({
                 className="w-full rounded-xl border border-border/80 bg-background/60 px-4 py-2.5 font-utility text-xs font-semibold text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors cursor-pointer"
               >
                 Close & Return to Deep Study
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  window.dispatchEvent(new CustomEvent("portfolio-open-revision-deck"));
+                }}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 font-display text-xs font-bold text-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer"
+              >
+                <Brain className="h-4 w-4 text-amber-400" />
+                <span>Drill Active Recall Questions Instead →</span>
               </button>
             </div>
           </div>

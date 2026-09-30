@@ -22,6 +22,7 @@ import {
   Zap,
   ShieldCheck,
   ShieldAlert,
+  RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFasting } from "@/lib/tracker-store";
@@ -165,6 +166,17 @@ export default function CommandPalette({
       keywords: ["distraction", "blocklist", "allowlist", "germany", "shield", "social media", "lockdown", "guardian", "dreams"],
       run: () => {
         window.dispatchEvent(new CustomEvent("portfolio-trigger-distraction-shield", { detail: { url: "https://instagram.com" } }));
+      },
+    },
+    {
+      id: "action-revision-gate",
+      category: "Actions",
+      title: "Active Recall Spaced Repetition Gate (Full-Screen Invariants Drill)",
+      subtitle: "Full-screen opaque recall screen with curriculum interview questions & Ebbinghaus intervals",
+      icon: RotateCcw,
+      keywords: ["revision", "recall", "spaced repetition", "ebbinghaus", "gate", "drill", "invariants", "refresh", "opaque"],
+      run: () => {
+        window.dispatchEvent(new CustomEvent("portfolio-open-revision-deck"));
       },
     },
     {

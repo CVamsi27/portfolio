@@ -20,6 +20,7 @@ import PortfolioCommandPalette from "./PortfolioCommandPalette";
 import DeveloperTerminalDrawer from "./DeveloperTerminalDrawer";
 import ResumeModal from "./ResumeModal";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
+import FullPageRevisionGate from "@/components/study/FullPageRevisionGate";
 import { useTheme } from "next-themes";
 
 const subscribeHostname = (callback: () => void) => {
@@ -47,6 +48,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [studyCockpitOpen, setStudyCockpitOpen] = useState(false);
+  const [revisionGateOpen, setRevisionGateOpen] = useState(false);
   const gPressedRef = useRef(false);
   const gTimerRef = useRef<number | null>(null);
 
@@ -187,6 +189,12 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
     const onOpenStudy = () => setStudyCockpitOpen(true);
     window.addEventListener("portfolio-open-study-cockpit", onOpenStudy);
     return () => window.removeEventListener("portfolio-open-study-cockpit", onOpenStudy);
+  }, []);
+
+  useEffect(() => {
+    const onOpenRevision = () => setRevisionGateOpen(true);
+    window.addEventListener("portfolio-open-revision-deck", onOpenRevision);
+    return () => window.removeEventListener("portfolio-open-revision-deck", onOpenRevision);
   }, []);
 
   useEffect(() => {
@@ -409,6 +417,11 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         <DeepStudyCockpitModal
           open={studyCockpitOpen}
           onClose={() => setStudyCockpitOpen(false)}
+        />
+        <FullPageRevisionGate
+          open={revisionGateOpen}
+          onClose={() => setRevisionGateOpen(false)}
+          onOpenStudyCockpit={() => setStudyCockpitOpen(true)}
         />
       </nav>
   );

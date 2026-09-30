@@ -105,13 +105,25 @@ export default function DistractionShieldBanner({ onOpenShield }: DistractionShi
               End Early 🇩🇪
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={() => onOpenShield?.()}
-              className="rounded-xl border border-rose-400/40 bg-rose-500/20 px-3 py-1.5 font-display text-[11px] font-bold text-rose-200 hover:bg-rose-500/30 transition-colors cursor-pointer"
-            >
-              Status
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("portfolio-open-revision-deck"));
+                }}
+                className="rounded-xl bg-amber-500 px-3 py-1.5 font-display text-[11px] font-bold text-slate-950 hover:bg-amber-400 transition-colors cursor-pointer shadow-xs"
+                title="Launch full-screen opaque recall gate"
+              >
+                Recall Gate
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenShield?.()}
+                className="rounded-xl border border-rose-400/40 bg-rose-500/20 px-2.5 py-1.5 font-display text-[11px] font-bold text-rose-200 hover:bg-rose-500/30 transition-colors cursor-pointer"
+              >
+                Status
+              </button>
+            </div>
           )}
         </div>
       </div>

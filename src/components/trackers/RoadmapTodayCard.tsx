@@ -8,11 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SimpleRing } from "@/components/trackers/Ring";
 import {
   BookOpen, CheckSquare, Square, Flame, Clock, ArrowUpRight,
-  Users, GitPullRequest, MapPin, Brain, ShieldCheck,
+  Users, GitPullRequest, MapPin, Brain, ShieldCheck, RotateCcw,
 } from "lucide-react";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
+import FullPageRevisionGate from "@/components/study/FullPageRevisionGate";
 import curriculum from "@/data/career-curriculum.json";
 import type { CompletedChapterRecord } from "@/lib/study-focus";
+import { type ExtendedCompletedChapter, getDueRevisionItems } from "@/lib/revision-engine";
 
 interface ChecklistItem { id: string; text: string; done: boolean }
 interface DayPlan {
@@ -101,9 +103,14 @@ function useDailyNotification(plan: DayPlan | undefined) {
 
 export default function RoadmapTodayCard() {
   const { value: timetable, setValue: setTimetable } = useSyncedStorage<Timetable | null>("timetable_100_days", null);
-  const { value: completedChapters } = useSyncedStorage<CompletedChapterRecord[]>("study:completed_chapters", []);
+  const { value: completedChapters } = useSyncedStorage<ExtendedCompletedChapter[]>("study:completed_chapters", []);
   const today = dateKey();
   const [studyCockpitOpen, setStudyCockpitOpen] = useState(false);
+  const [revisionGateOpen, setRevisionGateOpen] = useState(false);
+
+  const dueRevisionList = useMemo(() => {
+    return getDueRevisionItems(completedChapters || []);
+  }, [completedChapters]);
 
   const plan = useMemo(() => timetable?.days?.find(d => d.date === today), [timetable, today]);
   const todayChapters = useMemo(() => {
@@ -254,16 +261,28 @@ export default function RoadmapTodayCard() {
             className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-[11px] hover:border-primary/50 transition-colors">
             <MapPin className="h-3 w-3" />Roles
           </a>
-          <Link href="/roadmap"
+            <Link href="/roadmap"
             className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] text-primary hover:bg-primary/20 transition-colors">
             <ArrowUpRight className="h-3 w-3" />All Details
           </Link>
+          <button
+            type="button"
+            onClick={() => setRevisionGateOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="h-3 w-3 text-amber-400" />
+            <span>Recall Gate{dueRevisionList.length > 0 ? ` (${dueRevisionList.length})` : ""}</span>
+          </button>
         </div>
 
         <DeepStudyCockpitModal
           open={studyCockpitOpen}
           dayNumber={plan.day}
           onClose={() => setStudyCockpitOpen(false)}
+        />
+        <FullPageRevisionGate
+          open={revisionGateOpen}
+          onClose={() => setRevisionGateOpen(false)}
         />
       </CardContent>
     </Card>

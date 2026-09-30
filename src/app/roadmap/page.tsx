@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import curriculum from "@/data/career-curriculum.json";
 import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
@@ -15,11 +15,24 @@ import {
   Trophy, BarChart2, ArrowUpRight, Zap, MapPin, AlertTriangle,
   Copy, CheckCheck, Star, Briefcase, Globe, Code2, Brain,
   ShieldCheck, ArrowRight, ShieldAlert, CheckCircle2,
+  RotateCcw, Shuffle, Sparkles,
 } from "lucide-react";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
+import RevisionDeckModal from "@/components/study/RevisionDeckModal";
+import FullPageRevisionGate from "@/components/study/FullPageRevisionGate";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import type { CompletedChapterRecord } from "@/lib/study-focus";
+import {
+  type ExtendedCompletedChapter,
+  getRevisionMetrics,
+  getDueRevisionItems,
+  getStarredItems,
+  toggleChapterStar,
+  findDayForChapter,
+  getRevisionStatus,
+  HIGH_YIELD_CURRICULUM_PRESETS,
+} from "@/lib/revision-engine";
 import { canCompleteEvidence, EMPTY_CAREER_EXECUTION_STATE, type CareerChecklistItem, type CareerEvidence, type CareerExecutionState } from "@/lib/career-roadmap";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -604,10 +617,31 @@ export default function RoadmapPage() {
   const { value: timetable } = useSyncedStorage<Timetable | null>("timetable_100_days", null);
   const { value: career, setValue: setCareer } = useSyncedStorage<CareerData | null>("career_command_center", null);
   const { value: executionState, setValue: setExecutionState } = useSyncedStorage<CareerExecutionState>("career_execution_state", EMPTY_CAREER_EXECUTION_STATE);
-  const { value: completedChapters } = useSyncedStorage<CompletedChapterRecord[]>("study:completed_chapters", []);
+  const { value: completedChapters, setValue: setCompletedChapters } = useSyncedStorage<ExtendedCompletedChapter[]>("study:completed_chapters", []);
   const [filter, setFilter] = useState<"all" | "today" | "pending" | "done">("all");
   const [search, setSearch] = useState("");
-  const [section, setSection] = useState<"roadmap" | "career" | "germany" | "outreach">("roadmap");
+  const [section, setSection] = useState<"roadmap" | "revision" | "career" | "germany" | "outreach">("roadmap");
+  const [revisionDeckOpen, setRevisionDeckOpen] = useState(false);
+  const [revisionGateOpen, setRevisionGateOpen] = useState(false);
+  const [revisionFilter, setRevisionFilter] = useState<"due" | "starred" | "all">("due");
+
+  useEffect(() => {
+    const handleOpenRecallGate = () => setRevisionGateOpen(true);
+    window.addEventListener("portfolio-open-revision-deck", handleOpenRecallGate);
+    return () => window.removeEventListener("portfolio-open-revision-deck", handleOpenRecallGate);
+  }, []);
+
+  const revisionMetrics = useMemo(() => {
+    return getRevisionMetrics(completedChapters);
+  }, [completedChapters]);
+
+  const dueRevisionList = useMemo(() => {
+    return getDueRevisionItems(completedChapters);
+  }, [completedChapters]);
+
+  const starredRevisionList = useMemo(() => {
+    return getStarredItems(completedChapters);
+  }, [completedChapters]);
   const [studyModalChapter, setStudyModalChapter] = useState<{
     id: string;
     title: string;
@@ -682,6 +716,7 @@ export default function RoadmapPage() {
 
   const NAV = [
     { id: "roadmap" as const,  label: "Roadmap",        icon: <CalendarDays className="h-4 w-4" /> },
+    { id: "revision" as const, label: `Revision & Recall${dueRevisionList.length > 0 ? ` (${dueRevisionList.length})` : ""}`, icon: <RotateCcw className="h-4 w-4" /> },
     { id: "career" as const,   label: "Resume & roles",  icon: <Target className="h-4 w-4" /> },
     { id: "outreach" as const, label: "Outreach",        icon: <Mail className="h-4 w-4" /> },
     { id: "germany" as const,  label: "Germany",         icon: <MapPin className="h-4 w-4" /> },
@@ -716,6 +751,20 @@ export default function RoadmapPage() {
         {/* ── ROADMAP SECTION ── */}
         {section === "roadmap" && (
           <>
+            {/* Opaque Recall Gate Trigger */}
+            {dueRevisionList.length > 0 && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setRevisionGateOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/40 px-3.5 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/25 transition-all cursor-pointer"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 animate-spin-slow text-amber-400" />
+                  <span>Launch Opaque Recall Gate ({dueRevisionList.length} Due) →</span>
+                </button>
+              </div>
+            )}
+
             {/* Stats */}
             {days.length > 0 && (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -891,6 +940,314 @@ export default function RoadmapPage() {
                 <DayCard key={plan.day} plan={plan} onToggle={toggleChecklist} evidence={executionState.evidenceByItemId} isToday={plan.date === today} onOpenStudy={handleOpenStudy} completedChapterIdSet={completedChapterIdSet} />
               ))}
             </div>
+          </>
+        )}
+
+        {/* ── REVISION & RECALL SECTION ── */}
+        {section === "revision" && (
+          <>
+            {/* Header with Quick Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-primary/40 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <RotateCcw className="h-5 w-5 text-primary" />
+                  <h2 className="font-display font-bold text-lg">Spaced Repetition & High-Yield Hub</h2>
+                  <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-bold text-primary font-mono">
+                    Ebbinghaus SRS
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
+                  Consolidate mastered chapters into permanent long-term memory. Intervals: 1d → 3d → 7d → 14d → 30d → 60d.
+                  Active recall triggers neural consolidation before decay occurs.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setRevisionGateOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2.5 text-xs font-bold transition-all shadow-md shadow-amber-500/20 cursor-pointer"
+                >
+                  <Brain className="h-4 w-4" />
+                  <span>Launch Opaque Recall Gate ({dueRevisionList.length > 0 ? `${dueRevisionList.length} Due` : "Start Drill"})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRevisionDeckOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background/80 px-3.5 py-2.5 text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 text-primary" />
+                  <span>Deck View</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Metrics Strip */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3.5 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-400">Due Today</p>
+                <p className="mt-1 font-display text-2xl font-bold tabular-nums text-amber-400">
+                  {revisionMetrics.dueTodayCount}
+                </p>
+                <p className="text-[10px] text-muted-foreground">needs review</p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Mastered</p>
+                <p className="mt-1 font-display text-2xl font-bold tabular-nums text-cyan-400">
+                  {revisionMetrics.totalMastered}
+                </p>
+                <p className="text-[10px] text-muted-foreground">bible chapters</p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Starred Yield</p>
+                <p className="mt-1 font-display text-2xl font-bold tabular-nums text-yellow-400">
+                  {revisionMetrics.starredCount}
+                </p>
+                <p className="text-[10px] text-muted-foreground">high-yield flagged</p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Retention Rate</p>
+                <p className="mt-1 font-display text-2xl font-bold tabular-nums text-emerald-400">
+                  {revisionMetrics.retentionRate}%
+                </p>
+                <p className="text-[10px] text-muted-foreground">on-schedule</p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Stage 4+ Mastery</p>
+                <p className="mt-1 font-display text-2xl font-bold tabular-nums text-purple-400">
+                  {revisionMetrics.masteredStageCount}
+                </p>
+                <p className="text-[10px] text-muted-foreground">&gt;30d interval</p>
+              </div>
+            </div>
+
+            {/* Curriculum Invariant Drill Carousel / Spotlight */}
+            <Card variant="dossier" className="border-border/80">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <h3 className="font-display font-bold text-sm">Curriculum Invariant Drill (Staff-Level Interview Presets)</h3>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground">5 Architecture Invariants</span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {HIGH_YIELD_CURRICULUM_PRESETS.map((preset, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-xl border border-border/60 bg-background/50 p-3.5 space-y-2 flex flex-col justify-between hover:border-primary/40 transition-colors"
+                    >
+                      <div>
+                        <span className="rounded bg-primary/15 text-primary px-1.5 py-0.5 text-[9px] font-mono font-semibold">
+                          {preset.topic}
+                        </span>
+                        <h4 className="mt-1.5 font-display text-xs font-bold text-foreground leading-snug">
+                          {preset.title}
+                        </h4>
+                        <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                          {preset.question}
+                        </p>
+                      </div>
+                      <div className="pt-2 border-t border-border/40 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRevisionDeckOpen(true);
+                          }}
+                          className="text-[11px] font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                          <Brain className="h-3 w-3" />
+                          <span>Active Recall Drill →</span>
+                        </button>
+                        <a
+                          href={preset.studyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground"
+                          title="Open study chapter"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Filter Pills & Search */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                {[
+                  { id: "due" as const, label: `Due for Recall (${dueRevisionList.length})` },
+                  { id: "starred" as const, label: `Starred High-Yield (${starredRevisionList.length})` },
+                  { id: "all" as const, label: `All Mastered (${completedChapters.length})` },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setRevisionFilter(f.id)}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+                      revisionFilter === f.id
+                        ? "border-primary bg-primary text-primary-foreground font-semibold"
+                        : "border-border/60 text-muted-foreground hover:border-primary/50"
+                    )}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search revision topics..."
+                  className="w-full rounded-xl border border-border/70 bg-background pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Cards List based on revisionFilter */}
+            {(() => {
+              let list =
+                revisionFilter === "due"
+                  ? dueRevisionList
+                  : revisionFilter === "starred"
+                  ? starredRevisionList
+                  : completedChapters;
+
+              if (search.trim()) {
+                const q = search.toLowerCase();
+                list = list.filter(
+                  (item) =>
+                    item.chapterTitle.toLowerCase().includes(q) ||
+                    item.stack.toLowerCase().includes(q) ||
+                    (item.notes && item.notes.toLowerCase().includes(q))
+                );
+              }
+
+              if (list.length === 0) {
+                return (
+                  <div className="rounded-xl border border-dashed border-border/60 py-12 text-center space-y-2">
+                    <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-400" />
+                    <p className="font-display font-bold text-sm">
+                      {revisionFilter === "due"
+                        ? "Zero topics due for revision!"
+                        : revisionFilter === "starred"
+                        ? "No chapters starred as high-yield yet."
+                        : "No matching mastered chapters found."}
+                    </p>
+                    <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                      {revisionFilter === "due"
+                        ? "You have completed all scheduled recall reviews. The Ebbinghaus retention curve is maintained."
+                        : revisionFilter === "starred"
+                        ? "Star critical chapters during your study sprint to build your personal high-yield interview arsenal."
+                        : "Complete focus sprints in the Deep Study Cockpit to add chapters to your revision queue."}
+                    </p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {list.map((chapter) => {
+                    const stat = getRevisionStatus(chapter);
+                    return (
+                      <Card
+                        key={chapter.chapterId}
+                        variant="dossier"
+                        className={cn(
+                          "transition-all duration-200 hover:border-primary/40",
+                          stat.isDue && "ring-1 ring-amber-500/40"
+                        )}
+                      >
+                        <CardContent className="p-4 space-y-2.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                <span className="rounded-full bg-primary/15 text-primary px-2 py-0.5 text-[10px] font-mono font-semibold">
+                                  Day {chapter.day} · {chapter.stack}
+                                </span>
+                                {stat.isDue ? (
+                                  <span className="rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold">
+                                    {stat.daysOverdue > 0 ? `${stat.daysOverdue}d overdue` : "Due today"}
+                                  </span>
+                                ) : (
+                                  <span className="rounded-full bg-muted/40 text-muted-foreground px-2 py-0.5 text-[10px] font-mono">
+                                    Due in {stat.daysUntilDue}d
+                                  </span>
+                                )}
+                                <span className="rounded bg-muted/30 text-muted-foreground px-1.5 py-0.5 text-[10px] font-mono">
+                                  Stage {stat.stage} ({stat.intervalDays}d)
+                                </span>
+                              </div>
+                              <h4 className="font-display font-bold text-sm leading-snug">
+                                {chapter.chapterTitle}
+                              </h4>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = toggleChapterStar(completedChapters, chapter.chapterId);
+                                setCompletedChapters(updated);
+                              }}
+                              className="text-muted-foreground hover:text-amber-400 transition-colors p-1"
+                              title={chapter.starred ? "Unstar chapter" : "Star as high-yield"}
+                            >
+                              <Star
+                                className={cn(
+                                  "h-4 w-4",
+                                  chapter.starred && "fill-amber-400 text-amber-400"
+                                )}
+                              />
+                            </button>
+                          </div>
+
+                          {chapter.notes && (
+                            <p className="rounded-lg bg-muted/20 p-2 font-mono text-[11px] text-muted-foreground line-clamp-2">
+                              {chapter.notes}
+                            </p>
+                          )}
+
+                          <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setRevisionDeckOpen(true)}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 border border-primary/30 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                              <span>Practice Recall</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const dayRef = findDayForChapter(chapter.chapterId);
+                                const ch = dayRef?.chapters?.find((c) => c.id === chapter.chapterId);
+                                handleOpenStudy(
+                                  ch || {
+                                    id: chapter.chapterId,
+                                    title: chapter.chapterTitle,
+                                    studyUrl: `https://study.buildora.work/${chapter.chapterId}`,
+                                    stack: chapter.stack,
+                                  },
+                                  chapter.day
+                                );
+                              }}
+                              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                            >
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                              <span>Open in Cockpit →</span>
+                            </button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </>
         )}
 
@@ -1107,6 +1464,16 @@ export default function RoadmapPage() {
           initialChapter={studyModalChapter ?? undefined}
           dayNumber={studyModalDay}
           onClose={() => setStudyModalChapter(null)}
+        />
+        <RevisionDeckModal
+          open={revisionDeckOpen}
+          onClose={() => setRevisionDeckOpen(false)}
+          onOpenStudyCockpit={(ch) => handleOpenStudy(ch, 1)}
+        />
+        <FullPageRevisionGate
+          open={revisionGateOpen}
+          onClose={() => setRevisionGateOpen(false)}
+          onOpenStudyCockpit={(ch) => handleOpenStudy(ch, 1)}
         />
       </PersonalShell>
     </RequireAuth>

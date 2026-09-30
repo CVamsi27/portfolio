@@ -25,7 +25,9 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  Star,
   Trophy,
+  Unlock,
   Volume2,
   VolumeX,
   X,
@@ -52,6 +54,15 @@ import {
   type StudyAnalytics,
   type StudyChapterRef,
 } from "@/lib/study-focus";
+import {
+  type ExtendedCompletedChapter,
+  type RetentionRating,
+  getDueRevisionItems,
+  getRevisionStatus,
+  recordRevision,
+  toggleChapterStar,
+  buildFlashcard,
+} from "@/lib/revision-engine";
 import curriculum from "@/data/career-curriculum.json";
 import { SimpleRing } from "@/components/trackers/Ring";
 import { toast } from "@/components/ui/use-toast";
@@ -74,7 +85,7 @@ export default function DeepStudyCockpitModal({
   const { value: activeSession, setValue: setActiveSession } =
     useSyncedStorage<ActiveStudySession | null>("study:active_session", null);
   const { value: completedChapters, setValue: setCompletedChapters } =
-    useSyncedStorage<CompletedChapterRecord[]>("study:completed_chapters", []);
+    useSyncedStorage<ExtendedCompletedChapter[]>("study:completed_chapters", []);
   const { value: careerState, setValue: setCareerState } =
     useSyncedStorage<any>("career_execution_state", {
       version: 1,
@@ -94,8 +105,13 @@ export default function DeepStudyCockpitModal({
   const [sidePanelOpen, setSidePanelOpen] = useState(true);
   const [ambientPlaying, setAmbientPlaying] = useState(false);
   const [selectedSprintMinutes, setSelectedSprintMinutes] = useState<number>(25);
-  const [activeTab, setActiveTab] = useState<"focus" | "history">("focus");
+  const [activeTab, setActiveTab] = useState<"focus" | "revision" | "history">("focus");
   const [historySearch, setHistorySearch] = useState("");
+  const [revisionIndex, setRevisionIndex] = useState(0);
+  const [isRevisionRevealed, setIsRevisionRevealed] = useState(false);
+  const [revisionScratchpad, setRevisionScratchpad] = useState("");
+  const [distractionRecallInput, setDistractionRecallInput] = useState("");
+  const [isDistractionHintRevealed, setIsDistractionHintRevealed] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const originalTitleRef = useRef<string>("");
@@ -113,6 +129,63 @@ export default function DeepStudyCockpitModal({
     () => computeStudyAnalytics(completedChapters || []),
     [completedChapters]
   );
+
+  // Spaced repetition due queue
+  const dueRevisionList = useMemo(() => {
+    return getDueRevisionItems(completedChapters || []);
+  }, [completedChapters]);
+
+  const currentRevisionChapter = dueRevisionList[revisionIndex] || dueRevisionList[0] || null;
+  const currentRevisionCard = useMemo(() => {
+    if (!currentRevisionChapter) return null;
+    return buildFlashcard(currentRevisionChapter);
+  }, [currentRevisionChapter]);
+
+  const handleRateRevision = (rating: RetentionRating) => {
+    if (!currentRevisionChapter) return;
+    const updated = recordRevision(
+      completedChapters,
+      currentRevisionChapter.chapterId,
+      rating,
+      revisionScratchpad.trim() ? revisionScratchpad : undefined
+    );
+    setCompletedChapters(updated);
+    playSuccessChime();
+    toast({
+      title: rating === "hard" ? "Reinforcement Scheduled" : "Retention Advanced!",
+      description:
+        rating === "hard"
+          ? "Interval reset to 1 day for reinforcement."
+          : `Stage updated for ${currentRevisionChapter.chapterTitle}.`,
+    });
+    setIsRevisionRevealed(false);
+    setRevisionScratchpad("");
+    if (revisionIndex < dueRevisionList.length - 1) {
+      setRevisionIndex((prev) => prev + 1);
+    } else {
+      setRevisionIndex(0);
+    }
+  };
+
+  const handleToggleStar = (chapterId: string) => {
+    const updated = toggleChapterStar(completedChapters, chapterId);
+    setCompletedChapters(updated);
+  };
+
+  const handleUnlockDistractionWithAnswer = () => {
+    if (distractionRecallInput.trim().length < 5 && !isDistractionHintRevealed) {
+      toast({
+        title: "Active Recall Required to Unlock",
+        description: "Write at least 1 key invariant or click 'Need a hint?' to prove your focus.",
+      });
+      return;
+    }
+    if (soundEnabled) playSuccessChime();
+    setDistractionRecallInput("");
+    setIsDistractionHintRevealed(false);
+    setShowDistractionOverlay(false);
+    resumeTimer();
+  };
 
   // Resolve current active day in curriculum
   const activeDayPlan = useMemo(() => {
@@ -686,33 +759,46 @@ export default function DeepStudyCockpitModal({
         {sidePanelOpen && (
           <aside className="w-full md:w-88 lg:w-96 border-l border-border/80 bg-card p-4 sm:p-5 flex flex-col justify-between overflow-y-auto space-y-4">
             <div>
-              {/* Tab Selector: Focus Sprint vs Mastered History */}
+              {/* Tab Selector: Focus Sprint vs Active Recall Revision vs Mastered History */}
               <div className="flex rounded-xl bg-muted/40 p-1 mb-4">
                 <button
                   type="button"
                   onClick={() => setActiveTab("focus")}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer",
+                    "flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer",
                     activeTab === "focus"
                       ? "bg-card text-foreground shadow-xs font-bold"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <Brain className="h-3.5 w-3.5 text-primary" />
-                  <span>Focus Sprint</span>
+                  <span>Focus</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("revision")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer relative",
+                    activeTab === "revision"
+                      ? "bg-card text-foreground shadow-xs font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <RotateCcw className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Recall{dueRevisionList.length > 0 ? ` (${dueRevisionList.length})` : ""}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("history")}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer",
+                    "flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer",
                     activeTab === "history"
                       ? "bg-card text-foreground shadow-xs font-bold"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <History className="h-3.5 w-3.5 text-primary" />
-                  <span>Mastered ({completedChapters?.length || 0})</span>
+                  <span>Mastered</span>
                 </button>
               </div>
 
@@ -901,6 +987,204 @@ export default function DeepStudyCockpitModal({
                     </div>
                   </div>
                 </>
+              ) : activeTab === "revision" ? (
+                /* Active Recall Revision Tab */
+                <div className="space-y-3 max-h-[72vh] overflow-y-auto pr-1">
+                  {/* Spaced Repetition Due Queue Header */}
+                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+                        <RotateCcw className="h-4 w-4" />
+                        <span>Due for Revision ({dueRevisionList.length})</span>
+                      </div>
+                      <span className="font-mono text-[10px] text-muted-foreground">Ebbinghaus SRS</span>
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Active recall flashcards for mastered topics. Review before forgetting sets in.
+                    </p>
+                  </div>
+
+                  {currentRevisionChapter && currentRevisionCard ? (
+                    <div className="rounded-xl border border-border/80 bg-background/60 p-3.5 space-y-3 shadow-xs">
+                      {/* Header */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <span className="inline-block rounded-md bg-primary/15 text-primary text-[10px] font-mono font-semibold px-1.5 py-0.5 mb-1">
+                            Day {currentRevisionCard.day} · {currentRevisionCard.stack}
+                          </span>
+                          <h4 className="font-display text-xs font-bold text-foreground leading-snug">
+                            {currentRevisionCard.chapterTitle}
+                          </h4>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStar(currentRevisionChapter.chapterId)}
+                          className="text-muted-foreground hover:text-amber-400 transition-colors p-1"
+                          title={currentRevisionChapter.starred ? "Unstar topic" : "Star as high-yield topic"}
+                        >
+                          <Star className={cn("h-4 w-4", currentRevisionChapter.starred && "fill-amber-400 text-amber-400")} />
+                        </button>
+                      </div>
+
+                      {/* Stage & Overdue info */}
+                      {(() => {
+                        const stat = getRevisionStatus(currentRevisionChapter);
+                        return (
+                          <div className="flex items-center justify-between text-[10px] font-mono rounded bg-muted/30 px-2 py-1">
+                            <span className="text-muted-foreground">Stage {stat.stage} ({stat.intervalDays}d interval)</span>
+                            <span className={stat.daysOverdue > 0 ? "text-rose-400 font-bold" : "text-amber-400 font-medium"}>
+                              {stat.daysOverdue > 0 ? `${stat.daysOverdue}d overdue` : "Due today"}
+                            </span>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Interview Recall Prompt */}
+                      <div className="rounded-lg border border-border/60 bg-muted/20 p-2.5">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">
+                          Active Recall Question
+                        </p>
+                        <p className="text-xs text-foreground/90 font-medium leading-relaxed">
+                          {currentRevisionCard.interviewQuestion}
+                        </p>
+                      </div>
+
+                      {/* Scratchpad */}
+                      <div>
+                        <label className="text-[10px] font-mono text-muted-foreground block mb-1">
+                          Mental Recall / Notes Scratchpad:
+                        </label>
+                        <textarea
+                          value={revisionScratchpad}
+                          onChange={(e) => setRevisionScratchpad(e.target.value)}
+                          rows={2}
+                          placeholder="Type your recall invariants before checking..."
+                          className="w-full rounded-lg border border-border/70 bg-background p-2 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none resize-none"
+                        />
+                      </div>
+
+                      {/* Reveal Answer / Notes Toggle */}
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => setIsRevisionRevealed((prev) => !prev)}
+                          className="w-full rounded-lg border border-border/70 bg-muted/30 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
+                        >
+                          {isRevisionRevealed ? "Hide Verified Notes ▲" : "Reveal Verified Notes & Solution ▼"}
+                        </button>
+
+                        {isRevisionRevealed && (
+                          <div className="mt-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5 space-y-1.5 animate-fadeIn">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Your Mastered Notes</p>
+                            <p className="text-xs text-foreground/90 leading-relaxed font-mono whitespace-pre-wrap">
+                              {currentRevisionCard.notes || "No custom notes recorded during study sprint. Check curriculum practice task below."}
+                            </p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pt-1">Practice Task</p>
+                            <p className="text-[11px] text-muted-foreground">{currentRevisionCard.practiceTask}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Self-Rating SRS Buttons */}
+                      <div className="space-y-1 pt-1">
+                        <p className="text-[10px] font-mono text-muted-foreground text-center">Rate your retention to reschedule:</p>
+                        <div className="grid grid-cols-3 gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleRateRevision("hard")}
+                            className="rounded-lg border border-rose-500/30 bg-rose-500/10 py-1.5 text-[11px] font-bold text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                          >
+                            🔴 Hard (1d)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRateRevision("good")}
+                            className="rounded-lg border border-amber-500/30 bg-amber-500/10 py-1.5 text-[11px] font-bold text-amber-400 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                          >
+                            🟡 Good (+1)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRateRevision("easy")}
+                            className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 py-1.5 text-[11px] font-bold text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                          >
+                            🟢 Easy (+2)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Study Again In Cockpit Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const ch = curriculum.days
+                            .flatMap((d) => d.chapters)
+                            .find((c) => c.id === currentRevisionChapter.chapterId);
+                          if (ch) {
+                            startSession(ch, currentRevisionChapter.day, currentRevisionChapter.date);
+                            setActiveTab("focus");
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                        <span>Re-read this Chapter in Cockpit</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-emerald-500/40 bg-emerald-500/5 py-8 px-4 text-center space-y-2">
+                      <CheckCircle2 className="h-8 w-8 text-emerald-400 mx-auto" />
+                      <p className="font-display text-xs font-bold text-foreground">Zero Topics Overdue!</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        You are 100% on track with spaced repetition. The forgetting curve is conquered.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("history")}
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline cursor-pointer"
+                      >
+                        <span>Browse all {completedChapters.length} mastered chapters →</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Due Queue List below */}
+                  {dueRevisionList.length > 1 && (
+                    <div className="space-y-1.5 pt-2">
+                      <p className="text-[10px] font-mono text-muted-foreground uppercase">
+                        Other Due Topics ({dueRevisionList.length}):
+                      </p>
+                      {dueRevisionList.map((item, idx) => {
+                        const stat = getRevisionStatus(item);
+                        return (
+                          <button
+                            key={item.chapterId}
+                            type="button"
+                            onClick={() => {
+                              setRevisionIndex(idx);
+                              setIsRevisionRevealed(false);
+                              setRevisionScratchpad("");
+                            }}
+                            className={cn(
+                              "w-full flex items-center justify-between rounded-lg border p-2 text-left transition-all cursor-pointer text-xs",
+                              idx === revisionIndex
+                                ? "border-primary bg-primary/10 text-foreground"
+                                : "border-border/60 bg-muted/10 text-muted-foreground hover:bg-muted/30"
+                            )}
+                          >
+                            <div className="min-w-0 pr-2">
+                              <p className="font-bold truncate text-[11px]">{item.chapterTitle}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono">{item.stack}</p>
+                            </div>
+                            <span className="font-mono text-[9px] text-amber-400 shrink-0">
+                              {stat.daysOverdue > 0 ? `${stat.daysOverdue}d overdue` : "Due today"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               ) : (
                 /* Mastered Chapters History Tab */
                 <div className="space-y-3">
@@ -1004,76 +1288,174 @@ export default function DeepStudyCockpitModal({
         )}
       </div>
 
-      {/* ─── MODAL 1: DISTRACTION / TAB-SWITCH ALERT ────────────────────── */}
+      {/* ─── MODAL 1: DISTRACTION / TAB-SWITCH OPAQUE QUESTION GATE ──────── */}
       {showDistractionOverlay && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-background/90 backdrop-blur-lg animate-in fade-in-0 duration-150">
-          <div className="max-w-md w-full rounded-2xl border-2 border-amber-500/60 bg-card p-6 shadow-2xl text-center space-y-4">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-500 animate-bounce">
-              <ShieldAlert className="h-8 w-8" />
+        <div className="fixed inset-0 z-[250] flex flex-col justify-between bg-slate-950/98 backdrop-blur-3xl text-white p-6 sm:p-10 overflow-y-auto animate-in fade-in-0 duration-200">
+          <header className="flex items-center justify-between border-b border-white/10 pb-4 max-w-3xl w-full mx-auto">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40">
+                <ShieldAlert className="h-5 w-5 animate-pulse" />
+              </div>
+              <div>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                  Tab Switch Intercepted // Study Attention Guard
+                </span>
+                <h3 className="font-display text-sm font-bold text-white">
+                  Active Focus Checkpoint for {currentChapter.title}
+                </h3>
+              </div>
+            </div>
+            <div className="rounded-full bg-rose-500/20 border border-rose-500/30 px-2.5 py-1 text-xs font-mono font-bold text-rose-300">
+              {activeSession?.distractionCount || 1} Tab Switch{(activeSession?.distractionCount || 1) > 1 ? "es" : ""}
+            </div>
+          </header>
+
+          <main className="max-w-3xl w-full mx-auto py-8 space-y-6">
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5 flex items-start gap-3">
+              <Flame className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-bold text-amber-300">
+                  Germany Blue Card Stakes (€75k–€85k Target in Berlin/Munich)
+                </p>
+                <p className="text-xs text-slate-300 leading-relaxed mt-1">
+                  You navigated away from your study reader. In strict lockdown mode, your timer is paused.
+                  Prove your neural engagement: answer this relevant interview question from today&apos;s curriculum before unlocking!
+                </p>
+              </div>
             </div>
 
-            <h3 className="font-display text-lg font-bold text-foreground">
-              Tab Switch Detected!
-            </h3>
+            {/* RELEVANT QUESTION */}
+            <div className="rounded-2xl border border-white/15 bg-slate-900/90 p-6 sm:p-8 space-y-4 shadow-2xl backdrop-blur-xl">
+              <div>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-amber-400">
+                  Curriculum Interview Question
+                </span>
+                <h2 className="mt-1.5 font-display text-lg sm:text-xl font-extrabold text-white leading-snug">
+                  {activeDayPlan.interviewQuestions[0] ||
+                    `What are the critical architectural invariants, trade-offs, and failure modes of ${currentChapter.title}?`}
+                </h2>
+              </div>
 
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              You navigated away from your study topic <strong className="text-foreground">({currentChapter.title})</strong>. In strict lockdown mode, study timers pause during distractions.
-            </p>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-mono text-slate-400">
+                  Your Active Recall Answer / Invariant:
+                </label>
+                <textarea
+                  rows={4}
+                  value={distractionRecallInput}
+                  onChange={(e) => setDistractionRecallInput(e.target.value)}
+                  placeholder="Explain the invariant in your own words to unlock your study session..."
+                  className="w-full rounded-xl border border-white/20 bg-slate-950/80 p-3.5 font-mono text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 resize-none shadow-inner"
+                />
+              </div>
 
-            <div className="rounded-xl bg-muted/40 p-3 font-mono text-xs text-amber-500">
-              Total Distraction Count: {activeSession?.distractionCount || 1}
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsDistractionHintRevealed((prev) => !prev)}
+                  className="text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>{isDistractionHintRevealed ? "Hide Model Answer" : "Need a hint? Reveal Model Answer"}</span>
+                </button>
+              </div>
+
+              {isDistractionHintRevealed && (
+                <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4 space-y-2 font-mono text-xs text-slate-300 animate-in fade-in-0 duration-150">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                    Model Guidance from Curriculum:
+                  </span>
+                  <p className="leading-relaxed">
+                    {activeDayPlan.practiceTask || activeDayPlan.mission}
+                  </p>
+                </div>
+              )}
             </div>
+          </main>
 
+          <footer className="border-t border-white/10 pt-4 max-w-3xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="font-mono text-[11px] text-slate-400">
+              German companies (Personio, n8n, SumUp) screen for verbal precision and mental composure under pressure.
+            </span>
             <button
               type="button"
-              onClick={resumeTimer}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 font-display text-sm font-bold text-primary-foreground hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+              onClick={handleUnlockDistractionWithAnswer}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2.5 text-xs sm:text-sm transition-all shadow-xl shadow-amber-500/20 cursor-pointer"
             >
               <Zap className="h-4 w-4" />
-              <span>I am Back — Resume Deep Study</span>
+              <span>Verify Answer &amp; Resume Study Reader</span>
             </button>
-          </div>
+          </footer>
         </div>
       )}
 
-      {/* ─── MODAL 2: ATTENTION CHECK / RECALL PROMPT ──────────────────── */}
+      {/* ─── MODAL 2: ATTENTION CHECK / RECALL OPAQUE QUESTION GATE ─────── */}
       {showAttentionCheck && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-background/90 backdrop-blur-lg animate-in fade-in-0 duration-150">
-          <div className="max-w-lg w-full rounded-2xl border border-primary/50 bg-card p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-border/60 pb-3">
-              <div className="flex items-center gap-2 text-primary font-bold text-sm">
+        <div className="fixed inset-0 z-[250] flex flex-col justify-between bg-slate-950/98 backdrop-blur-3xl text-white p-6 sm:p-10 overflow-y-auto animate-in fade-in-0 duration-150">
+          <header className="flex items-center justify-between border-b border-white/10 pb-4 max-w-3xl w-full mx-auto">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/20 text-primary border border-primary/40">
                 <Brain className="h-5 w-5 animate-pulse" />
-                <span>Active Attention Check</span>
               </div>
-              <span className="font-mono text-xs font-bold text-amber-500 tabular-nums">
-                {attentionSecondsLeft}s remaining
-              </span>
+              <div>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
+                  15-Minute Focus Checkpoint // Periodic Attention Gate
+                </span>
+                <h3 className="font-display text-sm font-bold text-white">
+                  Active Attention Check for {currentChapter.title}
+                </h3>
+              </div>
             </div>
-
-            <p className="text-xs sm:text-sm text-foreground">
-              Deep focus check for <strong className="text-primary">{currentChapter.title}</strong>:
-              Write 1 key invariant or rule you just read to strengthen active recall.
-            </p>
-
-            <textarea
-              rows={3}
-              value={attentionRecallInput}
-              onChange={(e) => setAttentionRecallInput(e.target.value)}
-              placeholder="e.g. Closures preserve the lexical scope of their parent function even after the outer function finishes executing..."
-              className="w-full rounded-xl border border-border/80 bg-background p-3 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary font-mono resize-none shadow-inner"
-            />
-
-            <div className="flex items-center justify-between gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleConfirmAttention}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 font-display text-sm font-bold text-primary-foreground hover:opacity-90 active:scale-95 transition-all cursor-pointer"
-              >
-                <Check className="h-4 w-4" />
-                <span>Confirm Attention &amp; Continue Study</span>
-              </button>
+            <div className="rounded-full bg-amber-500/20 border border-amber-500/30 px-3 py-1 font-mono text-xs font-bold text-amber-400 tabular-nums">
+              {attentionSecondsLeft}s remaining
             </div>
-          </div>
+          </header>
+
+          <main className="max-w-3xl w-full mx-auto py-8 space-y-6">
+            <div className="rounded-2xl border border-white/15 bg-slate-900/90 p-6 sm:p-8 space-y-4 shadow-2xl backdrop-blur-xl">
+              <div>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
+                  Active Recall Invariant Question
+                </span>
+                <h2 className="mt-1.5 font-display text-lg sm:text-xl font-extrabold text-white leading-snug">
+                  {activeDayPlan.interviewQuestions[1] ||
+                    activeDayPlan.interviewQuestions[0] ||
+                    `What is the primary architectural invariant you just studied in ${currentChapter.title}?`}
+                </h2>
+                <p className="mt-2 text-xs text-slate-300">
+                  Write at least 1 key invariant or rule you just read to trigger active recall and prevent passive reading illusions.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <textarea
+                  rows={4}
+                  value={attentionRecallInput}
+                  onChange={(e) => setAttentionRecallInput(e.target.value)}
+                  placeholder="e.g. In React 19, server actions passed across boundaries must be serializable; closures capture the lexical scope..."
+                  className="w-full rounded-xl border border-white/20 bg-slate-950/80 p-3.5 font-mono text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none shadow-inner"
+                />
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 text-xs font-mono text-slate-400">
+                <span className="text-primary font-bold">Goal:</span> Complete 25m focus sprint with zero mind-wandering to maintain 100% retention on today&apos;s chapter.
+              </div>
+            </div>
+          </main>
+
+          <footer className="border-t border-white/10 pt-4 max-w-3xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="font-mono text-[11px] text-slate-400">
+              Active recall at regular intervals doubles long-term synaptic retention.
+            </span>
+            <button
+              type="button"
+              onClick={handleConfirmAttention}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6 py-2.5 text-xs sm:text-sm transition-all shadow-xl shadow-primary/20 cursor-pointer"
+            >
+              <Check className="h-4 w-4" />
+              <span>Confirm Attention &amp; Continue Study Sprint</span>
+            </button>
+          </footer>
         </div>
       )}
 
