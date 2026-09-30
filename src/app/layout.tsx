@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
+import { Suspense } from "react";
 import { Bebas_Neue, IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -10,6 +11,7 @@ import PWARegister from "@/components/PWARegister";
 import { Toaster } from "@/components/ui/toaster";
 import ReminderNudges from "@/components/ReminderNudges";
 import ScrollToTop from "@/components/ScrollToTop";
+import DistractionInterceptor from "@/components/study/DistractionInterceptor";
 import {
   getBrandForHost,
   isTrackerHost,
@@ -186,6 +188,9 @@ export default async function RootLayout({
           </a>
           <main id="main-content" className="relative flex flex-col min-h-screen">
             <Navbar initialIsTracker={trackerSurface} />
+            <Suspense fallback={null}>
+              <DistractionInterceptor />
+            </Suspense>
             <div className="flex-1">{children}</div>
             <Toaster />
             {trackerSurface ? <ReminderNudges /> : null}

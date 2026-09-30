@@ -196,3 +196,34 @@ export class AmbientFocusDrone {
     return this.isPlaying;
   }
 }
+
+/**
+ * Play a triple alarm warning tone when 1-hour lockdown activates or is challenged.
+ */
+export function playLockdownAlarm() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    [0, 0.15, 0.3].forEach((delay) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(320, now + delay);
+      osc.frequency.setValueAtTime(240, now + delay + 0.08);
+
+      gain.gain.setValueAtTime(0.001, now + delay);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.12);
+
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.13);
+    });
+
+    setTimeout(() => void ctx.close(), 700);
+  } catch {
+    // audio unavailable
+  }
+}

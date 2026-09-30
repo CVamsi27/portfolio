@@ -28,6 +28,7 @@ import {
   Quote,
   GitBranch,
   ShieldCheck,
+  ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CONTACT_EMAIL, CONTACT_PHONE, PROJECTS, RESUME_PATH } from "@/lib/const";
@@ -277,6 +278,17 @@ export default function PortfolioCommandPalette({
         keywords: ["study", "focus", "distraction", "cockpit", "deep study", "lockdown", "attention", "bible"],
         run: () => {
           window.dispatchEvent(new CustomEvent("portfolio-open-study-cockpit"));
+        },
+      },
+      {
+        id: "act-germany-shield",
+        category: "Actions",
+        title: "Germany Goal Guardian & Distraction Shield",
+        subtitle: "Allowlist (buildora, notion, github), social media blocklist & 1h lockdown",
+        icon: ShieldAlert,
+        keywords: ["distraction", "blocklist", "allowlist", "germany", "shield", "social media", "lockdown", "guardian", "dreams"],
+        run: () => {
+          window.dispatchEvent(new CustomEvent("portfolio-trigger-distraction-shield", { detail: { url: "https://instagram.com" } }));
         },
       },
       {

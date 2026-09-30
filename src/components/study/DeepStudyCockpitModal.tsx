@@ -525,14 +525,22 @@ export default function DeepStudyCockpitModal({
         {activeSession ? (
           <div className="flex items-center gap-4">
             {/* Distraction Shield Indicator */}
-            <div
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent("portfolio-trigger-distraction-shield", {
+                    detail: { url: "https://instagram.com" },
+                  })
+                )
+              }
               className={cn(
-                "hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-xs font-semibold border transition-all",
+                "hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-xs font-semibold border transition-all cursor-pointer hover:scale-105 active:scale-95",
                 (activeSession.distractionCount || 0) === 0
                   ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
                   : "border-amber-500/40 bg-amber-500/10 text-amber-500"
               )}
-              title="Tab Switch & Distraction Monitor"
+              title="Click to view Germany Goal Guardian & Distraction Shield"
             >
               {(activeSession.distractionCount || 0) === 0 ? (
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
@@ -544,7 +552,7 @@ export default function DeepStudyCockpitModal({
                   ? "Distraction Shield: Active"
                   : `${activeSession.distractionCount} Tab Switches`}
               </span>
-            </div>
+            </button>
 
             {/* Clock & Controls */}
             <div className="flex items-center gap-2 rounded-xl border border-border/80 bg-muted/40 px-3 py-1">
