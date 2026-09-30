@@ -136,3 +136,40 @@ export function getNextStudyGoal(
 
   return null;
 }
+
+export interface StudyAnalytics {
+  totalCompleted: number;
+  totalMinutes: number;
+  totalDistractions: number;
+  distractionFreePercentage: number;
+  completedByStack: Record<string, number>;
+}
+
+export function computeStudyAnalytics(records: CompletedChapterRecord[]): StudyAnalytics {
+  const totalCompleted = (records || []).length;
+  let totalMinutes = 0;
+  let totalDistractions = 0;
+  let distractionFreeCount = 0;
+  const completedByStack: Record<string, number> = {};
+
+  for (const r of records || []) {
+    totalMinutes += r.durationMinutes || 0;
+    totalDistractions += r.distractions || 0;
+    if ((r.distractions || 0) === 0) {
+      distractionFreeCount++;
+    }
+    const stack = r.stack || "General";
+    completedByStack[stack] = (completedByStack[stack] || 0) + 1;
+  }
+
+  const distractionFreePercentage =
+    totalCompleted > 0 ? Math.round((distractionFreeCount / totalCompleted) * 100) : 100;
+
+  return {
+    totalCompleted,
+    totalMinutes,
+    totalDistractions,
+    distractionFreePercentage,
+    completedByStack,
+  };
+}

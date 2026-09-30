@@ -11,6 +11,8 @@ import {
   Users, GitPullRequest, MapPin, Brain, ShieldCheck,
 } from "lucide-react";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
+import curriculum from "@/data/career-curriculum.json";
+import type { CompletedChapterRecord } from "@/lib/study-focus";
 
 interface ChecklistItem { id: string; text: string; done: boolean }
 interface DayPlan {
@@ -99,10 +101,19 @@ function useDailyNotification(plan: DayPlan | undefined) {
 
 export default function RoadmapTodayCard() {
   const { value: timetable, setValue: setTimetable } = useSyncedStorage<Timetable | null>("timetable_100_days", null);
+  const { value: completedChapters } = useSyncedStorage<CompletedChapterRecord[]>("study:completed_chapters", []);
   const today = dateKey();
   const [studyCockpitOpen, setStudyCockpitOpen] = useState(false);
 
   const plan = useMemo(() => timetable?.days?.find(d => d.date === today), [timetable, today]);
+  const todayChapters = useMemo(() => {
+    return curriculum.days.find(d => d.date === today)?.chapters || [];
+  }, [today]);
+  const masteredTodayCount = useMemo(() => {
+    const set = new Set((completedChapters || []).map(c => c.chapterId));
+    return todayChapters.filter(ch => set.has(ch.id)).length;
+  }, [todayChapters, completedChapters]);
+  const allTodayMastered = todayChapters.length > 0 && masteredTodayCount === todayChapters.length;
 
   useDailyNotification(plan);
 
@@ -152,7 +163,17 @@ export default function RoadmapTodayCard() {
               </span>
             </div>
             <p className="mt-0.5 font-display font-bold text-sm leading-snug">{plan.title}</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">{doneCount}/{plan.checklist.length} tasks done</p>
+            <div className="mt-0.5 flex items-center gap-1.5 flex-wrap text-[11px] text-muted-foreground">
+              <span>{doneCount}/{plan.checklist.length} tasks done</span>
+              {todayChapters.length > 0 && (
+                <>
+                  <span>·</span>
+                  <span className={allTodayMastered ? "text-emerald-400 font-semibold" : "text-cyan-400 font-semibold"}>
+                    {allTodayMastered ? "All study mastered ✓" : `${masteredTodayCount}/${todayChapters.length} study mastered`}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
           <Link href="/roadmap"
             className="shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/20 transition-colors">
@@ -209,7 +230,8 @@ export default function RoadmapTodayCard() {
             onClick={() => setStudyCockpitOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-xs"
           >
-            <ShieldCheck className="h-3 w-3" />Deep Focus Sprint
+            <ShieldCheck className="h-3 w-3" />
+            {allTodayMastered ? "Review Focus Sprint" : "Deep Focus Sprint"}
           </button>
           <a href={plan.studyLink} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-[11px] hover:border-primary/50 transition-colors">

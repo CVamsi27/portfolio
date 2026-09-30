@@ -115,3 +115,84 @@ export function playAttentionPing() {
     // audio unavailable
   }
 }
+
+/**
+ * Continuous Web Audio ambient binaural focus drone.
+ * Employs a 432Hz fundamental + 442Hz harmonic to create a soothing 10Hz Alpha focus wave.
+ * 100% synthesized in real time via Web Audio API. Zero external audio assets.
+ */
+export class AmbientFocusDrone {
+  private ctx: AudioContext | null = null;
+  private gainNode: GainNode | null = null;
+  private osc1: OscillatorNode | null = null;
+  private osc2: OscillatorNode | null = null;
+  private isPlaying = false;
+
+  public start(volume = 0.05) {
+    if (this.isPlaying) return;
+    try {
+      this.ctx = getAudioContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      this.gainNode = this.ctx.createGain();
+      this.gainNode.gain.setValueAtTime(0.0001, now);
+      this.gainNode.gain.exponentialRampToValueAtTime(volume, now + 1.2);
+
+      // Binaural carrier 1: 432 Hz
+      this.osc1 = this.ctx.createOscillator();
+      this.osc1.type = "sine";
+      this.osc1.frequency.setValueAtTime(432, now);
+
+      // Binaural carrier 2: 442 Hz (10 Hz Alpha beat frequency)
+      this.osc2 = this.ctx.createOscillator();
+      this.osc2.type = "sine";
+      this.osc2.frequency.setValueAtTime(442, now);
+
+      this.osc1.connect(this.gainNode);
+      this.osc2.connect(this.gainNode);
+      this.gainNode.connect(this.ctx.destination);
+
+      this.osc1.start(now);
+      this.osc2.start(now);
+      this.isPlaying = true;
+    } catch {
+      // audio failed or permissions denied
+    }
+  }
+
+  public stop() {
+    if (!this.isPlaying || !this.gainNode || !this.ctx) {
+      this.isPlaying = false;
+      return;
+    }
+    try {
+      const now = this.ctx.currentTime;
+      this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+      this.gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+      const activeCtx = this.ctx;
+      const osc1 = this.osc1;
+      const osc2 = this.osc2;
+      setTimeout(() => {
+        try {
+          osc1?.stop();
+          osc2?.stop();
+          void activeCtx?.close();
+        } catch {
+          // ignore
+        }
+      }, 700);
+    } catch {
+      // ignore
+    } finally {
+      this.isPlaying = false;
+      this.ctx = null;
+      this.gainNode = null;
+      this.osc1 = null;
+      this.osc2 = null;
+    }
+  }
+
+  public active(): boolean {
+    return this.isPlaying;
+  }
+}

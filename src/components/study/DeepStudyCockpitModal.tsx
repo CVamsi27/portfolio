@@ -13,11 +13,14 @@ import {
   ExternalLink,
   Flame,
   Globe,
+  Headphones,
+  History,
   Maximize2,
   Minimize2,
   Pause,
   Play,
   RotateCcw,
+  Search,
   Shield,
   ShieldAlert,
   ShieldCheck,
@@ -32,11 +35,13 @@ import { cn } from "@/lib/utils";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { useNow } from "@/lib/tracker-store";
 import {
+  AmbientFocusDrone,
   playAttentionPing,
   playDistractionWarning,
   playSuccessChime,
 } from "@/lib/audio-cue";
 import {
+  computeStudyAnalytics,
   formatStudyClock,
   getNextStudyGoal,
   getStudyElapsedMs,
@@ -44,6 +49,7 @@ import {
   type ActiveStudySession,
   type CompletedChapterRecord,
   type NextStudyGoal,
+  type StudyAnalytics,
   type StudyChapterRef,
 } from "@/lib/study-focus";
 import curriculum from "@/data/career-curriculum.json";
@@ -86,14 +92,25 @@ export default function DeepStudyCockpitModal({
   const [attentionSecondsLeft, setAttentionSecondsLeft] = useState(60);
   const [justCompletedGoal, setJustCompletedGoal] = useState<NextStudyGoal | null>(null);
   const [sidePanelOpen, setSidePanelOpen] = useState(true);
+  const [ambientPlaying, setAmbientPlaying] = useState(false);
+  const [selectedSprintMinutes, setSelectedSprintMinutes] = useState<number>(25);
+  const [activeTab, setActiveTab] = useState<"focus" | "history">("focus");
+  const [historySearch, setHistorySearch] = useState("");
 
   const modalRef = useRef<HTMLDivElement>(null);
   const originalTitleRef = useRef<string>("");
+  const droneRef = useRef<AmbientFocusDrone | null>(null);
   const now = useNow(1000);
 
   // Set of completed chapter IDs
   const completedIds = useMemo(
     () => new Set((completedChapters || []).map((c) => c.chapterId)),
+    [completedChapters]
+  );
+
+  // Study analytics across completed chapters
+  const analytics: StudyAnalytics = useMemo(
+    () => computeStudyAnalytics(completedChapters || []),
     [completedChapters]
   );
 
@@ -179,8 +196,40 @@ export default function DeepStudyCockpitModal({
     }
   }, [setActiveSession]);
 
+  // Clean up ambient audio drone on unmount
+  useEffect(() => {
+    return () => {
+      if (droneRef.current) {
+        droneRef.current.stop();
+        droneRef.current = null;
+      }
+    };
+  }, []);
+
+  const toggleAmbientDrone = useCallback(() => {
+    if (!droneRef.current) {
+      droneRef.current = new AmbientFocusDrone();
+    }
+    if (ambientPlaying) {
+      droneRef.current.stop();
+      setAmbientPlaying(false);
+      toast({
+        title: "Ambient Sound Off",
+        description: "432Hz Alpha focus tone silenced.",
+      });
+    } else {
+      droneRef.current.start(0.06);
+      setAmbientPlaying(true);
+      toast({
+        title: "Ambient Focus Sound Active 🎧",
+        description: "432Hz Alpha focus tone engaged to drown out environmental distractions.",
+      });
+    }
+  }, [ambientPlaying]);
+
   const startSession = useCallback(
-    (chapter: StudyChapterRef, day: number, date: string) => {
+    (chapter: StudyChapterRef, day: number, date: string, customMinutes?: number) => {
+      const duration = customMinutes || selectedSprintMinutes || chapter.estimatedMinutes || 25;
       const newSession: ActiveStudySession = {
         id: `study_${Date.now().toString(36)}`,
         chapterId: chapter.id,
@@ -191,7 +240,7 @@ export default function DeepStudyCockpitModal({
         date,
         startedAt: Date.now(),
         pausedMs: 0,
-        targetMinutes: chapter.estimatedMinutes || 25,
+        targetMinutes: duration,
         distractionCount: 0,
         attentionChecksTotal: 0,
         attentionChecksPassed: 0,
@@ -200,7 +249,7 @@ export default function DeepStudyCockpitModal({
       };
       setActiveSession(newSession);
     },
-    [setActiveSession]
+    [setActiveSession, selectedSprintMinutes]
   );
 
   // ─── TAB SWITCH & DISTRACTION MONITORING ─────────────────────────────────────
@@ -528,6 +577,24 @@ export default function DeepStudyCockpitModal({
 
         {/* Right: Controls & Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Ambient 432Hz Focus Drone Toggle */}
+          <button
+            type="button"
+            onClick={toggleAmbientDrone}
+            className={cn(
+              "flex h-8 items-center gap-1.5 px-2.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer",
+              ambientPlaying
+                ? "border-primary bg-primary/20 text-primary shadow-xs"
+                : "border-border/70 text-muted-foreground hover:text-foreground"
+            )}
+            title={ambientPlaying ? "432Hz Alpha Focus Drone: Playing (click to mute)" : "Enable 432Hz Alpha Focus Drone (sound generator)"}
+          >
+            <Headphones className={cn("h-3.5 w-3.5", ambientPlaying && "animate-pulse")} />
+            <span className="hidden sm:inline text-[11px] font-mono">
+              {ambientPlaying ? "432Hz On" : "432Hz Audio"}
+            </span>
+          </button>
+
           {/* Sound Toggle */}
           <button
             type="button"
@@ -607,149 +674,312 @@ export default function DeepStudyCockpitModal({
           </div>
         </main>
 
-        {/* Right Pane: Goal Tracking, Invariants & Notes */}
+        {/* Right Pane: Goal Tracking, Invariants, Notes & Mastered History */}
         {sidePanelOpen && (
           <aside className="w-full md:w-88 lg:w-96 border-l border-border/80 bg-card p-4 sm:p-5 flex flex-col justify-between overflow-y-auto space-y-4">
             <div>
-              {/* Daily Progress Widget */}
-              <div className="rounded-xl border border-border/80 bg-muted/20 p-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-utility text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Today&apos;s Curriculum Progress
-                  </span>
-                  <span className="font-mono text-xs font-bold text-primary">
-                    {todayProgress.percent}%
-                  </span>
-                </div>
-                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full bg-primary transition-all duration-300 rounded-full"
-                    style={{ width: `${todayProgress.percent}%` }}
-                  />
-                </div>
-                <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
-                  <span>{todayProgress.completed} of {todayProgress.total} chapters completed</span>
-                  <span>Day {activeDayPlan.day} of 100</span>
-                </div>
-              </div>
-
-              {/* Session Action: Start Sprint or Mark Complete */}
-              {!activeSession ? (
-                <div className="mt-4 rounded-xl border border-primary/40 bg-primary/10 p-4 text-center">
-                  <ShieldCheck className="h-7 w-7 text-primary mx-auto mb-2" />
-                  <h4 className="font-display font-bold text-sm text-foreground">Anti-Distraction Shield</h4>
-                  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                    Activate tab-switch monitoring, attention recall pings &amp; focused timing for this chapter.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => startSession(currentChapter, activeDayPlan.day, activeDayPlan.date)}
-                    className="mt-3.5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 px-4 font-display text-sm font-bold text-primary-foreground hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-md"
-                  >
-                    <Play className="h-4 w-4" />
-                    <span>Begin Deep Study Sprint</span>
-                  </button>
-                </div>
-              ) : (
+              {/* Tab Selector: Focus Sprint vs Mastered History */}
+              <div className="flex rounded-xl bg-muted/40 p-1 mb-4">
                 <button
                   type="button"
-                  onClick={handleMarkChapterDone}
-                  className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3 px-4 font-display text-sm font-bold text-primary-foreground shadow-md hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer"
+                  onClick={() => setActiveTab("focus")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer",
+                    activeTab === "focus"
+                      ? "bg-card text-foreground shadow-xs font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Mark Chapter Complete</span>
+                  <Brain className="h-3.5 w-3.5 text-primary" />
+                  <span>Focus Sprint</span>
                 </button>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("history")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer",
+                    activeTab === "history"
+                      ? "bg-card text-foreground shadow-xs font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <History className="h-3.5 w-3.5 text-primary" />
+                  <span>Mastered ({completedChapters?.length || 0})</span>
+                </button>
+              </div>
 
-              {/* Up Next / Next Goal Card */}
-              {nextGoal && (
-                <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-3.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-1.5 font-bold text-primary">
-                      <Flame className="h-3.5 w-3.5" />
-                      UP NEXT / NEXT GOAL
-                    </span>
-                    <span className="font-mono text-[10px] text-muted-foreground">
-                      {nextGoal.isToday ? "Today's Queue" : `Day ${nextGoal.day}`}
-                    </span>
+              {activeTab === "focus" ? (
+                <>
+                  {/* Daily Progress Widget */}
+                  <div className="rounded-xl border border-border/80 bg-muted/20 p-3.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-utility text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Today&apos;s Curriculum Progress
+                      </span>
+                      <span className="font-mono text-xs font-bold text-primary">
+                        {todayProgress.percent}%
+                      </span>
+                    </div>
+                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full bg-primary transition-all duration-300 rounded-full"
+                        style={{ width: `${todayProgress.percent}%` }}
+                      />
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+                      <span>{todayProgress.completed} of {todayProgress.total} chapters completed</span>
+                      <span>Day {activeDayPlan.day} of 100</span>
+                    </div>
+
+                    {/* Sprint Duration Preset Chips */}
+                    <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between gap-1 text-xs">
+                      <span className="font-utility text-[11px] text-muted-foreground">Sprint Block:</span>
+                      <div className="flex items-center gap-1">
+                        {[15, 25, 45, 60].map((mins) => (
+                          <button
+                            key={mins}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSprintMinutes(mins);
+                              if (activeSession && activeSession.pausedAt !== undefined) {
+                                setActiveSession((prev) => (prev ? { ...prev, targetMinutes: mins } : prev));
+                              }
+                            }}
+                            className={cn(
+                              "rounded-md px-2 py-0.5 font-mono text-[10px] font-semibold transition-all cursor-pointer",
+                              (activeSession?.targetMinutes || selectedSprintMinutes) === mins
+                                ? "bg-primary text-primary-foreground shadow-xs"
+                                : "bg-muted text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            {mins}m
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <h4 className="mt-1 font-display text-sm font-bold text-foreground">
-                    {nextGoal.chapter.title}
-                  </h4>
-                  <p className="mt-0.5 text-xs text-muted-foreground font-mono">
-                    Est. {nextGoal.chapter.estimatedMinutes || 20} mins · {nextGoal.chapter.stack}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => handleStartNextChapter(nextGoal)}
-                    className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-card py-1.5 px-3 font-utility text-xs font-semibold text-foreground hover:bg-primary/10 transition-colors cursor-pointer"
-                  >
-                    <span>Jump to Next Chapter</span>
-                    <ArrowRight className="h-3.5 w-3.5 text-primary" />
-                  </button>
+
+                  {/* Session Action: Start Sprint or Mark Complete */}
+                  {!activeSession ? (
+                    <div className="mt-4 rounded-xl border border-primary/40 bg-primary/10 p-4 text-center">
+                      <ShieldCheck className="h-7 w-7 text-primary mx-auto mb-2" />
+                      <h4 className="font-display font-bold text-sm text-foreground">Anti-Distraction Shield</h4>
+                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                        Activate tab-switch monitoring, attention recall pings &amp; focused timing for this chapter.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => startSession(currentChapter, activeDayPlan.day, activeDayPlan.date, selectedSprintMinutes)}
+                        className="mt-3.5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 px-4 font-display text-sm font-bold text-primary-foreground hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-md"
+                      >
+                        <Play className="h-4 w-4" />
+                        <span>Begin Deep Study Sprint ({selectedSprintMinutes}m)</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleMarkChapterDone}
+                      className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3 px-4 font-display text-sm font-bold text-primary-foreground shadow-md hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>Mark Chapter Complete</span>
+                    </button>
+                  )}
+
+                  {/* Up Next / Next Goal Card */}
+                  {nextGoal && (
+                    <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-3.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-1.5 font-bold text-primary">
+                          <Flame className="h-3.5 w-3.5" />
+                          UP NEXT / NEXT GOAL
+                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {nextGoal.isToday ? "Today's Queue" : `Day ${nextGoal.day}`}
+                        </span>
+                      </div>
+                      <h4 className="mt-1 font-display text-sm font-bold text-foreground">
+                        {nextGoal.chapter.title}
+                      </h4>
+                      <p className="mt-0.5 text-xs text-muted-foreground font-mono">
+                        Est. {nextGoal.chapter.estimatedMinutes || 20} mins · {nextGoal.chapter.stack}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleStartNextChapter(nextGoal)}
+                        className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-card py-1.5 px-3 font-utility text-xs font-semibold text-foreground hover:bg-primary/10 transition-colors cursor-pointer"
+                      >
+                        <span>Jump to Next Chapter</span>
+                        <ArrowRight className="h-3.5 w-3.5 text-primary" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Quick Invariants & Notes Scratchpad */}
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="study-notes" className="font-utility text-xs font-semibold text-foreground">
+                        Chapter Invariants &amp; Key Ideas
+                      </label>
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        Auto-saved as verification evidence
+                      </span>
+                    </div>
+                    <textarea
+                      id="study-notes"
+                      rows={4}
+                      value={activeSession?.notes || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setActiveSession((prev) => (prev ? { ...prev, notes: val } : prev));
+                      }}
+                      placeholder="Note key invariant, code example, or failure mode..."
+                      className="mt-2 w-full rounded-xl border border-border/80 bg-background p-3 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary font-mono resize-none shadow-inner"
+                    />
+                  </div>
+
+                  {/* Distraction Defenses Status */}
+                  <div className="mt-4 space-y-2 rounded-xl border border-border/60 bg-muted/10 p-3 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Strict Tab-Switch Guard:</span>
+                      <button
+                        type="button"
+                        onClick={() => setStrictLockdown((prev) => !prev)}
+                        className={cn(
+                          "rounded-md px-2 py-0.5 font-mono text-[10px] font-semibold transition-colors",
+                          strictLockdown
+                            ? "bg-emerald-500/20 text-emerald-500"
+                            : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        {strictLockdown ? "ENFORCED" : "OFF"}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Attention Checks:</span>
+                      <span className="font-mono font-semibold text-foreground">
+                        {activeSession?.attentionChecksPassed || 0} passed / {activeSession?.attentionChecksTotal || 0}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Total Distractions:</span>
+                      <span
+                        className={cn(
+                          "font-mono font-bold",
+                          (activeSession?.distractionCount || 0) === 0 ? "text-emerald-500" : "text-amber-500"
+                        )}
+                      >
+                        {activeSession?.distractionCount || 0} tab switches
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* All-time Study Analytics Mini-Grid */}
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-xl border border-border/50 bg-muted/20 p-2">
+                      <span className="block font-mono text-sm font-bold text-foreground">{analytics.totalCompleted}</span>
+                      <span className="block text-[10px] text-muted-foreground font-utility">Mastered</span>
+                    </div>
+                    <div className="rounded-xl border border-border/50 bg-muted/20 p-2">
+                      <span className="block font-mono text-sm font-bold text-primary">{analytics.totalMinutes}m</span>
+                      <span className="block text-[10px] text-muted-foreground font-utility">Focused</span>
+                    </div>
+                    <div className="rounded-xl border border-border/50 bg-muted/20 p-2">
+                      <span className="block font-mono text-sm font-bold text-emerald-500">{analytics.distractionFreePercentage}%</span>
+                      <span className="block text-[10px] text-muted-foreground font-utility">Clean Focus</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Mastered Chapters History Tab */
+                <div className="space-y-3">
+                  {/* Search filter */}
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <input
+                      type="text"
+                      value={historySearch}
+                      onChange={(e) => setHistorySearch(e.target.value)}
+                      placeholder="Filter mastered chapters..."
+                      className="w-full rounded-xl border border-border/70 bg-background pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none font-mono"
+                    />
+                  </div>
+
+                  {completedChapters && completedChapters.length > 0 ? (
+                    <div className="space-y-2.5 max-h-[62vh] overflow-y-auto pr-1">
+                      {completedChapters
+                        .filter((c) =>
+                          historySearch.trim()
+                            ? c.chapterTitle.toLowerCase().includes(historySearch.toLowerCase()) ||
+                              c.stack.toLowerCase().includes(historySearch.toLowerCase()) ||
+                              c.notes.toLowerCase().includes(historySearch.toLowerCase())
+                            : true
+                        )
+                        .map((item, idx) => (
+                          <div
+                            key={`${item.chapterId}-${idx}`}
+                            className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-1.5 transition-all hover:border-primary/40"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <h5 className="font-display text-xs font-bold text-foreground leading-snug">
+                                {item.chapterTitle}
+                              </h5>
+                              <span
+                                className={cn(
+                                  "rounded-md px-1.5 py-0.5 font-mono text-[9px] font-semibold shrink-0",
+                                  item.distractions === 0
+                                    ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                    : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                                )}
+                              >
+                                {item.distractions === 0 ? "Clean Focus" : `${item.distractions} alerts`}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 font-mono text-[10px] text-muted-foreground">
+                              <span>{item.durationMinutes}m focused</span>
+                              <span>·</span>
+                              <span className="truncate">{item.stack}</span>
+                            </div>
+
+                            {item.notes && (
+                              <p className="rounded-lg bg-background/80 p-2 font-mono text-[10px] text-foreground/80 leading-relaxed line-clamp-3">
+                                {item.notes}
+                              </p>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const ch = curriculum.days
+                                  .flatMap((d) => d.chapters)
+                                  .find((c) => c.id === item.chapterId);
+                                if (ch) {
+                                  startSession(ch, item.day, item.date);
+                                  setActiveTab("focus");
+                                }
+                              }}
+                              className="mt-1 inline-flex items-center gap-1 font-utility text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                            >
+                              <span>Re-read in Cockpit →</span>
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-border/60 py-10 text-center space-y-2">
+                      <History className="h-8 w-8 text-muted-foreground/60 mx-auto" />
+                      <p className="font-display text-xs font-bold text-foreground">No Chapters Mastered Yet</p>
+                      <p className="text-[11px] text-muted-foreground px-4">
+                        Complete your first chapter sprint and your verification notes will be logged here.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
-
-              {/* Quick Invariants & Notes Scratchpad */}
-              <div className="mt-4">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="study-notes" className="font-utility text-xs font-semibold text-foreground">
-                    Chapter Invariants &amp; Key Ideas
-                  </label>
-                  <span className="font-mono text-[10px] text-muted-foreground">
-                    Auto-saved as verification evidence
-                  </span>
-                </div>
-                <textarea
-                  id="study-notes"
-                  rows={4}
-                  value={activeSession?.notes || ""}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setActiveSession((prev) => (prev ? { ...prev, notes: val } : prev));
-                  }}
-                  placeholder="Note key invariant, code example, or failure mode..."
-                  className="mt-2 w-full rounded-xl border border-border/80 bg-background p-3 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary font-mono resize-none shadow-inner"
-                />
-              </div>
-
-              {/* Distraction Defenses Status */}
-              <div className="mt-4 space-y-2 rounded-xl border border-border/60 bg-muted/10 p-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Strict Tab-Switch Guard:</span>
-                  <button
-                    type="button"
-                    onClick={() => setStrictLockdown((prev) => !prev)}
-                    className={cn(
-                      "rounded-md px-2 py-0.5 font-mono text-[10px] font-semibold transition-colors",
-                      strictLockdown
-                        ? "bg-emerald-500/20 text-emerald-500"
-                        : "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {strictLockdown ? "ENFORCED" : "OFF"}
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Attention Checks:</span>
-                  <span className="font-mono font-semibold text-foreground">
-                    {activeSession?.attentionChecksPassed || 0} passed / {activeSession?.attentionChecksTotal || 0}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Total Distractions:</span>
-                  <span
-                    className={cn(
-                      "font-mono font-bold",
-                      (activeSession?.distractionCount || 0) === 0 ? "text-emerald-500" : "text-amber-500"
-                    )}
-                  >
-                    {activeSession?.distractionCount || 0} tab switches
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* Bottom Actions */}
@@ -757,7 +987,7 @@ export default function DeepStudyCockpitModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full text-center font-utility text-xs text-muted-foreground hover:text-foreground"
+                className="w-full text-center font-utility text-xs text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 Close Cockpit (Session continues in background)
               </button>

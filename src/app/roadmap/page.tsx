@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
+import type { CompletedChapterRecord } from "@/lib/study-focus";
 import { canCompleteEvidence, EMPTY_CAREER_EXECUTION_STATE, type CareerChecklistItem, type CareerEvidence, type CareerExecutionState } from "@/lib/career-roadmap";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -121,12 +123,14 @@ function DayCard({
   evidence,
   isToday,
   onOpenStudy,
+  completedChapterIdSet,
 }: {
   plan: DayPlan;
   onToggle: (d: number, id: string, evidence: CareerEvidence) => void;
   evidence: Record<string, { evidence: CareerEvidence; verifiedAt?: string }>;
   isToday: boolean;
   onOpenStudy?: (chapter: { id: string; title: string; studyUrl: string; stack?: string; estimatedMinutes?: number }, dayNumber: number) => void;
+  completedChapterIdSet?: Set<string>;
 }) {
   const [open, setOpen] = useState(isToday);
   const [selected, setSelected] = useState<ChecklistItem | null>(null);
@@ -140,6 +144,13 @@ function DayCard({
   const color = getColor(plan.topic);
   const doneCount = plan.checklist.filter(c => c.done).length;
   const nowHH = istDateTime().time;
+
+  const totalChapters = plan.chapters?.length || 1;
+  const masteredCount = useMemo(() => {
+    return plan.chapters?.filter(ch => completedChapterIdSet?.has(ch.id)).length || 0;
+  }, [plan.chapters, completedChapterIdSet]);
+  const allChaptersMastered = masteredCount > 0 && masteredCount === totalChapters;
+
   function isActive(t: string) {
     if (!isToday) return false;
     const [s, e] = t.split(/\s*[-–]\s*/);
@@ -169,12 +180,22 @@ function DayCard({
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${color.bg}`} style={{ color: color.ring }}>{color.short}</span>
             {isToday && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">TODAY</span>}
+            {masteredCount > 0 && (
+              <span className={cn(
+                "rounded-full px-2 py-0.5 text-[10px] font-bold border",
+                allChaptersMastered
+                  ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                  : "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+              )}>
+                {allChaptersMastered ? "✓ ALL STUDY MASTERED" : `${masteredCount}/${totalChapters} STUDY MASTERED`}
+              </span>
+            )}
             {progress === 100 && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">DONE</span>}
             {isPast && progress > 0 && progress < 100 && <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">IN PROGRESS</span>}
             {isPast && progress === 0 && <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold text-rose-400">OVERDUE</span>}
           </div>
           <p className="font-display font-bold text-sm leading-tight">{plan.title}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">{plan.date} · {doneCount}/{plan.checklist.length} done</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">{plan.date} · {doneCount}/{plan.checklist.length} done{masteredCount > 0 ? ` · ${masteredCount}/${totalChapters} study mastered` : ""}</p>
           {/* Mini progress bar */}
           <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted">
             <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: color.ring }} />
@@ -191,16 +212,23 @@ function DayCard({
             <button
               type="button"
               onClick={() => onOpenStudy?.(plan.chapters[0] || { id: plan.chapterId, title: plan.title, studyUrl: plan.studyLink, stack: plan.topic }, plan.day)}
-              className="flex-1 flex items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 hover:bg-primary/20 transition-all text-left cursor-pointer group"
+              className={cn(
+                "flex-1 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition-all text-left cursor-pointer group",
+                allChaptersMastered
+                  ? "border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20"
+                  : "border-primary/40 bg-primary/10 hover:bg-primary/20"
+              )}
             >
               <div className="flex items-center gap-2.5">
-                <ShieldCheck className="h-4 w-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
+                <ShieldCheck className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", allChaptersMastered ? "text-emerald-400" : "text-primary")} />
                 <div>
-                  <p className="text-xs font-bold text-primary">Deep Focus Study (Anti-Distraction Shield) →</p>
-                  <p className="text-[11px] text-muted-foreground">study.buildora.work · {plan.chapters.length || 1} chapter{(plan.chapters.length || 1) > 1 ? "s" : ""} · tab-switch guard active</p>
+                  <p className={cn("text-xs font-bold", allChaptersMastered ? "text-emerald-400" : "text-primary")}>
+                    {allChaptersMastered ? "Review Deep Focus Study (All Mastered ✓) →" : "Deep Focus Study (Anti-Distraction Shield) →"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">study.buildora.work · {masteredCount > 0 ? `${masteredCount}/${totalChapters} mastered · ` : ""}{totalChapters} chapter{totalChapters > 1 ? "s" : ""} · tab-switch guard active</p>
                 </div>
               </div>
-              <ArrowRight className="h-3.5 w-3.5 text-primary shrink-0" />
+              <ArrowRight className={cn("h-3.5 w-3.5 shrink-0", allChaptersMastered ? "text-emerald-400" : "text-primary")} />
             </button>
             <a href={plan.studyLink} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border/70 bg-card px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0"
@@ -209,21 +237,38 @@ function DayCard({
               <span className="hidden sm:inline">Web tab</span>
             </a>
           </div>
-          {plan.chapters && plan.chapters.length > 1 && (
+          {plan.chapters && plan.chapters.length > 0 && (
             <div className="px-4 pt-2">
               <div className="flex flex-wrap gap-1.5">
-                {plan.chapters.map((ch, idx) => (
-                  <button
-                    key={ch.id}
-                    type="button"
-                    onClick={() => onOpenStudy?.({ ...ch, stack: plan.topic }, plan.day)}
-                    className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/20 px-2 py-1 text-[11px] text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer"
-                  >
-                    <BookOpen className="h-3 w-3 text-primary" />
-                    <span className="font-mono text-[10px] text-muted-foreground">Ch {idx + 1}:</span>
-                    <span className="truncate max-w-[200px]">{ch.title}</span>
-                  </button>
-                ))}
+                {plan.chapters.map((ch, idx) => {
+                  const isMastered = completedChapterIdSet?.has(ch.id);
+                  return (
+                    <button
+                      key={ch.id}
+                      type="button"
+                      onClick={() => onOpenStudy?.({ ...ch, stack: plan.topic }, plan.day)}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] transition-colors cursor-pointer",
+                        isMastered
+                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                          : "border-border/60 bg-muted/20 text-foreground hover:border-primary/50 hover:bg-primary/5"
+                      )}
+                    >
+                      {isMastered ? (
+                        <span className="font-bold text-emerald-400 text-xs">✓</span>
+                      ) : (
+                        <BookOpen className="h-3 w-3 text-primary" />
+                      )}
+                      <span className="font-mono text-[10px] opacity-75">Ch {idx + 1}:</span>
+                      <span className="truncate max-w-[200px]">{ch.title}</span>
+                      {isMastered && (
+                        <span className="text-[9px] font-mono uppercase text-emerald-400 font-semibold ml-0.5">
+                          Done
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -559,6 +604,7 @@ export default function RoadmapPage() {
   const { value: timetable } = useSyncedStorage<Timetable | null>("timetable_100_days", null);
   const { value: career, setValue: setCareer } = useSyncedStorage<CareerData | null>("career_command_center", null);
   const { value: executionState, setValue: setExecutionState } = useSyncedStorage<CareerExecutionState>("career_execution_state", EMPTY_CAREER_EXECUTION_STATE);
+  const { value: completedChapters } = useSyncedStorage<CompletedChapterRecord[]>("study:completed_chapters", []);
   const [filter, setFilter] = useState<"all" | "today" | "pending" | "done">("all");
   const [search, setSearch] = useState("");
   const [section, setSection] = useState<"roadmap" | "career" | "germany" | "outreach">("roadmap");
@@ -596,6 +642,7 @@ export default function RoadmapPage() {
   const overallPct = totalItems > 0 ? Math.round(doneItems / totalItems * 100) : 0;
   const todayPlan = days.find(d => d.date === today);
   const todayPct = todayPlan ? pct(todayPlan.checklist) : 0;
+  const completedChapterIdSet = useMemo(() => new Set((completedChapters || []).map(c => c.chapterId)), [completedChapters]);
 
   const phaseGroups = useMemo(() => {
     const groups: Record<string, { label: string; ring: string; done: number; total: number }> = {};
@@ -671,9 +718,10 @@ export default function RoadmapPage() {
           <>
             {/* Stats */}
             {days.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
                 {[
-                  { label: "Total Days", value: String(days.length), color: "text-foreground", note: "planned" },
+                  { label: "Total Days", value: String(days.length), color: "text-foreground", note: "curriculum" },
+                  { label: "Mastered Chs", value: `${completedChapters?.length || 0}`, color: "text-cyan-400", note: "bible chapters" },
                   { label: "Days Done", value: String(completedDays), color: "text-emerald-400", note: "100% complete" },
                   { label: "Tasks Done", value: `${doneItems}/${totalItems}`, color: "text-amber-400", note: "checklist" },
                   { label: "Overall", value: `${overallPct}%`, color: "text-primary", note: "progress" },
@@ -714,33 +762,46 @@ export default function RoadmapPage() {
                           </span>
                         </div>
                         <ol className="mt-2 space-y-1.5">
-                          {todayPlan.chapters.map((chapter, index) => (
-                            <li key={chapter.id} className="flex items-center justify-between gap-2 text-sm">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className="font-mono text-xs text-muted-foreground">{index + 1}.</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenStudy({ ...chapter, stack: todayPlan.topic }, todayPlan.day)}
-                                  className="text-left font-medium text-foreground hover:text-primary transition-colors truncate cursor-pointer"
-                                >
-                                  {chapter.title}
-                                </button>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenStudy({ ...chapter, stack: todayPlan.topic }, todayPlan.day)}
-                                  className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary hover:bg-primary/20 transition-colors cursor-pointer"
-                                >
-                                  <ShieldCheck className="h-3 w-3" />
-                                  <span>Deep Study</span>
-                                </button>
-                                <a href={chapter.studyUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-                              </div>
-                            </li>
-                          ))}
+                          {todayPlan.chapters.map((chapter, index) => {
+                            const isMastered = completedChapterIdSet.has(chapter.id);
+                            return (
+                              <li key={chapter.id} className="flex items-center justify-between gap-2 text-sm">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="font-mono text-xs text-muted-foreground">{index + 1}.</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenStudy({ ...chapter, stack: todayPlan.topic }, todayPlan.day)}
+                                    className="text-left font-medium text-foreground hover:text-primary transition-colors truncate cursor-pointer"
+                                  >
+                                    {chapter.title}
+                                  </button>
+                                  {isMastered && (
+                                    <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-400 shrink-0">
+                                      ✓ Mastered
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenStudy({ ...chapter, stack: todayPlan.topic }, todayPlan.day)}
+                                    className={cn(
+                                      "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold transition-colors cursor-pointer",
+                                      isMastered
+                                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                                        : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+                                    )}
+                                  >
+                                    <ShieldCheck className="h-3 w-3" />
+                                    <span>{isMastered ? "Review Sprint" : "Deep Study"}</span>
+                                  </button>
+                                  <a href={chapter.studyUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                </div>
+                              </li>
+                            );
+                          })}
                         </ol>
                       </div>
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -827,7 +888,7 @@ export default function RoadmapPage() {
 
             <div className="space-y-2">
                 {filtered.map(plan => (
-                <DayCard key={plan.day} plan={plan} onToggle={toggleChecklist} evidence={executionState.evidenceByItemId} isToday={plan.date === today} onOpenStudy={handleOpenStudy} />
+                <DayCard key={plan.day} plan={plan} onToggle={toggleChecklist} evidence={executionState.evidenceByItemId} isToday={plan.date === today} onOpenStudy={handleOpenStudy} completedChapterIdSet={completedChapterIdSet} />
               ))}
             </div>
           </>
