@@ -17,6 +17,9 @@ import {
   Tv,
   Compass,
   Zap,
+  Search,
+  Copy,
+  Check,
 } from "lucide-react";
 import { playSuccessChime, playAttentionPing } from "@/lib/audio-cue";
 import { cn } from "@/lib/utils";
@@ -209,12 +212,32 @@ export default function StudyBreakLoungeModal({
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [activeTab, setActiveTab] = useState<"podcasts" | "music">("podcasts");
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Reset timer if duration preset selected
   const handleSelectPreset = (minutes: number) => {
     setSelectedMinutes(minutes);
     setSecondsRemaining(minutes * 60);
     setIsTimerRunning(false);
+  };
+
+  // Launch stream and automatically start break timer if not running
+  const handleLaunchStream = (url: string) => {
+    if (!isTimerRunning && secondsRemaining > 0) {
+      setIsTimerRunning(true);
+      playAttentionPing();
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  // Copy link helper
+  const handleCopyLink = (id: string, text: string) => {
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
   };
 
   // Timer countdown effect
@@ -259,14 +282,33 @@ export default function StudyBreakLoungeModal({
   const categories = ["all", "Systems", "AI", "Open Source", "Mindset", "Web", "History"];
 
   const filteredPodcasts = TOP_10_TECH_PODCASTS.filter((podcast) => {
-    if (filterCategory === "all") return true;
-    if (filterCategory === "Systems") return podcast.badge.includes("Systems") || podcast.badge.includes("Architecture");
-    if (filterCategory === "AI") return podcast.badge.includes("AI");
-    if (filterCategory === "Open Source") return podcast.badge.includes("Open Source");
-    if (filterCategory === "Mindset") return podcast.badge.includes("Mindset");
-    if (filterCategory === "Web") return podcast.badge.includes("Web");
-    if (filterCategory === "History") return podcast.badge.includes("History") || podcast.badge.includes("Lore");
-    return true;
+    const matchesCategory =
+      filterCategory === "all"
+        ? true
+        : filterCategory === "Systems"
+        ? podcast.badge.includes("Systems") || podcast.badge.includes("Architecture")
+        : filterCategory === "AI"
+        ? podcast.badge.includes("AI")
+        : filterCategory === "Open Source"
+        ? podcast.badge.includes("Open Source")
+        : filterCategory === "Mindset"
+        ? podcast.badge.includes("Mindset")
+        : filterCategory === "Web"
+        ? podcast.badge.includes("Web")
+        : filterCategory === "History"
+        ? podcast.badge.includes("History") || podcast.badge.includes("Lore")
+        : true;
+
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      podcast.title.toLowerCase().includes(q) ||
+      podcast.host.toLowerCase().includes(q) ||
+      podcast.description.toLowerCase().includes(q) ||
+      podcast.recommendedTopic.toLowerCase().includes(q) ||
+      podcast.badge.toLowerCase().includes(q);
+
+    return matchesCategory && matchesSearch;
   });
 
   return (
@@ -426,77 +468,136 @@ export default function StudyBreakLoungeModal({
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {activeTab === "podcasts" ? (
             <div>
-              {/* Category Filter Pills */}
-              <div className="flex flex-wrap items-center gap-1.5 mb-4">
-                <span className="text-xs text-muted-foreground mr-1">Filter:</span>
-                {categories.map((cat) => (
+              {/* Search & Category Filter Header */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search topics (e.g. Postgres, Karpathy, SQLite, Rust)..."
+                    className="w-full rounded-xl border border-border/80 bg-background/80 pl-9 pr-7 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary/70 transition-all"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs p-0.5"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Filter Pills */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground mr-1 hidden md:inline">Filter:</span>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setFilterCategory(cat)}
+                      className={cn(
+                        "px-2.5 py-0.5 text-xs font-medium rounded-full border transition-all cursor-pointer",
+                        filterCategory === cat
+                          ? "border-primary bg-primary/10 text-primary font-bold"
+                          : "border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                      )}
+                    >
+                      {cat === "all" ? "All Top 10" : cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Empty Search State */}
+              {filteredPodcasts.length === 0 ? (
+                <div className="py-12 text-center rounded-xl border border-dashed border-border/70 p-6 space-y-2">
+                  <Radio className="h-8 w-8 mx-auto text-muted-foreground" />
+                  <p className="text-sm font-bold text-foreground">No tech podcasts found matching &ldquo;{searchQuery}&rdquo;</p>
+                  <p className="text-xs text-muted-foreground">Try clearing your search query or switching category filters.</p>
                   <button
-                    key={cat}
                     type="button"
-                    onClick={() => setFilterCategory(cat)}
-                    className={cn(
-                      "px-2.5 py-0.5 text-xs font-medium rounded-full border transition-all cursor-pointer",
-                      filterCategory === cat
-                        ? "border-primary bg-primary/10 text-primary font-bold"
-                        : "border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                    )}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterCategory("all");
+                    }}
+                    className="mt-2 text-xs font-bold text-primary hover:underline cursor-pointer"
                   >
-                    {cat === "all" ? "All Top 10" : cat}
+                    Reset All Filters
                   </button>
-                ))}
-              </div>
+                </div>
+              ) : (
+                /* Podcast Cards Grid */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {filteredPodcasts.map((podcast) => (
+                    <div
+                      key={podcast.id}
+                      className="flex flex-col justify-between rounded-xl border border-border/80 bg-muted/10 hover:bg-muted/20 p-4 transition-all hover:border-primary/40 group hover:-translate-y-0.5 shadow-xs"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-mono font-bold">
+                            #{podcast.rank}
+                          </span>
+                          <span className="rounded-md bg-secondary/80 px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground border border-border/60">
+                            {podcast.badge}
+                          </span>
+                        </div>
 
-              {/* Podcast Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                {filteredPodcasts.map((podcast) => (
-                  <div
-                    key={podcast.id}
-                    className="flex flex-col justify-between rounded-xl border border-border/80 bg-muted/10 hover:bg-muted/20 p-4 transition-all hover:border-primary/40 group"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-mono font-bold">
-                          #{podcast.rank}
-                        </span>
-                        <span className="rounded-md bg-secondary/80 px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground border border-border/60">
-                          {podcast.badge}
-                        </span>
+                        <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                          {podcast.title}
+                        </h3>
+
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {podcast.description}
+                        </p>
+
+                        <div className="rounded-lg bg-card/80 border border-border/60 p-2 text-[11px] text-muted-foreground">
+                          <span className="font-semibold text-foreground/90">Curated Topic:</span>{" "}
+                          {podcast.recommendedTopic}
+                        </div>
                       </div>
 
-                      <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                        {podcast.title}
-                      </h3>
+                      <div className="pt-3 mt-3 border-t border-border/50 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono">
+                          <Volume2 className="h-3 w-3 text-emerald-400" />
+                          {podcast.audioDuration}
+                        </span>
 
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {podcast.description}
-                      </p>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyLink(podcast.id, podcast.directUrl)}
+                            className="p-1.5 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground hover:bg-card transition-colors cursor-pointer"
+                            title="Copy YouTube Music search link"
+                          >
+                            {copiedId === podcast.id ? (
+                              <Check className="h-3.5 w-3.5 text-emerald-400" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" />
+                            )}
+                          </button>
 
-                      <div className="rounded-lg bg-card/80 border border-border/60 p-2 text-[11px] text-muted-foreground">
-                        <span className="font-semibold text-foreground/90">Curated Topic:</span>{" "}
-                        {podcast.recommendedTopic}
+                          <a
+                            href={podcast.directUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => handleLaunchStream(podcast.directUrl)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-all shadow-xs"
+                          >
+                            <Play className="h-3 w-3 fill-current" />
+                            <span>Listen on YouTube Music</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
                       </div>
                     </div>
-
-                    <div className="pt-3 mt-3 border-t border-border/50 flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono">
-                        <Volume2 className="h-3 w-3 text-emerald-400" />
-                        {podcast.audioDuration}
-                      </span>
-
-                      <a
-                        href={podcast.directUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-all shadow-xs"
-                      >
-                        <Play className="h-3 w-3 fill-current" />
-                        <span>Listen on YouTube Music</span>
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">

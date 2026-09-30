@@ -15,11 +15,12 @@ import {
   Trophy, BarChart2, ArrowUpRight, Zap, MapPin, AlertTriangle,
   Copy, CheckCheck, Star, Briefcase, Globe, Code2, Brain,
   ShieldCheck, ArrowRight, ShieldAlert, CheckCircle2,
-  RotateCcw, Shuffle, Sparkles,
+  RotateCcw, Shuffle, Sparkles, Headphones,
 } from "lucide-react";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import RevisionDeckModal from "@/components/study/RevisionDeckModal";
 import FullPageRevisionGate from "@/components/study/FullPageRevisionGate";
+import StudyBreakLoungeModal from "@/components/study/StudyBreakLoungeModal";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import type { CompletedChapterRecord } from "@/lib/study-focus";
@@ -623,12 +624,19 @@ export default function RoadmapPage() {
   const [section, setSection] = useState<"roadmap" | "revision" | "career" | "germany" | "outreach">("roadmap");
   const [revisionDeckOpen, setRevisionDeckOpen] = useState(false);
   const [revisionGateOpen, setRevisionGateOpen] = useState(false);
+  const [breakLoungeOpen, setBreakLoungeOpen] = useState(false);
   const [revisionFilter, setRevisionFilter] = useState<"due" | "starred" | "all">("due");
 
   useEffect(() => {
     const handleOpenRecallGate = () => setRevisionGateOpen(true);
     window.addEventListener("portfolio-open-revision-deck", handleOpenRecallGate);
     return () => window.removeEventListener("portfolio-open-revision-deck", handleOpenRecallGate);
+  }, []);
+
+  useEffect(() => {
+    const handleOpenBreak = () => setBreakLoungeOpen(true);
+    window.addEventListener("portfolio-open-break-lounge", handleOpenBreak);
+    return () => window.removeEventListener("portfolio-open-break-lounge", handleOpenBreak);
   }, []);
 
   const revisionMetrics = useMemo(() => {
@@ -751,19 +759,29 @@ export default function RoadmapPage() {
         {/* ── ROADMAP SECTION ── */}
         {section === "roadmap" && (
           <>
-            {/* Opaque Recall Gate Trigger */}
-            {dueRevisionList.length > 0 && (
-              <div className="flex justify-end">
+            {/* Quick Actions: Audio Break Lounge & Opaque Recall Gate */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <button
+                type="button"
+                onClick={() => setBreakLoungeOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer shadow-xs"
+                title="Mindful Audio Break: YouTube Music & Top 10 Tech Podcasts"
+              >
+                <Headphones className="h-3.5 w-3.5 text-cyan-400" />
+                <span>Mindful Audio Break (YouTube Music)</span>
+              </button>
+
+              {dueRevisionList.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setRevisionGateOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/40 px-3.5 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/25 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/40 px-3.5 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/25 transition-all cursor-pointer shadow-xs"
                 >
                   <RotateCcw className="h-3.5 w-3.5 animate-spin-slow text-amber-400" />
                   <span>Launch Opaque Recall Gate ({dueRevisionList.length} Due) →</span>
                 </button>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Stats */}
             {days.length > 0 && (
@@ -977,6 +995,15 @@ export default function RoadmapPage() {
                 >
                   <RotateCcw className="h-3.5 w-3.5 text-primary" />
                   <span>Deck View</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBreakLoungeOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-3.5 py-2.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
+                  title="Mindful Break Lounge: YouTube Music & Top 10 Tech Podcasts"
+                >
+                  <Headphones className="h-3.5 w-3.5 text-cyan-400" />
+                  <span>Audio Break Lounge</span>
                 </button>
               </div>
             </div>
@@ -1474,6 +1501,10 @@ export default function RoadmapPage() {
           open={revisionGateOpen}
           onClose={() => setRevisionGateOpen(false)}
           onOpenStudyCockpit={(ch) => handleOpenStudy(ch, 1)}
+        />
+        <StudyBreakLoungeModal
+          open={breakLoungeOpen}
+          onClose={() => setBreakLoungeOpen(false)}
         />
       </PersonalShell>
     </RequireAuth>

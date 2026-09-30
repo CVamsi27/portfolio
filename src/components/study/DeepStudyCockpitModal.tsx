@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Clock,
   Coffee,
+  Copy,
   ExternalLink,
   Flame,
   Globe,
@@ -21,6 +22,7 @@ import {
   Pause,
   Play,
   RotateCcw,
+  RotateCw,
   Search,
   Shield,
   ShieldAlert,
@@ -115,6 +117,8 @@ export default function DeepStudyCockpitModal({
   const [distractionRecallInput, setDistractionRecallInput] = useState("");
   const [isDistractionHintRevealed, setIsDistractionHintRevealed] = useState(false);
   const [showBreakLounge, setShowBreakLounge] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0);
+  const [copiedChapterUrl, setCopiedChapterUrl] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const originalTitleRef = useRef<string>("");
@@ -752,14 +756,54 @@ export default function DeepStudyCockpitModal({
               </span>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setIframeKey((prev) => prev + 1);
+                  toast({
+                    title: "Reader Reloaded",
+                    description: "Refreshed study frame content.",
+                  });
+                }}
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                title="Reload study reader iframe"
+              >
+                <RotateCw className="h-3 w-3" />
+                <span className="hidden sm:inline">Reload</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  if (navigator?.clipboard) {
+                    await navigator.clipboard.writeText(currentChapter.studyUrl);
+                    setCopiedChapterUrl(true);
+                    setTimeout(() => setCopiedChapterUrl(false), 2000);
+                    toast({
+                      title: "Link Copied!",
+                      description: `Copied chapter URL: ${currentChapter.title}`,
+                    });
+                  }
+                }}
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                title="Copy chapter link to clipboard"
+              >
+                {copiedChapterUrl ? (
+                  <Check className="h-3 w-3 text-emerald-400" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+                <span className="hidden sm:inline">{copiedChapterUrl ? "Copied" : "Copy Link"}</span>
+              </button>
+
               <a
                 href={currentChapter.studyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-utility text-xs text-primary hover:underline"
+                className="inline-flex items-center gap-1 font-utility text-xs text-primary hover:underline ml-1"
               >
-                <span>Open study.buildora.work externally</span>
+                <span>Open externally</span>
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
@@ -768,6 +812,7 @@ export default function DeepStudyCockpitModal({
           {/* Embedded Study Iframe */}
           <div className="relative flex-1 w-full bg-background overflow-hidden">
             <iframe
+              key={iframeKey}
               src={currentChapter.studyUrl}
               title={`Study: ${currentChapter.title}`}
               className="w-full h-full border-0"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import {
   Brain,
@@ -22,6 +22,7 @@ import {
   VolumeX,
   X,
   Zap,
+  Headphones,
 } from "lucide-react";
 import {
   type ExtendedCompletedChapter,
@@ -124,28 +125,100 @@ export default function FullPageRevisionGate({
   }, [activeDeck.length]);
 
   // Keyboard navigation
+  const handleRateRef = useRef<(rating: RetentionRating) => void>(() => {});
+
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e: KeyboardEvent) => {
+      const isInput =
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement;
+
       if (e.key === "Escape") {
         onClose();
-      } else if (e.key === "ArrowRight" && e.metaKey) {
+      } else if (e.key === "ArrowRight" && (e.metaKey || !isInput)) {
         handleNext();
-      } else if (e.key === "ArrowLeft" && e.metaKey) {
+      } else if (e.key === "ArrowLeft" && (e.metaKey || !isInput)) {
         handlePrev();
-      } else if (e.key === " " && e.shiftKey) {
+      } else if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
         setIsAnswerRevealed((prev) => !prev);
+      } else if (!isInput) {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          setIsAnswerRevealed((prev) => !prev);
+        } else if (e.key === "1") {
+          e.preventDefault();
+          handleRateRef.current?.("hard");
+        } else if (e.key === "2") {
+          e.preventDefault();
+          handleRateRef.current?.("good");
+        } else if (e.key === "3") {
+          e.preventDefault();
+          handleRateRef.current?.("easy");
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose, handleNext, handlePrev]);
 
-  if (!mounted || !open || !currentCard) {
-    return null;
-  }
+  const handleRate = useCallback(
+    (rating: RetentionRating) => {
+      if (!currentCard) return;
+      if (soundEnabled) playSuccessChime();
 
-  const handleToggleStar = () => {
+      // Mark as completed in current session
+      setCompletedInSession((prev) => new Set(prev).add(currentCard.chapterId));
+
+      // Update SRS schedule in synced storage
+      const updated = recordRevision(
+        completedChapters || [],
+        currentCard.chapterId,
+        rating,
+        scratchpad.trim() ? scratchpad : undefined
+      );
+      setCompletedChapters(updated);
+
+      toast({
+        title: rating === "hard" ? "Reinforcement Scheduled (1d)" : "Retention Advanced!",
+        description:
+          rating === "hard"
+            ? "Interval reset to 1 day for reinforcement."
+            : `Stage advanced for ${currentCard.chapterTitle}.`,
+      });
+
+      // Advance to next card or complete
+      if (currentIndex < activeDeck.length - 1) {
+        setIsAnswerRevealed(false);
+        setScratchpad("");
+        setCurrentIndex((prev) => prev + 1);
+      } else {
+        toast({
+          title: "All Questions Answered! 🇩🇪",
+          description: "Spaced repetition drill complete. Long-term memory locked in.",
+        });
+        onClose();
+      }
+    },
+    [
+      activeDeck.length,
+      completedChapters,
+      currentCard,
+      currentIndex,
+      onClose,
+      scratchpad,
+      setCompletedChapters,
+      soundEnabled,
+      toast,
+    ]
+  );
+
+  useEffect(() => {
+    handleRateRef.current = handleRate;
+  }, [handleRate]);
+
+  const handleToggleStar = useCallback(() => {
     if (!currentCard) return;
     const updated = toggleChapterStar(completedChapters || [], currentCard.chapterId);
     setCompletedChapters(updated);
@@ -153,45 +226,9 @@ export default function FullPageRevisionGate({
       title: currentCard.starred ? "Unstarred" : "Starred High-Yield ★",
       description: `Updated priority flag for ${currentCard.chapterTitle}`,
     });
-  };
+  }, [completedChapters, currentCard, setCompletedChapters, toast]);
 
-  const handleRate = (rating: RetentionRating) => {
-    if (!currentCard) return;
-    if (soundEnabled) playSuccessChime();
-
-    // Mark as completed in current session
-    setCompletedInSession((prev) => new Set(prev).add(currentCard.chapterId));
-
-    // Update SRS schedule in synced storage
-    const updated = recordRevision(
-      completedChapters || [],
-      currentCard.chapterId,
-      rating,
-      scratchpad.trim() ? scratchpad : undefined
-    );
-    setCompletedChapters(updated);
-
-    toast({
-      title: rating === "hard" ? "Reinforcement Scheduled (1d)" : "Retention Advanced!",
-      description:
-        rating === "hard"
-          ? "Interval reset to 1 day for reinforcement."
-          : `Stage advanced for ${currentCard.chapterTitle}.`,
-    });
-
-    // Advance to next card or complete
-    if (currentIndex < activeDeck.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      toast({
-        title: "All Questions Answered! 🇩🇪",
-        description: "Spaced repetition drill complete. Long-term memory locked in.",
-      });
-      onClose();
-    }
-  };
-
-  const handleSnooze = (minutes = 30) => {
+  const handleSnooze = useCallback((minutes = 30) => {
     if (typeof window !== "undefined") {
       sessionStorage.setItem("study:revision_gate_snoozed_until", String(Date.now() + minutes * 60 * 1000));
     }
@@ -200,7 +237,11 @@ export default function FullPageRevisionGate({
       description: "Focus on your active roadmap tasks. Gate will remind you afterwards.",
     });
     onClose();
-  };
+  }, [onClose, toast]);
+
+  if (!mounted || !open || !currentCard) {
+    return null;
+  }
 
   const answeredCount = completedInSession.size;
   const progressPct = activeDeck.length > 0 ? Math.round((answeredCount / activeDeck.length) * 100) : 0;
@@ -371,10 +412,15 @@ export default function FullPageRevisionGate({
             <button
               type="button"
               onClick={() => setIsAnswerRevealed((prev) => !prev)}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 py-2.5 text-xs sm:text-sm font-bold text-slate-200 transition-all cursor-pointer"
+              className="w-full flex items-center justify-between px-4 sm:px-6 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 py-2.5 text-xs sm:text-sm font-bold text-slate-200 transition-all cursor-pointer group"
             >
-              <Sparkles className="h-4 w-4 text-amber-400" />
-              <span>{isAnswerRevealed ? "Hide Verified Model Solution ▲" : "Reveal Verified Model Invariants & Solution ▼"}</span>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                <span>{isAnswerRevealed ? "Hide Verified Model Solution ▲" : "Reveal Verified Model Invariants & Solution ▼"}</span>
+              </div>
+              <kbd className="hidden sm:inline-block rounded bg-white/10 px-2 py-0.5 text-[10px] font-mono text-slate-300 border border-white/15">
+                Space / ⌘Enter
+              </kbd>
             </button>
 
             {isAnswerRevealed && (
@@ -413,25 +459,34 @@ export default function FullPageRevisionGate({
               <button
                 type="button"
                 onClick={() => handleRate("hard")}
-                className="flex flex-col items-center justify-center p-3 rounded-xl border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-all cursor-pointer group active:scale-95"
+                className="flex flex-col items-center justify-center p-3 rounded-xl border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-all cursor-pointer group active:scale-95 shadow-xs"
               >
-                <span className="font-bold text-xs sm:text-sm">🔴 Hard</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-xs sm:text-sm">🔴 Hard</span>
+                  <kbd className="hidden sm:inline-block rounded bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-mono text-rose-300 border border-rose-500/30">1</kbd>
+                </div>
                 <span className="text-[10px] font-mono text-rose-400/80 mt-0.5">Reset to 1d Interval</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleRate("good")}
-                className="flex flex-col items-center justify-center p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition-all cursor-pointer group active:scale-95"
+                className="flex flex-col items-center justify-center p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition-all cursor-pointer group active:scale-95 shadow-xs"
               >
-                <span className="font-bold text-xs sm:text-sm">🟡 Good</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-xs sm:text-sm">🟡 Good</span>
+                  <kbd className="hidden sm:inline-block rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-mono text-amber-300 border border-amber-500/30">2</kbd>
+                </div>
                 <span className="text-[10px] font-mono text-amber-400/80 mt-0.5">Advance +1 Stage</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleRate("easy")}
-                className="flex flex-col items-center justify-center p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 transition-all cursor-pointer group active:scale-95"
+                className="flex flex-col items-center justify-center p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 transition-all cursor-pointer group active:scale-95 shadow-xs"
               >
-                <span className="font-bold text-xs sm:text-sm">🟢 Easy</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-xs sm:text-sm">🟢 Easy</span>
+                  <kbd className="hidden sm:inline-block rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-mono text-emerald-300 border border-emerald-500/30">3</kbd>
+                </div>
                 <span className="text-[10px] font-mono text-emerald-400/80 mt-0.5">Advance +2 Stages</span>
               </button>
             </div>
@@ -491,6 +546,19 @@ export default function FullPageRevisionGate({
         </div>
 
         <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              window.dispatchEvent(new CustomEvent("portfolio-open-break-lounge"));
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20 transition-colors cursor-pointer"
+            title="Mindful Audio Break: YouTube Music & Top 10 Tech Podcasts"
+          >
+            <Headphones className="h-3.5 w-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">Take an Audio Break</span>
+          </button>
+
           <button
             type="button"
             onClick={onClose}
