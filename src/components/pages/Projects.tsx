@@ -16,10 +16,12 @@ import {
   Search,
   X,
   Gamepad2,
+  Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DocitaArchitectureModal from "@/components/DocitaArchitectureModal";
 import SuperTicTacToeModal from "@/components/SuperTicTacToeModal";
+import LivePreviewModal from "@/components/LivePreviewModal";
 
 type ProjectCategory = "all" | "saas" | "platforms" | "interactive";
 
@@ -114,6 +116,7 @@ const Projects = () => {
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
   const [archModalOpen, setArchModalOpen] = useState(false);
   const [gameModalOpen, setGameModalOpen] = useState(false);
+  const [previewTarget, setPreviewTarget] = useState<{ title: string; url: string } | null>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const flagshipProject = PROJECTS.find((p) => p.title === "Docita") ?? PROJECTS[0];
@@ -280,25 +283,41 @@ const Projects = () => {
                 </div>
               </div>
 
-              <div className="mt-5 flex flex-col gap-2.5">
-                <a
-                  href={flagshipProject.URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="portfolio-primary-action w-full justify-center"
-                >
-                  <span>Launch Live Platform</span>
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
-
+              <div className="mt-5 flex flex-col gap-2">
                 <button
                   type="button"
-                  onClick={() => setArchModalOpen(true)}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] py-2 px-3 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] cursor-pointer shadow-xs"
+                  onClick={() =>
+                    setPreviewTarget({
+                      title: "Docita · Healthcare OS",
+                      url: "https://docita.work",
+                    })
+                  }
+                  className="portfolio-primary-action w-full justify-center cursor-pointer"
                 >
-                  <Layers className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
-                  <span>Inspect System Architecture</span>
+                  <Radio className="h-4 w-4 animate-pulse text-emerald-400" />
+                  <span>Launch Live Preview Sandbox</span>
                 </button>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <a
+                    href={flagshipProject.URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] py-2 px-2.5 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
+                  >
+                    <span>External Tab</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => setArchModalOpen(true)}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] py-2 px-2.5 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] cursor-pointer shadow-xs"
+                  >
+                    <Layers className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
+                    <span>Architecture</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -527,15 +546,31 @@ const Projects = () => {
                       ) : null}
 
                       {project.URL && !project.URL.includes("github.com") ? (
-                        <a
-                          href={project.URL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-semibold"
-                        >
-                          <span>Live project</span>
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewTarget({
+                                title: project.title,
+                                url: project.URL,
+                              })
+                            }
+                            className="inline-flex items-center gap-1.5 font-semibold text-[var(--portfolio-accent)] hover:underline cursor-pointer"
+                          >
+                            <Radio className="h-3.5 w-3.5 animate-pulse text-emerald-500" />
+                            <span>Live Sandbox</span>
+                          </button>
+
+                          <a
+                            href={project.URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold"
+                          >
+                            <span>Live site</span>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        </>
                       ) : (
                         <a
                           href={project.URL}
@@ -577,6 +612,15 @@ const Projects = () => {
         open={gameModalOpen}
         onClose={() => setGameModalOpen(false)}
       />
+
+      {previewTarget && (
+        <LivePreviewModal
+          open={Boolean(previewTarget)}
+          title={previewTarget.title}
+          url={previewTarget.url}
+          onClose={() => setPreviewTarget(null)}
+        />
+      )}
     </section>
   );
 };

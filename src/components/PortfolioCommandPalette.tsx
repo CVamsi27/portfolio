@@ -24,6 +24,9 @@ import {
   Gamepad2,
   Terminal,
   BookOpen,
+  Workflow,
+  Quote,
+  GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CONTACT_EMAIL, CONTACT_PHONE, PROJECTS, RESUME_PATH } from "@/lib/const";
@@ -84,6 +87,28 @@ export default function PortfolioCommandPalette({
         },
       },
       {
+        id: "nav-architecture",
+        category: "Navigation",
+        title: "Architecture & GoF Patterns",
+        subtitle: "Jump to Gang of Four design patterns & distributed invariants",
+        icon: Workflow,
+        keywords: ["architecture", "gof", "patterns", "outbox", "rls", "design", "system"],
+        run: () => {
+          document.getElementById("Architecture")?.scrollIntoView({ behavior: "smooth" });
+        },
+      },
+      {
+        id: "nav-opensource",
+        category: "Navigation",
+        title: "Open Source & Research",
+        subtitle: "Jump to public tools, Bible repo & contribution tracks",
+        icon: GitBranch,
+        keywords: ["open source", "oss", "github", "bible", "teamops", "public"],
+        run: () => {
+          document.getElementById("OpenSource")?.scrollIntoView({ behavior: "smooth" });
+        },
+      },
+      {
         id: "nav-experience",
         category: "Navigation",
         title: "Career Record",
@@ -103,6 +128,17 @@ export default function PortfolioCommandPalette({
         keywords: ["skills", "stack", "tech", "tools", "capabilities", "languages"],
         run: () => {
           document.getElementById("Capabilities")?.scrollIntoView({ behavior: "smooth" });
+        },
+      },
+      {
+        id: "nav-impact",
+        category: "Navigation",
+        title: "Verified Production Impact",
+        subtitle: "Jump to clinical & enterprise endorsements and outcomes",
+        icon: Quote,
+        keywords: ["impact", "testimonials", "endorsements", "reviews", "recommendations"],
+        run: () => {
+          document.getElementById("Impact")?.scrollIntoView({ behavior: "smooth" });
         },
       },
       {

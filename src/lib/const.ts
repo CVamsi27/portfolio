@@ -23,8 +23,11 @@ export const CONTACT_PHONE = "+91 7702148303";
 
 export const MENU_LIST = [
   "Work",
+  "Architecture",
+  "Open Source",
   "Experience",
   "Capabilities",
+  "Impact",
   "Contact",
 ];
 

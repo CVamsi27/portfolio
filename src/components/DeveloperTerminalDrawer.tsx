@@ -82,8 +82,11 @@ export default function DeveloperTerminalDrawer({
             "Available Commands:",
             "  whoami       - Display developer summary and current role",
             "  bible        - Inspect the 860+ chapter Senior Full Stack Bible (study.buildora.work)",
+            "  patterns     - Inspect 23 GoF design patterns & distributed invariants",
+            "  oss          - View open source repositories & public engineering",
             "  skills       - Print production technical capabilities & stack",
             "  projects     - List flagship systems and deployment links",
+            "  impact       - Review verified production outcomes & endorsements",
             "  experience   - View career trajectory across 5+ years",
             "  contact      - Display direct inbox, phone & coordinates",
             "  resume       - Trigger download of VamsiKrishna_Resume.pdf",
@@ -111,6 +114,54 @@ export default function DeveloperTerminalDrawer({
           ].join("\n"),
         });
         window.open("https://study.buildora.work", "_blank");
+        break;
+
+      case "patterns":
+      case "architecture":
+        newLines.push({
+          type: "output",
+          content: [
+            "PRODUCTION ARCHITECTURAL PATTERNS & GOF ENGINES:",
+            "  • Transactional Outbox:  PostgreSQL dual-write protection & background dispatch",
+            "  • Multi-Tenant RLS:      Postgres kernel tenant isolation with session context",
+            "  • Advisory Locks:        High-concurrency anti-double-booking synchronization",
+            "  • Observer / SSE:        Real-time OPD queue broadcast & canvas coordination",
+            "  • Strategy Pattern:      Pluggable healthcare pricing algorithms & tariffs",
+            "  • Factory Method:        Multi-channel SMS/WhatsApp/Email notifications",
+            "  Navigating to Architecture section...",
+          ].join("\n"),
+        });
+        document.getElementById("Architecture")?.scrollIntoView({ behavior: "smooth" });
+        break;
+
+      case "oss":
+      case "opensource":
+        newLines.push({
+          type: "output",
+          content: [
+            "OPEN SOURCE REPOSITORIES & PUBLIC WORK:",
+            "  • Senior Full Stack Bible:  github.com/CVamsi27/software-developer-bible (366k lines)",
+            "  • TeamOps:                  github.com/CVamsi27/teamops (Real-Time WebSockets)",
+            "  • Super Tic Tac Toe:        github.com/CVamsi27/super-tic-tac-toe (Minimax AI)",
+            "  • Digital Library:          github.com/CVamsi27/digital-library (tRPC + Prisma)",
+            "  Navigating to Open Source section...",
+          ].join("\n"),
+        });
+        document.getElementById("OpenSource")?.scrollIntoView({ behavior: "smooth" });
+        break;
+
+      case "impact":
+        newLines.push({
+          type: "output",
+          content: [
+            "VERIFIED BUSINESS & ENGINEERING OUTCOMES:",
+            "  • Docita Healthcare OS:   25+ Clinics Pan-India, 1,000+ monthly workflows, 99.9% uptime",
+            "  • MAQ Software:           -30% p95 API response latency, reusable component library",
+            "  • Cognizant:              4 Distributed Spring Boot microservices, Eureka & JWT routing",
+            "  Navigating to Impact section...",
+          ].join("\n"),
+        });
+        document.getElementById("Impact")?.scrollIntoView({ behavior: "smooth" });
         break;
 
       case "whoami":

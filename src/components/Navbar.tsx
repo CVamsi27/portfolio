@@ -14,10 +14,11 @@ import VamsiMark from "@/components/brand/VamsiMark";
 import CommandPalette from "@/components/trackers/CommandPalette";
 import KeyboardShortcutsModal from "@/components/trackers/KeyboardShortcutsModal";
 import { isTrackerHost, isTrackerPath } from "@/lib/brand";
-import { ArrowUpRight, BookOpen, Download, Keyboard, Search, Terminal } from "lucide-react";
+import { ArrowUpRight, BookOpen, Download, FileText, Keyboard, Search, Terminal } from "lucide-react";
 import PortfolioShortcutsModal from "./PortfolioShortcutsModal";
 import PortfolioCommandPalette from "./PortfolioCommandPalette";
 import DeveloperTerminalDrawer from "./DeveloperTerminalDrawer";
+import ResumeModal from "./ResumeModal";
 import { useTheme } from "next-themes";
 
 const subscribeHostname = (callback: () => void) => {
@@ -43,6 +44,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const [portfolioShortcutsOpen, setPortfolioShortcutsOpen] = useState(false);
   const [portfolioPaletteOpen, setPortfolioPaletteOpen] = useState(false);
   const [terminalOpen, setTerminalOpen] = useState(false);
+  const [resumeOpen, setResumeOpen] = useState(false);
   const gPressedRef = useRef(false);
   const gTimerRef = useRef<number | null>(null);
 
@@ -139,10 +141,16 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
       const k = e.key.toLowerCase();
       if (k === "w") {
         document.getElementById("Work")?.scrollIntoView({ behavior: "smooth" });
+      } else if (k === "a") {
+        document.getElementById("Architecture")?.scrollIntoView({ behavior: "smooth" });
+      } else if (k === "o") {
+        document.getElementById("OpenSource")?.scrollIntoView({ behavior: "smooth" });
       } else if (k === "e") {
         document.getElementById("Experience")?.scrollIntoView({ behavior: "smooth" });
       } else if (k === "s") {
         document.getElementById("Capabilities")?.scrollIntoView({ behavior: "smooth" });
+      } else if (k === "i") {
+        document.getElementById("Impact")?.scrollIntoView({ behavior: "smooth" });
       } else if (k === "c") {
         document.getElementById("Contact")?.scrollIntoView({ behavior: "smooth" });
       } else if (k === "t") {
@@ -150,10 +158,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
       } else if (k === "m") {
         setTheme(resolvedTheme === "dark" ? "light" : "dark");
       } else if (k === "r") {
-        const link = document.createElement("a");
-        link.href = RESUME_PATH;
-        link.download = "VamsiKrishna_Resume.pdf";
-        link.click();
+        setResumeOpen(true);
       }
     };
 
@@ -171,7 +176,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   useEffect(() => {
     const sections = isTracker
       ? []
-      : MENU_LIST.map((val) => document.getElementById(val));
+      : MENU_LIST.map((val) => document.getElementById(val.replace(/\s+/g, "")));
     const onScroll = () => {
       const scrollTop = window.scrollY;
       const height =
@@ -179,7 +184,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
       setProgress(height > 0 ? (scrollTop / height) * 100 : 0);
 
       if (isTracker) return;
-      let current = MENU_LIST[0];
+      let current = MENU_LIST[0].replace(/\s+/g, "");
       for (const section of sections) {
         if (section && scrollTop >= section.offsetTop - 120) {
           current = section.id;
@@ -189,7 +194,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         window.innerHeight + scrollTop >=
         document.documentElement.scrollHeight - 40
       ) {
-        current = MENU_LIST[MENU_LIST.length - 1];
+        current = MENU_LIST[MENU_LIST.length - 1].replace(/\s+/g, "");
       }
       setActive(current);
     };
@@ -201,7 +206,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
 
   const menuItems = isTracker
     ? PERSONAL_PRIMARY_NAV.map((item) => ({ label: item.label, href: item.href }))
-    : MENU_LIST.map((m) => ({ label: m, href: `#${m}` }));
+    : MENU_LIST.map((m) => ({ label: m, href: `#${m.replace(/\s+/g, "")}` }));
 
   const isMenuActive = (href: string) =>
     isTracker ? isPersonalPrimaryPath(pathname, href) : active === href.replace("#", "");
@@ -304,16 +309,15 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             ) : null}
             {isTracker ? <div className="hidden md:block"><AuthButton /></div> : null}
             {!isTracker ? (
-              <a
-                href={RESUME_PATH}
-                download="VamsiKrishna_Resume"
-                title="Download resume PDF"
-                className="group hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-3 py-1.5 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all duration-200 hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] hover:shadow-sm"
+              <button
+                type="button"
+                onClick={() => setResumeOpen(true)}
+                title="View interactive résumé modal"
+                className="group hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-3 py-1.5 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all duration-200 hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] hover:shadow-xs cursor-pointer"
               >
+                <FileText className="h-3.5 w-3.5 text-primary" />
                 <span>Resume</span>
-                <ArrowUpRight className="h-3 w-3 transition-all duration-200 group-hover:hidden" />
-                <Download className="h-3 w-3 hidden transition-all duration-200 group-hover:block" />
-              </a>
+              </button>
             ) : null}
             {!isTracker ? (
               <button
@@ -379,6 +383,10 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             <DeveloperTerminalDrawer
               open={terminalOpen}
               onClose={() => setTerminalOpen(false)}
+            />
+            <ResumeModal
+              open={resumeOpen}
+              onClose={() => setResumeOpen(false)}
             />
           </>
         )}

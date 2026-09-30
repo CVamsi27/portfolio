@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Connections from "../Connections";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -17,7 +18,9 @@ import {
   Languages,
   ChevronDown,
   BookOpen,
+  FileText,
 } from "lucide-react";
+import ResumeModal from "@/components/ResumeModal";
 
 function useCountUp(target: number, duration = 1600, start = false) {
   const [count, setCount] = useState(0);
@@ -79,6 +82,7 @@ const About = () => {
   const [nameLangIndex, setNameLangIndex] = useState(0);
   const [statsStarted, setStatsStarted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [resumeOpen, setResumeOpen] = useState(false);
   const statsRef = useRef<HTMLDivElement>(null);
 
   const currentTranslation =
@@ -186,11 +190,15 @@ const About = () => {
             </a>
 
             <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:gap-3">
-              <Button asChild variant="outline" className="portfolio-secondary-action w-full sm:w-auto">
-                <a href={RESUME_PATH} download="VamsiKrishna_Resume">
-                  <Download className="h-4 w-4" />
-                  <span>Resume</span>
-                </a>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setResumeOpen(true)}
+                className="portfolio-secondary-action w-full sm:w-auto cursor-pointer"
+                title="View interactive résumé modal"
+              >
+                <FileText className="h-4 w-4 text-[var(--portfolio-accent)]" />
+                <span>View Résumé</span>
               </Button>
 
               <button
@@ -232,7 +240,36 @@ const About = () => {
         </div>
 
         <aside className="portfolio-hero__aside">
-          <div className="flex items-center justify-between gap-2 border-b border-[var(--portfolio-rule)] pb-3">
+          {/* Author Profile Header */}
+          <div className="flex items-center gap-3.5 border-b border-[var(--portfolio-rule)] pb-4">
+            <div className="relative h-13 w-13 shrink-0 overflow-hidden rounded-2xl border-2 border-[var(--portfolio-accent)]/30 bg-[var(--portfolio-paper)] shadow-xs">
+              <Image
+                src="/SE.webp"
+                alt="Vamsi Krishna Chandaluri"
+                width={56}
+                height={56}
+                className="h-full w-full object-cover"
+                priority
+              />
+              <span
+                className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[var(--portfolio-paper)] bg-emerald-500"
+                title="Active & Available"
+              />
+            </div>
+            <div>
+              <p className="font-display text-sm font-bold text-[var(--portfolio-ink)]">
+                Vamsi Krishna
+              </p>
+              <p className="font-utility text-[11px] text-[var(--portfolio-accent)] font-medium">
+                Senior Full Stack &amp; Systems Engineer
+              </p>
+              <p className="font-mono text-[10px] text-[var(--portfolio-muted)] mt-0.5">
+                Bangalore · Relocation (Germany)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 border-b border-[var(--portfolio-rule)] py-3">
             <p className="portfolio-meta-label">Current Focus</p>
             <span className="portfolio-impact-pill">In Production</span>
           </div>
@@ -308,6 +345,11 @@ const About = () => {
           })}
         </div>
       </div>
+
+      <ResumeModal
+        open={resumeOpen}
+        onClose={() => setResumeOpen(false)}
+      />
     </section>
   );
 };
