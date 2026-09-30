@@ -132,6 +132,29 @@ test.describe("personal roadmap", () => {
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("vk:reminders") ?? "{}"))).toMatchObject({ weighIn: { enabled: true, time: "08:15" } });
   });
 
+  test("requires evidence and a separate verification step for roadmap completion", async ({ page }) => {
+    await seed(page, { "vk:career_execution_state": { version: 1, evidenceByItemId: {}, archivedItems: [] } });
+    await page.goto("/roadmap");
+    await page.getByRole("button", { name: /write concise notes for today's assigned chapters/i }).click();
+    await expect(page.getByRole("dialog")).toContainText("At least 5 key ideas");
+    await page.getByPlaceholder(/add your notes/i).fill("Five key ideas: closures, lexical scope, stack frames, hoisting, and temporal dead zones. Open question: how do module scopes differ?");
+    await page.getByRole("dialog").getByRole("button", { name: "Save evidence" }).click();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:career_execution_state") ?? "{}"));
+    expect(Object.keys(saved.evidenceByItemId)).toHaveLength(1);
+    expect(saved.evidenceByItemId[Object.keys(saved.evidenceByItemId)[0]].verifiedAt).toBeUndefined();
+    await page.getByRole("button", { name: /write concise notes for today's assigned chapters/i }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Verify saved evidence" }).click();
+    const verified = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:career_execution_state") ?? "{}"));
+    expect(verified.evidenceByItemId[Object.keys(verified.evidenceByItemId)[0]].verifiedAt).toBeTruthy();
+  });
+
+  test("shows career reminders in IST while the app is open", async ({ page }) => {
+    await seed(page, { "vk:reminders": { ...{"weighIn": { enabled: false, time: "08:00" }, "focus": { enabled: false, time: "09:00" }, "evening": { enabled: false, time: "20:30" }}, career: { morning: { enabled: true, time: "07:00" }, study: { enabled: false, time: "10:25" }, roleResearch: { enabled: false, time: "12:25" }, interview: { enabled: false, time: "17:25" }, eveningReview: { enabled: false, time: "20:30" }, windDown: { enabled: false, time: "21:30" } } } });
+    await page.clock.install({ time: new Date("2026-09-30T01:30:00.000Z") });
+    await page.goto("/hub");
+    await expect(page.getByRole("status")).toContainText("Exercise and freshen up");
+  });
+
   test("turns the goal roadmap into a weekly commitment", async ({ page }) => {
     await seed(page);
     await page.goto("/goal");

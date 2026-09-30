@@ -19,7 +19,7 @@ import {
   type ImportReport,
 } from "@/lib/backup";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import { DEFAULT_REMINDERS, REMINDER_LABELS, type ReminderPreferences } from "@/lib/reminders";
+import { DEFAULT_REMINDERS, REMINDER_LABELS, type ReminderKey, type ReminderPreferences, type ReminderSlot } from "@/lib/reminders";
 import { formatLockEnd, nextBedtimeWindow, type LockdownPreferences } from "@/lib/lockdown";
 import { useLockdownPreferences } from "@/lib/lockdown-store";
 import { useUserPrefs, DEFAULT_USER_PREFS, WORKOUT_SPLITS, MOTIVATION_STYLES, type UserPrefs } from "@/lib/user-prefs";
@@ -114,7 +114,10 @@ export default function SettingsPage() {
 
   const backupKb = stats ? (totalBackupBytes(stats) / 1024).toFixed(1) : "—";
   const activeKeys = stats ? stats.filter((s) => s.exists).length : 0;
-  const updateReminder = (key: "weighIn" | "focus" | "evening", patch: Partial<ReminderPreferences["weighIn"]>) => setReminders({ ...reminders, [key]: { ...reminders[key], ...patch } });
+  const updateReminder = (key: ReminderKey, patch: Partial<ReminderSlot>) => {
+    if (["weighIn", "focus", "evening"].includes(key)) setReminders({ ...reminders, [key]: { ...reminders[key as "weighIn" | "focus" | "evening"], ...patch } });
+    else setReminders({ ...reminders, career: { ...DEFAULT_REMINDERS.career, ...reminders.career, [key]: { ...reminders.career?.[key as keyof ReminderPreferences["career"]], ...patch } } });
+  };
   const saveReminders = () => toast({ title: "Reminders saved", description: "In-app prompts are active when NOVA is open." });
   const enableBrowserReminders = async () => {
     if (!("Notification" in window)) { setReminders({ ...reminders, browserPermission: "unsupported" }); return; }
@@ -182,8 +185,9 @@ export default function SettingsPage() {
         <Card variant="dossier" id="reminders">
           <CardContent className="space-y-4 p-5">
             <div className="flex items-center gap-2"><BellRing className="h-5 w-5 text-[#49E7FF]" /><h2 className="font-display font-bold">Reminders</h2></div>
-            <p className="text-sm text-muted-foreground">Choose the moments worth protecting. Prompts appear while the personal app is open; background push delivery needs the production scheduler that is not configured yet.</p>
-            <div className="space-y-3">{(["weighIn", "focus", "evening"] as const).map((key) => <div key={key} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3"><label className="flex items-center gap-2 text-sm font-medium"><input aria-label={REMINDER_LABELS[key]} type="checkbox" checked={reminders[key].enabled} onChange={(event) => updateReminder(key, { enabled: event.target.checked })} />{REMINDER_LABELS[key]}</label><Input aria-label={`${REMINDER_LABELS[key].replace(" reminder", "")} time`} className="h-9 w-28 tabular-nums" type="time" value={reminders[key].time} onChange={(event) => updateReminder(key, { time: event.target.value })} /></div>)}</div>
+            <p className="text-sm text-muted-foreground">Choose reminders in India Standard Time. In-app alerts appear while Personal Buildora is open. Browser alerts require your explicit opt-in; background push is not configured.</p>
+            <div className="space-y-3">{(["weighIn", "focus", "evening", "morning", "study", "roleResearch", "interview", "eveningReview", "windDown"] as const).map((key) => { const slot = ["weighIn", "focus", "evening"].includes(key) ? reminders[key as "weighIn" | "focus" | "evening"] : reminders.career?.[key as keyof ReminderPreferences["career"]] ?? DEFAULT_REMINDERS.career[key as keyof ReminderPreferences["career"]]; const timeLabel = key === "weighIn" ? "Weigh-in time" : `${REMINDER_LABELS[key]} time`; return <div key={key} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3"><label className="flex items-center gap-2 text-sm font-medium"><input aria-label={REMINDER_LABELS[key]} type="checkbox" checked={slot.enabled} onChange={(event) => updateReminder(key, { enabled: event.target.checked })} />{REMINDER_LABELS[key]}</label><Input aria-label={timeLabel} className="h-9 w-28 tabular-nums" type="time" value={slot.time} onChange={(event) => updateReminder(key, { time: event.target.value })} /></div>; })}</div>
+            <p className="text-xs text-muted-foreground">Browser permission: {reminders.browserPermission ?? (typeof Notification === "undefined" ? "not checked" : Notification.permission)} · permission is never requested automatically.</p>
             <div className="flex flex-wrap gap-2"><Button onClick={saveReminders}>Save reminders</Button><Button variant="outline" onClick={enableBrowserReminders}>Enable browser reminders</Button></div>
           </CardContent>
         </Card>

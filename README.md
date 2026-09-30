@@ -17,6 +17,8 @@ The repository now keeps two intentional visual systems: the public portfolio is
 
 The system is responsive across the supported 320px, 390px, and 430px mobile viewports and honors `prefers-reduced-motion` by removing non-essential reveals and transitions. The current release includes explainable next-action prioritization, recovery mode, ordered milestones, weekly review, archive capture, and compact world clocks without changing the existing tracker-data contract.
 
+The Career Command Center also contains a Bible-derived, dated 100-day curriculum, evidence-gated completion, resume/role research, user-owned reminders, and a reseed-safe sync path. Its generated snapshot excludes personal Bible files and assigns every numbered public study chapter once.
+
 ---
 
 ## Architecture
@@ -62,6 +64,7 @@ All state lives under the `vk:` localStorage namespace, one JSON document per tr
 - **Motivation** — daily deck + realistic category-aware imagery with allowlisted relay/fallbacks + custom affirmations + 3-prompt micro-journal with a true consecutive-day streak.
 - **Archive** — private local-first notes, links, image references, and quotes with tags, source URLs, pinning, goal links, search, and broken-media fallbacks.
 - **Reminders** — user-configured weigh-in, focus, and end-of-day prompts while the app is open. Browser permission is opt-in; background push is deferred until production scheduling and secrets exist.
+- **Career roadmap** (`/roadmap`) — dated study links for all 556 numbered Bible chapters, 10 focused work hours/day inside the 07:00–22:00 IST schedule, practice/role/OSS/interview prompts, saved evidence with a separate verify action, and opt-in in-app/browser reminders. Career completion is not a blank checkbox.
 - **Protection** — optional, user-configured bedtime windows and focus-session navigation locks. The browser/PWA can cover Personal and record interruptions, but it cannot disable other phone/laptop apps or activate system Do Not Disturb; users complete the OS Focus/DND/app-limit checklist manually. Bedtime is disabled until a user chooses valid times and active days.
 - **Share** (`/share`) — ephemeral drops with tags, pinning, fuzzy search, explicit private/public access, private media, email allowlists, and short-lived signed image URLs.
 - **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub); the service worker precaches `/hub`, serves pages network-first, and falls back to the cached canonical hub shell offline.
@@ -81,6 +84,11 @@ pnpm dev            # http://localhost:3000 → tracker suite
 | `pnpm dev` | Next dev server |
 | `pnpm build` / `pnpm start` | Production build / serve |
 | `pnpm lint` | ESLint 9 flat config (`eslint.config.mjs`) |
+| `pnpm career:generate` | Rebuild the deterministic Bible curriculum snapshot (100 days from 2026-09-30) |
+| `pnpm career:validate` | Check snapshot freshness, chapter coverage, dates, capacity, and links |
+| `pnpm test:career-curriculum` | Run curriculum generator tests |
+| `pnpm career:seed` | Validate and preview owner-scoped Supabase rows; dry-run only |
+| `CAREER_OWNER_EMAIL=… pnpm career:seed -- --apply` | After applying migration 0006, atomically sync five rows and verify readback; keep the email in ignored environment configuration |
 | `pnpm test:e2e` | Playwright suite (its `pretest:e2e` hook rebuilds in local mode first) |
 | `pnpm exec playwright test e2e/reduced-motion.spec.ts` | Reduced-motion contract test against the current production build |
 
@@ -88,7 +96,7 @@ pnpm dev            # http://localhost:3000 → tracker suite
 
 ### Share storage and access
 
-Run Supabase migrations in order: `0001_tracker_data.sql`, `0002_drops_storage.sql`, `0003_shared_drops.sql`, `0004_shared_allowlist.sql`, then `0005_private_share_media.sql`. The final migration makes the `drops` bucket private, adds public/private access mode and storage-path columns, backfills compatible paths, and applies owner/allowlist/expiry RLS.
+Run Supabase migrations in order: `0001_tracker_data.sql`, `0002_drops_storage.sql`, `0003_shared_drops.sql`, `0004_shared_allowlist.sql`, `0005_private_share_media.sql`, then `0006_career_roadmap_atomic_sync.sql`. Migration 0006 adds a `SECURITY INVOKER` function with a fixed search path and strict row-key/user validation; only `service_role` can execute it. The career seed defaults to dry-run. After migration 0006 is deployed, configure `CAREER_OWNER_EMAIL`, `SUPABASE_URL`, and `SUPABASE_SECRET_KEY` privately, then run `pnpm career:seed -- --apply`. It reads only the five planner keys, preserves unrelated todos, evidence, and reminder choices, performs a single atomic RPC, then compares a readback. Never print or commit private account identifiers or service credentials. The share migration makes the `drops` bucket private, adds public/private access mode and storage-path columns, backfills compatible paths, and applies owner/allowlist/expiry RLS.
 
 Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximately 1.2 MB limit per local-only image, and an approximately 5,000 KB browser-storage display capacity. Expired drops are removed from the active list and cleaned opportunistically. Private links require a matching signed-in email; public links are an explicit “Anyone with the link” choice and are readable only until expiry. Public detail pages use the server route to issue a five-minute signed media URL. Backups include link URL, expiry, allowlist, and access mode metadata, but never storage tokens.
 

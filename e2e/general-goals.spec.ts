@@ -42,7 +42,7 @@ test.describe("general momentum goal", () => {
     await expect(page.getByPlaceholder("e.g. Get promoted to senior")).toHaveCount(0);
   });
 
-  test("keeps destination imagery opt-in for an explicit Germany goal", async ({ page }) => {
+  test("keeps the explicit Germany objective visible without forcing destination imagery", async ({ page }) => {
     await seed(page, {
       "vk:prefs": {
         goalCategory: "relocation",
@@ -53,6 +53,6 @@ test.describe("general momentum goal", () => {
     });
     await page.goto("/motivation");
 
-    await expect(page.getByTestId("focus-scene")).toContainText("Germany relocation");
+    await expect(page.getByTestId("focus-scene")).toContainText("Relocate to Germany");
   });
 });

@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Dates use Asia/Kolkata and cover exactly 2026-09-30 through 2027-01-07 inclusive.
-- `cvamsik99@gmail.com` is the only account the administrator seed may modify.
+- The administrator seed modifies only the exact owner email supplied privately through `CAREER_OWNER_EMAIL`; source, tests, generated data, and logs must not contain the personal email.
 - Never print or persist Supabase service credentials, phone numbers, or family PII in logs or generated data.
 - The private bible at `../software-developer-bible` is the curriculum source; `80-lanes-abroad-full-stack/personal/` remains the canonical home for personal job-search data.
 - The application is not allowed to create or send job applications, outreach, OSS issues/PRs, or visa submissions on the user's behalf.
@@ -62,7 +62,7 @@
 
 **Interfaces:**
 - Generator exports `buildCurriculum({ bibleRoot, startDate, dayCount, studyBaseUrl })` and `validateCurriculum(curriculum)` for import by Node tests.
-- `buildCurriculum` returns `{ version, sourceRevision, generatedAt, startDate, endDate, chapterCount, days }`.
+- `buildCurriculum` returns `{ version, sourceDigest, startDate, endDate, chapterCount, totalStudyMinutes, days }`.
 - Each chapter is `{ id, path, title, studyUrl, stack, estimatedMinutes }`.
 - Each day is `{ id, day, date, phase, schedule, chapters, mission, practiceTask, interviewQuestion, ossTrack, roleTrack, checklist, notifications }`.
 - Checklist items are `{ id, text, evidenceType, acceptanceCriteria, estimatedMinutes }` and begin uncompleted in generated data.
@@ -124,7 +124,7 @@ Expected: module import failure naming `buildCurriculum` and `validateCurriculum
 
 - [ ] **Step 3: Implement deterministic inventory, stable grouping, and validation**
 
-The generator must enumerate numbered markdown files from public study roots (10–70 and any explicitly published numbered study roots), exclude all `personal/`, `projects/`, `docs/`, and generated folders, and use the filename's numeric study prefix for deterministic ordering. `INDEX.md` and non-numbered Markdown files are not chapter assignments. Each file title comes from the first H1; absence of an H1 fails validation. Stable chapter IDs equal their repository-relative path. Estimated minutes parse the existing `Read time` badge when present and otherwise use 15 minutes. Assign whole chapters to the least-loaded day that preserves numeric curriculum order; fail if any day exceeds 120 study minutes. The 765-chapter inventory currently observed must be recounted at generation time; do not hard-code 765.
+The generator must enumerate numbered markdown files from public study roots `10-frontend` through `70-interview-toolkit`, exclude all `personal/`, `projects/`, `docs/`, and generated folders, and use the filename's numeric study prefix for deterministic ordering. `INDEX.md` and non-numbered Markdown files are not chapter assignments. Each file title comes from the first H1; absence of an H1 fails validation. Stable chapter IDs equal their repository-relative path. Estimated minutes parse the existing `Read time` badge when present and otherwise use 15 minutes. Assign whole chapters to contiguous dated groups in numeric curriculum order, balancing total minutes across the 100 dates; fail if any day exceeds 120 study minutes. The current scan found 556 chapters and 10,606 reading minutes (176.8 hours); recount at generation time and never hard-code these values. A broader 765-file markdown count includes files outside the study inventory.
 
 Set the non-study schedule to: 07:00–08:30 exercise/freshen; 08:30–10:30 study; 10:30–12:30 build/practice; 12:30–14:00 role research/application prep; 14:00–14:30 lunch; 14:30–16:30 OSS/portfolio; 16:30–17:30 interview prep; 17:30–18:00 mock; 18:00–20:00 family; 20:00–20:30 dinner; 20:30–21:30 follow-up/review; 21:30–22:00 wind-down/sleep at 22:00. The generator validates 600 total work minutes, 120 family minutes, the meal anchors, and the 07:00/22:00 boundaries.
 
@@ -140,7 +140,7 @@ Expected: all inventory, privacy-exclusion, date, and load tests pass.
 
 Run: `node scripts/generate-career-curriculum.mjs --bible-root ../software-developer-bible --start-date 2026-09-30 --days 100 --study-base-url https://study.buildora.work --output src/data/career-curriculum.json`
 
-Expected: JSON reports a chapter count equal to the actual included files, chapter count equals the sum assigned to all days, every study URL is a `study.buildora.work` URL built from the encoded source path, and no private source path appears.
+Expected: JSON reports a chapter count equal to the actual included files, chapter count equals the sum assigned to all days, all estimated reading minutes total 10,606 for the current source tree, every study URL is a `study.buildora.work` URL built from the encoded source path, and no private source path appears.
 
 - [ ] **Step 6: Add package scripts and commit the generator deliverable**
 
@@ -177,11 +177,14 @@ describe("career roadmap state", () => {
   });
 
   it("preserves non-roadmap todos and completed planner todos on reseed", () => {
-    const merged = buildPlannerTodos([{ id: "career-plan:2026-09-30", text: "Day 1", done: false }], [
+    const merged = buildPlannerTodos({ days: [{ day: 1, date: "2026-09-30", title: "Day 1" }] }, [
       { id: "personal-1", text: "Call family", done: false },
       { id: "career-plan:2026-09-30", text: "Old Day 1", done: true },
     ]);
-    assert.deepEqual(merged, [{ id: "personal-1", text: "Call family", done: false }, { id: "career-plan:2026-09-30", text: "Day 1", done: true }]);
+    assert.deepEqual(merged, [
+      { id: "personal-1", text: "Call family", done: false },
+      { id: "career-plan:2026-09-30", text: "[Day 1] Day 1", done: true, date: "2026-09-30", priority: "P1", tag: "Goal", createdAt: Date.parse("2026-09-30T12:00:00.000Z") },
+    ]);
   });
 
   it("requires usable evidence before completion", () => {
@@ -195,7 +198,7 @@ describe("career roadmap state", () => {
 
 Run: `node --experimental-strip-types --test src/lib/career-roadmap.test.ts`
 
-Expected: loader/module failure because `career-roadmap.ts` has not been added.
+Expected: all domain-contract tests pass after the implementation step.
 
 - [ ] **Step 3: Implement validators, merge helpers, and seed payload construction**
 
@@ -411,7 +414,7 @@ The 100-day canonical doc must include the user's full day schedule, ten work ho
 
 - [ ] **Step 5: Add a stack study-link cross-check report**
 
-Use the generated curriculum manifest to produce counts by top-level stack and day, compare to the current 765 observed numbered chapter files, ensure every included path links to a matching private bible file, and list exclusions with reason (`INDEX`, personal, project, docs, or non-numbered reference). Include that report in the roadmap source doc or generated manifest. Update the personal README's roadmap pointers only after the document exists.
+Use the generated curriculum manifest to produce counts by top-level stack and day, compare to the current 556 observed numbered learning chapters and 10,606 reading minutes, ensure every included path links to a matching private bible file, and list exclusions with reason (`INDEX`, personal, project, docs, or non-numbered reference). Include that report in the roadmap source doc or generated manifest. Update the personal README's roadmap pointers only after the document exists.
 
 - [ ] **Step 6: Run canonical private-repo gates and commit only in the bible repo**
 
@@ -456,7 +459,7 @@ Run with environment-provided `SUPABASE_URL` and `SUPABASE_SECRET_KEY` and expli
 
 - [ ] **Step 5: Perform signed-in manual acceptance on the actual host when available**
 
-Sign in as `cvamsik99@gmail.com`; check the current date, first assigned chapter link, evidence dialog, save/reload persistence, role source date, reminder opt-in, permission denied path, and sync badge. Verify timetable, execution state, career snapshot, todos, and reminders in the same user account. Do not claim production completion based only on a local build.
+Sign in with the configured owner account; check the current date, first assigned chapter link, evidence dialog, save/reload persistence, role source date, reminder opt-in, permission denied path, and sync badge. Verify timetable, execution state, career snapshot, todos, and reminders in that same account. Do not claim production completion based only on a local build.
 
 - [ ] **Step 6: Commit verification notes and hand off**
 
@@ -475,4 +478,4 @@ Write exact successful, blocked, and unverified gates to `80-lanes-abroad-full-s
 | Job-search, OSS, mock-interview, and source-verified links | Tasks 1, 4, and 5 |
 | Unit, E2E, DB, documentation, and acceptance checks | Task 6 |
 
-No TODO/TBD placeholders remain. All task dependencies are ordered: generator and contract → state merge → atomic DB sync → UI → canonical career content → live acceptance. The total implementation spans two private repositories but each commit remains repo-local. If the live owner credentials or production access are unavailable, local verification remains complete while database write and signed-in host acceptance are explicitly reported as blocked, not passed.
+No incomplete implementation placeholders remain. All task dependencies are ordered: generator and contract → state merge → atomic DB sync → UI → canonical career content → live acceptance. The total implementation spans two private repositories but each commit remains repo-local. If the live owner credentials or production access are unavailable, local verification remains complete while database write and signed-in host acceptance are explicitly reported as blocked, not passed.

@@ -1,7 +1,7 @@
 # Bible-Synced Career Operating System Design
 
 **Date:** 2026-09-30 (IST)  
-**Owner account:** `cvamsik99@gmail.com`  
+**Owner account:** supplied only at seed runtime through the private `CAREER_OWNER_EMAIL` environment variable; do not persist it in repository files.
 **Delivery surfaces:** `personal.buildora.work` (private execution) and `study.buildora.work` (learning reference)
 
 ## Goal
@@ -59,7 +59,7 @@ Each dated day has a stable `dayKey` (`career-2026-09-30` through `career-2027-0
 - a checklist whose items declare a required evidence type (`url`, `commit`, `recording`, `note`, `application`, `screenshot`, or `manual-confirmation`);
 - notification checkpoints and the UI link they should open.
 
-The chapter allocation is deterministic. The generator normalises the inventory, excludes private `personal/` material and non-chapter navigation files, assigns every included chapter exactly once, and fails when a chapter cannot be linked or the 100-day capacity is exceeded. A generated inventory report records the source revision, total chapter count, date range, and chapter-to-day mapping for review.
+The chapter allocation is deterministic. The generator normalises the inventory, excludes private `personal/` material and non-chapter navigation files, assigns every included chapter exactly once, and fails when a chapter cannot be linked or the 100-day capacity is exceeded. A generated inventory report records a content digest, total chapter count, date range, and chapter-to-day mapping for review. The current scan found 556 numbered learning chapters (about 176.8 reading hours) under the public 10–70 study stacks; the UI's old 560 figure is a rounded stale banner, while a broader 765-file count includes non-curriculum markdown and is not the study inventory.
 
 ### Mutable `CareerExecutionState`
 
@@ -76,7 +76,7 @@ Generated curriculum data and mutable evidence must not be stored in the same re
 
 The existing `todos` key receives only planner todos with a documented `career-plan:` ID prefix. A rerun merges by ID instead of deleting every matching task. `career_command_center` becomes a versioned current career snapshot and stores its `sourceCheckedAt` date for all live-market links.
 
-The script resolves `cvamsik99@gmail.com` through the Supabase admin API, then upserts only rows with that authenticated user's ID. It never logs secret values, user credentials, or unrelated rows. It exits before modifying data if the account is absent, required environment variables are absent, or the generated plan fails validation.
+The script resolves the runtime-configured owner email through the Supabase admin API, then upserts only rows with that authenticated user's ID. It never stores or logs the email, secret values, user credentials, or unrelated rows. It exits before modifying data if the account is absent, required environment variables are absent, or the generated plan fails validation.
 
 ## Daily Operating Model
 

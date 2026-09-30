@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import curriculum from "@/data/career-curriculum.json";
 import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
 import PersonalShell from "@/components/trackers/PersonalShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import { dateKey } from "@/lib/trackers";
 import { SimpleRing } from "@/components/trackers/Ring";
 import {
   BookOpen, CheckSquare, Square, ChevronDown, ChevronUp,
@@ -16,12 +16,13 @@ import {
   Copy, CheckCheck, Star, Briefcase, Globe, Code2, Brain,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { canCompleteEvidence, EMPTY_CAREER_EXECUTION_STATE, type CareerChecklistItem, type CareerEvidence, type CareerExecutionState } from "@/lib/career-roadmap";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface ChecklistItem { id: string; text: string; done: boolean }
+interface ChecklistItem extends CareerChecklistItem { done: boolean }
 interface DayPlan {
   day: number; date: string; topic: string; chapterId: string; title: string;
-  studyLink: string; schedule: Record<string, string>;
+  studyLink: string; schedule: Record<string, string | { label: string; output?: string; minutes?: number; work?: boolean }>;
   mission: string; practiceTask: string;
   interviewQuestions: string[];
   steps: string[]; checklist: ChecklistItem[];
@@ -37,10 +38,11 @@ interface CareerData {
     gaps: { item: string; action: string; urgency: string }[];
   };
   targetRoles: {
-    germany: { company: string; city: string; role: string; fitScore: number; salary: string; link: string; status: string; notes: string }[];
-    remote: { company: string; role: string; fitScore: number; link: string; status: string; notes: string }[];
+    germany: { company: string; city: string; role: string; fitScore: number; salary: string; link: string; status: string; notes: string; sourceChecked?: string }[];
+    remote: { company: string; role: string; fitScore: number; link: string; status: string; notes: string; salary?: string; sourceChecked?: string }[];
   };
   outreachTemplates: { germanySaaS: string; remote: string; ossMaintainer: string };
+  roleResearchNote?: string;
   germanyChecklist: { id: string; text: string; done: boolean; link?: string }[];
   weeklyTargets: Record<string, number>;
 }
@@ -76,6 +78,11 @@ const PHASE_COLORS: Record<string, { ring: string; bg: string; short: string }> 
 const DEF_COLOR = { ring: "#6b7280", bg: "bg-muted/30", short: "Study" };
 function getColor(topic: string) { return PHASE_COLORS[topic] ?? DEF_COLOR; }
 function pct(cl: ChecklistItem[]) { return cl.length ? Math.round(cl.filter(c => c.done).length / cl.length * 100) : 0; }
+function istDateTime() {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
+  const get = (type: string) => parts.find(part => part.type === type)?.value ?? "00";
+  return { date: `${get("year")}-${get("month")}-${get("day")}`, time: `${get("hour")}:${get("minute")}` };
+}
 
 // ─── Copy button ──────────────────────────────────────────────────────────────
 function CopyBtn({ text, label }: { text: string; label: string }) {
@@ -90,12 +97,14 @@ function CopyBtn({ text, label }: { text: string; label: string }) {
 }
 
 // ─── Schedule row ─────────────────────────────────────────────────────────────
-function ScheduleRow({ time, activity, isActive }: { time: string; activity: string; isActive: boolean }) {
+function ScheduleRow({ time, activity, isActive }: { time: string; activity: string | { label: string; output?: string; minutes?: number; work?: boolean }; isActive: boolean }) {
+  const label = typeof activity === "string" ? activity : activity.label;
+  const output = typeof activity === "string" ? "" : activity.output ?? "";
   return (
     <div className={`flex gap-3 rounded-lg px-3 py-2 text-xs transition-colors ${isActive ? "bg-primary/12 ring-1 ring-primary/30" : "hover:bg-muted/40"}`}>
       <span className={`w-28 shrink-0 font-mono text-[11px] ${isActive ? "text-primary font-bold" : "text-muted-foreground"}`}>{time}</span>
       <span className={`${isActive ? "text-foreground font-medium" : "text-foreground/80"}`}>
-        {activity}
+        {label}{output && <span className="ml-1 text-muted-foreground">— {output}</span>}
         {isActive && <span className="ml-2 rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">NOW</span>}
       </span>
     </div>
@@ -103,17 +112,22 @@ function ScheduleRow({ time, activity, isActive }: { time: string; activity: str
 }
 
 // ─── Day card ─────────────────────────────────────────────────────────────────
-function DayCard({ plan, onToggle, isToday }: { plan: DayPlan; onToggle: (d: number, id: string) => void; isToday: boolean }) {
+function DayCard({ plan, onToggle, evidence, isToday }: { plan: DayPlan; onToggle: (d: number, id: string, evidence: CareerEvidence) => void; evidence: Record<string, { evidence: CareerEvidence; verifiedAt?: string }>; isToday: boolean }) {
   const [open, setOpen] = useState(isToday);
+  const [selected, setSelected] = useState<ChecklistItem | null>(null);
+  const [evidenceValue, setEvidenceValue] = useState("");
+  const [evidenceSourceUrl, setEvidenceSourceUrl] = useState("");
+  const [validationError, setValidationError] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
   const [tab, setTab] = useState<"checklist" | "mission" | "schedule" | "steps" | "interview" | "links">("checklist");
   const progress = pct(plan.checklist);
-  const isPast = plan.date < dateKey();
+  const isPast = plan.date < istDateTime().date;
   const color = getColor(plan.topic);
   const doneCount = plan.checklist.filter(c => c.done).length;
-  const nowHH = new Date().toTimeString().slice(0, 5);
+  const nowHH = istDateTime().time;
   function isActive(t: string) {
     if (!isToday) return false;
-    const [s, e] = t.split(" - ");
+    const [s, e] = t.split(/\s*[-–]\s*/);
     return !!s && !!e && nowHH >= s && nowHH < e;
   }
 
@@ -175,8 +189,9 @@ function DayCard({ plan, onToggle, isToday }: { plan: DayPlan; onToggle: (d: num
           {/* Quick pills */}
           <div className="flex flex-wrap gap-1.5 px-4 pt-2.5">
             {[
-              { icon: <GitPullRequest className="h-3 w-3" />, label: `OSS: ${plan.oSSProject}`, href: plan.oSSProject === "Langfuse" ? "https://github.com/langfuse/langfuse/issues?q=label%3A%22good+first+issue%22" : "https://github.com/lightdash/lightdash/issues?q=label%3A%22good+first+issue%22" },
-              { icon: <Users className="h-3 w-3" />, label: `Mock: ${plan.mockInterviewPlatform}`, href: plan.mockInterviewPlatform === "micro1.ai" ? "https://micro1.ai" : "https://interviewsby.ai" },
+              { icon: <GitPullRequest className="h-3 w-3" />, label: `OSS: ${plan.oSSProject} guidance`, href: plan.oSSProject === "Langfuse" ? "https://github.com/langfuse/langfuse/blob/main/CONTRIBUTING.md" : "https://github.com/lightdash/lightdash/blob/main/.github/CONTRIBUTING.md" },
+              { icon: <Users className="h-3 w-3" />, label: "Free mock interview", href: "https://www.micro1.ai/interview-prep" },
+              { icon: <Users className="h-3 w-3" />, label: "Peer practice (Exponent)", href: "https://www.pramp.com/" },
               { icon: <Search className="h-3 w-3" />, label: "Find Roles", href: "https://wellfound.com/jobs?q=node+typescript+senior" },
             ].map(p => (
               <a key={p.label} href={p.href} target="_blank" rel="noopener noreferrer"
@@ -207,15 +222,26 @@ function DayCard({ plan, onToggle, isToday }: { plan: DayPlan; onToggle: (d: num
                 </div>
                 <div className="space-y-0.5">
                   {plan.checklist.map(item => (
-                    <button key={item.id} onClick={() => onToggle(plan.day, item.id)}
-                      className={`group flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-all hover:bg-muted/40 text-left ${item.done ? "opacity-65" : ""}`}>
-                      {item.done
-                        ? <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
-                        : <Square className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />}
-                      <span className={item.done ? "line-through text-muted-foreground" : ""}>{item.text}</span>
-                    </button>
+                    <div key={item.id} className="rounded-lg px-2.5 py-2 hover:bg-muted/40">
+                      <button onClick={() => { setSelected(item); setEvidenceValue(evidence[item.id]?.evidence.value ?? ""); setEvidenceSourceUrl(evidence[item.id]?.evidence.sourceUrl ?? ""); setConfirmed(evidence[item.id]?.evidence.confirmed ?? false); setValidationError(""); }}
+                        className="group flex w-full items-start gap-2.5 text-left text-sm">
+                        {item.done ? <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <Square className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />}
+                        <span className={item.done ? "text-muted-foreground" : ""}>{item.text}<span className="block text-[10px] text-muted-foreground">{item.done ? (evidence[item.id]?.verifiedAt ? "Evidence saved · verified" : "Evidence saved · needs final verification") : `Evidence required · ${item.acceptanceCriteria}`}</span></span>
+                      </button>
+                    </div>
                   ))}
                 </div>
+                {selected && <div role="dialog" aria-modal="true" aria-labelledby="evidence-title" className="fixed inset-0 z-[100] grid place-items-center bg-black/70 p-4" onClick={event => { if (event.target === event.currentTarget) setSelected(null); }}>
+                  <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-5 shadow-2xl">
+                    <h3 id="evidence-title" className="font-display text-lg font-bold">Verify task completion</h3>
+                    <p className="mt-2 text-sm">{selected.text}</p>
+                    <p className="mt-2 rounded-lg bg-muted/50 p-3 text-xs"><strong>Done means:</strong> {selected.acceptanceCriteria}</p>
+                    {selected.evidenceType === "manual-confirmation" ? <label className="mt-4 flex gap-2 text-sm"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} />I completed this and checked the stated acceptance criteria.</label> : <label className="mt-4 block text-xs font-semibold">Evidence ({selected.evidenceType})<textarea value={evidenceValue} onChange={event => { setEvidenceValue(event.target.value); setValidationError(""); }} rows={4} maxLength={2000} placeholder={selected.evidenceType === "note" ? "Add your notes (at least 40 characters)…" : "Paste the relevant URL, commit hash, or evidence note…"} className="mt-1 w-full rounded-lg border border-border bg-background p-3 text-sm font-normal" /></label>}
+                    {["url", "screenshot", "application"].includes(selected.evidenceType) && <label className="mt-3 block text-xs font-semibold">Source URL {selected.evidenceType === "application" ? "(unless the note contains an application ID)" : ""}<input type="url" value={evidenceSourceUrl} onChange={event => { setEvidenceSourceUrl(event.target.value); setValidationError(""); }} placeholder="https://…" className="mt-1 w-full rounded-lg border border-border bg-background p-3 text-sm font-normal" /></label>}
+                    {validationError && <p role="alert" className="mt-3 text-xs text-rose-400">{validationError}</p>}
+                    <div className="mt-4 flex justify-end gap-2"><button onClick={() => setSelected(null)} className="rounded-lg border border-border px-3 py-2 text-sm">Cancel</button>{itemDone(selected, evidence) && <button onClick={() => { onToggle(plan.day, selected.id, evidence[selected.id].evidence); setSelected(null); }} className="rounded-lg border border-emerald-500/50 px-3 py-2 text-sm text-emerald-400">Verify saved evidence</button>}<button onClick={() => { const submitted: CareerEvidence = { value: selected.evidenceType === "manual-confirmation" ? "Confirmed against the acceptance criteria." : evidenceValue, sourceUrl: evidenceSourceUrl || undefined, confirmed }; if (!canCompleteEvidence(selected, submitted)) { setValidationError("The evidence does not meet the completion rule shown above. Add valid evidence and try again."); return; } onToggle(plan.day, selected.id, submitted); setSelected(null); }} className="rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground">Save evidence</button></div>
+                  </div>
+                </div>}
               </div>
             )}
 
@@ -311,6 +337,8 @@ function DayCard({ plan, onToggle, isToday }: { plan: DayPlan; onToggle: (d: num
   );
 }
 
+function itemDone(item: ChecklistItem, evidence: Record<string, { evidence: CareerEvidence }>) { return item.done && Boolean(evidence[item.id]); }
+
 // ─── Career Command Center sections ──────────────────────────────────────────
 function ResumeSection({ data }: { data: CareerData["resumeAnalysis"] }) {
   const [tab, setTab] = useState<"strengths" | "gaps">("gaps");
@@ -360,14 +388,15 @@ function ResumeSection({ data }: { data: CareerData["resumeAnalysis"] }) {
   );
 }
 
-function RolesSection({ data }: { data: CareerData["targetRoles"] }) {
+function RolesSection({ data, note }: { data: CareerData["targetRoles"]; note?: string }) {
   const [tab, setTab] = useState<"germany" | "remote">("germany");
   return (
     <Card variant="dossier">
       <CardContent className="p-5">
         <div className="flex items-center gap-2 mb-4">
           <Briefcase className="h-4 w-4 text-primary" />
-          <h2 className="font-display font-bold">Target Roles</h2>
+        <h2 className="font-display font-bold">Target Roles</h2>
+        {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
         </div>
         <div className="flex gap-2 mb-4">
           {(["germany", "remote"] as const).map(t => (
@@ -383,11 +412,12 @@ function RolesSection({ data }: { data: CareerData["targetRoles"] }) {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-xs font-bold">{r.company}</p>
+                  <p className="text-xs font-bold">{r.company}</p>
                     {"city" in r && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{(r as { city: string }).city}</span>}
                     {"salary" in r && <span className="text-[10px] text-emerald-400 font-mono">{(r as { salary: string }).salary}</span>}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">{r.role}</p>
+                  {r.sourceChecked && <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">Source checked {r.sourceChecked} · {r.status}</p>}
                   <p className="text-[11px] text-foreground/70 mt-1">{r.notes}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -480,15 +510,24 @@ function GermanyChecklist({ items, onToggle }: { items: CareerData["germanyCheck
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function RoadmapPage() {
-  const { value: timetable, setValue: setTimetable } = useSyncedStorage<Timetable | null>("timetable_100_days", null);
+  const { value: timetable } = useSyncedStorage<Timetable | null>("timetable_100_days", null);
   const { value: career, setValue: setCareer } = useSyncedStorage<CareerData | null>("career_command_center", null);
+  const { value: executionState, setValue: setExecutionState } = useSyncedStorage<CareerExecutionState>("career_execution_state", EMPTY_CAREER_EXECUTION_STATE);
   const [filter, setFilter] = useState<"all" | "today" | "pending" | "done">("all");
   const [search, setSearch] = useState("");
   const [section, setSection] = useState<"roadmap" | "career" | "germany" | "outreach">("roadmap");
   const { toast } = useToast();
 
-  const today = dateKey();
-  const days = useMemo(() => timetable?.days ?? [], [timetable]);
+  const today = istDateTime().date;
+  const days = useMemo(() => {
+    const source = timetable?.days?.length ? timetable.days : curriculum.days;
+    return source.map((raw, index) => {
+      const day = raw as DayPlan & { chapters?: Array<{ id: string; title: string; studyUrl: string }>; phaseLabel?: string; schedule: DayPlan["schedule"] };
+      const chapterList = day.chapters ?? [];
+      const checklist = (day.checklist ?? []).map(item => ({ ...item, done: Boolean(executionState.evidenceByItemId[item.id]) }));
+      return { ...day, day: day.day ?? index + 1, topic: day.topic ?? "Study", chapterId: day.chapterId ?? chapterList[0]?.id ?? "", title: day.title ?? chapterList.map(chapter => chapter.title).join(" + "), studyLink: day.studyLink ?? chapterList[0]?.studyUrl ?? "https://study.buildora.work", schedule: day.schedule ?? {}, mission: day.mission ?? "Study, build, and save verifiable evidence.", practiceTask: day.practiceTask ?? "Implement a small, tested improvement.", interviewQuestions: day.interviewQuestions ?? [], steps: day.steps ?? [], checklist, notification: day.notification ?? { time: "08:00", message: "Start today's career roadmap block." }, oSSProject: day.oSSProject ?? "Langfuse", mockInterviewPlatform: day.mockInterviewPlatform ?? "Recorded self-mock", founderOutreachTarget: day.founderOutreachTarget ?? "One relevant outreach action", resources: day.resources ?? [] };
+    });
+  }, [timetable, executionState]);
   const completedDays = useMemo(() => days.filter(d => pct(d.checklist) === 100).length, [days]);
   const totalItems = useMemo(() => days.reduce((a, d) => a + d.checklist.length, 0), [days]);
   const doneItems = useMemo(() => days.reduce((a, d) => a + d.checklist.filter(c => c.done).length, 0), [days]);
@@ -519,9 +558,11 @@ export default function RoadmapPage() {
     return r;
   }, [days, filter, today, search]);
 
-  function toggleChecklist(dayNum: number, itemId: string) {
-    if (!timetable) return;
-    setTimetable({ ...timetable, days: timetable.days.map(d => d.day === dayNum ? { ...d, checklist: d.checklist.map(c => c.id === itemId ? { ...c, done: !c.done } : c) } : d) });
+  function toggleChecklist(_dayNum: number, itemId: string, evidence: CareerEvidence) {
+    const existing = executionState.evidenceByItemId[itemId];
+    const isVerifying = Boolean(existing && existing.evidence.value === evidence.value && existing.evidence.confirmed === evidence.confirmed);
+    setExecutionState({ ...executionState, evidenceByItemId: { ...executionState.evidenceByItemId, [itemId]: { evidence, completedAt: existing?.completedAt ?? new Date().toISOString(), ...(isVerifying ? { verifiedAt: new Date().toISOString() } : {}) } } });
+    toast({ title: isVerifying ? "Evidence verified" : "Evidence saved", description: isVerifying ? "The task has passed your final checklist check." : "Completion is recorded with evidence." });
   }
 
   function toggleGermany(id: string) {
@@ -547,7 +588,7 @@ export default function RoadmapPage() {
             <BookOpen className="h-5 w-5 text-primary shrink-0" />
             <div>
               <p className="font-display font-bold text-sm">Software Developer Bible</p>
-              <p className="text-[11px] text-muted-foreground">study.buildora.work · 560 chapters · 178h of material · your full curriculum</p>
+          <p className="text-[11px] text-muted-foreground">study.buildora.work · 556 chapters · 176.8h estimated reading · dated across 100 days</p>
             </div>
           </div>
           <ArrowUpRight className="h-4 w-4 text-primary shrink-0" />
@@ -583,6 +624,8 @@ export default function RoadmapPage() {
                 ))}
               </div>
             )}
+
+            {executionState.legacyClaims?.length ? <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3 text-xs text-amber-100"><strong>{executionState.legacyClaims.length} prior-plan checkmarks preserved for review.</strong> They are not counted as verified completion. Re-complete the matching current task with evidence to earn verified progress.</div> : null}
 
             {/* Today spotlight */}
             {todayPlan && (
@@ -669,13 +712,13 @@ export default function RoadmapPage() {
               <div className="rounded-xl border border-dashed border-border/60 py-16 text-center">
                 <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                 <p className="font-display font-bold">Timetable syncing…</p>
-                <p className="mt-1 text-sm text-muted-foreground">Sign in as cvamsik99@gmail.com — data loads automatically.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Sign in with your Personal Buildora account — your data loads automatically.</p>
               </div>
             )}
 
             <div className="space-y-2">
-              {filtered.map(plan => (
-                <DayCard key={plan.day} plan={plan} onToggle={toggleChecklist} isToday={plan.date === today} />
+                {filtered.map(plan => (
+                <DayCard key={plan.day} plan={plan} onToggle={toggleChecklist} evidence={executionState.evidenceByItemId} isToday={plan.date === today} />
               ))}
             </div>
           </>
@@ -685,7 +728,7 @@ export default function RoadmapPage() {
         {section === "career" && career && (
           <>
             <ResumeSection data={career.resumeAnalysis} />
-            <RolesSection data={career.targetRoles} />
+            <RolesSection data={career.targetRoles} note={career.roleResearchNote} />
           </>
         )}
         {section === "career" && !career && (
