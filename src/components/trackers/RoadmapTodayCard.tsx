@@ -8,10 +8,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SimpleRing } from "@/components/trackers/Ring";
 import {
   BookOpen, CheckSquare, Square, Flame, Clock, ArrowUpRight,
-  Users, GitPullRequest, MapPin, Brain, ShieldCheck, RotateCcw,
+  Users, GitPullRequest, MapPin, Brain, ShieldCheck, RotateCcw, Headphones,
 } from "lucide-react";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import FullPageRevisionGate from "@/components/study/FullPageRevisionGate";
+import StudyBreakLoungeModal from "@/components/study/StudyBreakLoungeModal";
 import curriculum from "@/data/career-curriculum.json";
 import type { CompletedChapterRecord } from "@/lib/study-focus";
 import { type ExtendedCompletedChapter, getDueRevisionItems } from "@/lib/revision-engine";
@@ -107,6 +108,7 @@ export default function RoadmapTodayCard() {
   const today = dateKey();
   const [studyCockpitOpen, setStudyCockpitOpen] = useState(false);
   const [revisionGateOpen, setRevisionGateOpen] = useState(false);
+  const [breakLoungeOpen, setBreakLoungeOpen] = useState(false);
 
   const dueRevisionList = useMemo(() => {
     return getDueRevisionItems(completedChapters || []);
@@ -273,6 +275,15 @@ export default function RoadmapTodayCard() {
             <RotateCcw className="h-3 w-3 text-amber-400" />
             <span>Recall Gate{dueRevisionList.length > 0 ? ` (${dueRevisionList.length})` : ""}</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setBreakLoungeOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-500/20 transition-colors cursor-pointer"
+            title="Mindful Audio Break: YouTube Music & Top 10 Tech Podcasts"
+          >
+            <Headphones className="h-3 w-3 text-cyan-400" />
+            <span>Audio Break</span>
+          </button>
         </div>
 
         <DeepStudyCockpitModal
@@ -283,6 +294,10 @@ export default function RoadmapTodayCard() {
         <FullPageRevisionGate
           open={revisionGateOpen}
           onClose={() => setRevisionGateOpen(false)}
+        />
+        <StudyBreakLoungeModal
+          open={breakLoungeOpen}
+          onClose={() => setBreakLoungeOpen(false)}
         />
       </CardContent>
     </Card>

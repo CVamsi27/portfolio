@@ -118,6 +118,16 @@ export default function DistractionShieldBanner({ onOpenShield }: DistractionShi
               </button>
               <button
                 type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("portfolio-open-break-lounge"));
+                }}
+                className="rounded-xl border border-cyan-400/40 bg-cyan-500/20 px-2.5 py-1.5 font-display text-[11px] font-bold text-cyan-200 hover:bg-cyan-500/30 transition-colors cursor-pointer"
+                title="Mindful Audio Break: YouTube Music & Tech Podcasts"
+              >
+                Audio Break
+              </button>
+              <button
+                type="button"
                 onClick={() => onOpenShield?.()}
                 className="rounded-xl border border-rose-400/40 bg-rose-500/20 px-2.5 py-1.5 font-display text-[11px] font-bold text-rose-200 hover:bg-rose-500/30 transition-colors cursor-pointer"
               >

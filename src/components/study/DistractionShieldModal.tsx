@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ShieldAlert, ShieldCheck, Flame, ExternalLink, ArrowRight,
   AlertTriangle, Lock, Unlock, Clock, RefreshCw, X, Copy,
-  CheckCheck, Globe, CheckCircle2, ChevronRight, Ban, Brain,
+  CheckCheck, Globe, CheckCircle2, ChevronRight, Ban, Brain, Headphones,
 } from "lucide-react";
+import StudyBreakLoungeModal from "./StudyBreakLoungeModal";
 import {
   type DistractionShieldState,
   DEFAULT_SHIELD_STATE,
@@ -56,6 +57,7 @@ export default function DistractionShieldModal({
   const [copiedHosts, setCopiedHosts] = useState(false);
   const [testUrlInput, setTestUrlInput] = useState("");
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [showBreakLounge, setShowBreakLounge] = useState(false);
 
   const { toast } = useToast();
   const domain = useMemo(() => extractDomain(targetUrl), [targetUrl]);
@@ -267,6 +269,15 @@ export default function DistractionShieldModal({
               >
                 <Brain className="h-4 w-4 text-amber-400" />
                 <span>Drill Active Recall Questions Instead →</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowBreakLounge(true)}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-2.5 font-display text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
+              >
+                <Headphones className="h-4 w-4 text-cyan-400" />
+                <span>Need a Break? YouTube Music & Tech Podcasts →</span>
               </button>
             </div>
           </div>
@@ -514,7 +525,16 @@ export default function DistractionShieldModal({
               </div>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowBreakLounge(true)}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-2.5 font-display text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
+              >
+                <Headphones className="h-4 w-4 text-cyan-400" />
+                <span>Audio Break: YouTube Music & Tech Podcasts →</span>
+              </button>
+
               <button
                 type="button"
                 onClick={onClose}
@@ -648,6 +668,12 @@ export default function DistractionShieldModal({
           </div>
         )}
       </div>
+
+      {/* Mindful Audio Break Lounge Modal */}
+      <StudyBreakLoungeModal
+        open={showBreakLounge}
+        onClose={() => setShowBreakLounge(false)}
+      />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   Check,
   CheckCircle2,
   Clock,
+  Coffee,
   ExternalLink,
   Flame,
   Globe,
@@ -33,6 +34,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import StudyBreakLoungeModal from "./StudyBreakLoungeModal";
 import { cn } from "@/lib/utils";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { useNow } from "@/lib/tracker-store";
@@ -112,6 +114,7 @@ export default function DeepStudyCockpitModal({
   const [revisionScratchpad, setRevisionScratchpad] = useState("");
   const [distractionRecallInput, setDistractionRecallInput] = useState("");
   const [isDistractionHintRevealed, setIsDistractionHintRevealed] = useState(false);
+  const [showBreakLounge, setShowBreakLounge] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const originalTitleRef = useRef<string>("");
@@ -244,6 +247,13 @@ export default function DeepStudyCockpitModal({
       }
     };
   }, [open]);
+
+  // Listen for global break lounge open triggers
+  useEffect(() => {
+    const handleOpenBreak = () => setShowBreakLounge(true);
+    window.addEventListener("portfolio-open-break-lounge", handleOpenBreak);
+    return () => window.removeEventListener("portfolio-open-break-lounge", handleOpenBreak);
+  }, []);
 
   // ─── ACTIONS ────────────────────────────────────────────────────────────────
   const pauseTimer = useCallback(() => {
@@ -674,6 +684,17 @@ export default function DeepStudyCockpitModal({
             <span className="hidden sm:inline text-[11px] font-mono">
               {ambientPlaying ? "432Hz On" : "432Hz Audio"}
             </span>
+          </button>
+
+          {/* Mindful Audio Break Lounge Button */}
+          <button
+            type="button"
+            onClick={() => setShowBreakLounge(true)}
+            className="flex h-8 items-center gap-1.5 px-2.5 rounded-lg border border-border/70 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all cursor-pointer"
+            title="Take a Break: YouTube Music & Top 10 Tech Podcasts"
+          >
+            <Coffee className="h-3.5 w-3.5 text-amber-400" />
+            <span className="hidden sm:inline text-[11px]">Break Lounge</span>
           </button>
 
           {/* Sound Toggle */}
@@ -1511,6 +1532,12 @@ export default function DeepStudyCockpitModal({
           </div>
         </div>
       )}
+
+      {/* Mindful Audio Break Lounge Modal (YouTube Music & Tech Podcasts) */}
+      <StudyBreakLoungeModal
+        open={showBreakLounge}
+        onClose={() => setShowBreakLounge(false)}
+      />
     </div>,
     document.body
   );

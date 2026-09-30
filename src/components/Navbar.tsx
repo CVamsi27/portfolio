@@ -21,6 +21,7 @@ import DeveloperTerminalDrawer from "./DeveloperTerminalDrawer";
 import ResumeModal from "./ResumeModal";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import FullPageRevisionGate from "@/components/study/FullPageRevisionGate";
+import StudyBreakLoungeModal from "@/components/study/StudyBreakLoungeModal";
 import { useTheme } from "next-themes";
 
 const subscribeHostname = (callback: () => void) => {
@@ -49,6 +50,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const [resumeOpen, setResumeOpen] = useState(false);
   const [studyCockpitOpen, setStudyCockpitOpen] = useState(false);
   const [revisionGateOpen, setRevisionGateOpen] = useState(false);
+  const [breakLoungeOpen, setBreakLoungeOpen] = useState(false);
   const gPressedRef = useRef(false);
   const gTimerRef = useRef<number | null>(null);
 
@@ -195,6 +197,12 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
     const onOpenRevision = () => setRevisionGateOpen(true);
     window.addEventListener("portfolio-open-revision-deck", onOpenRevision);
     return () => window.removeEventListener("portfolio-open-revision-deck", onOpenRevision);
+  }, []);
+
+  useEffect(() => {
+    const onOpenBreak = () => setBreakLoungeOpen(true);
+    window.addEventListener("portfolio-open-break-lounge", onOpenBreak);
+    return () => window.removeEventListener("portfolio-open-break-lounge", onOpenBreak);
   }, []);
 
   useEffect(() => {
@@ -422,6 +430,10 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
           open={revisionGateOpen}
           onClose={() => setRevisionGateOpen(false)}
           onOpenStudyCockpit={() => setStudyCockpitOpen(true)}
+        />
+        <StudyBreakLoungeModal
+          open={breakLoungeOpen}
+          onClose={() => setBreakLoungeOpen(false)}
         />
       </nav>
   );

@@ -30,6 +30,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   RotateCcw,
+  Headphones,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CONTACT_EMAIL, CONTACT_PHONE, PROJECTS, RESUME_PATH } from "@/lib/const";
@@ -301,6 +302,17 @@ export default function PortfolioCommandPalette({
         keywords: ["revision", "recall", "spaced repetition", "ebbinghaus", "gate", "drill", "invariants", "refresh", "opaque"],
         run: () => {
           window.dispatchEvent(new CustomEvent("portfolio-open-revision-deck"));
+        },
+      },
+      {
+        id: "act-break-lounge",
+        category: "Actions",
+        title: "Mindful Break Lounge (YouTube Music & Top 10 Tech Podcasts)",
+        subtitle: "5–15m audio-only break: deep focus soundscapes, lo-fi beats, or world-class tech podcasts",
+        icon: Headphones,
+        keywords: ["break", "music", "youtube music", "podcast", "audio", "rest", "lofi", "relax", "listen"],
+        run: () => {
+          window.dispatchEvent(new CustomEvent("portfolio-open-break-lounge"));
         },
       },
       {
