@@ -55,6 +55,7 @@ import { cn } from "@/lib/utils";
 import { DEFAULT_WEIGHT_LOSS_STATE, type WeightLossState } from "@/lib/health";
 import { Activity, BookOpen, Dumbbell, Flag, ListChecks, Moon, Plus, Scale, Sparkles, Timer, TrendingUp, Zap } from "lucide-react";
 import { useLockdownPreferences } from "@/lib/lockdown-store";
+import RoadmapTodayCard from "@/components/trackers/RoadmapTodayCard";
 
 export default function TrackersHub() {
   useMigrateWorkouts();
@@ -199,6 +200,7 @@ export default function TrackersHub() {
         <ProgressRail percent={momentumPercent} completed={completedAnchors} total={4} anchors={anchors} />
         <UpNextLane cue={upNextCue} />
         <FocusSprint label={nextAction.title} compact />
+        <RoadmapTodayCard />
         {recoveryCue ? <Card variant="dossier" data-testid="recovery-cue"><CardContent className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="dossier-kicker">Health signal</p><h2 className="mt-1 font-display text-lg font-bold">{recoveryCue.title}</h2><p className="mt-1 max-w-2xl text-sm text-muted-foreground">{recoveryCue.detail}</p></div><Link href={recoveryCue.href} className="shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-primary hover:underline">Open check-in →</Link></CardContent></Card> : null}
 
         <TodayDetails>
