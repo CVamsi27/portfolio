@@ -48,7 +48,11 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             </p>
             <span className="hidden sm:inline text-border">·</span>
             <p className="text-xs text-[var(--portfolio-muted)]">
-              Senior Full Stack & Systems Engineer
+              Senior Full Stack &amp; Systems Engineer
+            </p>
+            <span className="hidden sm:inline text-border">·</span>
+            <p className="text-xs text-[var(--portfolio-muted)] opacity-70">
+              Built with Next.js &amp; Tailwind
             </p>
           </div>
         )}
@@ -60,12 +64,33 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             <a href="#Capabilities" className="transition-colors hover:text-[var(--portfolio-accent)]">Stack</a>
             <a href="#Contact" className="transition-colors hover:text-[var(--portfolio-accent)]">Contact</a>
             <a href={RESUME_PATH} download="VamsiKrishna_Resume" className="transition-colors hover:text-[var(--portfolio-accent)]">Resume</a>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("portfolio-open-terminal"))}
+              className="transition-colors hover:text-[var(--portfolio-accent)] cursor-pointer"
+              title="Open developer CLI terminal (~)"
+            >
+              Terminal (~)
+            </button>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "?" }))}
+              className="transition-colors hover:text-[var(--portfolio-accent)] cursor-pointer"
+              title="Keyboard navigation shortcuts"
+            >
+              Shortcuts (?)
+            </button>
           </div>
         ) : null}
 
         <a
           href={isTracker ? "/trackers" : "#Top"}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-utility transition-all hover:border-[var(--portfolio-accent)] hover:text-foreground"
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-utility transition-all hover:text-foreground",
+            isTracker
+              ? "border border-border hover:border-[var(--portfolio-accent)]"
+              : "border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-muted)] hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:-translate-y-0.5"
+          )}
         >
           <span>{isTracker ? "Hub" : "Back to top"}</span>
           <ArrowUp className="h-3 w-3" />

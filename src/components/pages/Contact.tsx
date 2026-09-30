@@ -15,6 +15,7 @@ import {
   Send,
   Loader2,
   Sparkles,
+  Download,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,8 @@ const Contact = () => {
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [activeTopic, setActiveTopic] = useState<string | null>(null);
+
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -80,9 +83,40 @@ const Contact = () => {
     }
   };
 
-  const handleTopicClick = (topicText: string) => {
-    form.setValue("message", topicText, { shouldValidate: true });
+  const handleDownloadVCard = () => {
+    const vcard = [
+      "BEGIN:VCARD",
+      "VERSION:3.0",
+      "FN:Vamsi Krishna Chandaluri",
+      "N:Chandaluri;Vamsi Krishna;;;",
+      "TITLE:Senior Full Stack & Systems Engineer",
+      `EMAIL;TYPE=INTERNET,PREF:${CONTACT_EMAIL}`,
+      `TEL;TYPE=CELL:${CONTACT_PHONE.replace(/\\s+/g, "")}`,
+      "URL:https://buildora.work",
+      "NOTE:Full Stack Engineer specializing in TypeScript, React, NestJS, and PostgreSQL.",
+      "END:VCARD",
+    ].join("\r\n");
+
+    const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "Vamsi_Krishna_Chandaluri.vcf");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast({
+      title: "vCard downloaded",
+      description: "Contact saved as Vamsi_Krishna_Chandaluri.vcf",
+    });
   };
+
+  const handleTopicClick = (topicLabel: string, topicText: string) => {
+    form.setValue("message", topicText, { shouldValidate: true });
+    setActiveTopic(topicLabel);
+  };
+
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setIsSubmitting(true);
@@ -142,25 +176,38 @@ const Contact = () => {
                   <span>{CONTACT_EMAIL}</span>
                 </a>
 
-                <button
-                  type="button"
-                  onClick={handleCopyEmail}
-                  className="portfolio-copy-action w-full sm:w-auto"
-                  title="Copy email to clipboard"
-                  aria-label={`Copy ${CONTACT_EMAIL}`}
-                >
-                  {copied ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 text-emerald-500" />
-                      <span className="text-emerald-500 font-semibold">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={handleCopyEmail}
+                    className="portfolio-copy-action flex-1 sm:flex-initial"
+                    title="Copy email to clipboard"
+                    aria-label={`Copy ${CONTACT_EMAIL}`}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-emerald-500" />
+                        <span className="text-emerald-500 font-semibold">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleDownloadVCard}
+                    className="portfolio-copy-action flex-1 sm:flex-initial"
+                    title="Download vCard contact (.vcf)"
+                    aria-label="Download vCard contact"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>vCard</span>
+                  </button>
+                </div>
               </div>
 
               <p className="mt-3 text-xs text-[var(--portfolio-muted)]">
@@ -171,8 +218,11 @@ const Contact = () => {
             {/* Availability & Location Card */}
             <div className="rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 shadow-xs">
               <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-3">
-                <p className="portfolio-meta-label">Location & Availability</p>
-                <span className="portfolio-impact-pill">Active</span>
+                <p className="portfolio-meta-label">Location &amp; Availability</p>
+                <span className="inline-flex items-center gap-1.5 portfolio-impact-pill">
+                  <span className="portfolio-status-dot" aria-hidden="true" />
+                  Active
+                </span>
               </div>
 
               <div className="mt-4 space-y-3 text-xs text-[var(--portfolio-muted)]">
@@ -194,6 +244,12 @@ const Contact = () => {
                     {CONTACT_PHONE}
                   </a>
                 </div>
+              </div>
+
+              {/* Response time metric */}
+              <div className="mt-4 flex items-center gap-2 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)] px-3 py-2">
+                <span className="font-utility text-[0.6rem] font-bold uppercase tracking-widest text-[var(--portfolio-muted)]">Avg. reply</span>
+                <span className="ml-auto font-display text-sm font-bold text-[var(--portfolio-ink)]">&lt; 24 hrs</span>
               </div>
 
               <div className="mt-6 border-t border-[var(--portfolio-rule)] pt-4">
@@ -221,8 +277,13 @@ const Contact = () => {
                 <button
                   key={topic.label}
                   type="button"
-                  onClick={() => handleTopicClick(topic.text)}
-                  className="portfolio-topic-chip"
+                  onClick={() => handleTopicClick(topic.label, topic.text)}
+                  className={
+                    activeTopic === topic.label
+                      ? "portfolio-topic-chip is-active"
+                      : "portfolio-topic-chip"
+                  }
+                  aria-pressed={activeTopic === topic.label}
                 >
                   {topic.label}
                 </button>
@@ -273,7 +334,18 @@ const Contact = () => {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Message</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Message</FormLabel>
+                        <span className={
+                          field.value.length >= 100
+                            ? "font-utility text-[0.6rem] font-semibold text-emerald-500"
+                            : field.value.length >= 50
+                              ? "font-utility text-[0.6rem] text-[var(--portfolio-accent)]"
+                              : "font-utility text-[0.6rem] text-[var(--portfolio-muted)]"
+                        }>
+                          {field.value.length >= 100 ? "✓ Good length" : `${field.value.length} chars`}
+                        </span>
+                      </div>
                       <FormControl>
                         <Textarea
                           className="min-h-[130px] resize-none"
@@ -288,17 +360,28 @@ const Contact = () => {
                 />
 
                 {submitted ? (
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setSubmitted(false);
-                      form.reset();
-                    }}
-                    className="portfolio-submit-action w-full cursor-pointer"
-                  >
-                    <Check className="h-4 w-4 text-emerald-500" />
-                    <span>Sent! Click to send another</span>
-                  </Button>
+                  <div className="portfolio-contact-success">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
+                        <Check className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-display text-base font-bold text-[var(--portfolio-ink)] leading-tight">
+                          Message received!
+                        </p>
+                        <p className="mt-0.5 font-utility text-xs text-[var(--portfolio-muted)]">
+                          I typically reply within 24–48 hours.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setSubmitted(false); setActiveTopic(null); form.reset(); }}
+                      className="mt-4 w-full rounded-lg border border-[var(--portfolio-rule)] bg-transparent py-2 font-utility text-xs font-semibold text-[var(--portfolio-muted)] transition-all hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
+                    >
+                      Send another message →
+                    </button>
+                  </div>
                 ) : (
                   <Button
                     type="submit"

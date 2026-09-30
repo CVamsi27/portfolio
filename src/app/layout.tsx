@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import PWARegister from "@/components/PWARegister";
 import { Toaster } from "@/components/ui/toaster";
 import ReminderNudges from "@/components/ReminderNudges";
+import ScrollToTop from "@/components/ScrollToTop";
 import {
   getBrandForHost,
   isTrackerHost,
@@ -98,10 +99,68 @@ export default async function RootLayout({
   const brand = await requestBrand();
   const trackerSurface = brand === TRACKER_BRAND;
 
+  const jsonLd = !trackerSurface
+    ? {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://buildora.work/#person",
+            name: "Vamsi Krishna Chandaluri",
+            alternateName: "Vamsi Krishna",
+            url: "https://buildora.work",
+            jobTitle: "Senior Full Stack & Systems Engineer",
+            description: brand.description,
+            knowsAbout: [
+              "TypeScript",
+              "React",
+              "Next.js",
+              "Node.js",
+              "NestJS",
+              "PostgreSQL",
+              "Prisma",
+              "Distributed Systems",
+              "Full Stack Architecture",
+              "Microservices",
+            ],
+            sameAs: [
+              "https://github.com/CVamsi27",
+              "https://github.com/CVamsi27/software-developer-bible",
+              "https://study.buildora.work",
+              "https://www.linkedin.com/in/vamsikrishnachandaluri/",
+              "https://x.com/Vamsikrishna99C",
+              "https://stackoverflow.com/users/14019992/vamsi-krishna",
+              "https://leetcode.com/u/cvamsik99/",
+            ],
+          },
+          {
+            "@type": "ProfilePage",
+            "@id": "https://buildora.work/#profilepage",
+            url: "https://buildora.work",
+            name: PORTFOLIO_BRAND.title,
+            mainEntity: { "@id": "https://buildora.work/#person" },
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://buildora.work/#website",
+            url: "https://buildora.work",
+            name: PORTFOLIO_BRAND.siteName,
+            publisher: { "@id": "https://buildora.work/#person" },
+          },
+        ],
+      }
+    : null;
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href={brand.iconPath} type="image/svg+xml" />
+        {jsonLd ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+        ) : null}
       </head>
       <body
         className={cn(
@@ -119,11 +178,18 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="relative flex flex-col min-h-screen">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:border focus:border-[var(--portfolio-accent)] focus:bg-[var(--portfolio-paper)] focus:px-4 focus:py-2 focus:font-utility focus:text-xs focus:font-semibold focus:text-[var(--portfolio-accent)] focus:shadow-lg focus:outline-none"
+          >
+            Skip to main content
+          </a>
+          <main id="main-content" className="relative flex flex-col min-h-screen">
             <Navbar initialIsTracker={trackerSurface} />
             <div className="flex-1">{children}</div>
             <Toaster />
             {trackerSurface ? <ReminderNudges /> : null}
+            <ScrollToTop isPortfolio={!trackerSurface} />
             <Footer initialIsTracker={trackerSurface} />
             <PWARegister />
           </main>

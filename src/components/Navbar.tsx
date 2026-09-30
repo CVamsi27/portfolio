@@ -14,7 +14,11 @@ import VamsiMark from "@/components/brand/VamsiMark";
 import CommandPalette from "@/components/trackers/CommandPalette";
 import KeyboardShortcutsModal from "@/components/trackers/KeyboardShortcutsModal";
 import { isTrackerHost, isTrackerPath } from "@/lib/brand";
-import { ArrowUpRight, BookOpen, Keyboard, Search } from "lucide-react";
+import { ArrowUpRight, BookOpen, Download, Keyboard, Search, Terminal } from "lucide-react";
+import PortfolioShortcutsModal from "./PortfolioShortcutsModal";
+import PortfolioCommandPalette from "./PortfolioCommandPalette";
+import DeveloperTerminalDrawer from "./DeveloperTerminalDrawer";
+import { useTheme } from "next-themes";
 
 const subscribeHostname = (callback: () => void) => {
   if (typeof window === "undefined") return () => {};
@@ -32,9 +36,13 @@ const getHostname = () =>
 const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { setTheme, resolvedTheme } = useTheme();
   const host = useSyncExternalStore(subscribeHostname, getHostname, () => "");
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [portfolioShortcutsOpen, setPortfolioShortcutsOpen] = useState(false);
+  const [portfolioPaletteOpen, setPortfolioPaletteOpen] = useState(false);
+  const [terminalOpen, setTerminalOpen] = useState(false);
   const gPressedRef = useRef(false);
   const gTimerRef = useRef<number | null>(null);
 
@@ -98,6 +106,69 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   }, [isTracker, router]);
 
   useEffect(() => {
+    if (isTracker) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPortfolioPaletteOpen((prev) => !prev);
+        return;
+      }
+
+      if (e.key === "~" || e.key === "`") {
+        e.preventDefault();
+        setTerminalOpen((prev) => !prev);
+        return;
+      }
+
+      if (e.key === "?") {
+        e.preventDefault();
+        setPortfolioShortcutsOpen((prev) => !prev);
+        return;
+      }
+
+      const k = e.key.toLowerCase();
+      if (k === "w") {
+        document.getElementById("Work")?.scrollIntoView({ behavior: "smooth" });
+      } else if (k === "e") {
+        document.getElementById("Experience")?.scrollIntoView({ behavior: "smooth" });
+      } else if (k === "s") {
+        document.getElementById("Capabilities")?.scrollIntoView({ behavior: "smooth" });
+      } else if (k === "c") {
+        document.getElementById("Contact")?.scrollIntoView({ behavior: "smooth" });
+      } else if (k === "t") {
+        document.getElementById("Top")?.scrollIntoView({ behavior: "smooth" });
+      } else if (k === "m") {
+        setTheme(resolvedTheme === "dark" ? "light" : "dark");
+      } else if (k === "r") {
+        const link = document.createElement("a");
+        link.href = RESUME_PATH;
+        link.download = "VamsiKrishna_Resume.pdf";
+        link.click();
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isTracker, resolvedTheme, setTheme]);
+
+  useEffect(() => {
+    if (isTracker) return;
+    const onOpenTerm = () => setTerminalOpen(true);
+    window.addEventListener("portfolio-open-terminal", onOpenTerm);
+    return () => window.removeEventListener("portfolio-open-terminal", onOpenTerm);
+  }, [isTracker]);
+
+  useEffect(() => {
     const sections = isTracker
       ? []
       : MENU_LIST.map((val) => document.getElementById(val));
@@ -137,18 +208,20 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
 
   return (
     <nav data-testid="command-rail" className="dossier-command-rail sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg">
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-0.5 bg-transparent"
+      >
         <div
-          aria-hidden
-          className="absolute inset-x-0 top-0 h-0.5 bg-transparent"
-        >
-          <div
-            className={cn(
-              "h-full transition-[width] duration-150 ease-out",
-              isTracker ? "bg-[var(--color-dossier-lime)]" : "bg-gradient-to-r from-primary via-primary to-fuchsia-500",
-            )}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+          className={cn(
+            "h-full transition-[width] duration-150 ease-out",
+            isTracker
+              ? "bg-[var(--color-dossier-lime)]"
+              : "bg-gradient-to-r from-[var(--portfolio-accent)] via-[var(--portfolio-accent)] to-[var(--portfolio-clay)]",
+          )}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
           <a
             href={isTracker ? "/hub" : "#Top"}
@@ -182,9 +255,9 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "dossier-rail-link px-3 py-1.5 text-sm transition-colors",
+                      "dossier-rail-link px-3 py-1.5 text-sm transition-all duration-200",
                       isMenuActive(item.href)
-                        ? "is-active"
+                        ? "is-active font-semibold"
                         : "text-muted-foreground hover:text-foreground hover:bg-accent",
                     )}
                   >
@@ -234,11 +307,47 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
               <a
                 href={RESUME_PATH}
                 download="VamsiKrishna_Resume"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-3 py-1.5 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
+                title="Download resume PDF"
+                className="group hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-3 py-1.5 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all duration-200 hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] hover:shadow-sm"
               >
                 <span>Resume</span>
-                <ArrowUpRight className="h-3 w-3" />
+                <ArrowUpRight className="h-3 w-3 transition-all duration-200 group-hover:hidden" />
+                <Download className="h-3 w-3 hidden transition-all duration-200 group-hover:block" />
               </a>
+            ) : null}
+            {!isTracker ? (
+              <button
+                type="button"
+                onClick={() => setPortfolioPaletteOpen(true)}
+                aria-label="Command Palette (⌘K)"
+                title="Command Palette (⌘K)"
+                className="hidden sm:inline-flex h-9 items-center gap-1.5 rounded-xl border border-border/60 bg-muted/30 px-2.5 text-xs text-muted-foreground transition-all hover:border-[var(--portfolio-accent)]/60 hover:bg-accent hover:text-foreground"
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span className="hidden lg:inline font-utility text-[10px] uppercase tracking-wider">⌘K</span>
+              </button>
+            ) : null}
+            {!isTracker ? (
+              <button
+                type="button"
+                onClick={() => setTerminalOpen(true)}
+                aria-label="Developer Terminal (~)"
+                title="Developer Terminal (~)"
+                className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-xl border border-transparent hover:border-border/60 hover:bg-muted/40 text-muted-foreground transition-all active:scale-95"
+              >
+                <Terminal className="h-4 w-4" />
+              </button>
+            ) : null}
+            {!isTracker ? (
+              <button
+                type="button"
+                onClick={() => setPortfolioShortcutsOpen(true)}
+                aria-label="Keyboard Shortcuts (?)"
+                title="Keyboard Shortcuts (?)"
+                className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-xl border border-transparent hover:border-border/60 hover:bg-muted/40 text-muted-foreground transition-all active:scale-95"
+              >
+                <Keyboard className="h-4 w-4" />
+              </button>
             ) : null}
             <ModeToggle />
             {!isTracker ? (
@@ -257,7 +366,22 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
             <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
           </>
-        ) : null}
+        ) : (
+          <>
+            <PortfolioCommandPalette
+              open={portfolioPaletteOpen}
+              onClose={() => setPortfolioPaletteOpen(false)}
+            />
+            <PortfolioShortcutsModal
+              open={portfolioShortcutsOpen}
+              onClose={() => setPortfolioShortcutsOpen(false)}
+            />
+            <DeveloperTerminalDrawer
+              open={terminalOpen}
+              onClose={() => setTerminalOpen(false)}
+            />
+          </>
+        )}
       </nav>
   );
 };

@@ -1669,11 +1669,26 @@ body.tracker-surface,
   line-height: 0.92;
 }
 
-.portfolio-hero__title span {
+.portfolio-hero__title span,
+.portfolio-hero__title--shimmer {
   color: var(--portfolio-accent);
-  background: linear-gradient(135deg, var(--portfolio-accent) 0%, color-mix(in srgb, var(--portfolio-accent) 70%, #ec4899) 100%);
+  background: linear-gradient(
+    110deg,
+    var(--portfolio-accent) 0%,
+    color-mix(in srgb, var(--portfolio-accent) 70%, #ec4899) 40%,
+    color-mix(in srgb, var(--portfolio-accent) 85%, #06b6d4) 70%,
+    var(--portfolio-accent) 100%
+  );
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shimmer 5s linear infinite;
+}
+
+@keyframes gradient-shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
 
 .portfolio-hero__aside {
@@ -1860,7 +1875,10 @@ body.tracker-surface,
 }
 
 .portfolio-filter-tab {
-  padding: 0.45rem 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
   border-radius: 9999px;
   font-family: var(--font-utility);
   font-size: 0.68rem;
@@ -1884,9 +1902,37 @@ body.tracker-surface,
   box-shadow: 0 2px 8px -1px color-mix(in srgb, var(--portfolio-accent) 40%, transparent);
 }
 
+/* Count badge inside filter tab */
+.portfolio-filter-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  padding: 0 0.3rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--portfolio-muted) 18%, transparent);
+  color: var(--portfolio-muted);
+  font-size: 0.6rem;
+  font-weight: 700;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.portfolio-filter-tab__count--active {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* Project list: fade-in when key changes (filter switch) */
+@keyframes work-index-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Project rows */
 .portfolio-work-index {
   border-top: 1px solid var(--portfolio-rule);
+  animation: work-index-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .portfolio-work-row {
@@ -2397,5 +2443,632 @@ body.tracker-surface,
     animation: none !important;
     transition: none !important;
     transform: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Portfolio UI/UX Enhancements
+   ───────────────────────────────────────────── */
+
+/* Navbar: active link underline dot indicator */
+.portfolio-surface .dossier-rail-link {
+  position: relative;
+  padding-bottom: 0.2rem;
+}
+
+.portfolio-surface .dossier-rail-link.is-active::after {
+  content: "";
+  position: absolute;
+  bottom: -0.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--portfolio-accent);
+}
+
+/* Stat cards: subtle lift and glow on hover */
+.portfolio-stat-card {
+  cursor: default;
+}
+
+.portfolio-stat-card:hover .portfolio-stat__value {
+  color: var(--portfolio-accent);
+}
+
+/* Experience: timeline vertical connector line */
+.portfolio-experience-list {
+  padding-left: 0;
+}
+
+@media (min-width: 768px) {
+  .portfolio-experience-list::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--portfolio-accent) 12%,
+      var(--portfolio-rule) 88%,
+      transparent
+    );
+    opacity: 0.5;
+  }
+}
+
+/* Experience row: accent left bar on hover */
+.portfolio-experience-row {
+  padding-left: 1rem;
+  border-left: 3px solid transparent;
+  transition: border-color 220ms ease, background-color 180ms ease, padding-left 180ms ease;
+}
+
+.portfolio-experience-row:hover {
+  border-left-color: var(--portfolio-accent);
+  background: color-mix(in srgb, var(--portfolio-paper) 96%, var(--portfolio-blue-soft));
+}
+
+/* Section gradient dividers on dark mode */
+html.dark .portfolio-section {
+  border-top-color: color-mix(in srgb, var(--portfolio-rule) 70%, transparent);
+}
+
+/* Flagship card: gradient shimmer line already exists, add glow */
+.portfolio-flagship-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--portfolio-accent) 30%, transparent);
+  pointer-events: none;
+}
+
+/* Work row: stronger accent on lead row */
+.portfolio-work-row--lead:hover {
+  background: color-mix(in srgb, var(--portfolio-blue-soft) 80%, var(--portfolio-paper));
+}
+
+/* Scroll hint animation */
+.portfolio-scroll-hint {
+  opacity: 0.7;
+  transition: opacity 200ms ease, color 200ms ease;
+}
+
+.portfolio-scroll-hint:hover {
+  opacity: 1;
+}
+
+/* Tech chip: glow accent ring on focus */
+.portfolio-tech-chip:focus-visible {
+  outline: 2px solid var(--portfolio-accent);
+  outline-offset: 2px;
+}
+
+/* Topic chip active: solid filled state */
+.portfolio-topic-chip.is-active {
+  border-color: var(--portfolio-accent);
+  color: var(--portfolio-accent);
+  background: color-mix(in srgb, var(--portfolio-accent) 12%, transparent);
+  font-weight: 600;
+}
+
+/* Contact form: enhanced focus ring */
+.portfolio-contact-form input:focus-visible,
+.portfolio-contact-form textarea:focus-visible {
+  outline: none;
+  border-color: var(--portfolio-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--portfolio-accent) 18%, transparent);
+}
+
+/* Capability group: accent icon container glow */
+.portfolio-capability-group:hover .portfolio-capability-group__icon {
+  background: color-mix(in srgb, var(--portfolio-accent) 20%, var(--portfolio-blue-soft));
+  border-color: color-mix(in srgb, var(--portfolio-accent) 50%, var(--portfolio-rule));
+}
+
+/* Reveal: slightly longer, smoother easing */
+.reveal {
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Tag pills: subtle shimmer on hover */
+.portfolio-tag-pill {
+  transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.portfolio-tag-pill:hover {
+  border-color: color-mix(in srgb, var(--portfolio-accent) 45%, var(--portfolio-rule));
+  background: color-mix(in srgb, var(--portfolio-blue-soft) 80%, transparent);
+  transform: translateY(-1px);
+}
+
+/* Primary action: stronger shadow on dark mode */
+html.dark .portfolio-primary-action {
+  box-shadow: 0 2px 14px -2px color-mix(in srgb, var(--portfolio-accent) 55%, transparent);
+}
+
+/* Status pill: subtle breathing glow */
+@keyframes status-glow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, #10b981 0%, transparent); }
+  50% { box-shadow: 0 0 0 5px color-mix(in srgb, #10b981 14%, transparent); }
+}
+
+.portfolio-status-pill {
+  animation: status-glow 3s ease-in-out infinite;
+}
+
+/* Improved scrollbar for portfolio */
+.portfolio-surface * {
+  scrollbar-color: color-mix(in srgb, var(--portfolio-accent) 30%, transparent) transparent;
+}
+
+/* Impact pills: small pulse on load */
+@keyframes pill-pop {
+  from { transform: scale(0.88); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.portfolio-impact-pill {
+  animation: pill-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Section headings: gradient underline rule */
+.portfolio-section-heading::after {
+  background: linear-gradient(90deg, var(--portfolio-accent), color-mix(in srgb, var(--portfolio-accent) 40%, transparent));
+  border-radius: 2px;
+}
+
+/* Hero title: improve word-break on very small screens */
+@media (max-width: 380px) {
+  .portfolio-hero__title {
+    word-break: break-word;
+    hyphens: auto;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   Wave 3 UI/UX Enhancements
+   ═══════════════════════════════════════════════ */
+
+/* ── Hero staggered entrance ── */
+@keyframes hero-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) skewY(1deg);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) skewY(0);
+    filter: blur(0);
+  }
+}
+
+/* Apply entrance animation to hero children in sequence */
+.portfolio-hero .portfolio-status-pill {
+  animation: hero-line-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+.portfolio-hero h1.portfolio-hero__title {
+  animation: hero-line-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.portfolio-hero > div > div > div > p {
+  animation: hero-line-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+/* ── Hero aside: float-in from right ── */
+@keyframes aside-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.portfolio-hero__aside {
+  animation: aside-in 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+/* ── Flagship card: slide-up entrance ── */
+@keyframes flagship-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.portfolio-flagship-card {
+  animation: flagship-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Contact success panel ── */
+@keyframes success-pop {
+  0%   { transform: scale(0.94); opacity: 0; }
+  60%  { transform: scale(1.02); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+.portfolio-contact-success {
+  border-radius: 0.75rem;
+  border: 1.5px solid color-mix(in srgb, #10b981 45%, var(--portfolio-rule));
+  background: color-mix(in srgb, var(--portfolio-paper) 92%, #10b98118);
+  padding: 1.25rem 1.5rem;
+  animation: success-pop 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Experience: timeline connector dots ── */
+@media (min-width: 768px) {
+  .portfolio-experience-row {
+    position: relative;
+  }
+
+  .portfolio-experience-row::before {
+    content: "";
+    position: absolute;
+    top: 2.8rem;
+    left: -1.75rem;
+    width: 9px;
+    height: 9px;
+    border-radius: 9999px;
+    border: 2px solid var(--portfolio-accent);
+    background: var(--portfolio-paper);
+    transition: background 200ms ease, transform 200ms ease;
+    z-index: 1;
+  }
+
+  .portfolio-experience-row:first-child::before {
+    background: var(--portfolio-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--portfolio-accent) 20%, transparent);
+  }
+
+  .portfolio-experience-row:hover::before {
+    background: var(--portfolio-accent);
+    transform: scale(1.25);
+  }
+}
+
+/* ── Project rows: "Live" indicator badge ── */
+.portfolio-work-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, #10b981 12%, transparent);
+  color: #059669;
+  font-family: var(--font-utility);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html.dark .portfolio-work-live-badge {
+  color: #34d399;
+  background: color-mix(in srgb, #34d399 14%, transparent);
+}
+
+/* ── Stat value: smooth color transition on count-up ── */
+.portfolio-stat__value {
+  transition: color 400ms ease;
+}
+
+/* ── Dark mode: enhanced hero glow ── */
+html.dark .portfolio-hero__wash {
+  opacity: 0.55;
+}
+
+html.dark .portfolio-hero__ambient {
+  opacity: 0.45;
+}
+
+/* ── Mobile: experience meta as horizontal strip ── */
+@media (max-width: 767px) {
+  .portfolio-experience-meta {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--portfolio-rule);
+    margin-bottom: 0.75rem;
+  }
+
+  .portfolio-experience-row {
+    border-left: none;
+  }
+
+  .portfolio-experience-row:hover {
+    border-left: none;
+    padding-left: 0;
+  }
+}
+
+/* ── Flagship spec rows: hover highlight ── */
+.portfolio-flagship-spec-row {
+  transition: background-color 150ms ease;
+  border-radius: 0.375rem;
+  padding: 0.15rem 0.35rem;
+  margin: 0 -0.35rem;
+}
+
+.portfolio-flagship-spec-row:hover {
+  background: color-mix(in srgb, var(--portfolio-blue-soft) 60%, transparent);
+}
+
+/* ── CTA buttons: press-down feedback ── */
+.portfolio-primary-action:active,
+.portfolio-secondary-action:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* ── Section number index: larger on desktop ── */
+@media (min-width: 768px) {
+  .portfolio-experience-meta .portfolio-index {
+    font-size: 0.72rem;
+  }
+}
+
+/* ── Filter tabs: smooth text kerning ── */
+.portfolio-filter-tab {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Tech shelf header: icon-label alignment ── */
+.portfolio-tech-shelf > div:first-child {
+  min-height: 2.5rem;
+  align-items: center;
+}
+
+/* ── Back-to-top FAB shadow ── */
+.portfolio-scroll-fab {
+  box-shadow:
+    0 4px 14px -2px rgba(0, 0, 0, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+html.dark .portfolio-scroll-fab {
+  box-shadow:
+    0 4px 14px -2px rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Contact email: break on narrow ── */
+@media (max-width: 480px) {
+  .portfolio-contact-email {
+    font-size: clamp(1.1rem, 5vw, 1.6rem);
+    word-break: break-all;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   Wave 4 Enhancements
+   ═══════════════════════════════════════════════ */
+
+/* ── Stats: tabular numerics for non-jittery count-up ── */
+.portfolio-stat__value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── Tech shelf: animate in when category changes (key prop) ── */
+.portfolio-tech-shelf .mt-6 {
+  animation: work-index-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Submit button: gradient glow on hover ── */
+.portfolio-submit-action:hover {
+  background: color-mix(in srgb, var(--portfolio-accent) 88%, #06b6d4);
+  box-shadow: 0 4px 14px -2px color-mix(in srgb, var(--portfolio-accent) 45%, transparent);
+  transform: translateY(-1px);
+}
+
+.portfolio-submit-action:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* ── Navbar: slightly stronger backdrop on scroll ── */
+.dossier-command-rail {
+  transition: box-shadow 200ms ease;
+}
+
+/* ── Hero title shimmer: pause on hover ── */
+.portfolio-hero__title--shimmer:hover {
+  animation-play-state: paused;
+}
+
+/* ── Connections: prevent label overflow on very small viewports ── */
+@media (max-width: 380px) {
+  .portfolio-hero__aside .group:hover .max-w-0 {
+    max-width: 3.5rem;
+  }
+}
+
+/* ── Capability items: reveal arrow animation ── */
+.portfolio-capability-group li {
+  transition: padding-left 180ms ease, color 180ms ease;
+}
+
+.portfolio-capability-group li::before {
+  transition: color 180ms ease, transform 180ms ease;
+  display: inline-block;
+}
+
+.portfolio-capability-group:hover li::before {
+  color: var(--portfolio-clay);
+  transform: translateX(2px) rotate(-5deg);
+}
+
+.portfolio-capability-group:hover li {
+  color: color-mix(in srgb, var(--portfolio-muted) 80%, var(--portfolio-ink));
+}
+
+/* ── Filter tab: focus-visible outline ── */
+.portfolio-filter-tab:focus-visible {
+  outline: 2px solid var(--portfolio-accent);
+  outline-offset: 2px;
+}
+
+/* ── Experience body: quote highlight on key bullets ── */
+.portfolio-experience-details strong {
+  background: color-mix(in srgb, var(--portfolio-accent) 8%, transparent);
+  border-radius: 0.2rem;
+  padding: 0 0.2rem;
+  transition: background-color 200ms ease;
+}
+
+.portfolio-experience-row:hover .portfolio-experience-details strong {
+  background: color-mix(in srgb, var(--portfolio-accent) 14%, transparent);
+}
+
+/* ── Shimmer: respect reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-hero__title--shimmer,
+  .portfolio-hero__title span {
+    animation: none !important;
+    background-size: 100% auto;
+    background-position: 0 center;
+  }
+}
+
+/* ══════════════════════════════════════════
+   Print Stylesheet — clean portfolio printout
+   ══════════════════════════════════════════ */
+@media print {
+  /* Reset */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide navigation chrome */
+  nav,
+  footer,
+  .portfolio-scroll-fab,
+  .portfolio-status-pill,
+  .portfolio-filter-tabs,
+  .portfolio-work-links a[href*="github"],
+  [data-editorial-footer] {
+    display: none !important;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 1.5cm 2cm;
+    size: A4 portrait;
+  }
+
+  body {
+    font-size: 10pt;
+    line-height: 1.5;
+    color: #12151a !important;
+    background: #fff !important;
+  }
+
+  /* Portfolio sections as page-break candidates */
+  .portfolio-section {
+    page-break-inside: avoid;
+    padding: 1.5rem 0 !important;
+    border-top: 1px solid #d8dfe8 !important;
+  }
+
+  /* Hero: compact */
+  .portfolio-hero {
+    padding: 1rem 0 !important;
+    min-height: auto !important;
+  }
+
+  .portfolio-hero__wash,
+  .portfolio-hero__ambient {
+    display: none !important;
+  }
+
+  .portfolio-hero__title {
+    font-size: 32pt !important;
+    letter-spacing: -0.05em !important;
+  }
+
+  .portfolio-hero__title--shimmer,
+  .portfolio-hero__title span {
+    -webkit-text-fill-color: #2955ff !important;
+    animation: none !important;
+  }
+
+  /* Stats: 4-col print layout */
+  .portfolio-stat-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  .portfolio-stat-card {
+    padding: 0.5rem !important;
+  }
+
+  /* Experience: single column */
+  .portfolio-experience-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+    padding: 1rem 0 !important;
+  }
+
+  .portfolio-experience-row::before {
+    display: none !important;
+  }
+
+  /* Capability grid: 2-col */
+  .portfolio-capability-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Hero aside: full width */
+  .portfolio-hero > div > div {
+    grid-template-columns: 1fr !important;
+  }
+
+  .portfolio-hero__aside {
+    display: none !important;
+  }
+
+  /* Contact form: hide form, show info only */
+  .portfolio-contact-form {
+    display: none !important;
+  }
+
+  /* Links: show URL in print */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 7pt;
+    color: #5a626d;
+    word-break: break-all;
+  }
+
+  .portfolio-work-links a::after,
+  .portfolio-contact-email::after {
+    display: none !important;
+  }
+
+  /* Flagship card: simplified */
+  .portfolio-flagship-card {
+    border: 1px solid #d8dfe8 !important;
+    box-shadow: none !important;
+    animation: none !important;
+  }
+
+  /* Tech chips: inline for print */
+  .portfolio-tech-chip,
+  .portfolio-tag-pill {
+    border: 1px solid #d8dfe8 !important;
+    background: transparent !important;
+    font-size: 7pt !important;
+    padding: 0.1rem 0.4rem !important;
+  }
+
+  /* Avoid orphaned headings */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  /* Section headings */
+  .portfolio-section-heading::after {
+    display: none !important;
   }
 }

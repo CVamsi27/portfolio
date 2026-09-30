@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Connections from "../Connections";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -15,41 +15,96 @@ import {
   Activity,
   ShieldCheck,
   Languages,
+  ChevronDown,
+  BookOpen,
 } from "lucide-react";
+
+function useCountUp(target: number, duration = 1600, start = false) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!start) return;
+    let startTime: number | null = null;
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      // easeOutExpo
+      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(Math.round(ease * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    const raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration, start]);
+  return count;
+}
 
 const STATS = [
   {
     value: "5+",
+    numericValue: 5,
+    suffix: "+",
     label: "Years shipping",
     subtext: "Healthcare SaaS, enterprise & distributed systems",
     icon: Clock,
   },
   {
     value: "25+",
+    numericValue: 25,
+    suffix: "+",
     label: "Clinics in production",
     subtext: "Pan-India multi-tenant clinical deployment",
     icon: Building2,
   },
   {
     value: "1k+",
+    numericValue: 1,
+    prefix: "",
+    suffix: "k+",
     label: "Workflows / month",
     subtext: "Active appointments, records & billing",
     icon: Activity,
   },
   {
-    value: "85%+",
-    label: "Test coverage",
-    subtext: "Unit, integration & Playwright E2E assurance",
-    icon: ShieldCheck,
+    value: "560+",
+    numericValue: 560,
+    suffix: "+",
+    label: "Bible chapters authored",
+    subtext: "868 files across 7 stacks on study.buildora.work",
+    icon: BookOpen,
   },
 ];
 
 const About = () => {
   const [copied, setCopied] = useState(false);
   const [nameLangIndex, setNameLangIndex] = useState(0);
+  const [statsStarted, setStatsStarted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const statsRef = useRef<HTMLDivElement>(null);
 
   const currentTranslation =
     NAME_TRANSLATIONS[nameLangIndex % NAME_TRANSLATIONS.length];
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const node = statsRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStatsStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const handleCopyEmail = async () => {
     try {
@@ -66,6 +121,14 @@ const About = () => {
         description: "Click to email or copy manually.",
       });
     }
+  };
+
+  // Dynamic years-of-experience: started 2020
+  const yearsExperience = new Date().getFullYear() - 2020;
+
+  const handleFilterByTech = (tech: string) => {
+    window.dispatchEvent(new CustomEvent("portfolio-filter-tech", { detail: tech }));
+    document.getElementById("Work")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -88,7 +151,7 @@ const About = () => {
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <p className="font-utility text-[0.68rem] sm:text-[0.7rem] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.16em] text-[var(--portfolio-muted)]">
-              {currentTranslation.vamsi} {currentTranslation.krishna} {currentTranslation.chandaluri} · Senior Full Stack & Systems Engineer
+              {currentTranslation.vamsi} {currentTranslation.krishna} {currentTranslation.chandaluri} · Senior Full Stack &amp; Systems Engineer
             </p>
             <button
               type="button"
@@ -107,12 +170,12 @@ const About = () => {
           <h1 className="portfolio-hero__title mt-3.5 max-w-5xl">
             I build software
             <br />
-            <span>that earns its place.</span>
+            <span className="portfolio-hero__title--shimmer">that earns its place.</span>
           </h1>
 
           <p className="mt-6 sm:mt-8 max-w-2xl text-base sm:text-lg leading-relaxed sm:leading-8 text-[var(--portfolio-muted)]">
             I architect and ship high-reliability web applications, resilient backend APIs,
-            and multi-tenant platforms. Currently engineering clinical operating systems
+            and multi-tenant platforms — {yearsExperience}+ years of production engineering
             trusted by clinics across India.
           </p>
 
@@ -151,6 +214,21 @@ const About = () => {
               </button>
             </div>
           </div>
+
+          {/* Scroll-down indicator */}
+          <div
+            className="mt-10 hidden sm:flex items-center gap-2 text-[var(--portfolio-muted)] transition-all duration-500"
+            style={{ opacity: scrolled ? 0 : 1, pointerEvents: scrolled ? "none" : "auto" }}
+          >
+            <a
+              href="#Work"
+              aria-label="Scroll to work section"
+              className="portfolio-scroll-hint inline-flex items-center gap-2 font-utility text-[0.65rem] font-semibold uppercase tracking-[0.1em] transition-colors hover:text-[var(--portfolio-accent)]"
+            >
+              <ChevronDown className="h-4 w-4 animate-bounce" />
+              <span>Scroll to see work</span>
+            </a>
+          </div>
         </div>
 
         <aside className="portfolio-hero__aside">
@@ -166,41 +244,66 @@ const About = () => {
             <p className="mt-2 text-sm leading-relaxed text-[var(--portfolio-muted)]">
               Powering patient queues, clinical documentation, Rx prescriptions, and multi-tier billing for 25+ healthcare facilities.
             </p>
+
+            <div className="mt-3.5 border-t border-[var(--portfolio-rule)] pt-3">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-display text-sm font-bold text-[var(--portfolio-ink)]">
+                  Senior Full Stack Bible
+                </h3>
+                <a
+                  href="https://study.buildora.work"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-utility text-[0.62rem] font-semibold text-[var(--portfolio-accent)] hover:underline inline-flex items-center gap-0.5"
+                >
+                  <span>study.buildora.work</span>
+                  <ArrowUpRight className="h-3 w-3" />
+                </a>
+              </div>
+              <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
+                Author of 560 chapters &amp; 868 reference files covering 7 stacks, 2 interview lanes, and 23 GoF design patterns.
+              </p>
+            </div>
           </div>
 
           <div className="mt-6 border-t border-[var(--portfolio-rule)] pt-4">
-            <p className="portfolio-meta-label">Core Technologies</p>
+            <div className="flex items-center justify-between">
+              <p className="portfolio-meta-label">Core Technologies</p>
+              <span className="font-utility text-[0.6rem] text-[var(--portfolio-muted)]">Click to filter</span>
+            </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {["TypeScript", "React", "NestJS", "PostgreSQL", "Prisma"].map((tech) => (
-                <span key={tech} className="portfolio-tag-pill">
+                <button
+                  key={tech}
+                  type="button"
+                  onClick={() => handleFilterByTech(tech)}
+                  className="portfolio-tag-pill cursor-pointer transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] hover:shadow-xs"
+                  title={`View projects built with ${tech}`}
+                >
                   {tech}
-                </span>
+                </button>
               ))}
             </div>
           </div>
 
           <div className="mt-6 border-t border-[var(--portfolio-rule)] pt-4">
-            <p className="portfolio-meta-label mb-2.5">Connect & Channels</p>
+            <p className="portfolio-meta-label mb-2.5">Connect &amp; Channels</p>
             <Connections />
           </div>
         </aside>
       </div>
 
-      <div className="relative mx-auto mt-16 max-w-7xl">
+      <div ref={statsRef} className="relative mx-auto mt-16 max-w-7xl">
         <div className="portfolio-stat-grid">
           {STATS.map((stat) => {
             const Icon = stat.icon;
             return (
-              <div key={stat.label} className="portfolio-stat-card">
-                <div className="flex items-center justify-between">
-                  <p className="portfolio-stat__value">{stat.value}</p>
-                  <Icon className="h-4 w-4 text-[var(--portfolio-accent)] opacity-80" />
-                </div>
-                <p className="portfolio-meta-label mt-2">{stat.label}</p>
-                <p className="mt-1 text-xs text-[var(--portfolio-muted)] line-clamp-1">
-                  {stat.subtext}
-                </p>
-              </div>
+              <StatCard
+                key={stat.label}
+                stat={stat}
+                statsStarted={statsStarted}
+                Icon={Icon}
+              />
             );
           })}
         </div>
@@ -209,4 +312,37 @@ const About = () => {
   );
 };
 
+function StatCard({
+  stat,
+  statsStarted,
+  Icon,
+}: {
+  stat: (typeof STATS)[number];
+  statsStarted: boolean;
+  Icon: React.ElementType;
+}) {
+  const count = useCountUp(stat.numericValue, 1400, statsStarted);
+  const displayValue = statsStarted
+    ? `${count}${stat.suffix ?? ""}`
+    : stat.value;
+
+  return (
+    <div className="portfolio-stat-card group">
+      <div className="flex items-center justify-between">
+        <p className="portfolio-stat__value tabular-nums transition-all duration-300">
+          {displayValue}
+        </p>
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--portfolio-blue-soft)] transition-transform duration-300 group-hover:scale-110">
+          <Icon className="h-4 w-4 text-[var(--portfolio-accent)]" />
+        </div>
+      </div>
+      <p className="portfolio-meta-label mt-2">{stat.label}</p>
+      <p className="mt-1 text-xs text-[var(--portfolio-muted)] line-clamp-1">
+        {stat.subtext}
+      </p>
+    </div>
+  );
+}
+
 export default About;
+

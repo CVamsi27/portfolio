@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PROJECTS } from "@/lib/const";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
@@ -8,13 +8,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import {
   ArrowUpRight,
-  Sparkles,
   Server,
   Shield,
   Layers,
   Activity,
   ExternalLink,
+  Search,
+  X,
+  Gamepad2,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import DocitaArchitectureModal from "@/components/DocitaArchitectureModal";
+import SuperTicTacToeModal from "@/components/SuperTicTacToeModal";
 
 type ProjectCategory = "all" | "saas" | "platforms" | "interactive";
 
@@ -36,6 +41,17 @@ const PROJECT_EXTRAS: Record<
       "Transactional outbox & background queues for guaranteed notifications and billing",
       "Zero-downtime database migrations with Prisma and tenant-scoped queries",
       "Full-stack end-to-end type safety with shared Zod schemas and TanStack Query",
+    ],
+  },
+  "Senior Full Stack Bible": {
+    category: "platforms",
+    categoryLabel: "Knowledge Engine",
+    metrics: "868 Files · 560 Chapters · 366k Lines",
+    highlights: [
+      "2 Terminal Interview Lanes: Abroad Full-Stack (EU/US Startups) & Indian SDE (FAANG)",
+      "7 Deep Technical Stacks: Frontend, Backend, Architecture, Platform, Quality, Real-Time, Interview Toolkit",
+      "All 23 GoF Design Patterns + 31 Production System Design Case Studies",
+      "20 automated verification gates enforcing link health, schema depth, and zero-drift metrics",
     ],
   },
   TeamOps: {
@@ -85,15 +101,90 @@ const PROJECT_EXTRAS: Record<
   },
 };
 
+const TABS: { id: ProjectCategory; label: string }[] = [
+  { id: "all", label: "All Systems" },
+  { id: "saas", label: "Production SaaS" },
+  { id: "platforms", label: "Platforms & Distributed" },
+  { id: "interactive", label: "Interactive & Creative" },
+];
+
 const Projects = () => {
   const [activeTab, setActiveTab] = useState<ProjectCategory>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTech, setSelectedTech] = useState<string | null>(null);
+  const [archModalOpen, setArchModalOpen] = useState(false);
+  const [gameModalOpen, setGameModalOpen] = useState(false);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const flagshipProject = PROJECTS.find((p) => p.title === "Docita") ?? PROJECTS[0];
 
-  const filteredProjects =
-    activeTab === "all"
-      ? PROJECTS
-      : PROJECTS.filter((p) => PROJECT_EXTRAS[p.title]?.category === activeTab);
+  useEffect(() => {
+    const onFilterTech = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail) {
+        setSelectedTech(customEvent.detail);
+        setActiveTab("all");
+        setSearchQuery("");
+      }
+    };
+    const onPlayGame = () => setGameModalOpen(true);
+
+    window.addEventListener("portfolio-filter-tech", onFilterTech);
+    window.addEventListener("portfolio-play-game", onPlayGame);
+
+    return () => {
+      window.removeEventListener("portfolio-filter-tech", onFilterTech);
+      window.removeEventListener("portfolio-play-game", onPlayGame);
+    };
+  }, []);
+
+  const filteredProjects = PROJECTS.filter((project) => {
+    if (activeTab !== "all" && PROJECT_EXTRAS[project.title]?.category !== activeTab) {
+      return false;
+    }
+    if (selectedTech) {
+      const techLower = selectedTech.toLowerCase();
+      const projectTechMatch = project.tech.toLowerCase().includes(techLower);
+      const highlightsMatch = PROJECT_EXTRAS[project.title]?.highlights?.some((h) =>
+        h.toLowerCase().includes(techLower)
+      );
+      if (!projectTechMatch && !highlightsMatch) {
+        return false;
+      }
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchesTitle = project.title.toLowerCase().includes(q);
+      const matchesDesc = project.description.toLowerCase().includes(q);
+      const matchesTech = project.tech.toLowerCase().includes(q);
+      const matchesCategory = PROJECT_EXTRAS[project.title]?.categoryLabel.toLowerCase().includes(q);
+      const matchesHighlights = PROJECT_EXTRAS[project.title]?.highlights?.some((h) =>
+        h.toLowerCase().includes(q)
+      );
+      if (!matchesTitle && !matchesDesc && !matchesTech && !matchesCategory && !matchesHighlights) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const getCount = (id: ProjectCategory) =>
+    id === "all"
+      ? PROJECTS.length
+      : PROJECTS.filter((p) => PROJECT_EXTRAS[p.title]?.category === id).length;
+
+  // Keyboard navigation: left/right arrow keys between tabs
+  const handleTabKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "ArrowRight") {
+      const next = (index + 1) % TABS.length;
+      tabRefs.current[next]?.focus();
+      setActiveTab(TABS[next].id);
+    } else if (e.key === "ArrowLeft") {
+      const prev = (index - 1 + TABS.length) % TABS.length;
+      tabRefs.current[prev]?.focus();
+      setActiveTab(TABS[prev].id);
+    }
+  };
 
   return (
     <section id="Work" className="portfolio-section portfolio-work-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16">
@@ -152,9 +243,18 @@ const Projects = () => {
 
               <div className="mt-6 flex flex-wrap items-center gap-1.5">
                 {flagshipProject.tech.split(", ").map((tech) => (
-                  <span key={tech} className="portfolio-tag-pill">
+                  <button
+                    key={tech}
+                    type="button"
+                    onClick={() => setSelectedTech((prev) => (prev === tech ? null : tech))}
+                    className={cn(
+                      "portfolio-tag-pill cursor-pointer transition-all",
+                      selectedTech === tech && "border-[var(--portfolio-accent)] bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)] font-semibold shadow-xs"
+                    )}
+                    title={`Filter projects by ${tech}`}
+                  >
                     {tech}
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -162,25 +262,25 @@ const Projects = () => {
             <div className="flex flex-col justify-center rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 shadow-xs">
               <p className="portfolio-meta-label">System Specs & Impact</p>
               <div className="mt-4 space-y-3 border-b border-[var(--portfolio-rule)] pb-4">
-                <div className="flex items-center justify-between text-xs">
+                <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
                   <span className="text-[var(--portfolio-muted)]">Active Facilities:</span>
                   <span className="font-semibold text-[var(--portfolio-ink)]">25+ Indian Clinics</span>
                 </div>
-                <div className="flex items-center justify-between text-xs">
+                <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
                   <span className="text-[var(--portfolio-muted)]">Monthly Workflows:</span>
                   <span className="font-semibold text-[var(--portfolio-ink)]">1,000+ Completed</span>
                 </div>
-                <div className="flex items-center justify-between text-xs">
+                <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
                   <span className="text-[var(--portfolio-muted)]">Architecture:</span>
                   <span className="font-semibold text-[var(--portfolio-ink)]">Multi-Tenant Scoped</span>
                 </div>
-                <div className="flex items-center justify-between text-xs">
+                <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
                   <span className="text-[var(--portfolio-muted)]">Security:</span>
                   <span className="font-semibold text-[var(--portfolio-ink)]">PHI-Safe Audit Logs</span>
                 </div>
               </div>
 
-              <div className="mt-5 flex flex-wrap items-center gap-3">
+              <div className="mt-5 flex flex-col gap-2.5">
                 <a
                   href={flagshipProject.URL}
                   target="_blank"
@@ -190,136 +290,293 @@ const Projects = () => {
                   <span>Launch Live Platform</span>
                   <ArrowUpRight className="h-4 w-4" />
                 </a>
+
+                <button
+                  type="button"
+                  onClick={() => setArchModalOpen(true)}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] py-2 px-3 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] cursor-pointer shadow-xs"
+                >
+                  <Layers className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
+                  <span>Inspect System Architecture</span>
+                </button>
               </div>
             </div>
           </div>
         </Reveal>
 
-        {/* Filter Tabs */}
-        <div
-          role="tablist"
-          aria-label="Filter projects by category"
-          className="portfolio-filter-tabs flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none"
-        >
-          {[
-            { id: "all", label: `All Systems (${PROJECTS.length})` },
-            { id: "saas", label: "Production SaaS" },
-            { id: "platforms", label: "Platforms & Distributed" },
-            { id: "interactive", label: "Interactive & Creative" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id as ProjectCategory)}
-              className={
-                activeTab === tab.id
-                  ? "portfolio-filter-tab is-active"
-                  : "portfolio-filter-tab"
-              }
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Project Catalog List */}
-        <div className="portfolio-work-index">
-          {filteredProjects.map((project, index) => {
-            const extra = PROJECT_EXTRAS[project.title];
-            return (
-              <Reveal
-                key={project.title}
-                delay={(index % 3) * 60}
-                data-project-index={String(index + 1).padStart(2, "0")}
+        {/* Filter Tabs and Search Bar */}
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            role="tablist"
+            aria-label="Filter projects by category"
+            className="portfolio-filter-tabs flex gap-2 overflow-x-auto pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none"
+          >
+            {TABS.map((tab, i) => (
+              <button
+                key={tab.id}
+                ref={(el) => { tabRefs.current[i] = el; }}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                onKeyDown={(e) => handleTabKeyDown(e, i)}
                 className={
-                  project.title === "Docita"
-                    ? "portfolio-work-row portfolio-work-row--lead"
-                    : "portfolio-work-row"
+                  activeTab === tab.id
+                    ? "portfolio-filter-tab is-active"
+                    : "portfolio-filter-tab"
                 }
               >
-                <div className="portfolio-work-number">
-                  {String(index + 1).padStart(2, "0")}
-                </div>
+                <span>{tab.label}</span>
+                <span className={
+                  activeTab === tab.id
+                    ? "portfolio-filter-tab__count portfolio-filter-tab__count--active"
+                    : "portfolio-filter-tab__count"
+                }>
+                  {getCount(tab.id)}
+                </span>
+              </button>
+            ))}
+          </div>
 
-                <div className="portfolio-work-copy">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                      <h3>{project.title}</h3>
-                      {extra?.categoryLabel ? (
-                        <span className="portfolio-impact-pill">
-                          {extra.categoryLabel}
-                        </span>
-                      ) : null}
-                      {extra?.metrics ? (
-                        <span className="font-utility text-xs text-[var(--portfolio-muted)]">
-                          · {extra.metrics}
-                        </span>
-                      ) : null}
-                    </div>
+          {/* Instant Search Bar */}
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--portfolio-muted)]" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by tech or title..."
+              aria-label="Search projects by title, description, or technology"
+              className="w-full rounded-full border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] py-1.5 pl-8 pr-8 font-utility text-xs text-[var(--portfolio-ink)] placeholder:text-[var(--portfolio-muted)]/70 transition-all focus:border-[var(--portfolio-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--portfolio-accent)]"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--portfolio-muted)] hover:text-[var(--portfolio-accent)]"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
 
-                    <a
-                      href={project.URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="self-end sm:self-auto text-[var(--portfolio-accent)] p-1 -mr-1"
-                      aria-label={`Open ${project.title}`}
-                    >
-                      <ArrowUpRight className="portfolio-work-arrow h-5 w-5 shrink-0" />
-                    </a>
+        {/* Active Filters Pill Bar */}
+        {(selectedTech || searchQuery) && (
+          <div className="mb-6 flex flex-wrap items-center gap-2 rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)]/50 p-2.5 text-xs">
+            <span className="font-utility text-[0.65rem] font-bold uppercase tracking-wider text-[var(--portfolio-muted)]">
+              Active Filters:
+            </span>
+            {selectedTech && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--portfolio-accent)]/40 bg-[var(--portfolio-paper)] px-2.5 py-0.5 font-utility text-[0.68rem] font-semibold text-[var(--portfolio-accent)] shadow-xs">
+                Tech: {selectedTech}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTech(null)}
+                  className="ml-1 hover:opacity-80"
+                  aria-label="Remove technology filter"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+            {searchQuery && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--portfolio-accent)]/40 bg-[var(--portfolio-paper)] px-2.5 py-0.5 font-utility text-[0.68rem] font-semibold text-[var(--portfolio-accent)] shadow-xs">
+                Query: &quot;{searchQuery}&quot;
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="ml-1 hover:opacity-80"
+                  aria-label="Clear search query"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+            <span className="font-utility text-[0.68rem] text-[var(--portfolio-muted)]">
+              ({filteredProjects.length} result{filteredProjects.length !== 1 ? "s" : ""})
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTech(null);
+                setSearchQuery("");
+                setActiveTab("all");
+              }}
+              className="ml-auto font-utility text-[0.65rem] font-semibold text-[var(--portfolio-muted)] hover:text-[var(--portfolio-accent)] underline underline-offset-2"
+            >
+              Reset all
+            </button>
+          </div>
+        )}
+
+        {/* Project Catalog List */}
+        {filteredProjects.length === 0 ? (
+          <div className="rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] py-12 px-6 text-center">
+            <p className="font-display text-lg font-bold text-[var(--portfolio-ink)]">
+              No matching projects found
+            </p>
+            <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
+              No projects match the current search or technology filters.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTech(null);
+                setSearchQuery("");
+                setActiveTab("all");
+              }}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--portfolio-accent)] bg-[var(--portfolio-blue-soft)] px-4 py-1.5 font-utility text-xs font-semibold text-[var(--portfolio-accent)] transition-all hover:bg-[var(--portfolio-accent)] hover:text-white"
+            >
+              Clear all filters
+            </button>
+          </div>
+        ) : (
+          <div className="portfolio-work-index" key={`${activeTab}-${selectedTech}-${searchQuery}`}>
+            {filteredProjects.map((project, index) => {
+              const extra = PROJECT_EXTRAS[project.title];
+              return (
+                <Reveal
+                  key={project.title}
+                  delay={(index % 3) * 60}
+                  data-project-index={String(index + 1).padStart(2, "0")}
+                  className={
+                    project.title === "Docita"
+                      ? "portfolio-work-row portfolio-work-row--lead"
+                      : "portfolio-work-row"
+                  }
+                >
+                  <div className="portfolio-work-number">
+                    {String(index + 1).padStart(2, "0")}
                   </div>
 
-                  <p>{project.description}</p>
+                  <div className="portfolio-work-copy">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <h3>{project.title}</h3>
+                        {extra?.categoryLabel ? (
+                          <span className="portfolio-impact-pill">
+                            {extra.categoryLabel}
+                          </span>
+                        ) : null}
+                        {project.URL && !project.URL.includes("github.com") ? (
+                          <span className="portfolio-work-live-badge">
+                            <span className="portfolio-status-dot" aria-hidden="true" style={{ width: "0.4rem", height: "0.4rem" }} />
+                            Live
+                          </span>
+                        ) : null}
+                        {extra?.metrics ? (
+                          <span className="font-utility text-xs text-[var(--portfolio-muted)]">
+                            · {extra.metrics}
+                          </span>
+                        ) : null}
+                      </div>
 
-                  {extra?.highlights?.length ? (
-                    <ul className="mt-3.5 space-y-1.5 text-xs text-[var(--portfolio-muted)]">
-                      {extra.highlights.map((item) => (
-                        <li key={item} className="flex items-start gap-2">
-                          <span className="text-[var(--portfolio-accent)] font-bold">›</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-
-                  <div className="portfolio-tag-list">
-                    {project.tech.split(", ").map((tech) => (
-                      <span key={tech} className="portfolio-tag-pill">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="portfolio-work-links">
-                    <a
-                      href={project.URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold"
-                    >
-                      <span>Live project</span>
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-
-                    {project.gitLink ? (
                       <a
-                        href={project.gitLink}
+                        href={project.URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[var(--portfolio-muted)] hover:text-[var(--portfolio-accent)]"
+                        className="self-end sm:self-auto text-[var(--portfolio-accent)] p-1 -mr-1"
+                        aria-label={`Open ${project.title}`}
                       >
-                        <FontAwesomeIcon icon={faGithub} className="h-3.5 w-3.5" />
-                        <span>Source Code</span>
+                        <ArrowUpRight className="portfolio-work-arrow h-5 w-5 shrink-0" />
                       </a>
+                    </div>
+
+                    <p>{project.description}</p>
+
+                    {extra?.highlights?.length ? (
+                      <ul className="mt-3.5 space-y-1.5 text-xs text-[var(--portfolio-muted)]">
+                        {extra.highlights.map((item) => (
+                          <li key={item} className="flex items-start gap-2">
+                            <span className="text-[var(--portfolio-accent)] font-bold">›</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
                     ) : null}
+
+                    <div className="portfolio-tag-list">
+                      {project.tech.split(", ").map((tech) => (
+                        <button
+                          key={tech}
+                          type="button"
+                          onClick={() => setSelectedTech((prev) => (prev === tech ? null : tech))}
+                          className={cn(
+                            "portfolio-tag-pill cursor-pointer transition-all",
+                            selectedTech === tech && "border-[var(--portfolio-accent)] bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)] font-semibold shadow-xs"
+                          )}
+                          title={`Filter projects by ${tech}`}
+                        >
+                          {tech}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="portfolio-work-links">
+                      {project.title === "Super Tic Tac Toe" ? (
+                        <button
+                          type="button"
+                          onClick={() => setGameModalOpen(true)}
+                          className="inline-flex items-center gap-1.5 font-semibold text-[var(--portfolio-accent)] hover:underline cursor-pointer"
+                        >
+                          <Gamepad2 className="h-3.5 w-3.5" />
+                          <span>Play Mini Game</span>
+                        </button>
+                      ) : null}
+
+                      {project.URL && !project.URL.includes("github.com") ? (
+                        <a
+                          href={project.URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold"
+                        >
+                          <span>Live project</span>
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      ) : (
+                        <a
+                          href={project.URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold"
+                        >
+                          <FontAwesomeIcon icon={faGithub} className="h-3.5 w-3.5" />
+                          <span>View on GitHub</span>
+                        </a>
+                      )}
+
+                      {project.gitLink && !project.URL.includes("github.com") ? (
+                        <a
+                          href={project.gitLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[var(--portfolio-muted)] hover:text-[var(--portfolio-accent)]"
+                        >
+                          <FontAwesomeIcon icon={faGithub} className="h-3.5 w-3.5" />
+                          <span>Source Code</span>
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              </Reveal>
-            );
-          })}
-        </div>
+                </Reveal>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      <DocitaArchitectureModal
+        open={archModalOpen}
+        onClose={() => setArchModalOpen(false)}
+      />
+
+      <SuperTicTacToeModal
+        open={gameModalOpen}
+        onClose={() => setGameModalOpen(false)}
+      />
     </section>
   );
 };

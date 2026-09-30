@@ -1,7 +1,13 @@
 import { WORK_EXPERIENCE } from "@/lib/const";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, MapPin } from "lucide-react";
+
+const COMPANY_LOCATIONS: Record<string, string> = {
+  Docita: "Remote · Pan-India",
+  "MAQ Software": "Hyderabad, India",
+  Cognizant: "Hyderabad, India",
+};
 
 const COMPANY_HIGHLIGHTS: Record<string, string[]> = {
   Docita: ["25+ Clinics Live", "1,000+ Appts / Mo", "PostgreSQL RLS", "Outbox & Queues"],
@@ -59,6 +65,22 @@ const Experience = () => {
                     {value.duration}
                   </span>
 
+                  {COMPANY_LOCATIONS[value.company] ? (
+                    <span className="inline-flex items-center gap-1 font-utility text-[0.62rem] text-[var(--portfolio-muted)]">
+                      <MapPin className="h-3 w-3 shrink-0 text-[var(--portfolio-accent)]" />
+                      <span>{COMPANY_LOCATIONS[value.company]}</span>
+                    </span>
+                  ) : null}
+
+                  {index === 0 && (
+                    <span className="inline-flex items-center gap-1.5 w-fit">
+                      <span className="portfolio-status-dot" aria-hidden="true" />
+                      <span className="font-utility text-[0.6rem] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                        Current
+                      </span>
+                    </span>
+                  )}
+
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {highlights.map((h) => (
                       <span key={h} className="portfolio-impact-pill">
@@ -105,9 +127,18 @@ const Experience = () => {
 
                   <div className="portfolio-tag-list mt-5">
                     {value.tech.split(", ").map((tech) => (
-                      <span key={tech} className="portfolio-tag-pill">
+                      <button
+                        key={tech}
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent("portfolio-filter-tech", { detail: tech }));
+                          document.getElementById("Work")?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                        className="portfolio-tag-pill cursor-pointer transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)]"
+                        title={`Filter work projects by ${tech}`}
+                      >
                         {tech}
-                      </span>
+                      </button>
                     ))}
                   </div>
                 </div>

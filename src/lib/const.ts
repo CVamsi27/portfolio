@@ -82,6 +82,13 @@ export const PROJECTS: Projects[] = [
     URL: "https://docita.work",
   },
   {
+    title: "Senior Full Stack Bible",
+    description: "Lane-first, stack-deep knowledge engine with 868 reference files, 560 study chapters, 7 deep technical stacks, and all 23 GoF design patterns powering senior engineer preparation",
+    tech: "TypeScript, Python, Jekyll, Cloudflare Pages, Markdown AST, Automated Verification Gates",
+    gitLink: "https://github.com/CVamsi27/software-developer-bible",
+    URL: "https://study.buildora.work",
+  },
+  {
     title: "TeamOps",
     description: "Real-time collaboration platform enabling team task management using WebSockets and microservice architecture",
     tech: "Next.js 15, NestJS, TypeScript, PostgreSQL, Prisma ORM",
