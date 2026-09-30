@@ -32,7 +32,8 @@ export default function MorePage() {
 
         {/* Study Bible external link */}
         <a
-          href="https://study.buildora.work"
+          data-testid="personal-study-link"
+          href="https://study.buildora.work/"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary/10 px-5 py-4 hover:bg-primary/15 transition-colors"

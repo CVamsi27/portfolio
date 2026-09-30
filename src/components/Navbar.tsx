@@ -14,7 +14,7 @@ import VamsiMark from "@/components/brand/VamsiMark";
 import CommandPalette from "@/components/trackers/CommandPalette";
 import KeyboardShortcutsModal from "@/components/trackers/KeyboardShortcutsModal";
 import { isTrackerHost, isTrackerPath } from "@/lib/brand";
-import { ArrowUpRight, Keyboard, Search } from "lucide-react";
+import { ArrowUpRight, BookOpen, Keyboard, Search } from "lucide-react";
 
 const subscribeHostname = (callback: () => void) => {
   if (typeof window === "undefined") return () => {};
@@ -193,6 +193,19 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                 ),
               )}
             </div>
+            {isTracker ? (
+              <a
+                data-testid="personal-study-link"
+                href="https://study.buildora.work/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-sm text-primary transition-colors hover:border-primary/60 hover:bg-primary/10"
+              >
+                <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Study Bible</span>
+                <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+              </a>
+            ) : null}
             {isTracker ? (
               <>
                 <button

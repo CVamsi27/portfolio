@@ -41,6 +41,9 @@ test("command deck leads with the goal and next move", async ({ page }) => {
   await expect(page.getByTestId("today-header")).toContainText("Relocate to Canada");
   await page.getByTestId("today-details").locator("summary").click();
   await expect(page.getByTestId("action-queue")).toContainText("Choose a neighborhood");
+  await expect(page.getByTestId("action-queue")).not.toContainText("Log today’s meal window");
+  await expect(page.getByTestId("action-queue")).not.toContainText("Concrete job offer from a target-country entity");
+  await expect(page.locator('a[href="/intermittent-fasting"]').first()).toBeVisible();
   await expect(page.getByTestId("week-pulse")).toContainText("25m");
   await expect(page.getByRole("button", { name: /start focus sprint/i })).toBeVisible();
 });

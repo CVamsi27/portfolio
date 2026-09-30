@@ -50,6 +50,8 @@ function walkMarkdown(directory, output = []) {
 }
 
 function compareChapterPaths(left, right) {
+  const stackOrder = STUDY_STACKS.indexOf(left.split("/")[0]) - STUDY_STACKS.indexOf(right.split("/")[0]);
+  if (stackOrder !== 0) return stackOrder;
   const leftPrefix = left.split("/").at(-1).match(/^([\d.]+)-/)[1].split(".").map(Number);
   const rightPrefix = right.split("/").at(-1).match(/^([\d.]+)-/)[1].split(".").map(Number);
   const length = Math.max(leftPrefix.length, rightPrefix.length);
@@ -214,16 +216,16 @@ function roleAction(day) {
   return "Review the weekly funnel and select next week's highest-fit roles; do not count unsent drafts as applications.";
 }
 
-function checklistFor(date, chapter, day) {
+function checklistFor(date, chapter, day, practiceTask, roleTask, oss) {
   const prefix = `career:${date}`;
   return [
-    { id: `${prefix}:study-notes`, text: "Write concise notes for today's assigned chapters", evidenceType: "note", acceptanceCriteria: "At least 5 key ideas, one open question, and one link to the chapter notes.", estimatedMinutes: 25 },
-    { id: `${prefix}:retrieval`, text: "Explain one chapter concept from memory", evidenceType: "recording", acceptanceCriteria: "A 2–5 minute audio/video recording or a written answer made before reopening the chapter.", estimatedMinutes: 15 },
-    { id: `${prefix}:practice`, text: "Complete the applied engineering exercise", evidenceType: "commit", acceptanceCriteria: "A commit URL/hash, runnable artifact, or accepted solution plus one test or measured result.", estimatedMinutes: 120 },
-    { id: `${prefix}:role-scorecard`, text: "Complete today's role research or application action", evidenceType: "note", acceptanceCriteria: "Company, exact role URL, source-check date, eligibility, evidence match, gap, and next action are recorded.", estimatedMinutes: 90 },
-    { id: `${prefix}:public-proof`, text: "Make progress on OSS or public proof", evidenceType: "url", acceptanceCriteria: "Link to an agreed issue/discussion, reviewable public artifact, or portfolio commit; if blocked, record the maintainer question and pivot artifact.", estimatedMinutes: 120 },
-    { id: `${prefix}:interview`, text: "Practice today's interview question under a timer", evidenceType: "recording", acceptanceCriteria: "Record a 5–10 minute answer and one specific correction for the next attempt.", estimatedMinutes: 60 },
-    { id: `${prefix}:closeout`, text: "Complete the evening review and set up tomorrow", evidenceType: "note", acceptanceCriteria: "Record completed evidence, carry-forward item if needed, one lesson, and tomorrow's first action.", estimatedMinutes: 30 },
+    { id: `${prefix}:study-notes`, text: "Write concise notes for today's assigned chapters", evidenceType: "note", acceptanceCriteria: "At least 5 accurate ideas, one worked example, one open question, and links to the assigned chapters.", instructions: ["Read the linked chapters and capture definitions only when they help explain a mechanism.", "For each chapter, write its invariant, one small example, and one failure mode.", "Add one question you still have and keep the note in the matching project or study folder."], estimatedMinutes: 25 },
+    { id: `${prefix}:retrieval`, text: "Explain one chapter concept from memory", evidenceType: "recording", acceptanceCriteria: "A 2–5 minute recording or written answer created before reopening notes, covering mechanism, trade-off, failure mode, and a verification method.", instructions: ["Choose one assigned chapter and close the chapter and notes.", "Explain the concept from first principles, then name a realistic failure and a way to test for it.", "Reopen the source, mark what was missing, and record one correction for tomorrow."], estimatedMinutes: 15 },
+    { id: `${prefix}:practice`, text: "Complete the applied engineering exercise", evidenceType: "commit", acceptanceCriteria: "A reproducible commit or runnable artifact with a focused test and a short explanation of the design trade-off.", instructions: [`Use this exercise: ${practiceTask}`, "Reduce it to the smallest useful change that demonstrates today's chapter in a realistic feature.", "Run the relevant test or command, inspect the result, and capture a commit URL/hash or runnable artifact.", "Write down one alternative you rejected and why."], estimatedMinutes: 120 },
+    { id: `${prefix}:role-scorecard`, text: "Complete today's role research or application action", evidenceType: "note", acceptanceCriteria: "Company, exact live role URL, source-check date, location/work-authorisation eligibility, resume-backed evidence match, gap, and next action are recorded.", instructions: [roleTask, "Open the employer's own listing and confirm it is still accepting applications; record the checked date and location/work-authorisation constraints.", "Match each required skill to an existing resume or portfolio example; label missing evidence honestly.", "Save one next action as a draft. Submit only after reviewing the final application yourself."], estimatedMinutes: 90 },
+    { id: `${prefix}:public-proof`, text: "Make progress on OSS or public proof", evidenceType: "url", acceptanceCriteria: "A public issue/discussion, reviewed artifact, or portfolio link; if blocked, save the maintainer question and a useful fallback proof artifact.", instructions: [`Follow today's ${oss.project} scope: ${oss.action}`, "Read the contribution guide and issue discussion before editing; ask maintainers to confirm ambiguous scope.", "Keep the change narrow, add or run relevant tests, and link the discussion, PR, or published proof.", "If waiting on a maintainer, record the question and use the block for a portfolio proof instead."], estimatedMinutes: 120 },
+    { id: `${prefix}:interview`, text: "Practice today's interview question under a timer", evidenceType: "recording", acceptanceCriteria: "A 5–10 minute timed answer that states assumptions, reasoning, trade-offs, failure handling, verification, and one correction for the next attempt.", instructions: ["Answer the day's question without notes for up to 10 minutes.", "Use a clear structure: clarify, state the invariant, compare options, cover failure modes, and explain verification.", "Replay or review the answer, score clarity and technical depth, then write one specific correction."], estimatedMinutes: 60 },
+    { id: `${prefix}:closeout`, text: "Complete the evening review and set up tomorrow", evidenceType: "note", acceptanceCriteria: "Completed evidence is checked, unfinished work has a dated next action, one lesson is captured, and tomorrow's first task is selected.", instructions: ["Verify every claimed completion against its acceptance criteria and attached evidence.", "Carry unfinished work forward as one small, dated next action; do not mark it complete.", "Write one lesson from today and choose the first chapter or task to open tomorrow."], estimatedMinutes: 30 },
   ].map(item => ({ ...item, day }));
 }
 
@@ -312,7 +314,7 @@ export function buildCurriculum({ bibleRoot, startDate, dayCount, studyBaseUrl }
         "Record a timed interview answer, score clarity/technical depth/trade-offs, and write one correction.",
         "Use the final checklist to attach evidence, verify completed outputs, and carry unfinished work into a dated next action.",
       ],
-      checklist: checklistFor(date, primary, day),
+      checklist: checklistFor(date, primary, day, stackAction(primary.stack, day), roleAction(day), oss),
       notifications: [
         { key: "launch", time: "07:00", message: `Day ${day}: start with health, then open today's roadmap.`, href: "/roadmap" },
         { key: "study-close", time: "10:25", message: `Close the study block with notes and recall for Day ${day}.`, href: "/roadmap" },

@@ -57,7 +57,8 @@ test.describe("personal roadmap", () => {
     await expect(page.getByTestId("today-header").getByTestId("world-clock-strip")).toContainText("San Francisco");
     await expect(page.getByTestId("progress-rail").getByRole("progressbar")).toBeVisible();
     await expect(page.getByTestId("next-move-card")).toBeVisible();
-    await expect(page.getByTestId("up-next-lane")).toBeVisible();
+    await expect(page.getByTestId("up-next-lane")).toHaveCount(0);
+    await expect(page.getByTestId("next-move-card")).not.toContainText(/meal window|concrete job offer|about 10 min/i);
     await expect(page.getByTestId("clock-disclosure")).toBeVisible();
     await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(5);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
@@ -135,8 +136,12 @@ test.describe("personal roadmap", () => {
   test("requires evidence and a separate verification step for roadmap completion", async ({ page }) => {
     await seed(page, { "vk:career_execution_state": { version: 1, evidenceByItemId: {}, archivedItems: [] } });
     await page.goto("/roadmap");
+    await expect(page.getByText("Study in this order")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Execution Context" })).toHaveAttribute("href", /study\.buildora\.work\/10-frontend\/10\.1-javascript/);
+    await page.getByText("How to complete this task").first().click();
+    await expect(page.getByText("For each chapter, write its invariant, one small example, and one failure mode.")).toBeVisible();
     await page.getByRole("button", { name: /write concise notes for today's assigned chapters/i }).click();
-    await expect(page.getByRole("dialog")).toContainText("At least 5 key ideas");
+    await expect(page.getByRole("dialog")).toContainText("At least 5 accurate ideas");
     await page.getByPlaceholder(/add your notes/i).fill("Five key ideas: closures, lexical scope, stack frames, hoisting, and temporal dead zones. Open question: how do module scopes differ?");
     await page.getByRole("dialog").getByRole("button", { name: "Save evidence" }).click();
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:career_execution_state") ?? "{}"));

@@ -17,6 +17,18 @@ for (let index = 1; index <= 100; index += 1) {
 mkdirSync(join(fixtureBible, "80-lanes-abroad-full-stack", "personal"), { recursive: true });
 writeFileSync(join(fixtureBible, "80-lanes-abroad-full-stack", "personal", "cv.md"), "# Private CV\n");
 writeFileSync(join(fixtureBible, "10-frontend", "INDEX.md"), "# Navigation only\n");
+const backendChapterPath = "20-backend/20.1-node/20.1.01-runtime.md";
+mkdirSync(dirname(join(fixtureBible, backendChapterPath)), { recursive: true });
+writeFileSync(join(fixtureBible, backendChapterPath), "# Runtime\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n");
+fixtureExpectedChapterPaths.push(backendChapterPath);
+for (const [path, title] of [
+  ["10-frontend/10.2-typescript/10.2.01-types.md", "TypeScript"],
+  ["10-frontend/10.3-react/10.3.01-components.md", "React"],
+]) {
+  mkdirSync(dirname(join(fixtureBible, path)), { recursive: true });
+  writeFileSync(join(fixtureBible, path), `# ${title}\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n`);
+  fixtureExpectedChapterPaths.push(path);
+}
 
 const buildFixture = () => buildCurriculum({
   bibleRoot: fixtureBible,
@@ -57,7 +69,7 @@ test("creates direct chapter URLs and a content digest without private paths", (
   assert.match(plan.days[0].chapters[0].studyUrl, /^https:\/\/study\.example\.test\//);
   assert.match(plan.sourceDigest, /^[a-f0-9]{64}$/);
   assert.equal(serialized.includes("personal/cv.md"), false);
-  assert.equal(plan.totalStudyMinutes, 1500);
+  assert.equal(plan.totalStudyMinutes, 1545);
 });
 
 test("every day has a ten-hour work schedule and protected family and meal anchors", () => {
@@ -67,4 +79,19 @@ test("every day has a ten-hour work schedule and protected family and meal ancho
   assert.equal(plan.days[0].schedule["18:00-20:00"].minutes, 120);
   assert.equal(plan.days[0].schedule["14:00-14:30"].label, "Lunch");
   assert.equal(plan.days[0].schedule["20:00-20:30"].label, "Dinner");
+});
+
+test("starts in JavaScript and keeps the full-stack study sequence ordered", () => {
+  const plan = buildFixture();
+  const paths = plan.days.flatMap(day => day.chapters.map(chapter => chapter.path));
+  assert.match(paths[0], /^10-frontend\/10\.1-javascript\//);
+  const javascript = paths.findIndex(path => path.includes("/10.1-javascript/"));
+  const typescript = paths.findIndex(path => path.includes("/10.2-typescript/"));
+  const react = paths.findIndex(path => path.includes("/10.3-react/"));
+  const backend = paths.findIndex(path => path.startsWith("20-backend/"));
+  assert.ok(javascript < typescript && typescript < react && react < backend);
+  const day = plan.days[0];
+  assert.equal(day.checklist.length, 7);
+  assert.ok(day.checklist.every(item => Array.isArray(item.instructions) && item.instructions.length >= 2));
+  assert.ok(day.steps.length >= 7);
 });

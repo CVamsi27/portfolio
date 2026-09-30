@@ -2,14 +2,15 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("personal today cockpit", () => {
-  test("leads with one move and one continuation cue", async ({ page }) => {
+  test("leads with one primary move without a duplicate continuation card", async ({ page }) => {
     await seed(page);
     await page.goto("/hub");
 
     await expect(page.getByTestId("today-header")).toBeVisible();
     await expect(page.getByTestId("next-move-card")).toBeVisible();
     await expect(page.getByTestId("progress-rail")).toBeVisible();
-    await expect(page.getByTestId("up-next-lane")).toBeVisible();
+    await expect(page.getByTestId("up-next-lane")).toHaveCount(0);
+    await expect(page.getByTestId("next-move-card")).not.toContainText(/meal window|concrete job offer|about 10 min/i);
     await expect(page.getByTestId("action-queue")).toBeHidden();
     await expect(page.getByTestId("daily-momentum-ring")).toHaveCount(0);
     await expect(page.getByTestId("today-details")).toBeVisible();

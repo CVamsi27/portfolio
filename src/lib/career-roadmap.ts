@@ -12,6 +12,7 @@ export interface CareerChecklistItem {
   text: string;
   evidenceType: CareerEvidenceType;
   acceptanceCriteria: string;
+  instructions?: string[];
   estimatedMinutes: number;
 }
 

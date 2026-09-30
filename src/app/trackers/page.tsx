@@ -46,10 +46,9 @@ import FocusSprint from "@/components/trackers/FocusSprint";
 import TodayHeader from "@/components/trackers/TodayHeader";
 import NextMoveCard from "@/components/trackers/NextMoveCard";
 import ProgressRail from "@/components/trackers/ProgressRail";
-import UpNextLane from "@/components/trackers/UpNextLane";
 import TodayDetails from "@/components/trackers/TodayDetails";
 import MiniBars from "@/components/trackers/MiniBars";
-import { buildNextAction, buildUpNextCue } from "@/lib/command-deck";
+import { buildNextAction } from "@/lib/command-deck";
 import { focusMinutesForDates, type FocusSession } from "@/lib/focus-sprint";
 import { cn } from "@/lib/utils";
 import { DEFAULT_WEIGHT_LOSS_STATE, type WeightLossState } from "@/lib/health";
@@ -73,6 +72,7 @@ export default function TrackersHub() {
   const { value: workouts } = useWorkouts();
   const { value: journal } = useJournal();
   const { value: focusSessions } = useSyncedStorage<FocusSession[]>("focus:sessions", []);
+  const { value: careerTimetable } = useSyncedStorage<{ days?: unknown[] } | null>("timetable_100_days", null);
   const { value: weightLoss } = useSyncedStorage<WeightLossState>("weight-loss", DEFAULT_WEIGHT_LOSS_STATE);
   const { value: lockdownPrefs } = useLockdownPreferences();
   const { setValue: setManualBedtime } = useSyncedStorage<boolean>("bedtime:manual", false);
@@ -130,6 +130,10 @@ export default function TrackersHub() {
     { id: "tasks" as const, label: "Tasks", completed: todayTodos.length > 0 && doneTodos === todayTodos.length, href: "/todo" },
     { id: "goal" as const, label: weightLossGoal ? "Weigh-in" : metric.label, completed: goalPercent >= 100, href: weightLossGoal ? "/weight-loss" : "/goal" },
   ];
+  const careerFocus = prefs.goalCategory === "career" || prefs.goalCategory === "relocation" || Boolean(careerTimetable?.days?.length);
+  const nextMoveSummary = careerFocus
+    ? "Today's dated study or job-search task comes first. Save evidence of what you build, learn, and verify."
+    : `Your ${goalMeta.label.toLowerCase()} plan is at ${Math.round(goalPercent)}% today. One useful move is enough to keep the sequence alive.`;
   const nextAction = buildNextAction({
     fastRunning: fastSt.startedAt !== null,
     fastLogged: fastedToday,
@@ -143,8 +147,8 @@ export default function TrackersHub() {
     weightLoggedToday,
     weeklyCommitment: weeklyCommitment ? { text: weeklyCommitment.text, completed: weeklyCommitment.status === "completed" } : undefined,
     nextMilestone,
+    careerFocus,
   });
-  const upNextCue = buildUpNextCue({ nextAction, recoveryCue, nextMilestone });
 
   const [quickTask, setQuickTask] = useState("");
   const [quickMetric, setQuickMetric] = useState("");
@@ -196,9 +200,8 @@ export default function TrackersHub() {
       <PersonalShell showBack={false} showDock title={null}>
         <TodayHeader name={prefs.name} goalTitle={displayGoalTitle(prefs)} momentumPercent={momentumPercent} />
         <InstallPrompt />
-        <NextMoveCard action={nextAction} summary={`Your ${goalMeta.label.toLowerCase()} plan is at ${Math.round(goalPercent)}% today. One useful move is enough to keep the sequence alive.`} />
+        <NextMoveCard action={nextAction} summary={nextMoveSummary} />
         <ProgressRail percent={momentumPercent} completed={completedAnchors} total={4} anchors={anchors} />
-        <UpNextLane cue={upNextCue} />
         <FocusSprint label={nextAction.title} compact />
         <RoadmapTodayCard />
         {recoveryCue ? <Card variant="dossier" data-testid="recovery-cue"><CardContent className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="dossier-kicker">Health signal</p><h2 className="mt-1 font-display text-lg font-bold">{recoveryCue.title}</h2><p className="mt-1 max-w-2xl text-sm text-muted-foreground">{recoveryCue.detail}</p></div><Link href={recoveryCue.href} className="shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-primary hover:underline">Open check-in →</Link></CardContent></Card> : null}
@@ -206,7 +209,7 @@ export default function TrackersHub() {
         <TodayDetails>
           <section className="border border-border/70 bg-card/45 p-4"><div className="flex items-baseline justify-between gap-3"><div><span className="dossier-kicker">Log a signal</span><span className="mt-1 block font-display text-base font-bold">Keep the record honest.</span></div><Link href="/log" className="text-xs font-bold uppercase tracking-[0.12em] text-primary hover:underline">Open Log →</Link></div><div className="mt-3 grid gap-2 sm:grid-cols-2"><div className="flex gap-2"><Input className="h-10" placeholder="Add a task…" value={quickTask} onChange={(event) => setQuickTask(event.target.value)} onKeyDown={(event) => event.key === "Enter" && addQuickTask()} /><Button size="sm" className="h-10" onClick={addQuickTask} aria-label="Add task"><Plus className="h-4 w-4" /></Button></div><div className="flex gap-2"><Input className="h-10 tabular-nums" type="number" min={0} placeholder={`Log ${metric.label.toLowerCase()}…`} value={quickMetric} onChange={(event) => setQuickMetric(event.target.value)} onKeyDown={(event) => event.key === "Enter" && logQuickMetric()} /><Button size="sm" className="h-10" onClick={logQuickMetric} aria-label={`Log ${metric.label}`}><TrendingUp className="h-4 w-4" /></Button></div><Button variant={fastSt.startedAt !== null ? "secondary" : "default"} className="h-10" onClick={toggleFast}><Timer className="mr-1.5 h-4 w-4" />{fastSt.startedAt !== null ? "End fast" : "Start fast"}</Button><Link href="/workout-tracking"><Button variant="outline" className="h-10 w-full"><Dumbbell className="mr-1.5 h-4 w-4" /> Log workout</Button></Link></div></section>
 
-          <ActionQueue rows={actionQueue} />
+          <ActionQueue rows={careerFocus ? actionQueue.filter((row) => row.id !== "fasting") : actionQueue} />
           <WeekPulse days={weekPulse} />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[{ label: "Fast streak", value: `${fastStreak}d`, icon: Timer, color: "text-[#32b8c8]" }, { label: "Workout streak", value: `${workoutStreak}d`, icon: Dumbbell, color: "text-[#c9ff4f]" }, { label: "Task streak", value: `${taskStreak}d`, icon: ListChecks, color: "text-amber-400" }, { label: "Milestones", value: `${milestones.filter((milestone) => milestone.done).length}/${milestones.length}`, icon: Flag, color: "text-[#32b8c8]" }].map((stat) => <Card variant="dossier" key={stat.label}><CardContent className="flex items-center gap-2.5 p-4"><stat.icon className={cn("h-5 w-5 shrink-0", stat.color)} /><div className="min-w-0"><p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{stat.label}</p><p className="font-display text-lg font-bold tabular-nums">{stat.value}</p></div></CardContent></Card>)}</div>
           <div className="grid gap-3 sm:grid-cols-2"><Card variant="dossier"><CardContent className="p-5"><div className="flex items-baseline justify-between"><h2 className="font-display font-bold">Fasting</h2><Link href="/intermittent-fasting" className="text-xs text-primary hover:underline">Open →</Link></div><p className="mt-2 font-display text-2xl font-bold tabular-nums">{fastSt.startedAt !== null && fastSt.phase === "fasting" ? `${Math.floor(derived.elapsedMs / 3600000)}h ${Math.floor((derived.elapsedMs % 3600000) / 60000)}m` : "Idle"}<span className="ml-1.5 text-xs font-medium text-muted-foreground">/ {protocol.fastHours}h target</span></p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-[#32b8c8]" style={{ width: `${fastPercent}%` }} /></div><div className="mt-3"><MiniBars data={fastHoursByDay(fastHist, 7, new Date(now))} unit="h" height={42} /></div></CardContent></Card><Card variant="dossier"><CardContent className="p-5"><div className="flex items-baseline justify-between"><h2 className="font-display font-bold">Workout volume</h2><Link href="/workout-tracking" className="text-xs text-primary hover:underline">Open →</Link></div><p className="mt-2 font-display text-2xl font-bold tabular-nums">{weeklyWorkoutStats(workoutLogs, 1, new Date(now))[0]?.sessions ?? 0}<span className="ml-1.5 text-xs font-medium text-muted-foreground">sessions this week</span></p></CardContent></Card></div>

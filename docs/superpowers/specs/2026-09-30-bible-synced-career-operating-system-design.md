@@ -136,6 +136,12 @@ The roadmap remains a single focused mobile-friendly route. The top section answ
 
 The full timeline is available below the daily command card, grouped into phases and searchable by date, chapter, role lane, and evidence status. A task opens its linked bible chapter, not a generic study homepage. Completion controls request the required evidence before enabling the final checkbox. Final verification is a separate deliberate action, so a completed activity is never silently treated as a verified result.
 
+The learning sequence is explicit and stable: start in Frontend JavaScript, continue through TypeScript and React and the remaining frontend chapters, then move through Node.js/NestJS, API design, PostgreSQL, security, architecture, delivery, testing, and interview topics in the numbered bible order. Every assigned chapter is linked directly. Today's card shows the date, ordered chapters, full objective, applied engineering exercise, and career outcome without truncating the mission.
+
+Each daily checklist row keeps its evidence criterion visible and provides an expandable, task-specific procedure. The procedure tells the learner how to produce the artifact, what command/test or source to check, what evidence to save, and how to handle a blocker honestly. Decorative emoji are excluded from the career interface; meaning is conveyed with plain labels, accessible Lucide icons, hierarchy, and text status.
+
+On the hub, career and relocation goals (or any account with a seeded career timetable) prioritize the next dated task, then today's roadmap. A missing meal-window log and distant relocation outcome must not displace the concrete job-search/study task in the career next-action slot. The fasting tracker and its dedicated controls remain available elsewhere. Remove the redundant “Up next” lane and ungrounded minute estimate; the hub has one primary next move.
+
 Reminder preferences gain career-specific checkpoints for morning launch, study close, application/role follow-up, mock interview, evening review, and wind-down. When the page is open, the application shows an in-app nudge and uses the browser Notification API when the user opted in. It must tolerate permission denial and duplicate prevention. Background delivery is shown as unavailable until a production push provider, VAPID keys, subscription persistence, and a scheduler are configured; the UI does not imply it can notify a closed browser today.
 
 ## Verification and Release Gates

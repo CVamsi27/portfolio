@@ -22,8 +22,9 @@ import { canCompleteEvidence, EMPTY_CAREER_EXECUTION_STATE, type CareerChecklist
 interface ChecklistItem extends CareerChecklistItem { done: boolean }
 interface DayPlan {
   day: number; date: string; topic: string; chapterId: string; title: string;
+  chapters: Array<{ id: string; title: string; studyUrl: string }>;
   studyLink: string; schedule: Record<string, string | { label: string; output?: string; minutes?: number; work?: boolean }>;
-  mission: string; practiceTask: string;
+  mission: string; practiceTask: string; roleTrack: { lane: string; action: string };
   interviewQuestions: string[];
   steps: string[]; checklist: ChecklistItem[];
   notification: { time: string; message: string };
@@ -154,9 +155,9 @@ function DayCard({ plan, onToggle, evidence, isToday }: { plan: DayPlan; onToggl
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${color.bg}`} style={{ color: color.ring }}>{color.short}</span>
             {isToday && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">TODAY</span>}
-            {progress === 100 && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">✓ DONE</span>}
+            {progress === 100 && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">DONE</span>}
             {isPast && progress > 0 && progress < 100 && <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">IN PROGRESS</span>}
-            {isPast && progress === 0 && <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold text-rose-400">⚠ OVERDUE</span>}
+            {isPast && progress === 0 && <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold text-rose-400">OVERDUE</span>}
           </div>
           <p className="font-display font-bold text-sm leading-tight">{plan.title}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">{plan.date} · {doneCount}/{plan.checklist.length} done</p>
@@ -226,8 +227,12 @@ function DayCard({ plan, onToggle, evidence, isToday }: { plan: DayPlan; onToggl
                       <button onClick={() => { setSelected(item); setEvidenceValue(evidence[item.id]?.evidence.value ?? ""); setEvidenceSourceUrl(evidence[item.id]?.evidence.sourceUrl ?? ""); setConfirmed(evidence[item.id]?.evidence.confirmed ?? false); setValidationError(""); }}
                         className="group flex w-full items-start gap-2.5 text-left text-sm">
                         {item.done ? <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <Square className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />}
-                        <span className={item.done ? "text-muted-foreground" : ""}>{item.text}<span className="block text-[10px] text-muted-foreground">{item.done ? (evidence[item.id]?.verifiedAt ? "Evidence saved · verified" : "Evidence saved · needs final verification") : `Evidence required · ${item.acceptanceCriteria}`}</span></span>
+                        <span className={item.done ? "text-muted-foreground" : ""}>{item.text}<span className="block text-[10px] leading-relaxed text-muted-foreground">{item.done ? (evidence[item.id]?.verifiedAt ? "Evidence saved · verified" : "Evidence saved · needs final verification") : `Evidence required · ${item.acceptanceCriteria}`}</span></span>
                       </button>
+                      {item.instructions?.length ? <details className="ml-7 mt-1.5 rounded-md bg-muted/25 px-2.5 py-2 text-xs">
+                        <summary className="cursor-pointer font-medium text-primary">How to complete this task</summary>
+                        <ol className="mt-2 list-decimal space-y-1 pl-4 leading-relaxed text-muted-foreground">{item.instructions.map((instruction, index) => <li key={`${item.id}-step-${index}`}>{instruction}</li>)}</ol>
+                      </details> : null}
                     </div>
                   ))}
                 </div>
@@ -325,7 +330,7 @@ function DayCard({ plan, onToggle, evidence, isToday }: { plan: DayPlan; onToggl
                 ))}
                 <a href="https://study.buildora.work" target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-between gap-2 rounded-lg border border-primary/30 bg-primary/8 px-3 py-2.5 hover:bg-primary/14 transition-colors group">
-                  <p className="text-xs font-medium text-primary">📖 study.buildora.work — full chapter</p>
+                  <p className="text-xs font-medium text-primary">study.buildora.work — full chapter</p>
                   <ExternalLink className="h-3.5 w-3.5 shrink-0 text-primary" />
                 </a>
               </div>
@@ -353,7 +358,7 @@ function ResumeSection({ data }: { data: CareerData["resumeAnalysis"] }) {
           {(["gaps", "strengths"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${tab === t ? "border-primary bg-primary text-primary-foreground" : "border-border/60 text-muted-foreground hover:border-primary/50"}`}>
-              {t === "gaps" ? "⚠ Gaps to Fix" : "✓ Strengths"}
+              {t === "gaps" ? "Gaps to Fix" : "Strengths"}
             </button>
           ))}
         </div>
@@ -402,7 +407,7 @@ function RolesSection({ data, note }: { data: CareerData["targetRoles"]; note?: 
           {(["germany", "remote"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${tab === t ? "border-primary bg-primary text-primary-foreground" : "border-border/60 text-muted-foreground hover:border-primary/50"}`}>
-              {t === "germany" ? "🇩🇪 Germany" : "🌐 Remote"}
+              {t === "germany" ? "Germany" : "Remote"}
             </button>
           ))}
         </div>
@@ -439,8 +444,8 @@ function RolesSection({ data, note }: { data: CareerData["targetRoles"]; note?: 
 function OutreachSection({ templates }: { templates: CareerData["outreachTemplates"] }) {
   const TMPL = [
     { label: "🇩🇪 Germany SaaS", key: "germanySaaS" as const },
-    { label: "🌐 Remote", key: "remote" as const },
-    { label: "🐙 OSS Maintainer", key: "ossMaintainer" as const },
+    { label: "Remote", key: "remote" as const },
+    { label: "Open source", key: "ossMaintainer" as const },
   ];
   const [active, setActive] = useState<keyof CareerData["outreachTemplates"]>("germanySaaS");
   return (
@@ -525,7 +530,7 @@ export default function RoadmapPage() {
       const day = raw as DayPlan & { chapters?: Array<{ id: string; title: string; studyUrl: string }>; phaseLabel?: string; schedule: DayPlan["schedule"] };
       const chapterList = day.chapters ?? [];
       const checklist = (day.checklist ?? []).map(item => ({ ...item, done: Boolean(executionState.evidenceByItemId[item.id]) }));
-      return { ...day, day: day.day ?? index + 1, topic: day.topic ?? "Study", chapterId: day.chapterId ?? chapterList[0]?.id ?? "", title: day.title ?? chapterList.map(chapter => chapter.title).join(" + "), studyLink: day.studyLink ?? chapterList[0]?.studyUrl ?? "https://study.buildora.work", schedule: day.schedule ?? {}, mission: day.mission ?? "Study, build, and save verifiable evidence.", practiceTask: day.practiceTask ?? "Implement a small, tested improvement.", interviewQuestions: day.interviewQuestions ?? [], steps: day.steps ?? [], checklist, notification: day.notification ?? { time: "08:00", message: "Start today's career roadmap block." }, oSSProject: day.oSSProject ?? "Langfuse", mockInterviewPlatform: day.mockInterviewPlatform ?? "Recorded self-mock", founderOutreachTarget: day.founderOutreachTarget ?? "One relevant outreach action", resources: day.resources ?? [] };
+      return { ...day, day: day.day ?? index + 1, topic: day.topic ?? "Study", chapterId: day.chapterId ?? chapterList[0]?.id ?? "", title: day.title ?? chapterList.map(chapter => chapter.title).join(" + "), chapters: chapterList, studyLink: day.studyLink ?? chapterList[0]?.studyUrl ?? "https://study.buildora.work", schedule: day.schedule ?? {}, mission: day.mission ?? "Study, build, and save verifiable evidence.", practiceTask: day.practiceTask ?? "Implement a small, tested improvement.", roleTrack: day.roleTrack ?? { lane: "Full-stack TypeScript", action: "Save one source-verified role action." }, interviewQuestions: day.interviewQuestions ?? [], steps: day.steps ?? [], checklist, notification: day.notification ?? { time: "08:00", message: "Start today's career roadmap block." }, oSSProject: day.oSSProject ?? "Langfuse", mockInterviewPlatform: day.mockInterviewPlatform ?? "Recorded self-mock", founderOutreachTarget: day.founderOutreachTarget ?? "One relevant outreach action", resources: day.resources ?? [] };
     });
   }, [timetable, executionState]);
   const completedDays = useMemo(() => days.filter(d => pct(d.checklist) === 100).length, [days]);
@@ -572,10 +577,10 @@ export default function RoadmapPage() {
   }
 
   const NAV = [
-    { id: "roadmap" as const,  label: "📅 Roadmap",        icon: <CalendarDays className="h-4 w-4" /> },
-    { id: "career" as const,   label: "🎯 Resume & Roles",  icon: <Target className="h-4 w-4" /> },
-    { id: "outreach" as const, label: "✉️  Outreach",        icon: <Mail className="h-4 w-4" /> },
-    { id: "germany" as const,  label: "🇩🇪 Germany",         icon: <MapPin className="h-4 w-4" /> },
+    { id: "roadmap" as const,  label: "Roadmap",        icon: <CalendarDays className="h-4 w-4" /> },
+    { id: "career" as const,   label: "Resume & roles",  icon: <Target className="h-4 w-4" /> },
+    { id: "outreach" as const, label: "Outreach",        icon: <Mail className="h-4 w-4" /> },
+    { id: "germany" as const,  label: "Germany",         icon: <MapPin className="h-4 w-4" /> },
   ];
 
   return (
@@ -640,23 +645,37 @@ export default function RoadmapPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <Flame className="h-4 w-4 text-primary" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Day {todayPlan.day} · Today</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Today · {todayPlan.date} · Day {todayPlan.day}</span>
                       </div>
                       <p className="font-display font-bold">{todayPlan.title}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{todayPlan.mission?.slice(0, 130)}…</p>
+                      <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{todayPlan.mission}</p>
+                      <div className="mt-4 rounded-lg border border-border/60 bg-background/50 p-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Study in this order</p>
+                        <ol className="mt-2 space-y-1.5">
+                          {todayPlan.chapters.map((chapter, index) => (
+                            <li key={chapter.id} className="flex items-start gap-2 text-sm">
+                              <span className="font-mono text-xs text-muted-foreground">{index + 1}.</span>
+                              <a href={chapter.studyUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">{chapter.title}</a>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <div className="rounded-lg bg-muted/35 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Build and verify</p><p className="mt-1 text-sm leading-relaxed">{todayPlan.practiceTask}</p></div>
+                        <div className="rounded-lg bg-muted/35 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Career outcome</p><p className="mt-1 text-sm leading-relaxed">{todayPlan.roleTrack.action}</p></div>
+                      </div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <a href={todayPlan.studyLink} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-                          <BookOpen className="h-3 w-3" />Open Study
+                          <BookOpen className="h-3 w-3" />Start lesson
                         </a>
                         <button onClick={() => setFilter("today")}
                           className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors">
-                          <ListChecks className="h-3 w-3" />Checklist
+                          <ListChecks className="h-3 w-3" />Verify today&apos;s work
                         </button>
                         <a href="https://micro1.ai" target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors">
-                          <Users className="h-3 w-3" />Mock Interview
+                          <Users className="h-3 w-3" />Practice interview
                         </a>
                       </div>
                     </div>

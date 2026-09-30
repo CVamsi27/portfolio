@@ -328,6 +328,8 @@ Run `git diff --check`; commit only the migration, script and README changes as 
 **Interfaces:**
 - `CareerEvidenceDialog` accepts `{ item, existingEvidence, onSave, onCancel }`; it shows the criterion and required evidence field and emits validated evidence only.
 - `RoadmapTodayCard` reads the current date from the Asia/Kolkata date helper, displays the active time block and first unverified task, and offers direct study/action links.
+- The career-focused hub (career/relocation goal or seeded career timetable) renders one primary next move: today's pending dated task, otherwise today's roadmap. Fasting remains available in its tracker and its own dedicated controls, but cannot replace a career task; no duplicate “Up next” lane or unsupported duration estimate is shown.
+- The roadmap opens with the complete dated study objective, chapter links in order, applied build task, and career outcome. Every checklist item may reveal task-specific instructions before the evidence dialog.
 - `ReminderPreferences` adds `career: Record<CareerReminderKey, ReminderSlot>` and retains the current three health slots without changing their persisted keys.
 - Every roadmap action uses `career_execution_state`; generated snapshot items are immutable from the UI.
 
@@ -366,7 +368,9 @@ Replace direct checklist toggles in roadmap and hub with a dialog. `manual-confi
 
 - [ ] **Step 4: Render a useful current-day command card and full dated chapter coverage**
 
-Update the top of `/roadmap` to show date in IST, current/next block, today's assigned chapters and exact links, expected output, evidence requirement, and a carry-forward control for overdue items. Use `Intl.DateTimeFormat` with `Asia/Kolkata`; do not derive local schedule time from UTC host timezone. Group all 100 dates by phase; support search across title, chapter title/path, phase, and action type. Show total chapter count from the snapshot. The first activation day is not treated as a missed 07:00 start if seeded later on 30 September.
+Update the top of `/roadmap` to show date in IST, current/next block, today's assigned chapters and exact links, expected output, evidence requirement, and a carry-forward control for overdue items. The curriculum must begin in Frontend JavaScript and follow numbered chapter order through TypeScript, React, the rest of frontend, backend (including NestJS and PostgreSQL), then architecture, platform, quality, and interview topics. Each checklist row includes an expandable step-by-step guide for doing and verifying the task. Use `Intl.DateTimeFormat` with `Asia/Kolkata`; do not derive local schedule time from UTC host timezone. Group all 100 dates by phase; support search across title, chapter title/path, phase, and action type. Show total chapter count from the snapshot. The first activation day is not treated as a missed 07:00 start if seeded later on 30 September. Use plain labels and icon components, not emoji.
+
+Remove the duplicate hub “Up next” lane. For career and relocation goal categories, or whenever the owner has a seeded career timetable, choose an incomplete dated task first and fall back to `/roadmap`; do not let a missing meal-window log or a distant job-offer milestone take over the primary next-move card or career action queue. Keep fasting logging in its dedicated tracker and workout tracking in its own controls. Remove the unsupported “About 10 min” estimate.
 
 - [ ] **Step 5: Add opt-in notifications and correct settings copy**
 

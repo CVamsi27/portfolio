@@ -49,10 +49,25 @@ test.describe("navigation & shell", () => {
     }
   });
 
-  test("personal navigation does not expose the public Study entry", async ({ page }) => {
+  test("personal navigation does not expose the public Study route", async ({ page }) => {
     await seed(page);
     await page.goto("/trackers");
-    await expect(page.getByRole("link", { name: "Study" })).toHaveCount(0);
+    await expect(page.locator('a[href="/study"]')).toHaveCount(0);
+  });
+
+  test("links to the Study Bible from the desktop header and More on mobile", async ({ page }) => {
+    await seed(page);
+    await page.goto("/hub");
+    const desktopLink = page.getByTestId("command-rail").getByTestId("personal-study-link");
+    await expect(desktopLink).toBeVisible();
+    await expect(desktopLink).toHaveAttribute("href", "https://study.buildora.work/");
+    await expect(desktopLink).toHaveAttribute("target", "_blank");
+    await expect(desktopLink).toHaveAttribute("rel", "noopener noreferrer");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(5);
+    await page.goto("/more");
+    await expect(page.getByRole("link", { name: /Software Developer Bible/ })).toHaveAttribute("href", "https://study.buildora.work/");
   });
 
   test("personal navbar does not expose account email text", async ({ page }) => {

@@ -70,7 +70,7 @@ function useDailyNotification(plan: DayPlan | undefined) {
 
     const send = () => {
       if (Notification.permission === "granted") {
-        new Notification(`🔥 Day ${plan.day}: ${plan.title}`, {
+        new Notification(`Day ${plan.day}: ${plan.title}`, {
           body: plan.mission.slice(0, 150),
           icon: "/icon.svg",
           badge: "/icon.svg",
@@ -80,7 +80,7 @@ function useDailyNotification(plan: DayPlan | undefined) {
       } else if (Notification.permission === "default") {
         Notification.requestPermission().then(perm => {
           if (perm === "granted") {
-            new Notification(`🔥 Day ${plan.day}: ${plan.title}`, {
+            new Notification(`Day ${plan.day}: ${plan.title}`, {
               body: plan.mission.slice(0, 150),
               icon: "/icon.svg",
               tag: `roadmap-${plan.date}`,
@@ -170,8 +170,8 @@ export default function RoadmapTodayCard() {
 
         {/* Today's mission */}
         <div className="mx-4 mb-3 rounded-lg border border-amber-500/20 bg-amber-500/8 px-3 py-2.5">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">🎯 Mission</p>
-          <p className="text-xs leading-relaxed text-foreground/90">{plan.mission.slice(0, 140)}…</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">Today&apos;s goal</p>
+          <p className="text-xs leading-relaxed text-foreground/90">{plan.mission}</p>
         </div>
 
         {/* Checklist (first 4 items) */}

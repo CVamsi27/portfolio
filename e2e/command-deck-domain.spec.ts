@@ -37,4 +37,41 @@ test.describe("command deck next action", () => {
       href: "/weight-loss",
     });
   });
+
+  test("career focus skips meal logging and distant milestones in favor of today's dated work", () => {
+    expect(buildNextAction({
+      fastRunning: false,
+      fastLogged: false,
+      workoutDone: false,
+      todoCount: 2,
+      doneTodos: 0,
+      nextTask: "Study JavaScript execution context",
+      goalPct: 0,
+      metricLabel: "applications",
+      nextMilestone: "Concrete job offer from a target-country entity",
+      careerFocus: true,
+    })).toEqual({
+      kind: "todo",
+      title: "Study JavaScript execution context",
+      href: "/todo",
+    });
+  });
+
+  test("career focus opens today's roadmap when there is no dated task", () => {
+    expect(buildNextAction({
+      fastRunning: false,
+      fastLogged: false,
+      workoutDone: false,
+      todoCount: 0,
+      doneTodos: 0,
+      goalPct: 0,
+      metricLabel: "applications",
+      nextMilestone: "Concrete job offer from a target-country entity",
+      careerFocus: true,
+    })).toEqual({
+      kind: "todo",
+      title: "Open today's roadmap",
+      href: "/roadmap",
+    });
+  });
 });
