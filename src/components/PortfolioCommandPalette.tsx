@@ -27,6 +27,7 @@ import {
   Workflow,
   Quote,
   GitBranch,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CONTACT_EMAIL, CONTACT_PHONE, PROJECTS, RESUME_PATH } from "@/lib/const";
@@ -265,6 +266,17 @@ export default function PortfolioCommandPalette({
         keywords: ["game", "tictactoe", "play", "minimax"],
         run: () => {
           window.dispatchEvent(new CustomEvent("portfolio-play-game"));
+        },
+      },
+      {
+        id: "act-deep-study",
+        category: "Actions",
+        title: "Start Deep Study Sprint (Anti-Distraction Shield)",
+        subtitle: "Lockdown focus reader with tab-switch guard, attention checks & progress tracking",
+        icon: ShieldCheck,
+        keywords: ["study", "focus", "distraction", "cockpit", "deep study", "lockdown", "attention", "bible"],
+        run: () => {
+          window.dispatchEvent(new CustomEvent("portfolio-open-study-cockpit"));
         },
       },
       {

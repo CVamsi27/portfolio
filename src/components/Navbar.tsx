@@ -19,6 +19,7 @@ import PortfolioShortcutsModal from "./PortfolioShortcutsModal";
 import PortfolioCommandPalette from "./PortfolioCommandPalette";
 import DeveloperTerminalDrawer from "./DeveloperTerminalDrawer";
 import ResumeModal from "./ResumeModal";
+import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import { useTheme } from "next-themes";
 
 const subscribeHostname = (callback: () => void) => {
@@ -45,6 +46,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const [portfolioPaletteOpen, setPortfolioPaletteOpen] = useState(false);
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [resumeOpen, setResumeOpen] = useState(false);
+  const [studyCockpitOpen, setStudyCockpitOpen] = useState(false);
   const gPressedRef = useRef(false);
   const gTimerRef = useRef<number | null>(null);
 
@@ -88,7 +90,13 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         else if (k === "i") { router.push("/intermittent-fasting"); e.preventDefault(); }
         else if (k === "g") { router.push("/goal"); e.preventDefault(); }
         else if (k === "a") { router.push("/archive"); e.preventDefault(); }
+        else if (k === "r") { router.push("/roadmap"); e.preventDefault(); }
         else if (k === "s") { router.push("/settings"); e.preventDefault(); }
+        return;
+      }
+
+      if (e.key.toLowerCase() === "b") {
+        setStudyCockpitOpen(true);
         return;
       }
 
@@ -159,6 +167,8 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         setTheme(resolvedTheme === "dark" ? "light" : "dark");
       } else if (k === "r") {
         setResumeOpen(true);
+      } else if (k === "b") {
+        setStudyCockpitOpen(true);
       }
     };
 
@@ -172,6 +182,12 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
     window.addEventListener("portfolio-open-terminal", onOpenTerm);
     return () => window.removeEventListener("portfolio-open-terminal", onOpenTerm);
   }, [isTracker]);
+
+  useEffect(() => {
+    const onOpenStudy = () => setStudyCockpitOpen(true);
+    window.addEventListener("portfolio-open-study-cockpit", onOpenStudy);
+    return () => window.removeEventListener("portfolio-open-study-cockpit", onOpenStudy);
+  }, []);
 
   useEffect(() => {
     const sections = isTracker
@@ -390,6 +406,10 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             />
           </>
         )}
+        <DeepStudyCockpitModal
+          open={studyCockpitOpen}
+          onClose={() => setStudyCockpitOpen(false)}
+        />
       </nav>
   );
 };

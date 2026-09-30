@@ -14,6 +14,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     title: "Global Commands",
     items: [
       { keys: ["⌘", "K"], description: "Open Command Palette" },
+      { keys: ["B"], description: "Launch Deep Study Cockpit (Anti-Distraction Shield)" },
       { keys: ["?"], description: "Show Keyboard Shortcuts" },
       { keys: ["T"], description: "Toggle Theme (Dark / Light)" },
       { keys: ["Esc"], description: "Close Active Dialog / Modal" },
@@ -29,6 +30,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ["G", "I"], description: "Go to Intermittent Fasting" },
       { keys: ["G", "G"], description: "Go to Goals & Trajectory" },
       { keys: ["G", "A"], description: "Go to Second Brain Archive" },
+      { keys: ["G", "R"], description: "Go to Career Roadmap & Curriculum" },
       { keys: ["G", "S"], description: "Go to System Settings" },
     ],
   },

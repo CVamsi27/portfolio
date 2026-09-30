@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { dateKey } from "@/lib/trackers";
@@ -8,8 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SimpleRing } from "@/components/trackers/Ring";
 import {
   BookOpen, CheckSquare, Square, Flame, Clock, ArrowUpRight,
-  Users, GitPullRequest, MapPin, Brain,
+  Users, GitPullRequest, MapPin, Brain, ShieldCheck,
 } from "lucide-react";
+import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 
 interface ChecklistItem { id: string; text: string; done: boolean }
 interface DayPlan {
@@ -99,6 +100,7 @@ function useDailyNotification(plan: DayPlan | undefined) {
 export default function RoadmapTodayCard() {
   const { value: timetable, setValue: setTimetable } = useSyncedStorage<Timetable | null>("timetable_100_days", null);
   const today = dateKey();
+  const [studyCockpitOpen, setStudyCockpitOpen] = useState(false);
 
   const plan = useMemo(() => timetable?.days?.find(d => d.date === today), [timetable, today]);
 
@@ -202,9 +204,16 @@ export default function RoadmapTodayCard() {
 
         {/* Quick action row */}
         <div className="flex flex-wrap gap-2 px-4 pb-4 pt-1">
+          <button
+            type="button"
+            onClick={() => setStudyCockpitOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-xs"
+          >
+            <ShieldCheck className="h-3 w-3" />Deep Focus Sprint
+          </button>
           <a href={plan.studyLink} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-            <BookOpen className="h-3 w-3" />Study
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-[11px] hover:border-primary/50 transition-colors">
+            <BookOpen className="h-3 w-3" />Web tab
           </a>
           <a href={plan.oSSProject === "Langfuse"
               ? "https://github.com/langfuse/langfuse/issues?q=label%3A%22good+first+issue%22"
@@ -228,6 +237,12 @@ export default function RoadmapTodayCard() {
             <ArrowUpRight className="h-3 w-3" />All Details
           </Link>
         </div>
+
+        <DeepStudyCockpitModal
+          open={studyCockpitOpen}
+          dayNumber={plan.day}
+          onClose={() => setStudyCockpitOpen(false)}
+        />
       </CardContent>
     </Card>
   );

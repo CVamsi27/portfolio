@@ -20,6 +20,7 @@ import {
   Timer,
   X,
   Zap,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFasting } from "@/lib/tracker-store";
@@ -143,6 +144,17 @@ export default function CommandPalette({
       run: () => router.push("/settings"),
     },
     // Actions
+    {
+      id: "action-deep-study",
+      category: "Actions",
+      title: "Launch Deep Study Cockpit (Anti-Distraction Shield)",
+      subtitle: "Focus reader with tab-switch guard, attention checks & study.buildora.work curriculum",
+      icon: ShieldCheck,
+      keywords: ["study", "focus", "distraction", "cockpit", "deep study", "lockdown", "attention", "bible"],
+      run: () => {
+        window.dispatchEvent(new CustomEvent("portfolio-open-study-cockpit"));
+      },
+    },
     {
       id: "action-toggle-fast",
       category: "Actions",

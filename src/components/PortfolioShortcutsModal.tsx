@@ -24,6 +24,7 @@ const SHORTCUTS: ShortcutItem[] = [
   { key: "C", label: "Contact", description: "Jump to Start a Conversation" },
   { key: "T", label: "Top", description: "Scroll back to the top" },
   { key: "R", label: "Resume", description: "Open interactive Résumé Viewer" },
+  { key: "B", label: "Study Sprint", description: "Launch Deep Study Cockpit & Anti-Distraction Shield" },
   { key: "M", label: "Mode", description: "Toggle Light / Dark Theme" },
   { key: "?", label: "Help", description: "Toggle this Keyboard Shortcuts modal" },
   { key: "Esc", label: "Close", description: "Dismiss this modal" },

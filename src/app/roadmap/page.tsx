@@ -14,7 +14,9 @@ import {
   Flame, GitPullRequest, Users, Mail, Search, Layers,
   Trophy, BarChart2, ArrowUpRight, Zap, MapPin, AlertTriangle,
   Copy, CheckCheck, Star, Briefcase, Globe, Code2, Brain,
+  ShieldCheck, ArrowRight,
 } from "lucide-react";
+import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import { useToast } from "@/components/ui/use-toast";
 import { canCompleteEvidence, EMPTY_CAREER_EXECUTION_STATE, type CareerChecklistItem, type CareerEvidence, type CareerExecutionState } from "@/lib/career-roadmap";
 
@@ -113,7 +115,19 @@ function ScheduleRow({ time, activity, isActive }: { time: string; activity: str
 }
 
 // ─── Day card ─────────────────────────────────────────────────────────────────
-function DayCard({ plan, onToggle, evidence, isToday }: { plan: DayPlan; onToggle: (d: number, id: string, evidence: CareerEvidence) => void; evidence: Record<string, { evidence: CareerEvidence; verifiedAt?: string }>; isToday: boolean }) {
+function DayCard({
+  plan,
+  onToggle,
+  evidence,
+  isToday,
+  onOpenStudy,
+}: {
+  plan: DayPlan;
+  onToggle: (d: number, id: string, evidence: CareerEvidence) => void;
+  evidence: Record<string, { evidence: CareerEvidence; verifiedAt?: string }>;
+  isToday: boolean;
+  onOpenStudy?: (chapter: { id: string; title: string; studyUrl: string; stack?: string; estimatedMinutes?: number }, dayNumber: number) => void;
+}) {
   const [open, setOpen] = useState(isToday);
   const [selected, setSelected] = useState<ChecklistItem | null>(null);
   const [evidenceValue, setEvidenceValue] = useState("");
@@ -173,19 +187,46 @@ function DayCard({ plan, onToggle, evidence, isToday }: { plan: DayPlan; onToggl
       {open && (
         <div className="border-t border-border/40">
           {/* Study link */}
-          <div className="px-4 pt-3">
-            <a href={plan.studyLink} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/8 px-4 py-3 hover:bg-primary/14 transition-colors">
+          <div className="px-4 pt-3 flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={() => onOpenStudy?.(plan.chapters[0] || { id: plan.chapterId, title: plan.title, studyUrl: plan.studyLink, stack: plan.topic }, plan.day)}
+              className="flex-1 flex items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 hover:bg-primary/20 transition-all text-left cursor-pointer group"
+            >
               <div className="flex items-center gap-2.5">
-                <BookOpen className="h-4 w-4 text-primary shrink-0" />
+                <ShieldCheck className="h-4 w-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
                 <div>
-                  <p className="text-xs font-semibold text-primary">Open Study Material →</p>
-                  <p className="text-[11px] text-muted-foreground">study.buildora.work · {plan.topic.split(" / ").pop()}</p>
+                  <p className="text-xs font-bold text-primary">Deep Focus Study (Anti-Distraction Shield) →</p>
+                  <p className="text-[11px] text-muted-foreground">study.buildora.work · {plan.chapters.length || 1} chapter{(plan.chapters.length || 1) > 1 ? "s" : ""} · tab-switch guard active</p>
                 </div>
               </div>
-              <ExternalLink className="h-3.5 w-3.5 text-primary shrink-0" />
+              <ArrowRight className="h-3.5 w-3.5 text-primary shrink-0" />
+            </button>
+            <a href={plan.studyLink} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border/70 bg-card px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              title="Open raw web page in new tab">
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Web tab</span>
             </a>
           </div>
+          {plan.chapters && plan.chapters.length > 1 && (
+            <div className="px-4 pt-2">
+              <div className="flex flex-wrap gap-1.5">
+                {plan.chapters.map((ch, idx) => (
+                  <button
+                    key={ch.id}
+                    type="button"
+                    onClick={() => onOpenStudy?.({ ...ch, stack: plan.topic }, plan.day)}
+                    className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/20 px-2 py-1 text-[11px] text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer"
+                  >
+                    <BookOpen className="h-3 w-3 text-primary" />
+                    <span className="font-mono text-[10px] text-muted-foreground">Ch {idx + 1}:</span>
+                    <span className="truncate max-w-[200px]">{ch.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick pills */}
           <div className="flex flex-wrap gap-1.5 px-4 pt-2.5">
@@ -521,7 +562,23 @@ export default function RoadmapPage() {
   const [filter, setFilter] = useState<"all" | "today" | "pending" | "done">("all");
   const [search, setSearch] = useState("");
   const [section, setSection] = useState<"roadmap" | "career" | "germany" | "outreach">("roadmap");
+  const [studyModalChapter, setStudyModalChapter] = useState<{
+    id: string;
+    title: string;
+    studyUrl: string;
+    stack?: string;
+    estimatedMinutes?: number;
+  } | null>(null);
+  const [studyModalDay, setStudyModalDay] = useState<number | undefined>(undefined);
   const { toast } = useToast();
+
+  const handleOpenStudy = (
+    ch: { id: string; title: string; studyUrl: string; stack?: string; estimatedMinutes?: number },
+    dayNumber: number
+  ) => {
+    setStudyModalChapter(ch);
+    setStudyModalDay(dayNumber);
+  };
 
   const today = istDateTime().date;
   const days = useMemo(() => {
@@ -650,12 +707,38 @@ export default function RoadmapPage() {
                       <p className="font-display font-bold">{todayPlan.title}</p>
                       <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{todayPlan.mission}</p>
                       <div className="mt-4 rounded-lg border border-border/60 bg-background/50 p-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Study in this order</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Study in this order</p>
+                          <span className="text-[10px] font-mono text-primary flex items-center gap-1">
+                            <ShieldCheck className="h-3 w-3" /> Anti-distraction guard enabled
+                          </span>
+                        </div>
                         <ol className="mt-2 space-y-1.5">
                           {todayPlan.chapters.map((chapter, index) => (
-                            <li key={chapter.id} className="flex items-start gap-2 text-sm">
-                              <span className="font-mono text-xs text-muted-foreground">{index + 1}.</span>
-                              <a href={chapter.studyUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">{chapter.title}</a>
+                            <li key={chapter.id} className="flex items-center justify-between gap-2 text-sm">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="font-mono text-xs text-muted-foreground">{index + 1}.</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenStudy({ ...chapter, stack: todayPlan.topic }, todayPlan.day)}
+                                  className="text-left font-medium text-foreground hover:text-primary transition-colors truncate cursor-pointer"
+                                >
+                                  {chapter.title}
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenStudy({ ...chapter, stack: todayPlan.topic }, todayPlan.day)}
+                                  className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+                                >
+                                  <ShieldCheck className="h-3 w-3" />
+                                  <span>Deep Study</span>
+                                </button>
+                                <a href={chapter.studyUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              </div>
                             </li>
                           ))}
                         </ol>
@@ -665,9 +748,16 @@ export default function RoadmapPage() {
                         <div className="rounded-lg bg-muted/35 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Career outcome</p><p className="mt-1 text-sm leading-relaxed">{todayPlan.roleTrack.action}</p></div>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenStudy(todayPlan.chapters[0] || { id: todayPlan.chapterId, title: todayPlan.title, studyUrl: todayPlan.studyLink, stack: todayPlan.topic }, todayPlan.day)}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-xs"
+                        >
+                          <ShieldCheck className="h-3.5 w-3.5" />Start Deep Study Sprint
+                        </button>
                         <a href={todayPlan.studyLink} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-                          <BookOpen className="h-3 w-3" />Start lesson
+                          className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors">
+                          <BookOpen className="h-3 w-3" />Web tab
                         </a>
                         <button onClick={() => setFilter("today")}
                           className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors">
@@ -737,7 +827,7 @@ export default function RoadmapPage() {
 
             <div className="space-y-2">
                 {filtered.map(plan => (
-                <DayCard key={plan.day} plan={plan} onToggle={toggleChecklist} evidence={executionState.evidenceByItemId} isToday={plan.date === today} />
+                <DayCard key={plan.day} plan={plan} onToggle={toggleChecklist} evidence={executionState.evidenceByItemId} isToday={plan.date === today} onOpenStudy={handleOpenStudy} />
               ))}
             </div>
           </>
@@ -874,6 +964,13 @@ export default function RoadmapPage() {
             <p className="font-display font-bold">Data loading…</p>
           </div>
         )}
+
+        <DeepStudyCockpitModal
+          open={Boolean(studyModalChapter)}
+          initialChapter={studyModalChapter ?? undefined}
+          dayNumber={studyModalDay}
+          onClose={() => setStudyModalChapter(null)}
+        />
       </PersonalShell>
     </RequireAuth>
   );
