@@ -19,6 +19,7 @@ import {
   History,
   Maximize2,
   Minimize2,
+  Moon,
   Pause,
   Play,
   RotateCcw,
@@ -646,6 +647,23 @@ export default function DeepStudyCockpitModal({
                   ? "Distraction Shield: Active"
                   : `${activeSession.distractionCount} Tab Switches`}
               </span>
+            </button>
+
+            {/* 10 PM Bedtime Curfew Indicator */}
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent("portfolio-trigger-night-curfew", {
+                    detail: { openSettings: true },
+                  })
+                )
+              }
+              className="hidden md:flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-xs font-semibold border border-indigo-500/40 bg-indigo-500/10 text-indigo-400 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              title="10:00 PM Bedtime Curfew & Phone Lockdown Settings"
+            >
+              <Moon className="h-3.5 w-3.5 text-indigo-400" />
+              <span>10 PM Curfew</span>
             </button>
 
             {/* Clock & Controls */}

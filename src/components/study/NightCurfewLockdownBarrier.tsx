@@ -152,7 +152,32 @@ export default function NightCurfewLockdownBarrier() {
     });
   };
 
+  // Listen for global custom events to open curfew settings (e.g. from study cockpit or roadmap)
+  useEffect(() => {
+    const handleCurfewTrigger = (e: Event) => {
+      const customEvent = e as CustomEvent<{ openSettings?: boolean }>;
+      if (customEvent.detail?.openSettings !== false) {
+        setShowSettingsModal(true);
+      }
+    };
+    window.addEventListener("portfolio-trigger-night-curfew", handleCurfewTrigger);
+    return () => {
+      window.removeEventListener("portfolio-trigger-night-curfew", handleCurfewTrigger);
+    };
+  }, []);
+
   if (!isCurfewActive) {
+    if (showSettingsModal && typeof document !== "undefined") {
+      return createPortal(
+        <CurfewSettingsModal
+          config={curfewConfig}
+          onClose={() => setShowSettingsModal(false)}
+          onSave={handleSaveSettings}
+        />,
+        document.body
+      );
+    }
+
     // If temporarily emergency unlocked during curfew window, show a discreet reminder banner
     const isWithinWindow = isNightCurfewActive(
       { ...curfewConfig, emergencyUnlockedUntil: null },

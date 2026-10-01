@@ -15,7 +15,7 @@ import {
   Trophy, BarChart2, ArrowUpRight, Zap, MapPin, AlertTriangle,
   Copy, CheckCheck, Star, Briefcase, Globe, Code2, Brain,
   ShieldCheck, ArrowRight, ShieldAlert, CheckCircle2,
-  RotateCcw, Shuffle, Sparkles, Headphones,
+  RotateCcw, Shuffle, Sparkles, Headphones, Moon,
 } from "lucide-react";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import RevisionDeckModal from "@/components/study/RevisionDeckModal";
@@ -759,17 +759,35 @@ export default function RoadmapPage() {
         {/* ── ROADMAP SECTION ── */}
         {section === "roadmap" && (
           <>
-            {/* Quick Actions: Audio Break Lounge & Opaque Recall Gate */}
+            {/* Quick Actions: Audio Break Lounge, 10 PM Curfew & Opaque Recall Gate */}
             <div className="flex flex-wrap items-center justify-between gap-2.5">
-              <button
-                type="button"
-                onClick={() => setBreakLoungeOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer shadow-xs"
-                title="Mindful Audio Break: YouTube Music & Top 10 Tech Podcasts"
-              >
-                <Headphones className="h-3.5 w-3.5 text-cyan-400" />
-                <span>Mindful Audio Break (YouTube Music)</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBreakLoungeOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer shadow-xs"
+                  title="Mindful Audio Break: YouTube Music & Top 10 Tech Podcasts"
+                >
+                  <Headphones className="h-3.5 w-3.5 text-cyan-400" />
+                  <span>Mindful Audio Break</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("portfolio-trigger-night-curfew", {
+                        detail: { openSettings: true },
+                      })
+                    )
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-400/40 bg-indigo-500/10 px-3.5 py-1.5 text-xs font-bold text-indigo-300 hover:bg-indigo-500/20 transition-all cursor-pointer shadow-xs"
+                  title="Configure 10:00 PM Bedtime Curfew & Phone Lockdown"
+                >
+                  <Moon className="h-3.5 w-3.5 text-indigo-400" />
+                  <span>10 PM Phone Lockdown</span>
+                </button>
+              </div>
 
               {dueRevisionList.length > 0 && (
                 <button
