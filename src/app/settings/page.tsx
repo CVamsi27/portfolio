@@ -186,7 +186,22 @@ export default function SettingsPage() {
           <CardContent className="space-y-4 p-5">
             <div className="flex items-center gap-2"><BellRing className="h-5 w-5 text-[#49E7FF]" /><h2 className="font-display font-bold">Reminders</h2></div>
             <p className="text-sm text-muted-foreground">Choose reminders in India Standard Time. In-app alerts appear while Personal Buildora is open. Browser alerts require your explicit opt-in; background push is not configured.</p>
-            <div className="space-y-3">{(["weighIn", "focus", "evening", "morning", "study", "roleResearch", "interview", "eveningReview", "windDown"] as const).map((key) => { const slot = ["weighIn", "focus", "evening"].includes(key) ? reminders[key as "weighIn" | "focus" | "evening"] : reminders.career?.[key as keyof ReminderPreferences["career"]] ?? DEFAULT_REMINDERS.career[key as keyof ReminderPreferences["career"]]; const timeLabel = key === "weighIn" ? "Weigh-in time" : `${REMINDER_LABELS[key]} time`; return <div key={key} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3"><label className="flex items-center gap-2 text-sm font-medium"><input aria-label={REMINDER_LABELS[key]} type="checkbox" checked={slot.enabled} onChange={(event) => updateReminder(key, { enabled: event.target.checked })} />{REMINDER_LABELS[key]}</label><Input aria-label={timeLabel} className="h-9 w-28 tabular-nums" type="time" value={slot.time} onChange={(event) => updateReminder(key, { time: event.target.value })} /></div>; })}</div>
+            <div className="space-y-3">{(["weighIn", "focus", "evening", "morning", "study", "roleResearch", "interview", "eveningReview", "windDown"] as const).map((key) => {
+              const slot = (["weighIn", "focus", "evening"] as const).includes(key as "weighIn" | "focus" | "evening")
+                ? reminders[key as "weighIn" | "focus" | "evening"]
+                : (reminders.career?.[key as keyof ReminderPreferences["career"]] ?? DEFAULT_REMINDERS.career[key as keyof ReminderPreferences["career"]] ?? { enabled: false, time: "00:00" });
+              const safeSlot = slot ?? { enabled: false, time: "00:00" };
+              const timeLabel = key === "weighIn" ? "Weigh-in time" : `${REMINDER_LABELS[key]} time`;
+              return (
+                <div key={key} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <input aria-label={REMINDER_LABELS[key]} type="checkbox" checked={Boolean(safeSlot.enabled)} onChange={(event) => updateReminder(key, { enabled: event.target.checked })} />
+                    {REMINDER_LABELS[key]}
+                  </label>
+                  <Input aria-label={timeLabel} className="h-9 w-28 tabular-nums" type="time" value={safeSlot.time} onChange={(event) => updateReminder(key, { time: event.target.value })} />
+                </div>
+              );
+            })}</div>
             <p className="text-xs text-muted-foreground">Browser permission: {reminders.browserPermission ?? (typeof Notification === "undefined" ? "not checked" : Notification.permission)} · permission is never requested automatically.</p>
             <div className="flex flex-wrap gap-2"><Button onClick={saveReminders}>Save reminders</Button><Button variant="outline" onClick={enableBrowserReminders}>Enable browser reminders</Button></div>
           </CardContent>
