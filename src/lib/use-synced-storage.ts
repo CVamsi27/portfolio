@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
-import { useAuth } from "@/lib/auth-store";
+import type { RealtimeChannel } from "@supabase/supabase-js";
+import { getSupabase, isSupabaseConfigured } from "./supabase/client.ts";
+import { useAuth } from "./auth-store.ts";
 
 export type SyncStatus =
   | "local-only" // no Supabase env configured, or signed out
@@ -100,6 +101,178 @@ export function useLocalValue<T>(key: string, initial: T) {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
+export interface RealtimeItem {
+  key?: string;
+  value?: unknown;
+  updated_at?: string;
+}
+
+export type RealtimeItemCallback = (item: RealtimeItem) => void;
+
+interface UserRealtimeHub {
+  channel: RealtimeChannel | null;
+  keyListeners: Map<string, Set<RealtimeItemCallback>>;
+  teardownTimer: ReturnType<typeof setTimeout> | null;
+}
+
+const realtimeHubs = new Map<string, UserRealtimeHub>();
+
+/**
+ * Returns active realtime listener state (used for testing and status checks).
+ */
+export function getRealtimeHubDebugState(userId: string) {
+  const hub = realtimeHubs.get(userId);
+  if (!hub) return null;
+  let totalListeners = 0;
+  for (const set of hub.keyListeners.values()) {
+    totalListeners += set.size;
+  }
+  return {
+    hasChannel: Boolean(hub.channel),
+    totalListeners,
+    keys: Array.from(hub.keyListeners.keys()),
+    hasPendingTeardown: Boolean(hub.teardownTimer),
+  };
+}
+
+/**
+ * Resets all realtime hubs (used in test teardown).
+ */
+export function resetRealtimeHubsForTesting() {
+  for (const hub of realtimeHubs.values()) {
+    if (hub.teardownTimer) clearTimeout(hub.teardownTimer);
+  }
+  realtimeHubs.clear();
+}
+
+/**
+ * Subscribes a listener to Postgres changes on `tracker_data` for a specific user and key.
+ * Multiplexes all key listeners through a SINGLE Supabase Realtime channel per user,
+ * preventing `cannot add postgres_changes callbacks after subscribe()` errors and
+ * avoiding socket/channel quota exhaustion when multiple components mount simultaneously.
+ */
+export function subscribeRealtimeKey(
+  userId: string,
+  key: string,
+  callback: RealtimeItemCallback,
+): () => void {
+  if (typeof window === "undefined") return () => {};
+  if (!isSupabaseConfigured()) return () => {};
+  const sb = getSupabase();
+  if (!sb) return () => {};
+
+  let hub = realtimeHubs.get(userId);
+  if (!hub) {
+    hub = {
+      channel: null,
+      keyListeners: new Map(),
+      teardownTimer: null,
+    };
+    realtimeHubs.set(userId, hub);
+  }
+
+  // Cancel any pending delayed teardown
+  if (hub.teardownTimer) {
+    clearTimeout(hub.teardownTimer);
+    hub.teardownTimer = null;
+  }
+
+  // Register listener for this key
+  let listeners = hub.keyListeners.get(key);
+  if (!listeners) {
+    listeners = new Set();
+    hub.keyListeners.set(key, listeners);
+  }
+  listeners.add(callback);
+
+  // If channel does not exist yet, initialize and subscribe
+  if (!hub.channel) {
+    try {
+      const channelName = `rt_tracker_data_${userId.slice(0, 8)}`;
+
+      // Clean up any stale channel from Supabase's internal registry with this topic
+      const existing = sb.getChannels().find((c) => c.topic === `realtime:${channelName}`);
+      if (existing) {
+        try {
+          void sb.removeChannel(existing);
+        } catch {
+          // ignore
+        }
+      }
+
+      const channel = sb
+        .channel(channelName)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "tracker_data",
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload: { new?: RealtimeItem }) => {
+            const item = payload?.new;
+            if (!item || !item.key) return;
+            const currentHub = realtimeHubs.get(userId);
+            const keyCbs = currentHub?.keyListeners.get(item.key);
+            if (keyCbs) {
+              keyCbs.forEach((cb) => {
+                try {
+                  cb(item);
+                } catch (e) {
+                  console.error("Error in realtime listener callback:", e);
+                }
+              });
+            }
+          },
+        );
+
+      hub.channel = channel;
+      channel.subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          console.warn("Realtime channel subscription error for user", userId);
+        }
+      });
+    } catch (err) {
+      console.warn("Failed to initialize Supabase Realtime channel:", err);
+    }
+  }
+
+  return () => {
+    const currentHub = realtimeHubs.get(userId);
+    if (!currentHub) return;
+
+    const currentListeners = currentHub.keyListeners.get(key);
+    if (currentListeners) {
+      currentListeners.delete(callback);
+      if (currentListeners.size === 0) {
+        currentHub.keyListeners.delete(key);
+      }
+    }
+
+    let totalListeners = 0;
+    for (const set of currentHub.keyListeners.values()) {
+      totalListeners += set.size;
+    }
+
+    if (totalListeners === 0) {
+      if (currentHub.teardownTimer) clearTimeout(currentHub.teardownTimer);
+      currentHub.teardownTimer = setTimeout(() => {
+        if (currentHub.channel) {
+          try {
+            void sb.removeChannel(currentHub.channel);
+          } catch {
+            // ignore
+          }
+          currentHub.channel = null;
+        }
+        realtimeHubs.delete(userId);
+      }, 5000);
+      (currentHub.teardownTimer as { unref?: () => void }).unref?.();
+    }
+  };
+}
+
 export function useSyncedStorage<T>(key: string, initialValue: T) {
   const localKey = `vk:${key}`;
   const metaKey = `vk:meta:${key}`;
@@ -134,26 +307,31 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
         .eq("user_id", user.id)
         .eq("key", key)
         .maybeSingle()
-        .then(({ data, error }) => {
-          if (cancelled) return;
-          if (error) {
-            setStatus("error");
-            return;
-          }
-          if (data) {
-            const cloudAt = new Date(data.updated_at).getTime();
-            const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-            if (cloudAt > localAt) {
-              writeLocal(localKey, data.value);
-              try {
-                window.localStorage.setItem(metaKey, String(cloudAt));
-              } catch {
-                // ignore
+        .then(
+          ({ data, error }) => {
+            if (cancelled) return;
+            if (error) {
+              setStatus("error");
+              return;
+            }
+            if (data) {
+              const cloudAt = new Date(data.updated_at).getTime();
+              const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
+              if (cloudAt > localAt) {
+                writeLocal(localKey, data.value);
+                try {
+                  window.localStorage.setItem(metaKey, String(cloudAt));
+                } catch {
+                  // ignore
+                }
               }
             }
-          }
-          setStatus("synced");
-        });
+            setStatus("synced");
+          },
+          () => {
+            if (!cancelled) setStatus("error");
+          },
+        );
     };
 
     setStatus("syncing");
@@ -168,42 +346,38 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
     window.addEventListener("focus", onVisible);
     document.addEventListener("visibilitychange", onVisible);
 
-    // Supabase Realtime channel subscription for instant cross-device updates (phone <-> desktop)
-    const channelName = `rt_${key.replace(/[^a-zA-Z0-9_]/g, "_")}_${user.id.slice(0, 8)}`;
-    const channel = sb
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tracker_data",
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload: { new?: { key?: string; value?: unknown; updated_at?: string } }) => {
-          if (cancelled) return;
-          if (payload.new && payload.new.key === key) {
-            const cloudAt = new Date(payload.new.updated_at || "").getTime();
-            const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-            if (cloudAt > localAt) {
-              writeLocal(localKey, payload.new.value);
-              try {
-                window.localStorage.setItem(metaKey, String(cloudAt));
-              } catch {
-                // ignore
-              }
-            }
-            setStatus("synced");
+    // Supabase Realtime channel subscription multiplexer for instant cross-device updates (phone <-> desktop)
+    let unsubscribeRealtime: (() => void) | null = null;
+    try {
+      unsubscribeRealtime = subscribeRealtimeKey(user.id, key, (item) => {
+        if (cancelled) return;
+        const cloudAt = new Date(item.updated_at || "").getTime();
+        const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
+        if (cloudAt > localAt) {
+          writeLocal(localKey, item.value);
+          try {
+            window.localStorage.setItem(metaKey, String(cloudAt));
+          } catch {
+            // ignore
           }
         }
-      )
-      .subscribe();
+        setStatus("synced");
+      });
+    } catch (err) {
+      console.warn("Failed to subscribe to realtime changes:", err);
+    }
 
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onVisible);
       document.removeEventListener("visibilitychange", onVisible);
-      void sb.removeChannel(channel);
+      if (unsubscribeRealtime) {
+        try {
+          unsubscribeRealtime();
+        } catch {
+          // ignore
+        }
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, user?.id]);
@@ -219,28 +393,32 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
 
       const doPush = () => {
         void (async () => {
-          const { data } = await sb.auth.getSession();
-          const uid = data.session?.user?.id;
-          if (!uid) {
-            setStatus("local-only");
-            return;
-          }
-          setStatus("syncing");
-          const now = Date.now();
-          const { error } = await sb.from("tracker_data").upsert(
-            { user_id: uid, key, value: next as unknown as object, updated_at: new Date(now).toISOString() },
-            { onConflict: "user_id,key" },
-          );
-          if (error) {
-            setStatus("error");
-            return;
-          }
           try {
-            window.localStorage.setItem(metaKey, String(now));
+            const { data } = await sb.auth.getSession();
+            const uid = data.session?.user?.id;
+            if (!uid) {
+              setStatus("local-only");
+              return;
+            }
+            setStatus("syncing");
+            const now = Date.now();
+            const { error } = await sb.from("tracker_data").upsert(
+              { user_id: uid, key, value: next as unknown as object, updated_at: new Date(now).toISOString() },
+              { onConflict: "user_id,key" },
+            );
+            if (error) {
+              setStatus("error");
+              return;
+            }
+            try {
+              window.localStorage.setItem(metaKey, String(now));
+            } catch {
+              // ignore
+            }
+            setStatus("synced");
           } catch {
-            // ignore
+            setStatus("error");
           }
-          setStatus("synced");
         })();
       };
 

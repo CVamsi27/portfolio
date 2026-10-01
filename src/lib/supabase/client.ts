@@ -27,3 +27,8 @@ export function getSupabase(): SupabaseClient | null {
   }
   return cached;
 }
+
+/** Test helper to override Supabase client in unit tests. */
+export function setSupabaseClientForTesting(client: SupabaseClient | null | undefined) {
+  cached = client;
+}

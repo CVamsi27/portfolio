@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { getSupabase, isSupabaseConfigured } from "./supabase/client.ts";
 
 /**
  * App-wide auth as an external store — zero useEffect.
