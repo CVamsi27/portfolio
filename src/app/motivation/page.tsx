@@ -402,7 +402,7 @@ export default function MotivationPage() {
               ))}
             </div>
             <div className="mt-4 flex items-center justify-end gap-2">
-              {savedFlash && <span className="text-xs font-semibold text-emerald-500">Saved ✓</span>}
+              {savedFlash && <span className="text-xs font-semibold text-emerald-500">Saved</span>}
               <Button size="sm" onClick={saveJournal} disabled={!draftState.win && !draftState.learned && !draftState.focus}>
                 Save reflection
               </Button>

@@ -477,7 +477,7 @@ export default function NightCurfewLockdownBarrier() {
                   </div>
                   <p className="text-[11px] text-slate-300 leading-relaxed pl-7">{step.detail}</p>
                   <div className="mt-1.5 pl-7 text-[10px] font-mono text-indigo-400">
-                    📍 {step.settingPath}
+                    <span className="text-slate-400">Path: </span>{step.settingPath}
                   </div>
                 </div>
               ))}

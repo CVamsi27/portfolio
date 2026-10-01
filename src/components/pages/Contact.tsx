@@ -343,7 +343,7 @@ const Contact = () => {
                               ? "font-utility text-[0.6rem] text-[var(--portfolio-accent)]"
                               : "font-utility text-[0.6rem] text-[var(--portfolio-muted)]"
                         }>
-                          {field.value.length >= 100 ? "✓ Good length" : `${field.value.length} chars`}
+                          {field.value.length >= 100 ? "Good length" : `${field.value.length} chars`}
                         </span>
                       </div>
                       <FormControl>

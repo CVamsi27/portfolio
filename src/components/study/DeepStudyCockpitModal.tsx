@@ -312,7 +312,7 @@ export default function DeepStudyCockpitModal({
       droneRef.current.start(0.06);
       setAmbientPlaying(true);
       toast({
-        title: "Ambient Focus Sound Active 🎧",
+        title: "Ambient Focus Sound Active",
         description: "432Hz Alpha focus tone engaged to drown out environmental distractions.",
       });
     }
@@ -355,7 +355,7 @@ export default function DeepStudyCockpitModal({
       // User switched tab or unfocused window
       if (document.visibilityState === "hidden" || !document.hasFocus()) {
         if (soundEnabled) playDistractionWarning();
-        document.title = "🚨 DISTRACTION DETECTED - Return to Study!";
+        document.title = "[DISTRACTION DETECTED] Return to Study!";
 
         setActiveSession((prev) => {
           if (!prev) return prev;
@@ -547,7 +547,7 @@ export default function DeepStudyCockpitModal({
     setActiveSession(null);
 
     toast({
-      title: "Chapter Completed! 🎉",
+      title: "Chapter Completed!",
       description: `Marked "${currentChapter.title}" as complete with ${record.distractions} distractions.`,
     });
   };
@@ -1161,7 +1161,7 @@ export default function DeepStudyCockpitModal({
                           onClick={() => setIsRevisionRevealed((prev) => !prev)}
                           className="w-full rounded-lg border border-border/70 bg-muted/30 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
                         >
-                          {isRevisionRevealed ? "Hide Verified Notes ▲" : "Reveal Verified Notes & Solution ▼"}
+                          {isRevisionRevealed ? "Hide Verified Notes" : "Reveal Verified Notes & Solution"}
                         </button>
 
                         {isRevisionRevealed && (
@@ -1185,21 +1185,21 @@ export default function DeepStudyCockpitModal({
                             onClick={() => handleRateRevision("hard")}
                             className="rounded-lg border border-rose-500/30 bg-rose-500/10 py-1.5 text-[11px] font-bold text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
                           >
-                            🔴 Hard (1d)
+                            Hard (1d)
                           </button>
                           <button
                             type="button"
                             onClick={() => handleRateRevision("good")}
                             className="rounded-lg border border-amber-500/30 bg-amber-500/10 py-1.5 text-[11px] font-bold text-amber-400 hover:bg-amber-500/20 transition-colors cursor-pointer"
                           >
-                            🟡 Good (+1)
+                            Good (+1)
                           </button>
                           <button
                             type="button"
                             onClick={() => handleRateRevision("easy")}
                             className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 py-1.5 text-[11px] font-bold text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"
                           >
-                            🟢 Easy (+2)
+                            Easy (+2)
                           </button>
                         </div>
                       </div>

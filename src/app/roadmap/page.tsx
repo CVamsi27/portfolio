@@ -15,7 +15,7 @@ import {
   Trophy, BarChart2, ArrowUpRight, Zap, MapPin, AlertTriangle,
   Copy, CheckCheck, Star, Briefcase, Globe, Code2, Brain,
   ShieldCheck, ArrowRight, ShieldAlert, CheckCircle2,
-  RotateCcw, Shuffle, Sparkles, Headphones, Moon,
+  RotateCcw, Shuffle, Sparkles, Headphones, Moon, Check,
 } from "lucide-react";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import RevisionDeckModal from "@/components/study/RevisionDeckModal";
@@ -92,7 +92,7 @@ const PHASE_COLORS: Record<string, { ring: string; bg: string; short: string }> 
   "70-interview-toolkit / 70.1-behavioral":     { ring: "#fb7185", bg: "bg-rose-400/10",  short: "Behavioral" },
   "70-interview-toolkit / 70.2-coding-patterns":{ ring: "#a3e635", bg: "bg-lime-400/10",  short: "LeetCode" },
   "70-interview-toolkit / 70.3-cheatsheets":    { ring: "#fcd34d", bg: "bg-yellow-300/10",short: "Cheatsheets" },
-  "80-lanes-abroad-full-stack":     { ring: "#c084fc", bg: "bg-purple-400/10", short: "🇩🇪 Germany" },
+  "80-lanes-abroad-full-stack":     { ring: "#c084fc", bg: "bg-purple-400/10", short: "Germany" },
 };
 const DEF_COLOR = { ring: "#6b7280", bg: "bg-muted/30", short: "Study" };
 function getColor(topic: string) { return PHASE_COLORS[topic] ?? DEF_COLOR; }
@@ -201,7 +201,7 @@ function DayCard({
                   ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
                   : "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
               )}>
-                {allChaptersMastered ? "✓ ALL STUDY MASTERED" : `${masteredCount}/${totalChapters} STUDY MASTERED`}
+                {allChaptersMastered ? "ALL STUDY MASTERED" : `${masteredCount}/${totalChapters} STUDY MASTERED`}
               </span>
             )}
             {progress === 100 && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">DONE</span>}
@@ -237,7 +237,7 @@ function DayCard({
                 <ShieldCheck className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", allChaptersMastered ? "text-emerald-400" : "text-primary")} />
                 <div>
                   <p className={cn("text-xs font-bold", allChaptersMastered ? "text-emerald-400" : "text-primary")}>
-                    {allChaptersMastered ? "Review Deep Focus Study (All Mastered ✓) →" : "Deep Focus Study (Anti-Distraction Shield) →"}
+                    {allChaptersMastered ? "Review Deep Focus Study (All Mastered) →" : "Deep Focus Study (Anti-Distraction Shield) →"}
                   </p>
                   <p className="text-[11px] text-muted-foreground">study.buildora.work · {masteredCount > 0 ? `${masteredCount}/${totalChapters} mastered · ` : ""}{totalChapters} chapter{totalChapters > 1 ? "s" : ""} · tab-switch guard active</p>
                 </div>
@@ -269,7 +269,7 @@ function DayCard({
                       )}
                     >
                       {isMastered ? (
-                        <span className="font-bold text-emerald-400 text-xs">✓</span>
+                        <Check className="h-3 w-3 text-emerald-400" />
                       ) : (
                         <BookOpen className="h-3 w-3 text-primary" />
                       )}
@@ -543,7 +543,7 @@ function RolesSection({ data, note }: { data: CareerData["targetRoles"]; note?: 
 
 function OutreachSection({ templates }: { templates: CareerData["outreachTemplates"] }) {
   const TMPL = [
-    { label: "🇩🇪 Germany SaaS", key: "germanySaaS" as const },
+    { label: "Germany SaaS", key: "germanySaaS" as const },
     { label: "Remote", key: "remote" as const },
     { label: "Open source", key: "ossMaintainer" as const },
   ];
@@ -584,7 +584,7 @@ function GermanyChecklist({ items, onToggle }: { items: CareerData["germanyCheck
         <div className="flex items-center justify-between gap-2 mb-1">
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-purple-400" />
-            <h2 className="font-display font-bold">🇩🇪 Germany Relocation Checklist</h2>
+            <h2 className="font-display font-bold">Germany Relocation Checklist</h2>
           </div>
           <span className="text-xs tabular-nums text-muted-foreground">{done}/{items.length}</span>
         </div>
@@ -862,7 +862,8 @@ export default function RoadmapPage() {
                                   </button>
                                   {isMastered && (
                                     <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-400 shrink-0">
-                                      ✓ Mastered
+                                      <Check className="h-2.5 w-2.5" />
+                                      <span>Mastered</span>
                                     </span>
                                   )}
                                 </div>
@@ -889,6 +890,59 @@ export default function RoadmapPage() {
                           })}
                         </ol>
                       </div>
+
+                      {/* Today's Hourly Timetable */}
+                      {todayPlan.schedule && Object.keys(todayPlan.schedule).length > 0 && (
+                        <div className="mt-3 rounded-lg border border-border/60 bg-background/50 p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                              <CalendarDays className="h-3.5 w-3.5 text-primary" /> Today&apos;s Hourly Timetable
+                            </p>
+                            <span className="text-[10px] font-mono text-muted-foreground">
+                              {Object.keys(todayPlan.schedule).length} blocks planned
+                            </span>
+                          </div>
+                          <div className="grid gap-1 sm:grid-cols-2 max-h-56 overflow-y-auto pr-1">
+                            {Object.entries(todayPlan.schedule).map(([time, desc]) => {
+                              const nowHH = new Date().toTimeString().slice(0, 5);
+                              const parts = time.includes(" - ") ? time.split(" - ") : time.split("-");
+                              const s = parts[0]?.trim();
+                              const e = parts[1]?.trim();
+                              const isCurrent = Boolean(s && e && nowHH >= s && nowHH < e);
+                              const isPassed = Boolean(e && nowHH >= e);
+                              const label = typeof desc === "string" ? desc : (desc as { label?: string })?.label ?? "";
+
+                              return (
+                                <div
+                                  key={time}
+                                  className={cn(
+                                    "flex items-start gap-2 rounded-md p-1.5 text-xs transition-colors",
+                                    isCurrent
+                                      ? "bg-primary/20 border border-primary/40 text-foreground font-semibold"
+                                      : isPassed
+                                      ? "bg-muted/20 text-muted-foreground line-through opacity-70"
+                                      : "bg-muted/30 text-foreground/90"
+                                  )}
+                                >
+                                  <span className={cn(
+                                    "font-mono text-[10px] shrink-0 font-bold",
+                                    isCurrent ? "text-primary" : "text-muted-foreground"
+                                  )}>
+                                    {time}
+                                  </span>
+                                  <span className="truncate flex-1 text-[11px]">{label}</span>
+                                  {isCurrent && (
+                                    <span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[8px] font-mono font-bold text-emerald-400 shrink-0">
+                                      NOW
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
                         <div className="rounded-lg bg-muted/35 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Build and verify</p><p className="mt-1 text-sm leading-relaxed">{todayPlan.practiceTask}</p></div>
                         <div className="rounded-lg bg-muted/35 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Career outcome</p><p className="mt-1 text-sm leading-relaxed">{todayPlan.roleTrack.action}</p></div>
@@ -1378,7 +1432,7 @@ export default function RoadmapPage() {
                   <div className="flex items-center gap-2.5">
                     <ShieldAlert className="h-5 w-5 text-purple-400 shrink-0" />
                     <div>
-                      <h2 className="font-display font-bold text-base">🇩🇪 Germany Goal Guardian & Distraction Shield</h2>
+                      <h2 className="font-display font-bold text-base">Germany Goal Guardian & Distraction Shield</h2>
                       <p className="text-[11px] text-muted-foreground">
                         Strict social media blocklist · 10m leash · 1-hour lockdown · allowlist only
                       </p>

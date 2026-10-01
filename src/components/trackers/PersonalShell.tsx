@@ -11,14 +11,14 @@ import { cn } from "@/lib/utils";
 import LockdownGate from "./LockdownGate";
 
 const DEFAULT_EYEBROWS: Partial<Record<TrackerIconName, string>> = {
-  todo: "NOVA // Chapter 01",
-  log: "NOVA // Signal & Log Capture",
-  timer: "NOVA // Fasting & Nutrition",
-  workout: "NOVA // Physical Training",
-  flag: "NOVA // Trajectory & Milestones",
-  scale: "NOVA // Body & Recovery",
-  archive: "NOVA // Second Brain",
-  settings: "NOVA // System Settings",
+  todo: "Workspace // Chapter 01",
+  log: "Workspace // Signal & Log Capture",
+  timer: "Workspace // Fasting & Nutrition",
+  workout: "Workspace // Physical Training",
+  flag: "Workspace // Trajectory & Milestones",
+  scale: "Workspace // Body & Recovery",
+  archive: "Workspace // Second Brain",
+  settings: "Workspace // System Settings",
 };
 
 export default function PersonalShell({
@@ -42,7 +42,7 @@ export default function PersonalShell({
   showDock?: boolean;
   children: ReactNode;
 }) {
-  const effectiveEyebrow = eyebrow ?? (icon ? DEFAULT_EYEBROWS[icon] : undefined) ?? "NOVA // Chapter 01";
+  const effectiveEyebrow = eyebrow ?? (icon ? DEFAULT_EYEBROWS[icon] : undefined) ?? "Workspace // Chapter 01";
 
   return (
     <EditorialFrame surface="archive" className="dossier-frame personal-shell">

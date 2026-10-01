@@ -17,8 +17,6 @@ import {
 } from "lucide-react";
 import EditorialFrame from "@/components/editorial/EditorialFrame";
 import ChapterLabel from "@/components/editorial/ChapterLabel";
-import NovaMark from "@/components/brand/NovaMark";
-import { TRACKER_BRAND } from "@/lib/brand";
 
 const CORE_CAPABILITIES = [
   {
@@ -89,12 +87,7 @@ export default async function TrackerLandingPage({
         {/* Hero Section */}
         <section className="grid gap-10 border-b border-border/70 pb-14 lg:grid-cols-[1.15fr_.85fr] lg:items-end lg:gap-16 lg:pb-20">
           <div>
-            <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
-              <NovaMark variant="compact" simple label={TRACKER_BRAND.name} />
-              <span className="font-utility text-[10px] uppercase tracking-[0.2em]">From Buildora</span>
-            </div>
-            <ChapterLabel eyebrow="NOVA // Public entry" />
-            <h1 className="mt-5 max-w-4xl font-display text-6xl font-black uppercase leading-[0.86] tracking-[-0.06em] text-foreground sm:text-8xl">
+            <h1 className="mt-2 max-w-4xl font-display text-6xl font-black uppercase leading-[0.86] tracking-[-0.06em] text-foreground sm:text-8xl">
               Make the next chapter visible.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
@@ -105,7 +98,7 @@ export default async function TrackerLandingPage({
                 href="/hub"
                 className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#c8ff3d] px-6 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#071014] shadow-lg shadow-[#c8ff3d]/20 transition-transform hover:-translate-y-0.5 hover:shadow-xl"
               >
-                Enter NOVA <ArrowUpRight className="h-4 w-4" />
+                Enter Workspace <ArrowUpRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/log"
@@ -281,7 +274,7 @@ export default async function TrackerLandingPage({
               href="/hub"
               className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#c8ff3d] px-8 font-mono text-xs font-bold uppercase tracking-[0.14em] text-[#071014] shadow-xl shadow-[#c8ff3d]/25 transition-transform hover:-translate-y-0.5"
             >
-              Enter NOVA <ArrowUpRight className="h-4 w-4" />
+              Open Workspace <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>
         </section>

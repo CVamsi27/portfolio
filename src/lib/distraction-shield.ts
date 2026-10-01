@@ -7,7 +7,7 @@
  * - Allowlist: buildora.work, notion.com, github.com
  * - Blocklist: social media & distraction platforms
  * - 3-stage behavioral deterrence:
- *   1. Initial Block Screen -> "Remind me of my Germany goals 🇩🇪"
+ *   1. Initial Block Screen -> "Remind me of my Germany goals"
  *   2. Germany Relocation Reality Check -> "Forget your dreams" confirmation
  *   3. 10-Minute Leash -> 1-Hour Strict Lockdown
  */
@@ -256,7 +256,7 @@ export function generateTampermonkeyUserscript(
 // @name         Buildora Germany Goal Guardian & Distraction Shield
 // @namespace    https://buildora.work/
 // @version      1.0.0
-// @description  Intercepts social media distractions and redirects to your 🇩🇪 Germany relocation goals & focus shield.
+// @description  Intercepts social media distractions and redirects to your Germany relocation goals & focus shield.
 // @author       Vamsi Krishna Chandaluri (Buildora)
 ${matchRules}
 // @run-at       document-start

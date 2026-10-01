@@ -254,12 +254,12 @@ export default function MobileStudyLockdownBarrier() {
           </div>
         </div>
 
-        {/* 🇩🇪 GERMANY REALITY CHECK CALLOUT */}
+        {/* GERMANY REALITY CHECK CALLOUT */}
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-left space-y-2">
           <div className="flex items-center gap-2 text-amber-400">
             <Flame className="h-4 w-4" />
             <span className="font-display font-bold text-xs uppercase tracking-wider">
-              🇩🇪 Relocation Reality Check (€75k–€85k Target)
+              Relocation Reality Check (€75k–€85k Target)
             </span>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">

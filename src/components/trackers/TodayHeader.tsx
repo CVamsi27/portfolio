@@ -4,22 +4,10 @@ import WorldClockStrip from "./WorldClockStrip";
 import { useNow } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
 
-function formatDate(now: number) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(now);
-}
-
-function formatTimeParts(now: number) {
+function getDayProgressPct(now: number) {
   const d = new Date(now);
-  const hours = String(d.getHours()).padStart(2, "0");
-  const minutes = String(d.getMinutes()).padStart(2, "0");
-  const seconds = String(d.getSeconds()).padStart(2, "0");
   const dayMinutes = d.getHours() * 60 + d.getMinutes();
-  const dayProgressPct = Math.round((dayMinutes / 1440) * 100);
-  return { hours, minutes, seconds, dayProgressPct };
+  return Math.round((dayMinutes / 1440) * 100);
 }
 
 function getGreeting(now: number): string {
@@ -114,7 +102,7 @@ export default function TodayHeader({
   const now = useNow(1_000);
   const greeting = getGreeting(now);
   const tagline = getTagline(now, momentumPercent);
-  const { hours, minutes, seconds, dayProgressPct } = formatTimeParts(now);
+  const dayProgressPct = getDayProgressPct(now);
   const allDone = momentumPercent >= 100;
 
   return (
@@ -146,20 +134,6 @@ export default function TodayHeader({
         </div>
       </div>
       <div className="sm:min-w-[18rem]">
-        <div className="mb-1.5 flex items-baseline justify-between gap-3 sm:justify-end">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-            {formatDate(now)}
-          </p>
-          <div className="flex items-center gap-1.5 rounded-md border border-border/60 bg-muted/30 px-2 py-0.5 shadow-2xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#32b8c8] animate-ping" />
-            <p className="font-mono text-xs font-bold tabular-nums text-foreground flex items-center">
-              <span>{hours}</span>
-              <span className="animate-pulse text-[#32b8c8] mx-0.5">:</span>
-              <span>{minutes}</span>
-              <span className="text-[10px] text-muted-foreground font-normal ml-1 tabular-nums">.{seconds}</span>
-            </p>
-          </div>
-        </div>
         <WorldClockStrip />
       </div>
     </section>

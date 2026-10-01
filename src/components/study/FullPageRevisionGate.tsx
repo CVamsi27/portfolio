@@ -195,7 +195,7 @@ export default function FullPageRevisionGate({
         setCurrentIndex((prev) => prev + 1);
       } else {
         toast({
-          title: "All Questions Answered! 🇩🇪",
+          title: "All Questions Answered!",
           description: "Spaced repetition drill complete. Long-term memory locked in.",
         });
         onClose();
@@ -223,7 +223,7 @@ export default function FullPageRevisionGate({
     const updated = toggleChapterStar(completedChapters || [], currentCard.chapterId);
     setCompletedChapters(updated);
     toast({
-      title: currentCard.starred ? "Unstarred" : "Starred High-Yield ★",
+      title: currentCard.starred ? "Unstarred" : "Starred High-Yield Priority",
       description: `Updated priority flag for ${currentCard.chapterTitle}`,
     });
   }, [completedChapters, currentCard, setCompletedChapters, toast]);
@@ -269,7 +269,7 @@ export default function FullPageRevisionGate({
               </span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
-              <span>🇩🇪 Berlin/Munich Target · €75k–€85k Blue Card</span>
+              <span>Berlin/Munich Target · €75k–€85k Blue Card</span>
               <span>·</span>
               <span className="text-amber-400 font-semibold">
                 {dueItems.length > 0 ? `${dueItems.length} Topics Due Today` : "High-Yield Curriculum Drills"}
@@ -416,7 +416,7 @@ export default function FullPageRevisionGate({
             >
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-amber-400 group-hover:scale-110 transition-transform" />
-                <span>{isAnswerRevealed ? "Hide Verified Model Solution ▲" : "Reveal Verified Model Invariants & Solution ▼"}</span>
+                <span>{isAnswerRevealed ? "Hide Verified Model Solution" : "Reveal Verified Model Invariants & Solution"}</span>
               </div>
               <kbd className="hidden sm:inline-block rounded bg-white/10 px-2 py-0.5 text-[10px] font-mono text-slate-300 border border-white/15">
                 Space / ⌘Enter
@@ -462,7 +462,8 @@ export default function FullPageRevisionGate({
                 className="flex flex-col items-center justify-center p-3 rounded-xl border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-all cursor-pointer group active:scale-95 shadow-xs"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-xs sm:text-sm">🔴 Hard</span>
+                  <span className="inline-block w-2 h-2 rounded-full bg-rose-400" />
+                  <span className="font-bold text-xs sm:text-sm">Hard</span>
                   <kbd className="hidden sm:inline-block rounded bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-mono text-rose-300 border border-rose-500/30">1</kbd>
                 </div>
                 <span className="text-[10px] font-mono text-rose-400/80 mt-0.5">Reset to 1d Interval</span>
@@ -473,7 +474,8 @@ export default function FullPageRevisionGate({
                 className="flex flex-col items-center justify-center p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition-all cursor-pointer group active:scale-95 shadow-xs"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-xs sm:text-sm">🟡 Good</span>
+                  <span className="inline-block w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="font-bold text-xs sm:text-sm">Good</span>
                   <kbd className="hidden sm:inline-block rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-mono text-amber-300 border border-amber-500/30">2</kbd>
                 </div>
                 <span className="text-[10px] font-mono text-amber-400/80 mt-0.5">Advance +1 Stage</span>
@@ -484,7 +486,8 @@ export default function FullPageRevisionGate({
                 className="flex flex-col items-center justify-center p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 transition-all cursor-pointer group active:scale-95 shadow-xs"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-xs sm:text-sm">🟢 Easy</span>
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="font-bold text-xs sm:text-sm">Easy</span>
                   <kbd className="hidden sm:inline-block rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-mono text-emerald-300 border border-emerald-500/30">3</kbd>
                 </div>
                 <span className="text-[10px] font-mono text-emerald-400/80 mt-0.5">Advance +2 Stages</span>

@@ -339,7 +339,9 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                 </button>
               </>
             ) : null}
-            {isTracker ? <div className="hidden md:block"><AuthButton /></div> : null}
+            <div className="inline-flex items-center">
+              <AuthButton />
+            </div>
             {!isTracker ? (
               <button
                 type="button"

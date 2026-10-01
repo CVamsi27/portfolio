@@ -88,11 +88,11 @@ export async function POST(request: NextRequest) {
     });
 
     const telegramText =
-      `📬 *New Portfolio Message*\n\n` +
-      `👤 *From:* ${name}\n` +
-      `📧 *Email:* ${email}\n` +
-      `🕒 *Time:* ${dateStr} IST\n\n` +
-      `💬 *Message:*\n${message}`;
+      `*New Portfolio Message*\n\n` +
+      `*From:* ${name}\n` +
+      `*Email:* ${email}\n` +
+      `*Time:* ${dateStr} IST\n\n` +
+      `*Message:*\n${message}`;
 
     const response = await fetch(url, {
       method: "POST",

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Moon, ShieldAlert } from "lucide-react";
+import { ArrowRight, Moon, ShieldAlert, Check } from "lucide-react";
 import DevicePreparation from "./DevicePreparation";
 import { useNow } from "@/lib/tracker-store";
 import {
@@ -105,7 +105,7 @@ export default function LockdownGate({ children }: { children: React.ReactNode }
                           : "border-white/30 text-transparent"
                       }`}
                     >
-                      ✓
+                      <Check className="h-3 w-3" />
                     </span>
                     <span className={routineStep[idx] ? "line-through text-slate-400" : "text-slate-200"}>
                       {item}

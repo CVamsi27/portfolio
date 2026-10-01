@@ -119,7 +119,7 @@ export default function RevisionDeckModal({
     }
 
     toast({
-      title: rating === "easy" ? "Mastery Reinforced! 🟢" : rating === "good" ? "Retention Recorded 🟡" : "Interval Reset to 1 Day 🔴",
+      title: rating === "easy" ? "Mastery Reinforced!" : rating === "good" ? "Retention Recorded" : "Interval Reset to 1 Day",
       description: `Next revision for "${currentItem.chapterTitle}" scheduled in Spaced Repetition queue.`,
     });
 

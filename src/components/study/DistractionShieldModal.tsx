@@ -125,7 +125,7 @@ export default function DistractionShieldModal({
     setShieldState(updated);
     setStepOverride(null);
     toast({
-      title: "Focus Restored! 🇩🇪",
+      title: "Focus Restored!",
       description: "You chose your Germany career dreams over temporary distraction.",
     });
     onClose();
@@ -247,7 +247,7 @@ export default function DistractionShieldModal({
                 onClick={handleRemindGoals}
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-display text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-md cursor-pointer"
               >
-                <span>Remind me of my Germany goals 🇩🇪</span>
+                <span>Remind me of my Germany goals</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
 
@@ -295,7 +295,7 @@ export default function DistractionShieldModal({
                   Target Destination // Berlin & Munich
                 </span>
                 <h3 className="font-display text-lg font-bold text-foreground">
-                  🇩🇪 Your Germany Relocation Reality Check
+                  Your Germany Relocation Reality Check
                 </h3>
               </div>
             </div>
@@ -340,7 +340,7 @@ export default function DistractionShieldModal({
                 onClick={handleReturnToFocus}
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 font-display text-sm font-bold text-white hover:bg-emerald-500 transition-all shadow-md cursor-pointer"
               >
-                <span>Snap out of it — Back to Germany Goals 🇩🇪</span>
+                <span>Snap out of it — Back to Germany Goals</span>
               </button>
 
               <button
@@ -391,7 +391,7 @@ export default function DistractionShieldModal({
                 onClick={handleReturnToFocus}
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 font-display text-sm font-bold text-white hover:bg-emerald-500 transition-all shadow-md cursor-pointer"
               >
-                <span>Protect My Dreams — Return to Focus 🇩🇪</span>
+                <span>Protect My Dreams — Return to Focus</span>
               </button>
 
               <button
@@ -457,7 +457,7 @@ export default function DistractionShieldModal({
                 onClick={handleReturnToFocus}
                 className="w-full rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 font-display text-xs font-bold text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"
               >
-                End Leash Early & Return to Germany Goals 🇩🇪
+                End Leash Early & Return to Germany Goals
               </button>
             </div>
           </div>
@@ -540,7 +540,7 @@ export default function DistractionShieldModal({
                 onClick={onClose}
                 className="w-full rounded-xl bg-primary px-4 py-3 font-display text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shadow-md"
               >
-                Close & Keep Studying 🇩🇪
+                Close & Keep Studying
               </button>
             </div>
           </div>
@@ -598,7 +598,7 @@ export default function DistractionShieldModal({
                 </p>
                 <div className="space-y-1 font-mono text-[10px] text-muted-foreground">
                   {shieldState.allowlist.map((item) => (
-                    <div key={item} className="truncate">✓ {item}</div>
+                    <div key={item} className="truncate text-emerald-400">+ {item}</div>
                   ))}
                 </div>
               </div>
@@ -609,7 +609,7 @@ export default function DistractionShieldModal({
                 </p>
                 <div className="space-y-1 font-mono text-[10px] text-muted-foreground">
                   {shieldState.blocklist.slice(0, 5).map((item) => (
-                    <div key={item} className="truncate">✕ {item}</div>
+                    <div key={item} className="truncate text-rose-400">- {item}</div>
                   ))}
                   {shieldState.blocklist.length > 5 && (
                     <div className="text-[9px] text-muted-foreground/80">

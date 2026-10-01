@@ -52,7 +52,7 @@ export default function DistractionShieldBanner({ onOpenShield }: DistractionShi
     const updated = returnToFocusEarly(shieldState, Date.now());
     setShieldState(updated);
     toast({
-      title: "Focus Restored! 🇩🇪",
+      title: "Focus Restored",
       description: "Emergency leash cancelled early. Keep crushing your Germany roadmap!",
     });
   };
@@ -102,7 +102,7 @@ export default function DistractionShieldBanner({ onOpenShield }: DistractionShi
               onClick={handleReturnToFocus}
               className="rounded-xl bg-emerald-500 px-3 py-1.5 font-display text-[11px] font-bold text-black hover:bg-emerald-400 transition-colors cursor-pointer shadow-xs"
             >
-              End Early 🇩🇪
+              End Early
             </button>
           ) : (
             <div className="flex items-center gap-1.5">

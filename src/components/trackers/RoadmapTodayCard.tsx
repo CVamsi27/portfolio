@@ -9,7 +9,9 @@ import { SimpleRing } from "@/components/trackers/Ring";
 import {
   BookOpen, CheckSquare, Square, Flame, Clock, ArrowUpRight,
   Users, GitPullRequest, MapPin, Brain, ShieldCheck, RotateCcw, Headphones,
+  CalendarDays, ChevronDown, ChevronUp,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import FullPageRevisionGate from "@/components/study/FullPageRevisionGate";
 import StudyBreakLoungeModal from "@/components/study/StudyBreakLoungeModal";
@@ -114,7 +116,15 @@ export default function RoadmapTodayCard() {
     return getDueRevisionItems(completedChapters || []);
   }, [completedChapters]);
 
-  const plan = useMemo(() => timetable?.days?.find(d => d.date === today), [timetable, today]);
+  const [timetableOpen, setTimetableOpen] = useState(true);
+
+  const plan = useMemo(() => {
+    const userPlan = timetable?.days?.find(d => d.date === today);
+    if (userPlan) return userPlan;
+    const curriculumDay = curriculum.days.find(d => d.date === today) ?? curriculum.days[0];
+    return curriculumDay as unknown as DayPlan;
+  }, [timetable, today]);
+
   const todayChapters = useMemo(() => {
     return curriculum.days.find(d => d.date === today)?.chapters || [];
   }, [today]);
@@ -126,26 +136,27 @@ export default function RoadmapTodayCard() {
 
   useDailyNotification(plan);
 
-  if (!plan) return null;
-
   const progress = pct(plan.checklist);
   const ringColor = TOPIC_COLOR[plan.topic] ?? "#6b7280";
   const doneCount = plan.checklist.filter(c => c.done).length;
   const nowHH = new Date().toTimeString().slice(0, 5);
 
   // Find active schedule block
-  const activeBlock = Object.entries(plan.schedule).find(([time]) => {
-    const [s, e] = time.split(" - ");
+  const scheduleEntries = Object.entries(plan.schedule || {});
+  const activeBlock = scheduleEntries.find(([time]) => {
+    const parts = time.includes(" - ") ? time.split(" - ") : time.split("-");
+    const s = parts[0]?.trim();
+    const e = parts[1]?.trim();
     return s && e && nowHH >= s && nowHH < e;
   });
 
   const todayQ = plan.interviewQuestions?.[(plan.day - 1) % (plan.interviewQuestions?.length || 1)];
 
   function toggle(itemId: string) {
-    if (!timetable) return;
+    const baseTimetable = timetable ?? { days: curriculum.days as unknown as DayPlan[] };
     setTimetable({
-      ...timetable,
-      days: timetable.days.map(d =>
+      ...baseTimetable,
+      days: baseTimetable.days.map(d =>
         d.date === today
           ? { ...d, checklist: d.checklist.map(c => c.id === itemId ? { ...c, done: !c.done } : c) }
           : d
@@ -178,7 +189,7 @@ export default function RoadmapTodayCard() {
                 <>
                   <span>·</span>
                   <span className={allTodayMastered ? "text-emerald-400 font-semibold" : "text-cyan-400 font-semibold"}>
-                    {allTodayMastered ? "All study mastered ✓" : `${masteredTodayCount}/${todayChapters.length} study mastered`}
+                    {allTodayMastered ? "All study mastered" : `${masteredTodayCount}/${todayChapters.length} study mastered`}
                   </span>
                 </>
               )}
@@ -190,15 +201,87 @@ export default function RoadmapTodayCard() {
           </Link>
         </div>
 
-        {/* Now block */}
-        {activeBlock && (
-          <div className="mx-4 mb-3 rounded-lg bg-primary/10 px-3 py-2 ring-1 ring-primary/20">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-              <Clock className="h-3 w-3" /> Now — {activeBlock[0]}
-            </p>
-            <p className="mt-0.5 text-xs text-foreground/90">{activeBlock[1]}</p>
+        {/* Today's Timetable Section */}
+        <div className="mx-4 mb-3 rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-xs font-bold uppercase tracking-wider text-foreground">
+                Today&apos;s Timetable &amp; Schedule
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTimetableOpen((prev) => !prev)}
+              className="text-[11px] font-mono text-primary hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <span>{timetableOpen ? "Collapse" : `View Full (${scheduleEntries.length} blocks)`}</span>
+              {timetableOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </button>
           </div>
-        )}
+
+          {activeBlock && (
+            <div className="rounded-lg bg-primary/20 border border-primary/40 px-3 py-2 flex items-start gap-2.5 shadow-xs">
+              <span className="relative flex h-2 w-2 mt-1 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
+                    Active Right Now: {activeBlock[0]}
+                  </span>
+                  <span className="rounded bg-emerald-500/20 px-1.5 py-0.2 text-[9px] font-mono font-bold text-emerald-300 border border-emerald-500/30">
+                    Live
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs font-semibold text-foreground leading-snug">
+                  {typeof activeBlock[1] === "string" ? activeBlock[1] : (activeBlock[1] as { label?: string })?.label ?? ""}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {timetableOpen && scheduleEntries.length > 0 && (
+            <div className="space-y-1.5 pt-1 border-t border-border/50 max-h-60 overflow-y-auto pr-1">
+              {scheduleEntries.map(([time, desc]) => {
+                const parts = time.includes(" - ") ? time.split(" - ") : time.split("-");
+                const s = parts[0]?.trim();
+                const e = parts[1]?.trim();
+                const isCurrent = Boolean(s && e && nowHH >= s && nowHH < e);
+                const isPassed = Boolean(e && nowHH >= e);
+                const label = typeof desc === "string" ? desc : (desc as { label?: string })?.label ?? "";
+
+                return (
+                  <div
+                    key={time}
+                    className={cn(
+                      "flex items-start gap-2.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors",
+                      isCurrent
+                        ? "bg-primary/20 border border-primary/40 text-foreground font-medium"
+                        : isPassed
+                        ? "bg-muted/20 text-muted-foreground line-through opacity-70"
+                        : "hover:bg-muted/30 text-foreground/90"
+                    )}
+                  >
+                    <span className={cn(
+                      "font-mono text-[11px] shrink-0 font-semibold",
+                      isCurrent ? "text-primary font-bold" : "text-muted-foreground"
+                    )}>
+                      {time}
+                    </span>
+                    <span className="flex-1 truncate">{label}</span>
+                    {isCurrent && (
+                      <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400 font-bold shrink-0">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Today's mission */}
         <div className="mx-4 mb-3 rounded-lg border border-amber-500/20 bg-amber-500/8 px-3 py-2.5">
