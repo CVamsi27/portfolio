@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import curriculum from "@/data/career-curriculum.json";
 import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
@@ -13,7 +13,7 @@ import {
   CalendarDays, ExternalLink, Clock, ListChecks, Target,
   Flame, GitPullRequest, Users, Mail, Search, Layers,
   Trophy, BarChart2, ArrowUpRight, Zap, MapPin, AlertTriangle,
-  Copy, CheckCheck, Star, Briefcase, Globe, Code2, Brain,
+  Copy, CheckCheck, Star, Briefcase, Globe, Code2, Brain, Bell,
   ShieldCheck, ArrowRight, ShieldAlert, CheckCircle2,
   RotateCcw, Shuffle, Sparkles, Headphones, Moon, Check,
 } from "lucide-react";
@@ -45,25 +45,58 @@ interface DayPlan {
   mission: string; practiceTask: string; roleTrack: { lane: string; action: string };
   interviewQuestions: string[];
   steps: string[]; checklist: ChecklistItem[];
-  notification: { time: string; message: string };
+  notification?: { time: string; message: string };
+  notifications?: Array<{ key: string; time: string; message: string; href?: string }>;
   oSSProject: string; mockInterviewPlatform: string; founderOutreachTarget: string;
   resources: { label: string; url: string }[];
 }
 interface Timetable { days: DayPlan[] }
 
 interface CareerData {
+  version?: number;
+  reviewedOn?: string;
+  profile?: {
+    name: string; headline: string; yearsExperience: number; currentRole: string;
+    stack: string[]; resumeUrl: string; github: string; portfolio: string; bible: string;
+  };
   resumeAnalysis: {
+    reviewedOn?: string;
+    caveat?: string;
     strengths: { item: string; impact: string; fitScore: number }[];
     gaps: { item: string; action: string; urgency: string }[];
   };
+  skillMatrix?: {
+    core: { score: number; items: string[] };
+    strong: { score: number; items: string[] };
+    developing: { score: number; items: string[] };
+    toLearn: { score: number; items: string[] };
+  };
   targetRoles: {
-    germany: { company: string; city: string; role: string; fitScore: number; salary: string; link: string; status: string; notes: string; sourceChecked?: string }[];
+    germany: { company: string; city?: string; role: string; fitScore: number; salary?: string; link: string; status: string; notes: string; sourceChecked?: string }[];
+    remoteEU?: { company: string; role: string; fitScore: number; salary?: string; link: string; status: string; notes: string; sourceChecked?: string }[];
+    remoteIndia?: { company: string; role: string; fitScore: number; salary?: string; link: string; status: string; notes: string; sourceChecked?: string }[];
     remote: { company: string; role: string; fitScore: number; link: string; status: string; notes: string; salary?: string; sourceChecked?: string }[];
   };
-  outreachTemplates: { germanySaaS: string; remote: string; ossMaintainer: string };
+  outreachTemplates: { germanySaaS: string; remote: string; ossMaintainer: string; linkedinConnection?: string };
   roleResearchNote?: string;
   germanyChecklist: { id: string; text: string; done: boolean; link?: string }[];
   weeklyTargets: Record<string, number>;
+  daySchedule?: {
+    timezone: string;
+    blocks: Array<{ time: string; label: string; minutes: number; type: string; output?: string }>;
+  };
+  remindersDefault?: Record<string, { enabled: boolean; time: string; message: string }>;
+  motivationalResources?: {
+    inspiration: Array<{ title: string; url: string; why: string }>;
+    jobBoards: Array<{ label: string; url: string }>;
+    mockInterview: Array<{ label: string; url: string; why?: string }>;
+    oss: Array<{ label: string; url: string; why?: string }>;
+    study?: { label: string; url: string };
+  };
+  verificationChecklist?: {
+    label: string;
+    items: string[];
+  };
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -494,39 +527,61 @@ function ResumeSection({ data }: { data: CareerData["resumeAnalysis"] }) {
 }
 
 function RolesSection({ data, note }: { data: CareerData["targetRoles"]; note?: string }) {
-  const [tab, setTab] = useState<"germany" | "remote">("germany");
+  type Tab = "germany" | "remoteEU" | "remoteIndia";
+  const tabs: Array<{ key: Tab; label: string; count: number }> = [
+    { key: "germany", label: "Germany", count: data.germany.length },
+    { key: "remoteEU", label: "Remote · EU/Global", count: data.remoteEU?.length ?? 0 },
+    { key: "remoteIndia", label: "Remote · India", count: data.remoteIndia?.length ?? data.remote?.length ?? 0 },
+  ];
+  const [tab, setTab] = useState<Tab>(tabs[0].key);
+  const list: CareerData["targetRoles"]["germany"] =
+    tab === "germany" ? data.germany :
+    tab === "remoteEU" ? (data.remoteEU ?? []) :
+    (data.remoteIndia ?? data.remote ?? []);
   return (
     <Card variant="dossier">
       <CardContent className="p-5">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-2">
           <Briefcase className="h-4 w-4 text-primary" />
-        <h2 className="font-display font-bold">Target Roles</h2>
-        {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
+          <h2 className="font-display font-bold">Target Roles</h2>
+          <span className="ml-auto text-[10px] text-muted-foreground">{list.length} leads · last refresh {note?.match(/Source check: ([0-9-]+)/)?.[1] ?? "—"}</span>
         </div>
-        <div className="flex gap-2 mb-4">
-          {(["germany", "remote"] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${tab === t ? "border-primary bg-primary text-primary-foreground" : "border-border/60 text-muted-foreground hover:border-primary/50"}`}>
-              {t === "germany" ? "Germany" : "Remote"}
+        {note && <p className="mb-4 text-[11px] text-muted-foreground leading-relaxed">{note}</p>}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${tab === t.key ? "border-primary bg-primary text-primary-foreground" : "border-border/60 text-muted-foreground hover:border-primary/50"}`}>
+              {t.label} <span className="ml-1 opacity-70">{t.count}</span>
             </button>
           ))}
         </div>
         <div className="space-y-2">
-          {(tab === "germany" ? data.germany : data.remote).map((r, i) => (
-            <div key={i} className="rounded-lg border border-border/40 bg-card/30 p-3 hover:border-primary/30 transition-colors">
+          {list.length === 0 && (
+            <p className="rounded-lg border border-dashed border-border/40 p-4 text-xs text-muted-foreground">No leads yet — sync the planner to refresh.</p>
+          )}
+          {list.map((r, i) => (
+            <div key={`${r.company}-${r.role}-${i}`} className="rounded-lg border border-border/40 bg-card/30 p-3 hover:border-primary/30 transition-colors">
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-xs font-bold">{r.company}</p>
-                    {"city" in r && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{(r as { city: string }).city}</span>}
-                    {"salary" in r && <span className="text-[10px] text-emerald-400 font-mono">{(r as { salary: string }).salary}</span>}
+                    <p className="text-xs font-bold">{r.company}</p>
+                    {("city" in r) && (r as { city?: string }).city && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                        <MapPin className="h-2.5 w-2.5" />{(r as { city: string }).city}
+                      </span>
+                    )}
+                    {("salary" in r) && (r as { salary?: string }).salary && (
+                      <span className="text-[10px] text-emerald-400 font-mono">{(r as { salary: string }).salary}</span>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">{r.role}</p>
                   {r.sourceChecked && <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">Source checked {r.sourceChecked} · {r.status}</p>}
-                  <p className="text-[11px] text-foreground/70 mt-1">{r.notes}</p>
+                  <p className="text-[11px] text-foreground/70 mt-1 leading-relaxed">{r.notes}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
-                  <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">{r.fitScore}/10</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.fitScore >= 9 ? "bg-emerald-500/20 text-emerald-300" : r.fitScore >= 7 ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                    {r.fitScore}/10
+                  </span>
                   <a href={r.link} target="_blank" rel="noopener noreferrer"
                     className="rounded-full border border-border/60 px-2.5 py-1 text-[10px] font-medium hover:border-primary/50 transition-colors">
                     Apply →
@@ -541,13 +596,300 @@ function RolesSection({ data, note }: { data: CareerData["targetRoles"]; note?: 
   );
 }
 
+function WeeklyTargetsSection({ targets }: { targets: Record<string, number> }) {
+  const labels: Record<string, { label: string; icon: typeof Zap }> = {
+    focusedStudyHours: { label: "Study hours", icon: BookOpen },
+    practiceArtifacts: { label: "Practice artifacts", icon: Code2 },
+    tailoredApplications: { label: "Tailored applications", icon: Briefcase },
+    qualityOutreach: { label: "Quality outreach msgs", icon: Mail },
+    mockInterviews: { label: "Mock interviews", icon: Users },
+    ossPRs: { label: "OSS PRs", icon: GitPullRequest },
+    publicProof: { label: "Public proof posts", icon: Globe },
+    leetcodeProblems: { label: "LeetCode problems", icon: Brain },
+    germanPracticeMinutes: { label: "German minutes", icon: Sparkles },
+  };
+  const entries = Object.entries(targets);
+  return (
+    <Card variant="dossier">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Target className="h-4 w-4 text-primary" />
+          <h2 className="font-display font-bold">Weekly Targets</h2>
+          <span className="ml-auto text-[10px] text-muted-foreground">Treat as floors, not ceilings.</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {entries.map(([key, value]) => {
+            const meta = labels[key] ?? { label: key, icon: Zap };
+            const Icon = meta.icon;
+            return (
+              <div key={key} className="flex items-center gap-2 rounded-lg border border-border/40 bg-card/30 p-2.5">
+                <Icon className="h-4 w-4 shrink-0 text-primary" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">{meta.label}</p>
+                  <p className="font-mono text-sm font-bold tabular-nums">{value}<span className="ml-1 text-[10px] font-normal text-muted-foreground">/ wk</span></p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DayScheduleSection({ schedule }: { schedule: NonNullable<CareerData["daySchedule"]> }) {
+  const typeColor: Record<string, string> = {
+    health: "border-emerald-500/30 bg-emerald-500/5",
+    ritual: "border-cyan-500/30 bg-cyan-500/5",
+    study: "border-blue-500/30 bg-blue-500/5",
+    break: "border-amber-500/20 bg-amber-500/5",
+    buffer: "border-slate-500/20 bg-slate-500/5",
+    meal: "border-orange-500/30 bg-orange-500/5",
+    practice: "border-violet-500/30 bg-violet-500/5",
+    job: "border-pink-500/30 bg-pink-500/5",
+    interview: "border-rose-500/30 bg-rose-500/5",
+    family: "border-emerald-500/20 bg-emerald-500/5",
+    anchor: "border-border/40 bg-muted/30",
+  };
+  const totalMinutes = schedule.blocks.reduce((sum, b) => sum + b.minutes, 0);
+  return (
+    <Card variant="dossier">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <CalendarDays className="h-4 w-4 text-primary" />
+          <h2 className="font-display font-bold">Daily Schedule Template</h2>
+          <span className="ml-auto text-[10px] text-muted-foreground">07:00 → 22:00 IST · {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m mapped</span>
+        </div>
+        <p className="mb-4 text-[11px] text-muted-foreground">
+          Designed for 10h focused study + 2h family time + 90m exercise + 2 meals. Shift block order on days with interviews or appointments.
+        </p>
+        <div className="space-y-1.5">
+          {schedule.blocks.map((block) => (
+            <div key={block.time} className={`flex items-center gap-3 rounded-lg border p-2.5 ${typeColor[block.type] ?? "border-border/40 bg-card/30"}`}>
+              <span className="w-24 shrink-0 font-mono text-[11px] font-semibold tabular-nums text-foreground/90">{block.time}</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium">{block.label}</p>
+                {block.output && <p className="mt-0.5 text-[10px] text-muted-foreground">→ {block.output}</p>}
+              </div>
+              <span className="shrink-0 rounded-full bg-background/60 px-2 py-0.5 text-[10px] font-mono tabular-nums">
+                {block.minutes > 0 ? `${block.minutes}m` : "anchor"}
+              </span>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${block.type === "study" ? "bg-blue-500/20 text-blue-300" : block.type === "job" ? "bg-pink-500/20 text-pink-300" : block.type === "interview" ? "bg-rose-500/20 text-rose-300" : block.type === "family" || block.type === "meal" || block.type === "health" ? "bg-emerald-500/20 text-emerald-300" : "bg-muted text-muted-foreground"}`}>
+                {block.type}
+              </span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MotivationalResourcesSection({ resources }: { resources: NonNullable<CareerData["motivationalResources"]> }) {
+  return (
+    <Card variant="dossier">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <h2 className="font-display font-bold">Resources & Where to Apply</h2>
+          <span className="ml-auto text-[10px] text-muted-foreground">Bookmarks for the job-search engine.</span>
+        </div>
+        {resources.inspiration && resources.inspiration.length > 0 && (
+          <div className="mb-4">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Inspiration</p>
+            <div className="space-y-1.5">
+              {resources.inspiration.map((r) => (
+                <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-start gap-2 rounded-lg border border-border/40 bg-card/30 p-2.5 hover:border-primary/40 hover:bg-primary/5 transition-colors group">
+                  <Flame className="h-4 w-4 shrink-0 text-rose-400" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold group-hover:text-primary transition-colors">{r.title}</p>
+                    <p className="text-[11px] text-muted-foreground">{r.why}</p>
+                  </div>
+                  <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mock interviews</p>
+            <div className="space-y-1.5">
+              {(resources.mockInterview ?? []).map((r) => (
+                <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-start gap-2 rounded-lg border border-border/40 bg-card/30 p-2 hover:border-primary/40 hover:bg-primary/5 transition-colors group">
+                  <Users className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold group-hover:text-primary transition-colors truncate">{r.label}</p>
+                    {r.why && <p className="text-[10px] text-muted-foreground">{r.why}</p>}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">OSS targets</p>
+            <div className="space-y-1.5">
+              {(resources.oss ?? []).map((r) => (
+                <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-start gap-2 rounded-lg border border-border/40 bg-card/30 p-2 hover:border-primary/40 hover:bg-primary/5 transition-colors group">
+                  <GitPullRequest className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold group-hover:text-primary transition-colors truncate">{r.label}</p>
+                    {r.why && <p className="text-[10px] text-muted-foreground">{r.why}</p>}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Job boards</p>
+            <div className="space-y-1.5">
+              {(resources.jobBoards ?? []).map((r) => (
+                <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-start gap-2 rounded-lg border border-border/40 bg-card/30 p-2 hover:border-primary/40 hover:bg-primary/5 transition-colors group">
+                  <Briefcase className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
+                  <p className="text-xs font-semibold group-hover:text-primary transition-colors truncate">{r.label}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+        {resources.study && (
+          <a href={resources.study.url} target="_blank" rel="noopener noreferrer"
+            className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-primary/40 bg-primary/10 p-3 hover:bg-primary/15 transition-colors group">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm font-bold">{resources.study.label}</p>
+                <p className="text-[10px] text-muted-foreground">{resources.study.url}</p>
+              </div>
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </a>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function VerificationSection({ data }: { data: NonNullable<CareerData["verificationChecklist"]> }) {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const items = data.items;
+  const done = checked.size;
+  return (
+    <Card variant="dossier" className="ring-1 ring-emerald-500/30">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <ShieldCheck className="h-4 w-4 text-emerald-400" />
+          <h2 className="font-display font-bold">{data.label}</h2>
+          <span className="ml-auto text-xs tabular-nums text-muted-foreground">{done}/{items.length}</span>
+        </div>
+        <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-muted">
+          <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${items.length ? Math.round(done / items.length * 100) : 0}%` }} />
+        </div>
+        <div className="space-y-1.5">
+          {items.map((text, i) => {
+            const id = `verify-${i}`;
+            const isDone = checked.has(id);
+            return (
+              <button key={id} onClick={() => {
+                setChecked(prev => {
+                  const next = new Set(prev);
+                  if (next.has(id)) next.delete(id); else next.add(id);
+                  return next;
+                });
+              }}
+                className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-muted/30 transition-colors ${isDone ? "opacity-60" : ""}`}>
+                {isDone ? <CheckSquare className="h-4 w-4 mt-0.5 shrink-0 text-emerald-400" /> : <Square className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />}
+                <span className={`text-[11px] leading-relaxed ${isDone ? "line-through" : ""}`}>{text}</span>
+              </button>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function NotificationsPanel({ notifications }: { notifications: NonNullable<DayPlan["notifications"]> }) {
+  const [permState, setPermState] = useState<NotificationPermission | "unsupported">(
+    typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
+  );
+  const requestPermission = useCallback(async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    const result = await Notification.requestPermission();
+    setPermState(result);
+  }, []);
+  const fire = useCallback((n: NonNullable<DayPlan["notifications"]>[number]) => {
+    if (typeof window === "undefined" || !("Notification" in window) || Notification.permission !== "granted") return;
+    try {
+      const notif = new Notification(`Day ${notifications.length ? "" : ""}${n.time} · ${n.message}`, {
+        body: n.message,
+        icon: "/icons/icon-192.png",
+        tag: `career-${n.key}`,
+      });
+      notif.onclick = () => {
+        window.focus();
+        if (n.href) window.location.href = n.href;
+        notif.close();
+      };
+      setTimeout(() => notif.close(), 8000);
+    } catch {
+      /* ignore */
+    }
+  }, [notifications.length]);
+  const sorted = [...notifications].sort((a, b) => a.time.localeCompare(b.time));
+  return (
+    <Card variant="dossier" className="ring-1 ring-primary/30">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Bell className="h-4 w-4 text-primary" />
+          <h2 className="font-display font-bold">Today&apos;s Notifications</h2>
+          <span className="ml-auto text-[10px] text-muted-foreground">{sorted.length} cues · browser-supported</span>
+        </div>
+        {permState === "unsupported" ? (
+          <p className="rounded-lg border border-dashed border-border/40 p-2.5 text-[11px] text-muted-foreground">Browser notifications unsupported here. Set a phone alarm at each listed time.</p>
+        ) : permState === "default" ? (
+          <button onClick={requestPermission}
+            className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+            <Bell className="h-3.5 w-3.5" />Enable browser notifications
+          </button>
+        ) : permState === "granted" ? (
+          <p className="mb-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Notifications enabled</p>
+        ) : (
+          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] text-amber-200">Notifications blocked — open browser site settings to enable.</p>
+        )}
+        <div className="space-y-1.5">
+          {sorted.map((n) => (
+            <div key={n.key} className="flex items-center gap-3 rounded-lg border border-border/40 bg-card/30 p-2.5">
+              <span className="w-14 shrink-0 font-mono text-[11px] font-semibold tabular-nums text-primary">{n.time}</span>
+              <p className="min-w-0 flex-1 text-[11px] leading-relaxed">{n.message}</p>
+              {permState === "granted" && (
+                <button onClick={() => fire(n)} className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[10px] hover:border-primary/50">Test</button>
+              )}
+              {n.href && (
+                <a href={n.href} className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[10px] hover:border-primary/50">Open</a>
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function OutreachSection({ templates }: { templates: CareerData["outreachTemplates"] }) {
-  const TMPL = [
-    { label: "Germany SaaS", key: "germanySaaS" as const },
-    { label: "Remote", key: "remote" as const },
-    { label: "Open source", key: "ossMaintainer" as const },
+  const TMPL: Array<{ label: string; key: keyof CareerData["outreachTemplates"] }> = [
+    { label: "Germany SaaS", key: "germanySaaS" },
+    { label: "Remote", key: "remote" },
+    { label: "Open source", key: "ossMaintainer" },
+    { label: "LinkedIn connect", key: "linkedinConnection" },
   ];
   const [active, setActive] = useState<keyof CareerData["outreachTemplates"]>("germanySaaS");
+  const text = (templates[active] ?? "") as string;
+  if (!text) return null;
   return (
     <Card variant="dossier">
       <CardContent className="p-5">
@@ -565,9 +907,9 @@ function OutreachSection({ templates }: { templates: CareerData["outreachTemplat
           ))}
         </div>
         <div className="relative">
-          <pre className="rounded-xl border border-border/40 bg-muted/20 p-4 text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap font-mono overflow-x-auto">{templates[active]}</pre>
+          <pre className="rounded-xl border border-border/40 bg-muted/20 p-4 text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap font-mono overflow-x-auto">{text}</pre>
           <div className="mt-2">
-            <CopyBtn text={templates[active]} label="Copy Template" />
+            <CopyBtn text={text} label="Copy Template" />
           </div>
         </div>
         <p className="mt-3 text-[11px] text-muted-foreground">Replace {`{Company}`}, {`{Name}`}, and the product observation before sending. Personalise every message.</p>
@@ -607,6 +949,166 @@ function GermanyChecklist({ items, onToggle }: { items: CareerData["germanyCheck
               )}
             </div>
           ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MotivationHero({
+  days,
+  todayDate,
+  totalItems,
+  doneItems,
+  completedDays,
+}: {
+  days: DayPlan[];
+  todayDate: string;
+  totalItems: number;
+  doneItems: number;
+  completedDays: number;
+}) {
+  const today = days.find(d => d.date === todayDate);
+  const dayIndex = days.findIndex(d => d.date === todayDate);
+  const daysLeft = days.length ? Math.max(0, days.length - dayIndex - 1) : 0;
+  const overallPct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+  const todayPct = today ? pct(today.checklist) : 0;
+
+  // Streak: count consecutive days before today where pct(checklist) === 100
+  let streak = 0;
+  for (let i = dayIndex - 1; i >= 0; i -= 1) {
+    if (pct(days[i].checklist) === 100) streak += 1; else break;
+  }
+  // Include today if it's 100%
+  if (today && pct(today.checklist) === 100) streak += 1;
+
+  // Weekly wins: last 7 days with completed checklist items
+  const weeklyWins = useMemo(() => {
+    const recent = days.slice(Math.max(0, dayIndex - 6), dayIndex + 1);
+    return recent.map(d => ({ date: d.date, pct: pct(d.checklist), title: d.title, day: d.day }));
+  }, [days, dayIndex]);
+
+  const recentDoneCount = weeklyWins.reduce((sum, w) => sum + Math.round((w.pct / 100) * 7), 0);
+  const recentTotalCount = weeklyWins.length * 7;
+
+  // Next milestone
+  const nextMilestone = useMemo(() => {
+    const milestones = [
+      { at: 7, label: "First week done", emoji: "🌱" },
+      { at: 14, label: "Two-week streak", emoji: "🔥" },
+      { at: 30, label: "Senior-ready portfolio drafted", emoji: "📁" },
+      { at: 50, label: "Halfway: 5 OSS PRs merged", emoji: "🤝" },
+      { at: 75, label: "75% done: 3 design posts published", emoji: "📝" },
+      { at: 100, label: "100-day sprint complete · offer in hand", emoji: "🎯" },
+    ];
+    return milestones.find(m => m.at > completedDays) ?? milestones[milestones.length - 1];
+  }, [completedDays]);
+
+  return (
+    <Card variant="dossier" className="overflow-hidden">
+      <CardContent className="p-0">
+        <div className="grid grid-cols-1 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border/30">
+          <div className="flex flex-col gap-1 p-5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Overall</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-mono text-3xl font-bold tabular-nums">{overallPct}<span className="text-base text-muted-foreground">%</span></span>
+              <span className="text-[10px] text-muted-foreground">{doneItems}/{totalItems} items</span>
+            </div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-400 transition-all duration-700" style={{ width: `${overallPct}%` }} />
+            </div>
+            <span className="mt-1.5 text-[10px] text-muted-foreground">{completedDays} full days · {daysLeft} to go</span>
+          </div>
+          <div className="flex flex-col gap-1 p-5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Today</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-mono text-3xl font-bold tabular-nums">{todayPct}<span className="text-base text-muted-foreground">%</span></span>
+              <span className="text-[10px] text-muted-foreground">Day {today?.day ?? "—"}</span>
+            </div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${todayPct}%` }} />
+            </div>
+            <span className="mt-1.5 truncate text-[10px] text-muted-foreground">{today?.title ?? "—"}</span>
+          </div>
+          <div className="flex flex-col gap-1 p-5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Streak</span>
+            <div className="flex items-baseline gap-1.5">
+              <Flame className={`h-5 w-5 ${streak > 0 ? "text-rose-400" : "text-muted-foreground"}`} />
+              <span className="font-mono text-3xl font-bold tabular-nums">{streak}</span>
+              <span className="text-[10px] text-muted-foreground">day{streak === 1 ? "" : "s"}</span>
+            </div>
+            <span className="mt-2 text-[10px] text-muted-foreground">
+              {streak === 0 ? "Start today. Tomorrow you'll be proud." : streak < 7 ? "Keep going. Senior is built one day at a time." : "Compounding. You're in the zone."}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1 p-5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Next milestone</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-2xl">{nextMilestone.emoji}</span>
+              <span className="font-display font-bold text-sm leading-tight">{nextMilestone.label}</span>
+            </div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-rose-400 transition-all duration-700" style={{ width: `${Math.min(100, Math.round((completedDays / nextMilestone.at) * 100))}%` }} />
+            </div>
+            <span className="mt-1.5 text-[10px] text-muted-foreground">{Math.max(0, nextMilestone.at - completedDays)} days away</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-px bg-border/30 sm:grid-cols-2">
+          <div className="bg-card/40 p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy className="h-4 w-4 text-amber-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider">Why today matters</h3>
+            </div>
+            <p className="text-sm leading-relaxed">{today?.mission ?? "Pick a chapter. Read it twice. Save the invariant, an example, and a failure mode. Then close the tab and answer from memory."}</p>
+            {today && (
+              <div className="mt-3 grid grid-cols-2 gap-2 text-[10px]">
+                <div className="rounded-md border border-border/40 bg-muted/30 p-2">
+                  <p className="text-muted-foreground">Study minutes</p>
+                  <p className="font-mono font-bold tabular-nums">{today.chapters.reduce((a, c) => a + (("estimatedMinutes" in c && typeof (c as { estimatedMinutes?: number }).estimatedMinutes === "number") ? (c as { estimatedMinutes: number }).estimatedMinutes : 0), 0)}m</p>
+                </div>
+                <div className="rounded-md border border-border/40 bg-muted/30 p-2">
+                  <p className="text-muted-foreground">Checklist items</p>
+                  <p className="font-mono font-bold tabular-nums">{today.checklist.length}</p>
+                </div>
+                <div className="col-span-2 rounded-md border border-border/40 bg-muted/30 p-2">
+                  <p className="text-muted-foreground">Outcome</p>
+                  <p className="font-medium leading-relaxed">{today.roleTrack.action}</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="bg-card/40 p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart2 className="h-4 w-4 text-emerald-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider">Last 7 days · weekly wins</h3>
+              <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">{recentDoneCount}/{recentTotalCount} items</span>
+            </div>
+            <div className="flex items-end gap-1.5">
+              {weeklyWins.map((w) => {
+                const height = Math.max(4, Math.round(w.pct * 0.4));
+                const color = w.pct === 100 ? "bg-emerald-400" : w.pct >= 50 ? "bg-amber-400" : "bg-rose-400/70";
+                return (
+                  <div key={w.date} className="flex flex-1 flex-col items-center gap-1">
+                    <div className="relative w-full flex items-end" style={{ height: 40 }}>
+                      <div className={`w-full rounded-t ${color} transition-all duration-500`} style={{ height: `${height}px` }} title={`${w.date} · ${w.pct}%`} />
+                    </div>
+                    <span className="text-[9px] text-muted-foreground">{w.date.slice(8, 10)}/{w.date.slice(5, 7)}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-1.5 text-[10px]">
+              {weeklyWins.filter(w => w.pct === 100).slice(-3).map(w => (
+                <div key={w.date} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1.5">
+                  <p className="font-mono text-emerald-300">{w.date}</p>
+                  <p className="truncate text-foreground/80" title={w.title}>{w.title}</p>
+                </div>
+              ))}
+              {weeklyWins.filter(w => w.pct === 100).length === 0 && (
+                <div className="col-span-2 rounded-md border border-dashed border-border/40 p-2 text-center text-muted-foreground">No full days yet. Ship today&apos;s checklist to break zero.</div>
+              )}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -745,6 +1247,14 @@ export default function RoadmapPage() {
           </div>
           <ArrowUpRight className="h-4 w-4 text-primary shrink-0" />
         </a>
+
+        <MotivationHero
+          days={days}
+          todayDate={today}
+          totalItems={totalItems}
+          doneItems={doneItems}
+          completedDays={completedDays}
+        />
 
         {/* Section nav */}
         <div className="flex gap-2 flex-wrap">
@@ -972,6 +1482,10 @@ export default function RoadmapPage() {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {todayPlan?.notifications && todayPlan.notifications.length > 0 && (
+              <NotificationsPanel notifications={todayPlan.notifications} />
             )}
 
             {/* Phase bars */}
@@ -1355,6 +1869,10 @@ export default function RoadmapPage() {
           <>
             <ResumeSection data={career.resumeAnalysis} />
             <RolesSection data={career.targetRoles} note={career.roleResearchNote} />
+            {career.weeklyTargets && <WeeklyTargetsSection targets={career.weeklyTargets} />}
+            {career.daySchedule && <DayScheduleSection schedule={career.daySchedule} />}
+            {career.motivationalResources && <MotivationalResourcesSection resources={career.motivationalResources} />}
+            {career.verificationChecklist && <VerificationSection data={career.verificationChecklist} />}
           </>
         )}
         {section === "career" && !career && (

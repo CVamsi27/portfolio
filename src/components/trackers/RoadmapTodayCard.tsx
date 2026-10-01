@@ -62,6 +62,37 @@ const TOPIC_COLOR: Record<string, string> = {
   "80-lanes-abroad-full-stack": "#c084fc",
 };
 
+function HubMotivationStrip({ todayDate }: { todayDate: string }) {
+  const days = (curriculum.days as unknown as DayPlan[]) ?? [];
+  const dayIndex = days.findIndex(d => d.date === todayDate);
+  if (dayIndex < 0) return null;
+  let streak = 0;
+  for (let i = dayIndex - 1; i >= 0; i -= 1) {
+    if (pct(days[i].checklist ?? []) === 100) streak += 1; else break;
+  }
+  if (pct(days[dayIndex].checklist ?? []) === 100) streak += 1;
+  const recent = days.slice(Math.max(0, dayIndex - 6), dayIndex + 1);
+  const completedRecent = recent.filter(d => pct(d.checklist ?? []) === 100).length;
+  return (
+    <div className="mx-4 mb-3 grid grid-cols-2 gap-2">
+      <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted/30 p-2.5">
+        <Flame className={`h-4 w-4 ${streak > 0 ? "text-rose-400" : "text-muted-foreground"}`} />
+        <div className="min-w-0 flex-1">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Streak</p>
+          <p className="font-mono text-base font-bold tabular-nums leading-tight">{streak} day{streak === 1 ? "" : "s"}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted/30 p-2.5">
+        <CalendarDays className="h-4 w-4 text-emerald-400" />
+        <div className="min-w-0 flex-1">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Last 7 days</p>
+          <p className="font-mono text-base font-bold tabular-nums leading-tight">{completedRecent}/{recent.length} <span className="text-[10px] font-normal text-muted-foreground">full days</span></p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Send a browser notification once per day at 08:00 */
 function useDailyNotification(plan: DayPlan | undefined) {
   useEffect(() => {
@@ -288,6 +319,9 @@ export default function RoadmapTodayCard() {
           <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">Today&apos;s goal</p>
           <p className="text-xs leading-relaxed text-foreground/90">{plan.mission}</p>
         </div>
+
+        {/* Motivation strip: streak + week */}
+        <HubMotivationStrip todayDate={today} />
 
         {/* Checklist (first 4 items) */}
         <div className="px-4 pb-1">

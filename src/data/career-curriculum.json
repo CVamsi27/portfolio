@@ -1,18 +1,18 @@
 {
   "version": 1,
-  "sourceDigest": "321fe7dacac5ee1ebd8eb8aed655a88ac1208952385969a6a0c0e07ac5fa22d8",
+  "sourceDigest": "bf60b79cb43817c55fa1c690afb42e361a3e7d4e63098cca2892c917445b342b",
   "startDate": "2026-09-30",
   "endDate": "2027-01-07",
   "chapterCount": 556,
-  "totalStudyMinutes": 10606,
+  "totalStudyMinutes": 10564,
   "inventorySummary": {
-    "markdownFilesScanned": 868,
+    "markdownFilesScanned": 957,
     "includedChapterCount": 556,
     "excludedByReason": {
       "index": 154,
-      "personal": 47,
-      "nonNumbered": 0,
-      "outsideStudyStacks": 111
+      "personal": 48,
+      "nonNumbered": 84,
+      "outsideStudyStacks": 115
     },
     "stackCounts": {
       "10-frontend": 122,
@@ -50,7 +50,7 @@
           "title": "Scope",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.02-scope.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 28
+          "estimatedMinutes": 25
         },
         {
           "id": "10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.03-call-stack.md",
@@ -69,7 +69,7 @@
           "estimatedMinutes": 24
         }
       ],
-      "studyMinutes": 100,
+      "studyMinutes": 97,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -340,7 +340,7 @@
           "title": "Lexical Environment",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.05-lexical-environment.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 17
+          "estimatedMinutes": 18
         },
         {
           "id": "10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.06-closures.md",
@@ -348,7 +348,7 @@
           "title": "Closures",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.06-closures.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 29
+          "estimatedMinutes": 26
         },
         {
           "id": "10-frontend/10.1-javascript/02-objects-prototypes-this/10.1.2.01-this.md",
@@ -356,7 +356,7 @@
           "title": "This",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/02-objects-prototypes-this/10.1.2.01-this.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 29
+          "estimatedMinutes": 26
         },
         {
           "id": "10-frontend/10.1-javascript/02-objects-prototypes-this/10.1.2.02-prototypes.md",
@@ -364,10 +364,10 @@
           "title": "Prototypes",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/02-objects-prototypes-this/10.1.2.02-prototypes.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 32
+          "estimatedMinutes": 29
         }
       ],
-      "studyMinutes": 107,
+      "studyMinutes": 99,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -442,7 +442,7 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 4 assigned chapters for 107 minutes. Then turn Lexical Environment into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 4 assigned chapters for 99 minutes. Then turn Lexical Environment into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 2: explain the decision and attach a commit, diagram, or recording.",
       "interviewQuestion": "Explain Lexical Environment to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
@@ -630,7 +630,7 @@
       "activation": false,
       "topic": "10-frontend",
       "chapterId": "10-frontend/10.1-javascript/02-objects-prototypes-this/10.1.2.03-proxy-reflect.md",
-      "title": "Proxy & Reflect + 3 related chapters",
+      "title": "Proxy & Reflect + 4 related chapters",
       "chapters": [
         {
           "id": "10-frontend/10.1-javascript/02-objects-prototypes-this/10.1.2.03-proxy-reflect.md",
@@ -638,7 +638,7 @@
           "title": "Proxy & Reflect",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/02-objects-prototypes-this/10.1.2.03-proxy-reflect.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 17
+          "estimatedMinutes": 19
         },
         {
           "id": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.01-event-loop.md",
@@ -646,7 +646,7 @@
           "title": "Event Loop",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/03-async-concurrency/10.1.3.01-event-loop.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 33
+          "estimatedMinutes": 30
         },
         {
           "id": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.02-promises.md",
@@ -654,7 +654,7 @@
           "title": "Promises",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/03-async-concurrency/10.1.3.02-promises.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 24
+          "estimatedMinutes": 23
         },
         {
           "id": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.03-async-await.md",
@@ -662,10 +662,18 @@
           "title": "Async/Await",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/03-async-concurrency/10.1.3.03-async-await.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 27
+          "estimatedMinutes": 23
+        },
+        {
+          "id": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.04-error-handling.md",
+          "path": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.04-error-handling.md",
+          "title": "Error Handling",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/03-async-concurrency/10.1.3.04-error-handling.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 19
         }
       ],
-      "studyMinutes": 101,
+      "studyMinutes": 114,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -740,7 +748,7 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 4 assigned chapters for 101 minutes. Then turn Proxy & Reflect into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 5 assigned chapters for 114 minutes. Then turn Proxy & Reflect into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 3: explain the decision and attach a commit, diagram, or recording.",
       "interviewQuestion": "Explain Proxy & Reflect to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
@@ -758,7 +766,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Proxy & Reflect; Event Loop; Promises; Async/Await.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Proxy & Reflect; Event Loop; Promises; Async/Await; Error Handling.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -927,24 +935,16 @@
       "phaseLabel": "Core foundations and interview baseline",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.04-error-handling.md",
-      "title": "Error Handling + 5 related chapters",
+      "chapterId": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.05-abort-and-cancellation.md",
+      "title": "Aborting & Cancellation + 5 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.04-error-handling.md",
-          "path": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.04-error-handling.md",
-          "title": "Error Handling",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/03-async-concurrency/10.1.3.04-error-handling.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 18
-        },
         {
           "id": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.05-abort-and-cancellation.md",
           "path": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.05-abort-and-cancellation.md",
           "title": "Aborting & Cancellation",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/03-async-concurrency/10.1.3.05-abort-and-cancellation.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 13
+          "estimatedMinutes": 14
         },
         {
           "id": "10-frontend/10.1-javascript/03-async-concurrency/10.1.3.06-bounded-concurrency.md",
@@ -952,7 +952,7 @@
           "title": "Bounded Concurrency & Promise Pools",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/03-async-concurrency/10.1.3.06-bounded-concurrency.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 12
+          "estimatedMinutes": 14
         },
         {
           "id": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.01-pass-by-value.md",
@@ -977,9 +977,17 @@
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/04-memory-and-data/10.1.4.03-shallow-vs-deep-copy.md",
           "stack": "10-frontend",
           "estimatedMinutes": 16
+        },
+        {
+          "id": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.04-debounce.md",
+          "path": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.04-debounce.md",
+          "title": "Debounce",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/04-memory-and-data/10.1.4.04-debounce.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 24
         }
       ],
-      "studyMinutes": 97,
+      "studyMinutes": 106,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -1054,11 +1062,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 6 assigned chapters for 97 minutes. Then turn Error Handling into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 6 assigned chapters for 106 minutes. Then turn Aborting & Cancellation into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 4: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Error Handling to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Aborting & Cancellation to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Error Handling to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Aborting & Cancellation to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -1072,7 +1080,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Error Handling; Aborting & Cancellation; Bounded Concurrency & Promise Pools; Pass by Value vs Pass by Reference; Map, Set, WeakMap, WeakSet; Shallow Copy vs Deep Copy.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Aborting & Cancellation; Bounded Concurrency & Promise Pools; Pass by Value vs Pass by Reference; Map, Set, WeakMap, WeakSet; Shallow Copy vs Deep Copy; Debounce.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -1217,7 +1225,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.1-javascript/03-async-concurrency/10.1.3.04-error-handling.md"
+          "url": "https://study.buildora.work/10-frontend/10.1-javascript/03-async-concurrency/10.1.3.05-abort-and-cancellation.md"
         },
         {
           "label": "Full study curriculum",
@@ -1241,17 +1249,9 @@
       "phaseLabel": "Core foundations and interview baseline",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.04-debounce.md",
-      "title": "Debounce + 4 related chapters",
+      "chapterId": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.05-throttle.md",
+      "title": "Throttle + 4 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.04-debounce.md",
-          "path": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.04-debounce.md",
-          "title": "Debounce",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/04-memory-and-data/10.1.4.04-debounce.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 24
-        },
         {
           "id": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.05-throttle.md",
           "path": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.05-throttle.md",
@@ -1282,10 +1282,18 @@
           "title": "Hash Tables & HashMaps — Internals, Collision Resolution & V8",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/04-memory-and-data/10.1.4.08-hash-tables-internals.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 28
+          "estimatedMinutes": 29
+        },
+        {
+          "id": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.09-equality-and-coercion.md",
+          "path": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.09-equality-and-coercion.md",
+          "title": "Equality & Type Coercion",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/04-memory-and-data/10.1.4.09-equality-and-coercion.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 11
         }
       ],
-      "studyMinutes": 120,
+      "studyMinutes": 108,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -1360,11 +1368,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 5 assigned chapters for 120 minutes. Then turn Debounce into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 5 assigned chapters for 108 minutes. Then turn Throttle into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 5: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Debounce to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Throttle to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Debounce to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Throttle to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -1378,7 +1386,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Debounce; Throttle; Memory Leaks; Garbage Collection; Hash Tables & HashMaps — Internals, Collision Resolution & V8.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Throttle; Memory Leaks; Garbage Collection; Hash Tables & HashMaps — Internals, Collision Resolution & V8; Equality & Type Coercion.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -1523,7 +1531,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.1-javascript/04-memory-and-data/10.1.4.04-debounce.md"
+          "url": "https://study.buildora.work/10-frontend/10.1-javascript/04-memory-and-data/10.1.4.05-throttle.md"
         },
         {
           "label": "Full study curriculum",
@@ -1547,24 +1555,16 @@
       "phaseLabel": "Core foundations and interview baseline",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.09-equality-and-coercion.md",
-      "title": "Equality & Type Coercion + 6 related chapters",
+      "chapterId": "10-frontend/10.1-javascript/05-functional-patterns/10.1.5.01-modules.md",
+      "title": "Modules + 5 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.09-equality-and-coercion.md",
-          "path": "10-frontend/10.1-javascript/04-memory-and-data/10.1.4.09-equality-and-coercion.md",
-          "title": "Equality & Type Coercion",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/04-memory-and-data/10.1.4.09-equality-and-coercion.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 10
-        },
         {
           "id": "10-frontend/10.1-javascript/05-functional-patterns/10.1.5.01-modules.md",
           "path": "10-frontend/10.1-javascript/05-functional-patterns/10.1.5.01-modules.md",
           "title": "Modules",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/05-functional-patterns/10.1.5.01-modules.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 20
+          "estimatedMinutes": 21
         },
         {
           "id": "10-frontend/10.1-javascript/05-functional-patterns/10.1.5.02-memoization.md",
@@ -1580,7 +1580,7 @@
           "title": "Generators",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/05-functional-patterns/10.1.5.03-generators.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 26
+          "estimatedMinutes": 24
         },
         {
           "id": "10-frontend/10.1-javascript/05-functional-patterns/10.1.5.04-currying-composition.md",
@@ -1588,7 +1588,7 @@
           "title": "Currying & Function Composition",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/05-functional-patterns/10.1.5.04-currying-composition.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 10
+          "estimatedMinutes": 12
         },
         {
           "id": "10-frontend/10.1-javascript/05-functional-patterns/10.1.5.05-recursion-tail-call.md",
@@ -1596,7 +1596,7 @@
           "title": "Recursion & Tail Call Optimization",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/05-functional-patterns/10.1.5.05-recursion-tail-call.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 13
+          "estimatedMinutes": 15
         },
         {
           "id": "10-frontend/10.1-javascript/06-modern-and-interview/10.1.6.01-es2024-features.md",
@@ -1604,10 +1604,10 @@
           "title": "ES2024+ Modern JavaScript Features (through ES2025)",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/06-modern-and-interview/10.1.6.01-es2024-features.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 12
+          "estimatedMinutes": 15
         }
       ],
-      "studyMinutes": 109,
+      "studyMinutes": 105,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -1682,11 +1682,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 7 assigned chapters for 109 minutes. Then turn Equality & Type Coercion into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 6 assigned chapters for 105 minutes. Then turn Modules into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 6: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Equality & Type Coercion to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Modules to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Equality & Type Coercion to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Modules to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -1700,7 +1700,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Equality & Type Coercion; Modules; Memoization; Generators; Currying & Function Composition; Recursion & Tail Call Optimization; ES2024+ Modern JavaScript Features (through ES2025).",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Modules; Memoization; Generators; Currying & Function Composition; Recursion & Tail Call Optimization; ES2024+ Modern JavaScript Features (through ES2025).",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -1845,7 +1845,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.1-javascript/04-memory-and-data/10.1.4.09-equality-and-coercion.md"
+          "url": "https://study.buildora.work/10-frontend/10.1-javascript/05-functional-patterns/10.1.5.01-modules.md"
         },
         {
           "label": "Full study curriculum",
@@ -1878,7 +1878,7 @@
           "title": "Web Workers",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/06-modern-and-interview/10.1.6.02-web-workers.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 13
+          "estimatedMinutes": 15
         },
         {
           "id": "10-frontend/10.1-javascript/06-modern-and-interview/10.1.6.03-dom-events-delegation.md",
@@ -1886,7 +1886,7 @@
           "title": "DOM Events & Delegation",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/06-modern-and-interview/10.1.6.03-dom-events-delegation.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 17
+          "estimatedMinutes": 18
         },
         {
           "id": "10-frontend/10.1-javascript/06-modern-and-interview/10.1.6.04-cross-tab-communication.md",
@@ -1894,7 +1894,7 @@
           "title": "Cross-Tab Communication",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/06-modern-and-interview/10.1.6.04-cross-tab-communication.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 15
+          "estimatedMinutes": 17
         },
         {
           "id": "10-frontend/10.1-javascript/06-modern-and-interview/10.1.6.05-interview-questions.md",
@@ -1902,7 +1902,7 @@
           "title": "JavaScript Interview Questions",
           "studyUrl": "https://study.buildora.work/10-frontend/10.1-javascript/06-modern-and-interview/10.1.6.05-interview-questions.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 11
+          "estimatedMinutes": 10
         },
         {
           "id": "10-frontend/10.2-typescript/01-foundations/10.2.1.01-types-vs-interfaces.md",
@@ -1910,7 +1910,7 @@
           "title": "Types vs Interfaces",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/01-foundations/10.2.1.01-types-vs-interfaces.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 15
+          "estimatedMinutes": 16
         },
         {
           "id": "10-frontend/10.2-typescript/01-foundations/10.2.1.02-keyof-typeof.md",
@@ -1918,7 +1918,7 @@
           "title": "Keyof & Typeof",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/01-foundations/10.2.1.02-keyof-typeof.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 16
+          "estimatedMinutes": 17
         },
         {
           "id": "10-frontend/10.2-typescript/01-foundations/10.2.1.03-type-narrowing.md",
@@ -1929,7 +1929,7 @@
           "estimatedMinutes": 19
         }
       ],
-      "studyMinutes": 106,
+      "studyMinutes": 112,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -2004,7 +2004,7 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 7 assigned chapters for 106 minutes. Then turn Web Workers into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 7 assigned chapters for 112 minutes. Then turn Web Workers into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 7: explain the decision and attach a commit, diagram, or recording.",
       "interviewQuestion": "Explain Web Workers to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
@@ -2192,7 +2192,7 @@
       "activation": false,
       "topic": "10-frontend",
       "chapterId": "10-frontend/10.2-typescript/01-foundations/10.2.1.04-tsconfig-compiler-options.md",
-      "title": "tsconfig & Compiler Options + 6 related chapters",
+      "title": "tsconfig & Compiler Options + 5 related chapters",
       "chapters": [
         {
           "id": "10-frontend/10.2-typescript/01-foundations/10.2.1.04-tsconfig-compiler-options.md",
@@ -2200,7 +2200,7 @@
           "title": "tsconfig & Compiler Options",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/01-foundations/10.2.1.04-tsconfig-compiler-options.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 13
+          "estimatedMinutes": 14
         },
         {
           "id": "10-frontend/10.2-typescript/02-generics-and-inference/10.2.2.01-generics.md",
@@ -2216,7 +2216,7 @@
           "title": "Infer",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/02-generics-and-inference/10.2.2.02-infer.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 13
+          "estimatedMinutes": 14
         },
         {
           "id": "10-frontend/10.2-typescript/02-generics-and-inference/10.2.2.03-advanced-generics.md",
@@ -2224,7 +2224,7 @@
           "title": "Advanced Generics",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/02-generics-and-inference/10.2.2.03-advanced-generics.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 20
+          "estimatedMinutes": 21
         },
         {
           "id": "10-frontend/10.2-typescript/02-generics-and-inference/10.2.2.04-type-variance.md",
@@ -2232,7 +2232,7 @@
           "title": "Type Variance",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/02-generics-and-inference/10.2.2.04-type-variance.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 14
+          "estimatedMinutes": 15
         },
         {
           "id": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.01-utility-types.md",
@@ -2241,17 +2241,9 @@
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/03-type-transformations/10.2.3.01-utility-types.md",
           "stack": "10-frontend",
           "estimatedMinutes": 19
-        },
-        {
-          "id": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.02-conditional-types.md",
-          "path": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.02-conditional-types.md",
-          "title": "Conditional Types",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/03-type-transformations/10.2.3.02-conditional-types.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 12
         }
       ],
-      "studyMinutes": 108,
+      "studyMinutes": 100,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -2326,7 +2318,7 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 7 assigned chapters for 108 minutes. Then turn tsconfig & Compiler Options into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 6 assigned chapters for 100 minutes. Then turn tsconfig & Compiler Options into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 8: explain the decision and attach a commit, diagram, or recording.",
       "interviewQuestion": "Explain tsconfig & Compiler Options to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
@@ -2344,7 +2336,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: tsconfig & Compiler Options; Generics; Infer; Advanced Generics; Type Variance; Utility Types; Conditional Types.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: tsconfig & Compiler Options; Generics; Infer; Advanced Generics; Type Variance; Utility Types.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -2513,16 +2505,24 @@
       "phaseLabel": "Core foundations and interview baseline",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.03-mapped-types.md",
-      "title": "Mapped Types + 4 related chapters",
+      "chapterId": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.02-conditional-types.md",
+      "title": "Conditional Types + 4 related chapters",
       "chapters": [
+        {
+          "id": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.02-conditional-types.md",
+          "path": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.02-conditional-types.md",
+          "title": "Conditional Types",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/03-type-transformations/10.2.3.02-conditional-types.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 13
+        },
         {
           "id": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.03-mapped-types.md",
           "path": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.03-mapped-types.md",
           "title": "Mapped Types",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/03-type-transformations/10.2.3.03-mapped-types.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 19
+          "estimatedMinutes": 18
         },
         {
           "id": "10-frontend/10.2-typescript/03-type-transformations/10.2.3.04-template-literal-types.md",
@@ -2530,7 +2530,7 @@
           "title": "Template Literal Types",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/03-type-transformations/10.2.3.04-template-literal-types.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 29
+          "estimatedMinutes": 28
         },
         {
           "id": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.01-satisfies-operator.md",
@@ -2538,7 +2538,7 @@
           "title": "The `satisfies` Operator",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.01-satisfies-operator.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 10
+          "estimatedMinutes": 12
         },
         {
           "id": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.02-branded-types.md",
@@ -2547,17 +2547,9 @@
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.02-branded-types.md",
           "stack": "10-frontend",
           "estimatedMinutes": 26
-        },
-        {
-          "id": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.03-decorators.md",
-          "path": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.03-decorators.md",
-          "title": "Decorators",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.03-decorators.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 22
         }
       ],
-      "studyMinutes": 106,
+      "studyMinutes": 97,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -2632,11 +2624,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 5 assigned chapters for 106 minutes. Then turn Mapped Types into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 5 assigned chapters for 97 minutes. Then turn Conditional Types into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 9: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Mapped Types to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Conditional Types to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Mapped Types to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Conditional Types to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -2650,7 +2642,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Mapped Types; Template Literal Types; The `satisfies` Operator; Branded Types; Decorators.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Conditional Types; Mapped Types; Template Literal Types; The `satisfies` Operator; Branded Types.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -2795,7 +2787,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.2-typescript/03-type-transformations/10.2.3.03-mapped-types.md"
+          "url": "https://study.buildora.work/10-frontend/10.2-typescript/03-type-transformations/10.2.3.02-conditional-types.md"
         },
         {
           "label": "Full study curriculum",
@@ -2819,16 +2811,24 @@
       "phaseLabel": "Core foundations and interview baseline",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.04-declaration-files.md",
-      "title": "Declaration Files (.d.ts) + 3 related chapters",
+      "chapterId": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.03-decorators.md",
+      "title": "Decorators + 4 related chapters",
       "chapters": [
+        {
+          "id": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.03-decorators.md",
+          "path": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.03-decorators.md",
+          "title": "Decorators",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.03-decorators.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 21
+        },
         {
           "id": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.04-declaration-files.md",
           "path": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.04-declaration-files.md",
           "title": "Declaration Files (.d.ts)",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.04-declaration-files.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 23
+          "estimatedMinutes": 24
         },
         {
           "id": "10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.05-advanced-patterns.md",
@@ -2836,7 +2836,7 @@
           "title": "TypeScript Advanced Patterns — Decorators, Middleware, Advanced Generics",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.05-advanced-patterns.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 18
+          "estimatedMinutes": 12
         },
         {
           "id": "10-frontend/10.2-typescript/05-interview-prep/10.2.5.01-interview-questions.md",
@@ -2844,7 +2844,7 @@
           "title": "TypeScript Interview Questions",
           "studyUrl": "https://study.buildora.work/10-frontend/10.2-typescript/05-interview-prep/10.2.5.01-interview-questions.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 44
+          "estimatedMinutes": 39
         },
         {
           "id": "10-frontend/10.3-react/01-react-internals/10.3.1.01-virtual-dom.md",
@@ -2852,10 +2852,10 @@
           "title": "Virtual DOM",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/01-react-internals/10.3.1.01-virtual-dom.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 19
+          "estimatedMinutes": 16
         }
       ],
-      "studyMinutes": 104,
+      "studyMinutes": 112,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -2930,11 +2930,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 4 assigned chapters for 104 minutes. Then turn Declaration Files (.d.ts) into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 5 assigned chapters for 112 minutes. Then turn Decorators into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 10: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Declaration Files (.d.ts) to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Decorators to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Declaration Files (.d.ts) to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Decorators to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -2948,7 +2948,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Declaration Files (.d.ts); TypeScript Advanced Patterns — Decorators, Middleware, Advanced Generics; TypeScript Interview Questions; Virtual DOM.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Decorators; Declaration Files (.d.ts); TypeScript Advanced Patterns — Decorators, Middleware, Advanced Generics; TypeScript Interview Questions; Virtual DOM.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -3093,7 +3093,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.04-declaration-files.md"
+          "url": "https://study.buildora.work/10-frontend/10.2-typescript/04-advanced-patterns/10.2.4.03-decorators.md"
         },
         {
           "label": "Full study curriculum",
@@ -3126,7 +3126,7 @@
           "title": "React Fiber",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/01-react-internals/10.3.1.02-fiber.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 26
+          "estimatedMinutes": 25
         },
         {
           "id": "10-frontend/10.3-react/01-react-internals/10.3.1.03-reconciliation.md",
@@ -3134,7 +3134,7 @@
           "title": "Reconciliation",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/01-react-internals/10.3.1.03-reconciliation.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 25
+          "estimatedMinutes": 24
         },
         {
           "id": "10-frontend/10.3-react/01-react-internals/10.3.1.04-rendering.md",
@@ -3142,7 +3142,7 @@
           "title": "Rendering",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/01-react-internals/10.3.1.04-rendering.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 26
+          "estimatedMinutes": 22
         },
         {
           "id": "10-frontend/10.3-react/01-react-internals/10.3.1.05-lifecycle.md",
@@ -3150,10 +3150,10 @@
           "title": "Lifecycle",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/01-react-internals/10.3.1.05-lifecycle.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 27
+          "estimatedMinutes": 26
         }
       ],
-      "studyMinutes": 104,
+      "studyMinutes": 97,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -3228,7 +3228,7 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 4 assigned chapters for 104 minutes. Then turn React Fiber into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 4 assigned chapters for 97 minutes. Then turn React Fiber into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 11: explain the decision and attach a commit, diagram, or recording.",
       "interviewQuestion": "Explain React Fiber to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
@@ -3424,7 +3424,7 @@
           "title": "useState",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/02-core-hooks/10.3.2.01-usestate.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 28
+          "estimatedMinutes": 26
         },
         {
           "id": "10-frontend/10.3-react/02-core-hooks/10.3.2.02-useeffect.md",
@@ -3432,7 +3432,7 @@
           "title": "useEffect",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/02-core-hooks/10.3.2.02-useeffect.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 29
+          "estimatedMinutes": 30
         },
         {
           "id": "10-frontend/10.3-react/02-core-hooks/10.3.2.03-usememo-usecallback.md",
@@ -3440,7 +3440,7 @@
           "title": "useMemo & useCallback",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/02-core-hooks/10.3.2.03-usememo-usecallback.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 26
+          "estimatedMinutes": 24
         },
         {
           "id": "10-frontend/10.3-react/02-core-hooks/10.3.2.04-useref.md",
@@ -3448,10 +3448,10 @@
           "title": "useRef",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/02-core-hooks/10.3.2.04-useref.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 28
+          "estimatedMinutes": 27
         }
       ],
-      "studyMinutes": 111,
+      "studyMinutes": 107,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -3526,7 +3526,7 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 4 assigned chapters for 111 minutes. Then turn useState into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 4 assigned chapters for 107 minutes. Then turn useState into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 12: explain the decision and attach a commit, diagram, or recording.",
       "interviewQuestion": "Explain useState to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
@@ -3714,7 +3714,7 @@
       "activation": false,
       "topic": "10-frontend",
       "chapterId": "10-frontend/10.3-react/02-core-hooks/10.3.2.05-context-api.md",
-      "title": "Context API + 2 related chapters",
+      "title": "Context API + 3 related chapters",
       "chapters": [
         {
           "id": "10-frontend/10.3-react/02-core-hooks/10.3.2.05-context-api.md",
@@ -3730,7 +3730,7 @@
           "title": "Suspense",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.01-suspense.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 23
+          "estimatedMinutes": 21
         },
         {
           "id": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.02-error-boundary.md",
@@ -3738,10 +3738,18 @@
           "title": "Error Boundary",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.02-error-boundary.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 25
+          "estimatedMinutes": 22
+        },
+        {
+          "id": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.03-custom-hooks.md",
+          "path": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.03-custom-hooks.md",
+          "title": "Custom Hooks",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.03-custom-hooks.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 39
         }
       ],
-      "studyMinutes": 80,
+      "studyMinutes": 114,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -3816,7 +3824,7 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 3 assigned chapters for 80 minutes. Then turn Context API into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 4 assigned chapters for 114 minutes. Then turn Context API into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 13: explain the decision and attach a commit, diagram, or recording.",
       "interviewQuestion": "Explain Context API to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
@@ -3834,7 +3842,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Context API; Suspense; Error Boundary.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Context API; Suspense; Error Boundary; Custom Hooks.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -4003,24 +4011,16 @@
       "phaseLabel": "Core foundations and interview baseline",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.03-custom-hooks.md",
-      "title": "Custom Hooks + 5 related chapters",
+      "chapterId": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.04-usesyncexternalstore.md",
+      "title": "useSyncExternalStore + 5 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.03-custom-hooks.md",
-          "path": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.03-custom-hooks.md",
-          "title": "Custom Hooks",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.03-custom-hooks.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 43
-        },
         {
           "id": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.04-usesyncexternalstore.md",
           "path": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.04-usesyncexternalstore.md",
           "title": "useSyncExternalStore",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.04-usesyncexternalstore.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 16
+          "estimatedMinutes": 18
         },
         {
           "id": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.05-performance.md",
@@ -4028,7 +4028,7 @@
           "title": "React Performance Optimization",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.05-performance.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 11
+          "estimatedMinutes": 13
         },
         {
           "id": "10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.06-state-management.md",
@@ -4036,7 +4036,7 @@
           "title": "State Management",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.06-state-management.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 14
+          "estimatedMinutes": 17
         },
         {
           "id": "10-frontend/10.3-react/04-modern-react/10.3.4.01-modern-hooks-react18-19.md",
@@ -4044,7 +4044,7 @@
           "title": "Modern React Hooks: useTransition, useDeferredValue, use, useOptimistic, and React 19 APIs",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/04-modern-react/10.3.4.01-modern-hooks-react18-19.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 13
+          "estimatedMinutes": 17
         },
         {
           "id": "10-frontend/10.3-react/04-modern-react/10.3.4.02-web-components.md",
@@ -4052,10 +4052,18 @@
           "title": "Web Components",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/04-modern-react/10.3.4.02-web-components.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 10
+          "estimatedMinutes": 12
+        },
+        {
+          "id": "10-frontend/10.3-react/04-modern-react/10.3.4.03-react-router.md",
+          "path": "10-frontend/10.3-react/04-modern-react/10.3.4.03-react-router.md",
+          "title": "React Router",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/04-modern-react/10.3.4.03-react-router.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 19
         }
       ],
-      "studyMinutes": 107,
+      "studyMinutes": 96,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -4130,11 +4138,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 6 assigned chapters for 107 minutes. Then turn Custom Hooks into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 6 assigned chapters for 96 minutes. Then turn useSyncExternalStore into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 14: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Custom Hooks to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain useSyncExternalStore to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Custom Hooks to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain useSyncExternalStore to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Lightdash",
@@ -4148,7 +4156,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Custom Hooks; useSyncExternalStore; React Performance Optimization; State Management; Modern React Hooks: useTransition, useDeferredValue, use, useOptimistic, and React 19 APIs; Web Components.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: useSyncExternalStore; React Performance Optimization; State Management; Modern React Hooks: useTransition, useDeferredValue, use, useOptimistic, and React 19 APIs; Web Components; React Router.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -4293,7 +4301,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.03-custom-hooks.md"
+          "url": "https://study.buildora.work/10-frontend/10.3-react/03-advanced-hooks-and-patterns/10.3.3.04-usesyncexternalstore.md"
         },
         {
           "label": "Full study curriculum",
@@ -4317,24 +4325,16 @@
       "phaseLabel": "Build and deepen the product",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.3-react/04-modern-react/10.3.4.03-react-router.md",
-      "title": "React Router + 4 related chapters",
+      "chapterId": "10-frontend/10.3-react/05-patterns-and-interview/10.3.5.01-portals.md",
+      "title": "Portals + 4 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.3-react/04-modern-react/10.3.4.03-react-router.md",
-          "path": "10-frontend/10.3-react/04-modern-react/10.3.4.03-react-router.md",
-          "title": "React Router",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/04-modern-react/10.3.4.03-react-router.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 18
-        },
         {
           "id": "10-frontend/10.3-react/05-patterns-and-interview/10.3.5.01-portals.md",
           "path": "10-frontend/10.3-react/05-patterns-and-interview/10.3.5.01-portals.md",
           "title": "Portals",
           "studyUrl": "https://study.buildora.work/10-frontend/10.3-react/05-patterns-and-interview/10.3.5.01-portals.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 31
+          "estimatedMinutes": 25
         },
         {
           "id": "10-frontend/10.3-react/05-patterns-and-interview/10.3.5.02-compound-components.md",
@@ -4358,10 +4358,18 @@
           "title": "SSR, CSR, SSG, and ISR in Next.js",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.01-ssr-csr-ssg-isr.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 25
+          "estimatedMinutes": 24
+        },
+        {
+          "id": "10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.02-app-router.md",
+          "path": "10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.02-app-router.md",
+          "title": "App Router in Next.js",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.02-app-router.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 23
         }
       ],
-      "studyMinutes": 115,
+      "studyMinutes": 113,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -4436,11 +4444,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 5 assigned chapters for 115 minutes. Then turn React Router into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 5 assigned chapters for 113 minutes. Then turn Portals into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 15: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain React Router to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Portals to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain React Router to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Portals to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -4454,7 +4462,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: React Router; Portals; Compound Components; React Interview Questions; SSR, CSR, SSG, and ISR in Next.js.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Portals; Compound Components; React Interview Questions; SSR, CSR, SSG, and ISR in Next.js; App Router in Next.js.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -4599,7 +4607,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.3-react/04-modern-react/10.3.4.03-react-router.md"
+          "url": "https://study.buildora.work/10-frontend/10.3-react/05-patterns-and-interview/10.3.5.01-portals.md"
         },
         {
           "label": "Full study curriculum",
@@ -4623,24 +4631,16 @@
       "phaseLabel": "Build and deepen the product",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.02-app-router.md",
-      "title": "App Router in Next.js + 3 related chapters",
+      "chapterId": "10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.03-server-components.md",
+      "title": "Server Components in Next.js + 3 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.02-app-router.md",
-          "path": "10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.02-app-router.md",
-          "title": "App Router in Next.js",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.02-app-router.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 24
-        },
         {
           "id": "10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.03-server-components.md",
           "path": "10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.03-server-components.md",
           "title": "Server Components in Next.js",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.03-server-components.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 27
+          "estimatedMinutes": 21
         },
         {
           "id": "10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.04-client-components.md",
@@ -4648,7 +4648,7 @@
           "title": "Client Components in Next.js",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.04-client-components.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 33
+          "estimatedMinutes": 31
         },
         {
           "id": "10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.01-middleware.md",
@@ -4656,10 +4656,18 @@
           "title": "Middleware in Next.js",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.01-middleware.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 27
+          "estimatedMinutes": 22
+        },
+        {
+          "id": "10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.02-route-handlers.md",
+          "path": "10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.02-route-handlers.md",
+          "title": "Route Handlers in Next.js",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.02-route-handlers.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 25
         }
       ],
-      "studyMinutes": 111,
+      "studyMinutes": 99,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -4734,11 +4742,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 4 assigned chapters for 111 minutes. Then turn App Router in Next.js into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 4 assigned chapters for 99 minutes. Then turn Server Components in Next.js into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 16: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain App Router in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Server Components in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain App Router in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Server Components in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -4752,7 +4760,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: App Router in Next.js; Server Components in Next.js; Client Components in Next.js; Middleware in Next.js.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Server Components in Next.js; Client Components in Next.js; Middleware in Next.js; Route Handlers in Next.js.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -4897,7 +4905,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.02-app-router.md"
+          "url": "https://study.buildora.work/10-frontend/10.4-next.js/01-rendering-fundamentals/10.4.1.03-server-components.md"
         },
         {
           "label": "Full study curriculum",
@@ -4921,24 +4929,16 @@
       "phaseLabel": "Build and deepen the product",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.02-route-handlers.md",
-      "title": "Route Handlers in Next.js + 3 related chapters",
+      "chapterId": "10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.03-metadata.md",
+      "title": "Metadata API in Next.js + 3 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.02-route-handlers.md",
-          "path": "10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.02-route-handlers.md",
-          "title": "Route Handlers in Next.js",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.02-route-handlers.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 27
-        },
         {
           "id": "10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.03-metadata.md",
           "path": "10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.03-metadata.md",
           "title": "Metadata API in Next.js",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.03-metadata.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 26
+          "estimatedMinutes": 25
         },
         {
           "id": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.01-data-fetching-patterns.md",
@@ -4946,7 +4946,7 @@
           "title": "Data Fetching Patterns in Next.js (App Router)",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/03-data-and-caching/10.4.3.01-data-fetching-patterns.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 14
+          "estimatedMinutes": 13
         },
         {
           "id": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.02-server-actions.md",
@@ -4954,10 +4954,18 @@
           "title": "Server Actions in Next.js",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/03-data-and-caching/10.4.3.02-server-actions.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 28
+          "estimatedMinutes": 29
+        },
+        {
+          "id": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.03-caching.md",
+          "path": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.03-caching.md",
+          "title": "Caching in Next.js",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/03-data-and-caching/10.4.3.03-caching.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 27
         }
       ],
-      "studyMinutes": 95,
+      "studyMinutes": 94,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -5032,11 +5040,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 4 assigned chapters for 95 minutes. Then turn Route Handlers in Next.js into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 4 assigned chapters for 94 minutes. Then turn Metadata API in Next.js into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 17: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Route Handlers in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Metadata API in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Route Handlers in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Metadata API in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -5050,7 +5058,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Route Handlers in Next.js; Metadata API in Next.js; Data Fetching Patterns in Next.js (App Router); Server Actions in Next.js.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Metadata API in Next.js; Data Fetching Patterns in Next.js (App Router); Server Actions in Next.js; Caching in Next.js.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -5195,7 +5203,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.02-route-handlers.md"
+          "url": "https://study.buildora.work/10-frontend/10.4-next.js/02-routing-and-middleware/10.4.2.03-metadata.md"
         },
         {
           "label": "Full study curriculum",
@@ -5219,24 +5227,16 @@
       "phaseLabel": "Build and deepen the product",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.03-caching.md",
-      "title": "Caching in Next.js + 3 related chapters",
+      "chapterId": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.04-streaming.md",
+      "title": "Streaming in Next.js + 3 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.03-caching.md",
-          "path": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.03-caching.md",
-          "title": "Caching in Next.js",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/03-data-and-caching/10.4.3.03-caching.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 26
-        },
         {
           "id": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.04-streaming.md",
           "path": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.04-streaming.md",
           "title": "Streaming in Next.js",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/03-data-and-caching/10.4.3.04-streaming.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 29
+          "estimatedMinutes": 24
         },
         {
           "id": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.05-incremental-static-regeneration.md",
@@ -5244,7 +5244,7 @@
           "title": "Incremental Static Regeneration (ISR)",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/03-data-and-caching/10.4.3.05-incremental-static-regeneration.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 27
+          "estimatedMinutes": 24
         },
         {
           "id": "10-frontend/10.4-next.js/03-data-and-caching/10.4.3.06-static-exports.md",
@@ -5252,10 +5252,18 @@
           "title": "Static Exports in Next.js",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/03-data-and-caching/10.4.3.06-static-exports.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 18
+          "estimatedMinutes": 19
+        },
+        {
+          "id": "10-frontend/10.4-next.js/04-production/10.4.4.01-authentication.md",
+          "path": "10-frontend/10.4-next.js/04-production/10.4.4.01-authentication.md",
+          "title": "Authentication in Next.js",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/04-production/10.4.4.01-authentication.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 32
         }
       ],
-      "studyMinutes": 100,
+      "studyMinutes": 99,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -5330,11 +5338,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 4 assigned chapters for 100 minutes. Then turn Caching in Next.js into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 4 assigned chapters for 99 minutes. Then turn Streaming in Next.js into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 18: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Caching in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Streaming in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Caching in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Streaming in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -5348,7 +5356,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Caching in Next.js; Streaming in Next.js; Incremental Static Regeneration (ISR); Static Exports in Next.js.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Streaming in Next.js; Incremental Static Regeneration (ISR); Static Exports in Next.js; Authentication in Next.js.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -5493,7 +5501,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.4-next.js/03-data-and-caching/10.4.3.03-caching.md"
+          "url": "https://study.buildora.work/10-frontend/10.4-next.js/03-data-and-caching/10.4.3.04-streaming.md"
         },
         {
           "label": "Full study curriculum",
@@ -5517,17 +5525,9 @@
       "phaseLabel": "Build and deepen the product",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.4-next.js/04-production/10.4.4.01-authentication.md",
-      "title": "Authentication in Next.js + 3 related chapters",
+      "chapterId": "10-frontend/10.4-next.js/04-production/10.4.4.02-image-optimization.md",
+      "title": "Image Optimization in Next.js + 3 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.4-next.js/04-production/10.4.4.01-authentication.md",
-          "path": "10-frontend/10.4-next.js/04-production/10.4.4.01-authentication.md",
-          "title": "Authentication in Next.js",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/04-production/10.4.4.01-authentication.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 31
-        },
         {
           "id": "10-frontend/10.4-next.js/04-production/10.4.4.02-image-optimization.md",
           "path": "10-frontend/10.4-next.js/04-production/10.4.4.02-image-optimization.md",
@@ -5542,7 +5542,7 @@
           "title": "Deploying Next.js",
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/04-production/10.4.4.03-deploying-nextjs.md",
           "stack": "10-frontend",
-          "estimatedMinutes": 15
+          "estimatedMinutes": 16
         },
         {
           "id": "10-frontend/10.4-next.js/05-interview-prep/10.4.5.01-interview-questions.md",
@@ -5551,9 +5551,17 @@
           "studyUrl": "https://study.buildora.work/10-frontend/10.4-next.js/05-interview-prep/10.4.5.01-interview-questions.md",
           "stack": "10-frontend",
           "estimatedMinutes": 45
+        },
+        {
+          "id": "10-frontend/10.5-form-handling/10.5.01-react-hook-form.md",
+          "path": "10-frontend/10.5-form-handling/10.5.01-react-hook-form.md",
+          "title": "React Hook Form",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.5-form-handling/10.5.01-react-hook-form.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 16
         }
       ],
-      "studyMinutes": 115,
+      "studyMinutes": 101,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -5628,11 +5636,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 4 assigned chapters for 115 minutes. Then turn Authentication in Next.js into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 4 assigned chapters for 101 minutes. Then turn Image Optimization in Next.js into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 19: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Authentication in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Image Optimization in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Authentication in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Image Optimization in Next.js to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -5646,7 +5654,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Authentication in Next.js; Image Optimization in Next.js; Deploying Next.js; Next.js Interview Questions — Comprehensive Guide.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Image Optimization in Next.js; Deploying Next.js; Next.js Interview Questions — Comprehensive Guide; React Hook Form.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -5791,7 +5799,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.4-next.js/04-production/10.4.4.01-authentication.md"
+          "url": "https://study.buildora.work/10-frontend/10.4-next.js/04-production/10.4.4.02-image-optimization.md"
         },
         {
           "label": "Full study curriculum",
@@ -5815,17 +5823,9 @@
       "phaseLabel": "Build and deepen the product",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.5-form-handling/10.5.01-react-hook-form.md",
-      "title": "React Hook Form + 7 related chapters",
+      "chapterId": "10-frontend/10.5-form-handling/10.5.02-zod.md",
+      "title": "Zod + 7 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.5-form-handling/10.5.01-react-hook-form.md",
-          "path": "10-frontend/10.5-form-handling/10.5.01-react-hook-form.md",
-          "title": "React Hook Form",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.5-form-handling/10.5.01-react-hook-form.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 16
-        },
         {
           "id": "10-frontend/10.5-form-handling/10.5.02-zod.md",
           "path": "10-frontend/10.5-form-handling/10.5.02-zod.md",
@@ -5881,9 +5881,17 @@
           "studyUrl": "https://study.buildora.work/10-frontend/10.6-animation/10.6.01-css-animations.md",
           "stack": "10-frontend",
           "estimatedMinutes": 13
+        },
+        {
+          "id": "10-frontend/10.6-animation/10.6.02-framer-motion.md",
+          "path": "10-frontend/10.6-animation/10.6.02-framer-motion.md",
+          "title": "Framer Motion",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.6-animation/10.6.02-framer-motion.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 14
         }
       ],
-      "studyMinutes": 111,
+      "studyMinutes": 109,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -5958,11 +5966,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 8 assigned chapters for 111 minutes. Then turn React Hook Form into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 8 assigned chapters for 109 minutes. Then turn Zod into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 20: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain React Hook Form to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Zod to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain React Hook Form to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Zod to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -5976,7 +5984,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: React Hook Form; Zod; Formik; TanStack Form; Server Actions & Modern Form Patterns; Autosave & Draft Recovery; Form Handling Interview Questions; CSS Animations.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Zod; Formik; TanStack Form; Server Actions & Modern Form Patterns; Autosave & Draft Recovery; Form Handling Interview Questions; CSS Animations; Framer Motion.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -6121,7 +6129,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.5-form-handling/10.5.01-react-hook-form.md"
+          "url": "https://study.buildora.work/10-frontend/10.5-form-handling/10.5.02-zod.md"
         },
         {
           "label": "Full study curriculum",
@@ -6145,17 +6153,9 @@
       "phaseLabel": "Build and deepen the product",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.6-animation/10.6.02-framer-motion.md",
-      "title": "Framer Motion + 8 related chapters",
+      "chapterId": "10-frontend/10.6-animation/10.6.03-gsap.md",
+      "title": "GSAP (GreenSock Animation Platform) + 9 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.6-animation/10.6.02-framer-motion.md",
-          "path": "10-frontend/10.6-animation/10.6.02-framer-motion.md",
-          "title": "Framer Motion",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.6-animation/10.6.02-framer-motion.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 14
-        },
         {
           "id": "10-frontend/10.6-animation/10.6.03-gsap.md",
           "path": "10-frontend/10.6-animation/10.6.03-gsap.md",
@@ -6219,9 +6219,25 @@
           "studyUrl": "https://study.buildora.work/10-frontend/10.7-html-css/10.7.02-css-fundamentals.md",
           "stack": "10-frontend",
           "estimatedMinutes": 9
+        },
+        {
+          "id": "10-frontend/10.7-html-css/10.7.03-browser-rendering.md",
+          "path": "10-frontend/10.7-html-css/10.7.03-browser-rendering.md",
+          "title": "Browser Rendering — Critical Rendering Path, Reflow, Paint",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.7-html-css/10.7.03-browser-rendering.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 13
+        },
+        {
+          "id": "10-frontend/10.7-html-css/10.7.04-seo.md",
+          "path": "10-frontend/10.7-html-css/10.7.04-seo.md",
+          "title": "SEO — Meta Tags, Structured Data, Core Web Vitals",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.7-html-css/10.7.04-seo.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 11
         }
       ],
-      "studyMinutes": 101,
+      "studyMinutes": 111,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -6296,11 +6312,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 9 assigned chapters for 101 minutes. Then turn Framer Motion into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 10 assigned chapters for 111 minutes. Then turn GSAP (GreenSock Animation Platform) into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 21: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Framer Motion to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain GSAP (GreenSock Animation Platform) to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Framer Motion to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain GSAP (GreenSock Animation Platform) to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Lightdash",
@@ -6314,7 +6330,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Framer Motion; GSAP (GreenSock Animation Platform); React Spring; Web Animations API (WAAPI); View Transitions API & CSS Scroll-Driven Animations; Canvas & SVG Animation; Animation Interview Questions; HTML Fundamentals — Semantic HTML, Forms, Accessibility; CSS Fundamentals — Grid, Flexbox, Responsive Design, Variables.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: GSAP (GreenSock Animation Platform); React Spring; Web Animations API (WAAPI); View Transitions API & CSS Scroll-Driven Animations; Canvas & SVG Animation; Animation Interview Questions; HTML Fundamentals — Semantic HTML, Forms, Accessibility; CSS Fundamentals — Grid, Flexbox, Responsive Design, Variables; Browser Rendering — Critical Rendering Path, Reflow, Paint; SEO — Meta Tags, Structured Data, Core Web Vitals.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -6459,7 +6475,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.6-animation/10.6.02-framer-motion.md"
+          "url": "https://study.buildora.work/10-frontend/10.6-animation/10.6.03-gsap.md"
         },
         {
           "label": "Full study curriculum",
@@ -6483,25 +6499,9 @@
       "phaseLabel": "Build and deepen the product",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.7-html-css/10.7.03-browser-rendering.md",
-      "title": "Browser Rendering — Critical Rendering Path, Reflow, Paint + 7 related chapters",
+      "chapterId": "10-frontend/10.7-html-css/10.7.05-pwa.md",
+      "title": "Progressive Web Apps (PWA) — Service Workers, Manifest, Offline + 7 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.7-html-css/10.7.03-browser-rendering.md",
-          "path": "10-frontend/10.7-html-css/10.7.03-browser-rendering.md",
-          "title": "Browser Rendering — Critical Rendering Path, Reflow, Paint",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.7-html-css/10.7.03-browser-rendering.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 13
-        },
-        {
-          "id": "10-frontend/10.7-html-css/10.7.04-seo.md",
-          "path": "10-frontend/10.7-html-css/10.7.04-seo.md",
-          "title": "SEO — Meta Tags, Structured Data, Core Web Vitals",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.7-html-css/10.7.04-seo.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 11
-        },
         {
           "id": "10-frontend/10.7-html-css/10.7.05-pwa.md",
           "path": "10-frontend/10.7-html-css/10.7.05-pwa.md",
@@ -6549,9 +6549,25 @@
           "studyUrl": "https://study.buildora.work/10-frontend/10.8-mobile/10.8.01-react-native-cross-platform.md",
           "stack": "10-frontend",
           "estimatedMinutes": 11
+        },
+        {
+          "id": "10-frontend/10.8-mobile/10.8.02-deep-linking-universal-links.md",
+          "path": "10-frontend/10.8-mobile/10.8.02-deep-linking-universal-links.md",
+          "title": "Deep Linking, Universal Links & App Links",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.8-mobile/10.8.02-deep-linking-universal-links.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 12
+        },
+        {
+          "id": "10-frontend/10.8-mobile/10.8.03-testing-react-native-apps.md",
+          "path": "10-frontend/10.8-mobile/10.8.03-testing-react-native-apps.md",
+          "title": "Testing React Native Apps",
+          "studyUrl": "https://study.buildora.work/10-frontend/10.8-mobile/10.8.03-testing-react-native-apps.md",
+          "stack": "10-frontend",
+          "estimatedMinutes": 11
         }
       ],
-      "studyMinutes": 109,
+      "studyMinutes": 108,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -6626,11 +6642,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 8 assigned chapters for 109 minutes. Then turn Browser Rendering — Critical Rendering Path, Reflow, Paint into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 8 assigned chapters for 108 minutes. Then turn Progressive Web Apps (PWA) — Service Workers, Manifest, Offline into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 22: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Browser Rendering — Critical Rendering Path, Reflow, Paint to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Progressive Web Apps (PWA) — Service Workers, Manifest, Offline to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Browser Rendering — Critical Rendering Path, Reflow, Paint to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Progressive Web Apps (PWA) — Service Workers, Manifest, Offline to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -6644,7 +6660,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Browser Rendering — Critical Rendering Path, Reflow, Paint; SEO — Meta Tags, Structured Data, Core Web Vitals; Progressive Web Apps (PWA) — Service Workers, Manifest, Offline; CSS Architecture & Styling Approaches; Theming & Design Tokens; Browser Storage; HTML/CSS Interview Questions; React Native & Cross-Platform.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Progressive Web Apps (PWA) — Service Workers, Manifest, Offline; CSS Architecture & Styling Approaches; Theming & Design Tokens; Browser Storage; HTML/CSS Interview Questions; React Native & Cross-Platform; Deep Linking, Universal Links & App Links; Testing React Native Apps.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -6789,7 +6805,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.7-html-css/10.7.03-browser-rendering.md"
+          "url": "https://study.buildora.work/10-frontend/10.7-html-css/10.7.05-pwa.md"
         },
         {
           "label": "Full study curriculum",
@@ -6813,25 +6829,9 @@
       "phaseLabel": "Build and deepen the product",
       "activation": false,
       "topic": "10-frontend",
-      "chapterId": "10-frontend/10.8-mobile/10.8.02-deep-linking-universal-links.md",
-      "title": "Deep Linking, Universal Links & App Links + 7 related chapters",
+      "chapterId": "10-frontend/10.8-mobile/10.8.04-expo-eas-builds.md",
+      "title": "Expo EAS Build — Cloud Builds, Profiles & Submitting + 5 related chapters",
       "chapters": [
-        {
-          "id": "10-frontend/10.8-mobile/10.8.02-deep-linking-universal-links.md",
-          "path": "10-frontend/10.8-mobile/10.8.02-deep-linking-universal-links.md",
-          "title": "Deep Linking, Universal Links & App Links",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.8-mobile/10.8.02-deep-linking-universal-links.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 12
-        },
-        {
-          "id": "10-frontend/10.8-mobile/10.8.03-testing-react-native-apps.md",
-          "path": "10-frontend/10.8-mobile/10.8.03-testing-react-native-apps.md",
-          "title": "Testing React Native Apps",
-          "studyUrl": "https://study.buildora.work/10-frontend/10.8-mobile/10.8.03-testing-react-native-apps.md",
-          "stack": "10-frontend",
-          "estimatedMinutes": 11
-        },
         {
           "id": "10-frontend/10.8-mobile/10.8.04-expo-eas-builds.md",
           "path": "10-frontend/10.8-mobile/10.8.04-expo-eas-builds.md",
@@ -6881,7 +6881,7 @@
           "estimatedMinutes": 15
         }
       ],
-      "studyMinutes": 104,
+      "studyMinutes": 81,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -6956,11 +6956,11 @@
           "output": "Devices away and tomorrow ready"
         }
       },
-      "mission": "Study 8 assigned chapters for 104 minutes. Then turn Deep Linking, Universal Links & App Links into a small, reviewable engineering proof and connect it to a target role.",
+      "mission": "Study 6 assigned chapters for 81 minutes. Then turn Expo EAS Build — Cloud Builds, Profiles & Submitting into a small, reviewable engineering proof and connect it to a target role.",
       "practiceTask": "Implement one user-facing interaction and check keyboard, loading, empty, and error states. Day 23: explain the decision and attach a commit, diagram, or recording.",
-      "interviewQuestion": "Explain Deep Linking, Universal Links & App Links to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
+      "interviewQuestion": "Explain Expo EAS Build — Cloud Builds, Profiles & Submitting to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result.",
       "interviewQuestions": [
-        "Explain Deep Linking, Universal Links & App Links to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
+        "Explain Expo EAS Build — Cloud Builds, Profiles & Submitting to a senior interviewer. State the invariant, one failure mode, one trade-off, and how you would verify the result."
       ],
       "ossTrack": {
         "project": "Langfuse",
@@ -6974,7 +6974,7 @@
       "mockInterviewPlatform": "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       "founderOutreachTarget": "At most one relevant follow-up or warm conversation; quality before volume",
       "steps": [
-        "Open each assigned chapter from study.buildora.work and note its main invariant: Deep Linking, Universal Links & App Links; Testing React Native Apps; Expo EAS Build — Cloud Builds, Profiles & Submitting; Over-the-Air Updates — EAS Update, CodePush & the JS/Native Boundary; App-Store Release Automation — Release Trains, Store Review & Rollout Safety; Mobile & Cross-Platform Interview Questions; Node.js Event Loop; Web Streams and the Node.js Test Runner.",
+        "Open each assigned chapter from study.buildora.work and note its main invariant: Expo EAS Build — Cloud Builds, Profiles & Submitting; Over-the-Air Updates — EAS Update, CodePush & the JS/Native Boundary; App-Store Release Automation — Release Trains, Store Review & Rollout Safety; Mobile & Cross-Platform Interview Questions; Node.js Event Loop; Web Streams and the Node.js Test Runner.",
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
@@ -7119,7 +7119,7 @@
       "resources": [
         {
           "label": "Assigned chapter",
-          "url": "https://study.buildora.work/10-frontend/10.8-mobile/10.8.02-deep-linking-universal-links.md"
+          "url": "https://study.buildora.work/10-frontend/10.8-mobile/10.8.04-expo-eas-builds.md"
         },
         {
           "label": "Full study curriculum",
