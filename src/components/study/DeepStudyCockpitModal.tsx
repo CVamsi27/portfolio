@@ -49,9 +49,12 @@ import {
 import {
   computeStudyAnalytics,
   formatStudyClock,
+  getClientDeviceId,
+  getDeviceDisplayName,
   getNextStudyGoal,
   getStudyElapsedMs,
   getStudyRemainingMs,
+  isMobilePhoneDevice,
   type ActiveStudySession,
   type CompletedChapterRecord,
   type NextStudyGoal,
@@ -333,8 +336,12 @@ export default function DeepStudyCockpitModal({
         attentionChecksPassed: 0,
         strictLockdown: true,
         notes: "",
+        originDeviceId: getClientDeviceId(),
+        originDeviceType: isMobilePhoneDevice() ? "mobile" : "desktop",
+        originDeviceName: getDeviceDisplayName(),
+        blockMobileDevices: true,
       };
-      setActiveSession(newSession);
+      setActiveSession(newSession, { immediate: true });
     },
     [setActiveSession, selectedSprintMinutes]
   );

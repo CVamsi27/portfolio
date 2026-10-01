@@ -20,6 +20,11 @@ export interface ActiveStudySession {
   attentionChecksPassed: number;
   strictLockdown: boolean;
   notes: string;
+  // Multi-device & Phone Lockdown coordination
+  originDeviceId?: string;
+  originDeviceType?: "desktop" | "mobile";
+  originDeviceName?: string;
+  blockMobileDevices?: boolean;
 }
 
 export interface CompletedChapterRecord {
@@ -173,3 +178,48 @@ export function computeStudyAnalytics(records: CompletedChapterRecord[]): StudyA
     completedByStack,
   };
 }
+
+/**
+ * Detects whether the current browser client is running on a mobile phone / handheld device.
+ */
+export function isMobilePhoneDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  const isMobileUA = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const isNarrowTouch =
+    window.innerWidth <= 768 && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  return isMobileUA || isNarrowTouch;
+}
+
+/**
+ * Returns a persistent unique device identifier stored in localStorage.
+ */
+export function getClientDeviceId(): string {
+  if (typeof window === "undefined") return "server";
+  try {
+    let id = window.localStorage.getItem("study:client_device_id");
+    if (!id) {
+      id = "dev_" + Math.random().toString(36).slice(2, 10) + "_" + Date.now().toString(36);
+      window.localStorage.setItem("study:client_device_id", id);
+    }
+    return id;
+  } catch {
+    return "ephemeral_client";
+  }
+}
+
+/**
+ * Returns a human-readable display name for the current hardware/browser.
+ */
+export function getDeviceDisplayName(): string {
+  if (typeof window === "undefined") return "Workstation";
+  const ua = navigator.userAgent || "";
+  if (/iPhone/i.test(ua)) return "iPhone";
+  if (/iPad/i.test(ua)) return "iPad";
+  if (/Android/i.test(ua)) return "Android Phone";
+  if (/Macintosh|Mac OS X/i.test(ua)) return "Mac Workstation";
+  if (/Windows/i.test(ua)) return "Windows PC";
+  if (/Linux/i.test(ua)) return "Linux Workstation";
+  return isMobilePhoneDevice() ? "Mobile Device" : "Workstation";
+}
+

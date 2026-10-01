@@ -10,6 +10,7 @@ import {
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import DistractionShieldModal from "@/components/study/DistractionShieldModal";
 import DistractionShieldBanner from "@/components/study/DistractionShieldBanner";
+import MobileStudyLockdownBarrier from "@/components/study/MobileStudyLockdownBarrier";
 
 export default function DistractionInterceptor() {
   const { value: shieldState } = useSyncedStorage<DistractionShieldState>(
@@ -105,6 +106,7 @@ export default function DistractionInterceptor() {
         onClose={() => setShieldOpen(false)}
       />
       <DistractionShieldBanner onOpenShield={handleOpenDirect} />
+      <MobileStudyLockdownBarrier />
     </>
   );
 }

@@ -115,8 +115,8 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
   const getServerSnapshot = useCallback(() => initial, [initial]);
   const value = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  // THE one effect: pull the cloud row when the signed-in user changes,
-  // merging last-write-wins over local.
+  // Cloud pull effect: loads row on mount/user change, listens to visibility/focus for instant tab wakeups,
+  // and subscribes to Supabase Realtime changes for instant multi-device synchronization.
   useEffect(() => {
     if (!user || !isSupabaseConfigured()) {
       if (!user) setStatus("local-only");
@@ -125,49 +125,99 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
     const sb = getSupabase();
     if (!sb) return;
     let cancelled = false;
-    setStatus("syncing");
-    void sb
-      .from("tracker_data")
-      .select("value, updated_at")
-      .eq("user_id", user.id)
-      .eq("key", key)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          setStatus("error");
-          return;
-        }
-        if (data) {
-          const cloudAt = new Date(data.updated_at).getTime();
-          const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-          if (cloudAt > localAt) {
-            writeLocal(localKey, data.value);
-            try {
-              window.localStorage.setItem(metaKey, String(cloudAt));
-            } catch {
-              // ignore
+
+    const pullCloud = () => {
+      if (cancelled) return;
+      void sb
+        .from("tracker_data")
+        .select("value, updated_at")
+        .eq("user_id", user.id)
+        .eq("key", key)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (cancelled) return;
+          if (error) {
+            setStatus("error");
+            return;
+          }
+          if (data) {
+            const cloudAt = new Date(data.updated_at).getTime();
+            const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
+            if (cloudAt > localAt) {
+              writeLocal(localKey, data.value);
+              try {
+                window.localStorage.setItem(metaKey, String(cloudAt));
+              } catch {
+                // ignore
+              }
             }
           }
+          setStatus("synced");
+        });
+    };
+
+    setStatus("syncing");
+    pullCloud();
+
+    // Pull immediately when device wakes up or user focuses tab (e.g. phone screen turned on)
+    const onVisible = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        pullCloud();
+      }
+    };
+    window.addEventListener("focus", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
+
+    // Supabase Realtime channel subscription for instant cross-device updates (phone <-> desktop)
+    const channelName = `rt_${key.replace(/[^a-zA-Z0-9_]/g, "_")}_${user.id.slice(0, 8)}`;
+    const channel = sb
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tracker_data",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload: { new?: { key?: string; value?: unknown; updated_at?: string } }) => {
+          if (cancelled) return;
+          if (payload.new && payload.new.key === key) {
+            const cloudAt = new Date(payload.new.updated_at || "").getTime();
+            const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
+            if (cloudAt > localAt) {
+              writeLocal(localKey, payload.new.value);
+              try {
+                window.localStorage.setItem(metaKey, String(cloudAt));
+              } catch {
+                // ignore
+              }
+            }
+            setStatus("synced");
+          }
         }
-        setStatus("synced");
-      });
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
+      void sb.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, user?.id]);
 
-  // Push — debounced, in the write path (no effect; React 18+ safely
-  // ignores a status set after unmount).
+  // Push — debounced or immediate, in the write path
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const push = useCallback(
-    (next: T) => {
+    (next: T, immediate = false) => {
       if (!isSupabaseConfigured()) return;
       const sb = getSupabase();
       if (!sb) return;
       if (pushTimer.current) clearTimeout(pushTimer.current);
-      pushTimer.current = setTimeout(() => {
+
+      const doPush = () => {
         void (async () => {
           const { data } = await sb.auth.getSession();
           const uid = data.session?.user?.id;
@@ -192,17 +242,23 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
           }
           setStatus("synced");
         })();
-      }, debounceMs);
+      };
+
+      if (immediate) {
+        doPush();
+      } else {
+        pushTimer.current = setTimeout(doPush, debounceMs);
+      }
     },
     [key, metaKey],
   );
 
   const setValue = useCallback(
-    (next: T | ((prev: T) => T)) => {
+    (next: T | ((prev: T) => T), options?: { immediate?: boolean }) => {
       const prev = mounted ? readLocal(localKey, initial) : initial;
       const resolved = typeof next === "function" ? (next as (p: T) => T)(prev) : next;
       writeLocal(localKey, resolved);
-      push(resolved);
+      push(resolved, options?.immediate);
     },
     [localKey, initial, push],
   );
