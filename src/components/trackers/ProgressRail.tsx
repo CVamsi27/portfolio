@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, Dumbbell, Flag, ListChecks, ShieldCheck, Timer } from "lucide-react";

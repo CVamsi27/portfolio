@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 
 export type SegmentOption<T extends string> = { value: T; label: string };

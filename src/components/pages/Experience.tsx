@@ -1,3 +1,5 @@
+"use client";
+
 import { WORK_EXPERIENCE } from "@/lib/const";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
