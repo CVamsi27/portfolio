@@ -227,3 +227,38 @@ export function playLockdownAlarm() {
     // audio unavailable
   }
 }
+
+/**
+ * Play a gentle, grounding nighttime chime when 10:00 PM Bedtime Curfew activates.
+ * Uses soft sinusoidal harmonics designed to relax rather than startle.
+ */
+export function playBedtimeChime() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    // Harmonic frequencies: 528 Hz (healing/rest), 396 Hz, 264 Hz (gentle bass)
+    const freqs = [528, 396, 264];
+    freqs.forEach((freq, idx) => {
+      const delay = idx * 0.18;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + delay);
+
+      gain.gain.setValueAtTime(0.001, now + delay);
+      gain.gain.exponentialRampToValueAtTime(0.18 / (idx + 1), now + delay + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.9);
+
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.95);
+    });
+
+    setTimeout(() => void ctx.close(), 1600);
+  } catch {
+    // audio unavailable
+  }
+}
