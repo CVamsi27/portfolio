@@ -134,6 +134,7 @@ test.describe("personal roadmap", () => {
   });
 
   test("requires evidence and a separate verification step for roadmap completion", async ({ page }) => {
+    await page.clock.install({ time: new Date("2026-09-30T10:00:00+05:30") });
     await seed(page, { "vk:career_execution_state": { version: 1, evidenceByItemId: {}, archivedItems: [] } });
     await page.goto("/roadmap");
     await expect(page.getByText("Study in this order")).toBeVisible();

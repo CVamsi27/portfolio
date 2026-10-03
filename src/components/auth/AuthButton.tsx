@@ -53,11 +53,7 @@ export default function AuthButton({ showEmail = false }: { showEmail?: boolean 
     // The /login page has its own sign-in card — don't duplicate it in nav.
     if (pathname === "/login") return null;
     return (
-      <Link href="/login">
-        <Button size="sm" variant="outline">
-          Sign in with Google
-        </Button>
-      </Link>
+      <Button asChild size="sm" variant="outline"><Link href="/login">Sign in with Google</Link></Button>
     );
   }
 

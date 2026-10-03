@@ -1,15 +1,11 @@
 "use client";
 
-import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
 import {
   Activity,
-  Award,
-  Building2,
   CheckCircle2,
   Quote,
   ShieldCheck,
-  Star,
   Zap,
 } from "lucide-react";
 
@@ -22,64 +18,25 @@ interface Endorsement {
   metrics: string[];
 }
 
+// Self-authored summaries of work; no third-party endorsement is asserted.
 const ENDORSEMENTS: Endorsement[] = [
-  {
-    quote:
-      "Vamsi engineered our clinic management platform from the ground up. His multi-tenant Row-Level Security and offline-tolerant queuing delivered zero prescription errors, 99.9% OPD queue uptime, and seamless billing across 25+ healthcare facilities. He designs software that doctors and clinic staff can trust with critical workflows.",
-    author: "Clinical Operations Lead",
-    role: "Operations & Medical Workflow Director",
-    company: "Docita Healthcare SaaS",
-    context: "Pan-India Multi-Tenant Clinical Deployment",
-    metrics: ["25+ Clinics Deployed", "1,000+ Monthly Workflows", "99.9% Queue Uptime"],
-  },
-  {
-    quote:
-      "Vamsi cut our p95 API response times by 30% through disciplined query profiling, indexing, and removing N+1 database patterns. He built our reusable TypeScript component library, which standardized accessibility and accelerated delivery across three engineering pods while mentoring newer developers with patience.",
-    author: "Senior Engineering Manager",
-    role: "Enterprise Cloud Platforms Pod",
-    company: "MAQ Software",
-    context: "Enterprise Cloud Services & TypeScript Architecture",
-    metrics: ["-30% p95 API Latency", "85%+ Test Coverage Sustained", "4 Engineers Mentored"],
-  },
-  {
-    quote:
-      "Demonstrated exceptional discipline in microservice architecture during our platform modernization. Implemented resilient Spring Boot microservices, Eureka discovery routing, and JWT authorization gates with spotless OpenAPI contracts and relational database integrity.",
-    author: "Technical Project Lead",
-    role: "Enterprise Systems Practice",
-    company: "Cognizant",
-    context: "High-Throughput Distributed Microservices",
-    metrics: ["4 Distributed Microservices", "100% Contract Compliance", "Zero Service Regressions"],
-  },
+  { quote: "End-to-end clinical workflows, scoped APIs, background jobs and an operational dashboard. The case study explains mechanisms, checks and remaining boundaries.", author: "Product implementation", role: "Self-authored project summary", company: "Docita", context: "Healthcare SaaS", metrics: ["5 Core Workflows", "Typed Contracts", "Request Telemetry"] },
+  { quote: "Recruitment and internal-workflow applications, API/query tuning, reusable React interfaces and delivery reviews. Personal contribution is explained through actual work examples.", author: "Engineering experience", role: "Self-authored experience summary", company: "MAQ Software", context: "Enterprise product workflows", metrics: ["TypeScript / React", "API Profiling", "Reviews & Mentoring"] },
+  { quote: "Four Spring Boot microservices for product, vendor and checkout workflows during a structured graduate training program.", author: "Graduate program", role: "Self-authored training summary", company: "Cognizant", context: "E-commerce exercise", metrics: ["4 Microservices", "Service Discovery", "JWT Authorization"] },
 ];
 
 const TRUST_PILLARS = [
-  {
-    title: "Zero Dual-Write Hazards",
-    desc: "Transactional Outbox pattern guarantees message and billing dispatch consistency without 2PC deadlocks.",
-    icon: Zap,
-  },
-  {
-    title: "PostgreSQL Kernel Isolation",
-    desc: "Row-Level Security (RLS) and deny-by-default ABAC enforce patient and tenant privacy at the database layer.",
-    icon: ShieldCheck,
-  },
-  {
-    title: "20 Automated Verification Gates",
-    desc: "CI pipelines protect link health, chapter metrics, and contract invariants against silent drift.",
-    icon: CheckCircle2,
-  },
-  {
-    title: "High-Concurrency Defenses",
-    desc: "Session-scoped advisory locks prevent race conditions and slot double-booking under burst traffic.",
-    icon: Activity,
-  },
+  { title: "Durable intent", desc: "Trace the business write and event append, then distinguish committed intent from external completion.", icon: Zap },
+  { title: "Scoped access", desc: "Combine resource authorization and database policies, with effective role/context checks.", icon: ShieldCheck },
+  { title: "Meaningful verification", desc: "Use failure-path tests and repository gates to verify specific behavior and report remaining gaps.", icon: CheckCircle2 },
+  { title: "Concurrency reasoning", desc: "Test competing operations against a real database before claiming a scheduling or resource invariant.", icon: Activity },
 ];
 
 export default function Testimonials() {
   return (
     <section
       id="Impact"
-      aria-label="Verified Production Impact and Endorsements"
+      aria-label="Product Work and Engineering Practice"
       data-chapter-index="06"
       className="portfolio-chapter relative px-5 py-20 sm:px-10 sm:py-28 lg:px-16"
     >
@@ -88,15 +45,15 @@ export default function Testimonials() {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-mono text-xs font-semibold text-[var(--portfolio-accent)] uppercase tracking-widest">
-                06 / VERIFIED PRODUCTION IMPACT
+                06 / PRODUCT WORK
               </span>
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--portfolio-accent)]" />
             </div>
             <h2 className="mt-2 text-2xl sm:text-4xl font-bold tracking-tight text-[var(--portfolio-ink)]">
-              Engineering Measured by Business Outcomes.
+              Work, Decisions and Verification.
             </h2>
             <p className="mt-3 max-w-3xl text-sm sm:text-base leading-relaxed text-[var(--portfolio-muted)]">
-              Real testimonials, operational performance metrics, and production delivery records from clinical founders, enterprise engineering pods, and project stakeholders.
+              Self-authored summaries of product work and engineering experience. Detailed examples explain implementation, personal contribution and verification.
             </p>
           </div>
         </Reveal>
@@ -110,12 +67,12 @@ export default function Testimonials() {
                   <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-3">
                     <Quote className="h-5 w-5 text-[var(--portfolio-accent)] opacity-80" />
                     <span className="rounded-full bg-[var(--portfolio-blue-soft)] px-2.5 py-0.5 font-utility text-[10px] font-semibold text-[var(--portfolio-accent)]">
-                      Verified Impact
+                      Work Summary
                     </span>
                   </div>
 
                   <p className="mt-4 text-xs sm:text-sm leading-relaxed text-[var(--portfolio-ink)] italic">
-                    &ldquo;{item.quote}&rdquo;
+                    {item.quote}
                   </p>
                 </div>
 
@@ -151,10 +108,10 @@ export default function Testimonials() {
           <div className="mt-14 rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 sm:p-8">
             <div className="border-b border-[var(--portfolio-rule)] pb-4">
               <h3 className="font-display text-lg font-bold text-[var(--portfolio-ink)]">
-                Production Integrity Standards
+                Engineering Practice
               </h3>
               <p className="text-xs sm:text-sm text-[var(--portfolio-muted)] mt-1">
-                Every system I build adheres to verified engineering invariants rather than best-effort guesses.
+                These are the boundaries I examine when building and reviewing product workflows.
               </p>
             </div>
 

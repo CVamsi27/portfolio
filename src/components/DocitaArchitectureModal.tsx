@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { useDialogFocus } from "@/components/common/useDialogFocus";
 import {
   Shield,
   Server,
@@ -31,22 +32,14 @@ export default function DocitaArchitectureModal({
   const [activeTab, setActiveTab] = useState<ArchTab>("overview");
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  const dialogRef = useDialogFocus(open, onClose);
 
   if (!mounted || !open) return null;
 
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Docita System Architecture Inspector"
@@ -60,7 +53,7 @@ export default function DocitaArchitectureModal({
       />
 
       {/* Modal Container */}
-      <div className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] shadow-2xl">
+      <div className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] px-5 py-4 sm:px-6">
           <div className="flex items-center gap-3">
@@ -75,7 +68,7 @@ export default function DocitaArchitectureModal({
                 <span className="portfolio-impact-pill">Production SaaS</span>
               </div>
               <p className="font-utility text-xs text-[var(--portfolio-muted)]">
-                Multi-Tenant Clinical Operating System · 25+ Facilities Active
+                Multi-Tenant Clinical Operating System · 5 Core Clinical Workflows
               </p>
             </div>
           </div>
@@ -84,7 +77,7 @@ export default function DocitaArchitectureModal({
             type="button"
             onClick={onClose}
             aria-label="Close architecture inspector"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -119,7 +112,7 @@ export default function DocitaArchitectureModal({
           {activeTab === "overview" && (
             <div className="space-y-5">
               <p className="text-xs leading-relaxed text-[var(--portfolio-muted)]">
-                Every request in Docita passes through tenant validation, attribute-based access control, request-scoped database sessions, and outbox event dispatch.
+                Request paths combine authentication, scoped authorization and persistence. Outbox work belongs to selected business operations; inspect the concrete path and its transaction boundary.
               </p>
 
               {/* Visual Flow Pipeline */}
@@ -160,17 +153,17 @@ export default function DocitaArchitectureModal({
                   </div>
                   <div className="mt-1 font-semibold text-xs">Outbox &amp; Workers</div>
                   <p className="mt-1 text-[0.68rem] text-[var(--portfolio-muted)]">
-                    Transactional outbox guaranteeing WhatsApp/SMS &amp; billing
+                    Transactional outbox records intent; workers handle retry and recovery
                   </p>
                 </div>
               </div>
 
               <div className="rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)]/40 p-4">
                 <h4 className="font-display text-xs font-bold text-[var(--portfolio-ink)]">
-                  Key Architectural Guarantee
+                  Tenant Boundary and Its Evidence
                 </h4>
                 <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
-                  Even if an application-level bug bypassed an API filter, the PostgreSQL engine refuses to return records belonging to another tenant due to native Row-Level Security policies.
+                  RLS policies add a database boundary when enabled with the intended role and transaction context. Privileged roles and bypass paths require separate checks; scoped API authorization remains necessary.
                 </p>
               </div>
             </div>
@@ -185,16 +178,17 @@ export default function DocitaArchitectureModal({
                 </h3>
               </div>
               <p className="text-xs text-[var(--portfolio-muted)] leading-relaxed">
-                Multi-tenancy in clinical healthcare must be guaranteed at the storage layer to prevent Protected Health Information (PHI) leakage. Docita sets a session-scoped tenant context on every transactional connection:
+                Tenant isolation depends on API authorization, database role privileges and transaction context. This illustrative policy explains the mechanism; it is not a dump of the production schema:
               </p>
 
               <pre className="overflow-x-auto rounded-xl border border-[var(--portfolio-rule)] bg-neutral-950 p-3.5 font-mono text-[0.72rem] text-emerald-400">
-{`-- Enforce strict RLS on clinical patient records
+{`-- Illustrative schema; verify the actual role and context path
 ALTER TABLE patients ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tenant_isolation_policy ON patients
-  AS RESTRICTIVE
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);`}
+  AS PERMISSIVE
+  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);`}
               </pre>
 
               <div className="grid gap-2 sm:grid-cols-2 text-xs">
@@ -204,7 +198,7 @@ CREATE POLICY tenant_isolation_policy ON patients
                 </div>
                 <div className="flex items-start gap-2 rounded-lg border border-[var(--portfolio-rule)] p-2.5">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 mt-0.5" />
-                  <span>Immutable audit log trail for every read and write of medical records.</span>
+                  <span>Sensitive-data audit logging; coverage and retention need verification.</span>
                 </div>
               </div>
             </div>
@@ -224,13 +218,13 @@ CREATE POLICY tenant_isolation_policy ON patients
 
               <div className="space-y-2">
                 <div className="rounded-xl border border-[var(--portfolio-rule)] bg-muted/30 p-3 text-xs">
-                  <strong className="text-[var(--portfolio-ink)]">1. Atomic DB Transaction:</strong> Patient record update and event record write happen in the same ACID transaction.
+                  <strong className="text-[var(--portfolio-ink)]">1. Atomic DB Transaction:</strong> Business write and event append can share a transaction when the producer supplies it; verify the selected path.
                 </div>
                 <div className="rounded-xl border border-[var(--portfolio-rule)] bg-muted/30 p-3 text-xs">
-                  <strong className="text-[var(--portfolio-ink)]">2. Polling Worker with Advisory Locks:</strong> Background queue worker claims batches with <code>pg_try_advisory_xact_lock()</code> to prevent race conditions across server nodes.
+                  <strong className="text-[var(--portfolio-ink)]">2. Durable Claim and Completion:</strong> Verify atomic claim, owner/fencing and completion behavior against the actual queue implementation.
                 </div>
                 <div className="rounded-xl border border-[var(--portfolio-rule)] bg-muted/30 p-3 text-xs">
-                  <strong className="text-[var(--portfolio-ink)]">3. Exponential Retries &amp; Dead-Letter Queue:</strong> Network failures are retried with jitter; persistent failures move to DLQ for manual inspection.
+                  <strong className="text-[var(--portfolio-ink)]">3. Exponential Retries &amp; Dead-Letter Queue:</strong> Retryable failures use a bounded retry policy; persistent failures move to DLQ for manual inspection.
                 </div>
               </div>
             </div>
@@ -241,23 +235,23 @@ CREATE POLICY tenant_isolation_policy ON patients
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-[var(--portfolio-accent)]" />
                 <h3 className="font-display text-sm font-bold">
-                  Production Scale &amp; Performance Profile
+                  Product Scope &amp; Measurement Boundaries
                 </h3>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-[var(--portfolio-rule)] p-4 text-center">
                   <div className="font-display text-2xl font-bold text-[var(--portfolio-accent)]">
-                    25+
+                    5
                   </div>
                   <div className="font-utility text-xs text-[var(--portfolio-muted)]">
-                    Active Healthcare Clinics in India
+                    Named Clinical Workflows
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-[var(--portfolio-rule)] p-4 text-center">
                   <div className="font-display text-2xl font-bold text-[var(--portfolio-accent)]">
-                    1,000+
+                    30 days
                   </div>
                   <div className="font-utility text-xs text-[var(--portfolio-muted)]">
                     Monthly OPD &amp; Consult Workflows
@@ -266,25 +260,25 @@ CREATE POLICY tenant_isolation_policy ON patients
 
                 <div className="rounded-xl border border-[var(--portfolio-rule)] p-4 text-center">
                   <div className="font-display text-2xl font-bold text-emerald-500">
-                    &lt; 95ms
+                    Unavailable
                   </div>
                   <div className="font-utility text-xs text-[var(--portfolio-muted)]">
-                    API Response Time (p95)
+                    Latency Without Request Samples
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-[var(--portfolio-rule)] p-4 text-center">
                   <div className="font-display text-2xl font-bold text-emerald-500">
-                    99.9%
+                    Not claimed
                   </div>
                   <div className="font-utility text-xs text-[var(--portfolio-muted)]">
-                    System Uptime Since Launch
+                    Availability Requires Separate Evidence
                   </div>
                 </div>
               </div>
 
               <p className="text-xs text-[var(--portfolio-muted)] leading-relaxed">
-                Query latency was maintained through composite B-tree indexes, pre-compiled Prisma queries, connection pooling via PgBouncer, and client-side stale-while-revalidate caching with TanStack Query.
+                The implemented dashboard separates empty activity, missing telemetry and failed reads. Retained request samples do not establish customer adoption, a latency improvement or an availability SLO; verify the deployed revision before calling it live.
               </p>
             </div>
           )}

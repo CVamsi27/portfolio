@@ -32,14 +32,14 @@ export default function DailyThought() {
   return (
     <div
       data-testid="daily-thought"
-      className="flex items-start gap-3 rounded-xl border border-[#32b8c8]/20 bg-[#0d2028]/60 px-4 py-3"
+      className="flex items-start gap-3 rounded-xl border border-primary/20 bg-[#0d2028]/60 px-4 py-3"
       aria-label="Daily thought"
     >
-      <Quote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#32b8c8] opacity-70" aria-hidden />
+      <Quote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary opacity-70" aria-hidden />
       <p className="min-w-0 text-sm leading-relaxed text-muted-foreground">
         <span className="text-foreground/90">{quote.text}</span>
         {quote.author ? (
-          <span className="ml-2 text-[11px] font-mono text-[#32b8c8]/70">— {quote.author}</span>
+          <span className="ml-2 text-xs font-mono text-primary/70">— {quote.author}</span>
         ) : null}
       </p>
     </div>

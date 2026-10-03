@@ -30,7 +30,7 @@ export default function MiniBars({
         const h = Math.max(4, Math.round((d.value / max) * height));
         return (
           <div key={`${d.label}-${i}`} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-            <span className={cn("text-[10px] font-semibold tabular-nums", d.value ? "text-foreground" : "text-muted-foreground/50")}>
+            <span className={cn("text-xs font-semibold tabular-nums", d.value ? "text-foreground" : "text-muted-foreground/50")}>
               {d.value || ""}
             </span>
             <div
@@ -45,7 +45,7 @@ export default function MiniBars({
               )}
               style={{ height: `${h}px` }}
             />
-            <span className="w-full truncate text-center text-[10px] text-muted-foreground">{d.label}</span>
+            <span className="w-full truncate text-center text-xs text-muted-foreground">{d.label}</span>
           </div>
         );
       })}

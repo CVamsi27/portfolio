@@ -36,13 +36,13 @@ import { Reveal } from "@/components/common/Reveal";
 import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/const";
 
 const FormSchema = z.object({
-  name: z.string().min(2, {
+  name: z.string().trim().min(2, {
     message: "Name must be at least 2 characters.",
   }),
   email: z.string().email({
     message: "Provide a valid email address.",
   }),
-  message: z.string().min(5, {
+  message: z.string().trim().min(5, {
     message: "Please include a brief message.",
   }),
 });
@@ -58,6 +58,7 @@ const Contact = () => {
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
 
 
@@ -120,6 +121,7 @@ const Contact = () => {
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       const response = await fetch(`/api/contact`, {
         method: "POST",
@@ -128,7 +130,7 @@ const Contact = () => {
       });
       const res = await response.json();
 
-      if (res?.success || res?.status === 200 || response.ok) {
+      if (response.ok && (res?.success || res?.status === 200)) {
         toast({
           title: "Message sent successfully!",
           description: "Thanks for reaching out — I will get back to you shortly.",
@@ -136,12 +138,14 @@ const Contact = () => {
         setSubmitted(true);
         form.reset();
       } else {
+        setSubmitError("Your message could not be sent. Try again or email me directly.");
         toast({
           title: "Message transmission failed",
           description: `Please email me directly at ${CONTACT_EMAIL}`,
         });
       }
     } catch {
+      setSubmitError("Your message could not be sent. Try again or email me directly.");
       toast({
         title: "Could not send message",
         description: `Please email directly at ${CONTACT_EMAIL}`,
@@ -211,7 +215,7 @@ const Contact = () => {
               </div>
 
               <p className="mt-3 text-xs text-[var(--portfolio-muted)]">
-                Direct inbox monitored daily. Expect a response within 24 hours.
+                Email me directly, or use the form.
               </p>
             </div>
 
@@ -262,7 +266,7 @@ const Contact = () => {
           {/* Right Column: Direct Message Form */}
           <Reveal direction="right" className="portfolio-contact-form">
             <div className="mb-5">
-              <p className="portfolio-meta-label mb-1.5">Direct Dispatch</p>
+              <p className="portfolio-meta-label mb-1.5">Message me</p>
               <h3 className="font-display text-2xl font-bold tracking-tight text-[var(--portfolio-ink)]">
                 Send a message
               </h3>
@@ -297,9 +301,10 @@ const Contact = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Your Name</FormLabel>
+                      <FormLabel>Your name</FormLabel>
                       <FormControl>
                         <Input
+                          autoComplete="name"
                           placeholder="e.g. Alex Chen"
                           {...field}
                           disabled={isSubmitting}
@@ -315,10 +320,11 @@ const Contact = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Your Email</FormLabel>
+                      <FormLabel>Your email</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
+                          autoComplete="email"
                           placeholder="alex@company.com"
                           {...field}
                           disabled={isSubmitting}
@@ -359,8 +365,10 @@ const Contact = () => {
                   )}
                 />
 
+                {submitError ? <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{submitError} <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p> : null}
+
                 {submitted ? (
-                  <div className="portfolio-contact-success">
+                  <div role="status" className="portfolio-contact-success">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
                         <Check className="h-5 w-5" />

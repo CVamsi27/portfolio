@@ -19,7 +19,7 @@ const HeaderMenu = ({
   alwaysVisible?: boolean;
 }) => {
   return (
-    <div className={alwaysVisible ? "flex" : "flex md:hidden"} data-testid={testId}>
+    <div className={alwaysVisible ? "flex" : "flex lg:hidden"} data-testid={testId}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

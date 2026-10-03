@@ -6,7 +6,7 @@ test.describe("navigation & shell", () => {
     await page.goto("/");
     await expect(page.locator("body")).toContainText(/Vamsi|Full Stack/i);
     await expect(page.getByRole("heading", { name: /Selected work/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Study" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Study", exact: true })).toHaveCount(0);
     await expect(page.getByTestId("nova-simple-mark")).toHaveCount(0);
   });
 
@@ -19,7 +19,7 @@ test.describe("navigation & shell", () => {
     expect(resp.status()).toBe(200);
     const html = await resp.text();
     expect(html).toContain('data-testid="tracker-public-landing"');
-    expect(html).toContain("Enter NOVA");
+    expect(html).toContain('href="/hub"');
     expect(html).not.toContain("Sign in required");
   });
 

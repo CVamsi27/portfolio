@@ -49,3 +49,6 @@ supabase/.temp/
 .freebuff/
 .superpowers/
 
+
+# Local visual review captures
+/artifacts/ui-ux/

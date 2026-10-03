@@ -8,7 +8,7 @@ test.describe("public personal portfolio", () => {
       page.getByRole("link", { name: /Vamsi Krishna portfolio/i }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: /Selected work/i })).toBeVisible();
-    await expect(page.locator("[data-project-index]")).toHaveCount(6);
+    await expect(page.locator("[data-project-index]")).toHaveCount(7);
     await expect(page.locator("body")).not.toContainText("Buildora");
     await expect(page.locator("body")).not.toContainText("NOVA//OS");
   });

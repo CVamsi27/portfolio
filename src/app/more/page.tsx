@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 
 const descriptions: Record<string, string> = {
+  "/todo": "Plan your day, set priorities, and complete tasks.",
   "/roadmap": "Your full 100-day bible-driven study plan with daily checklists.",
   "/goal": "Plan milestones and this week’s commitment.",
   "/weight-loss": "Review weight, recovery, and health signals.",
@@ -20,15 +21,32 @@ const descriptions: Record<string, string> = {
   "/settings": "Tune reminders, sync, and your Personal setup.",
 };
 
+const groups = [
+  { label: "Planning", ids: ["tasks", "roadmap", "goal"] },
+  { label: "Health", ids: ["health", "fasting", "workouts"] },
+  { label: "Library and account", ids: ["archive", "settings"] },
+];
+
 export default function MorePage() {
   const { setValue: setManualBedtime } = useSyncedStorage<boolean>("bedtime:manual", false);
 
   return (
     <RequireAuth>
-      <PersonalShell icon="settings" title="More" subtitle="The rest of the system, kept one calm step away.">
-        <section data-testid="more-links" className="space-y-2">
-          {PERSONAL_MORE_NAV.map((item) => <Link key={item.href} href={item.href} className="group flex items-center gap-3 border border-border/70 bg-card/55 p-4 transition-colors hover:border-primary/70"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-muted text-primary"><TrackerIcon name={item.icon} className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block font-display font-bold">{item.label}</span><span className="mt-1 block text-sm text-muted-foreground">{descriptions[item.href]}</span></span><ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></Link>)}
-        </section>
+      <PersonalShell icon="settings" title="More" subtitle="Find your planning, health, library, and account tools.">
+        <div data-testid="more-links" className="grid gap-6 lg:grid-cols-2">
+          {groups.map(group => (
+            <section key={group.label} className="space-y-2">
+              <h2 className="mb-3 text-sm font-semibold text-muted-foreground">{group.label}</h2>
+              {PERSONAL_MORE_NAV.filter(item => group.ids.includes(item.id)).map(item => (
+                <Link key={item.href} href={item.href} className="group flex items-center gap-3 border border-border bg-card p-4 transition-colors hover:border-primary">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-muted text-primary"><TrackerIcon name={item.icon} className="h-5 w-5" /></span>
+                  <span className="min-w-0 flex-1"><span className="block font-semibold">{item.label}</span><span className="mt-1 block text-sm text-muted-foreground">{descriptions[item.href]}</span></span>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                </Link>
+              ))}
+            </section>
+          ))}
+        </div>
 
         {/* Study Bible external link */}
         <a
@@ -53,13 +71,13 @@ export default function MorePage() {
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">
-                  <Moon className="h-5 w-5 text-[#c8ff3d]" />
+                  <Moon className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <span className="dossier-kicker text-indigo-400">Evening Sanctuary</span>
                   <h2 className="font-display text-base font-bold">Strict Bedtime Lockdown</h2>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Blank notifications, complete your evening wind-down, and seal your focus.
+                    Open the in-app bedtime screen. Set up device Focus separately to silence notifications.
                   </p>
                 </div>
               </div>
@@ -74,7 +92,7 @@ export default function MorePage() {
                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs uppercase tracking-wider"
               >
                 <Moon className="mr-1.5 h-3.5 w-3.5" />
-                Engage Lockdown
+                Start bedtime mode
               </Button>
             </div>
           </CardContent>

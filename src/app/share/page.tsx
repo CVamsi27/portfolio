@@ -464,7 +464,7 @@ export default function SharePage() {
   const limits = shareLimitState(activeDropCount, pendingImageBytes);
   const kb = Math.min(usage, BROWSER_STORAGE_LIMIT_BYTES) / 1024;
   const selectedTtl = TTL_OPTIONS.find((option) => option.id === ttl) ?? TTL_OPTIONS[1];
-  const selectedExpiry = new Date(Date.now() + selectedTtl.ms);
+
 
   return (
     <TrackerShell
@@ -473,10 +473,10 @@ export default function SharePage() {
       subtitle={showInbox ? "Review your shared items and the drops allowlisted to you." : "Create timed drops with explicit access controls, private media, and automatic cleanup."}
       badge={<SyncBadge status={status} />}
       actions={showInbox ? {
-        primary: <a href="#shared-inbox" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Review incoming items</a>,
+        primary: <a href="#shared-inbox" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Review incoming items</a>,
         secondary: <Link href="/share" className="text-xs font-semibold text-primary hover:underline">Create a share →</Link>,
       } : {
-        primary: <a href="#share-editor" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Create share</a>,
+        primary: <a href="#share-editor" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Create share</a>,
         secondary: <a href="#sent-drops" className="text-xs font-semibold text-primary hover:underline">View sent drops →</a>,
       }}
     >
@@ -503,7 +503,7 @@ export default function SharePage() {
         <CardContent className="space-y-3 p-5">
           <div className="flex items-end justify-between gap-4">
             <ChapterLabel eyebrow="Dispatch studio // compose" status={signedIn ? "sync ready" : "local mode"} />
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">01 / 03</span>
+            <span className="font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground">01 / 03</span>
           </div>
           <TelemetryLine
             items={[
@@ -545,7 +545,7 @@ export default function SharePage() {
                 onChange={setTtl}
               />
               <span className="text-xs text-muted-foreground">
-                {expiryCopy(selectedExpiry.toISOString())} · clears {selectedExpiry.toLocaleString()}
+                Expires {selectedTtl.label.toLowerCase()} after creation
               </span>
             </fieldset>
             {pendingImg && (
@@ -618,11 +618,11 @@ export default function SharePage() {
               )}
               <CardContent className="p-4">
                 {d.text && <p className="whitespace-pre-wrap text-sm leading-relaxed">{d.text}</p>}
-                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground">
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs tabular-nums text-muted-foreground">
                   <span>{d.createdAt.slice(0, 16).replace("T", " ")}</span>
                   <span>· {expiryCopy(d.expiresAt)}</span>
                   {(d.tags ?? []).map((t) => (
-                    <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                    <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
                       {t}
                     </span>
                   ))}

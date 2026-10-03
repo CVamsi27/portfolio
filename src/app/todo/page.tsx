@@ -126,42 +126,25 @@ export default function TodoPage() {
     <RequireAuth>
       <TrackerShell
         icon="todo"
-        title="Todo"
-        subtitle="Focused task manager — priorities, tags and date planning. Enter chains tasks; click a title to edit inline."
+        title="Tasks"
+        subtitle="Plan your day and keep priorities clear. Select a task to edit it."
         badge={<SyncBadge status={status} />}
         actions={{
-          primary: <a href="#todo-list" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Add task</a>,
+          primary: <a href="#todo-list" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Add task</a>,
           secondary: <a href="#todo-list" className="text-xs font-semibold text-primary hover:underline">Open task list →</a>,
         }}
       >
-        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-          <StoryPanel
-            eyebrow="Next action"
-            title="Today&apos;s next move"
-            action={<a href="#todo-list" className="dossier-back-link">Open task list</a>}
-          >
-            {openToday
-              ? `${openToday} task${openToday === 1 ? "" : "s"} waiting in today’s queue. Start with the highest-priority move.`
-              : "Add one concrete task to open the next scene, or use the completed view to review the streak."}
-          </StoryPanel>
-          <SignalPanel
-            label="Completion signal"
-            value={`${pct}%`}
-            detail={`${doneToday}/${todayList.length} done today · ${streak}-day streak`}
-            progress={pct}
-            tone="lime"
-          />
-        </div>
+
         {/* ── Quick add ── */}
         <Card variant="dossier" id="todo-list">
           <CardContent className="space-y-3 p-5">
             <div className="flex gap-2">
               <Input
-                placeholder="Add a task + Enter (keeps focus for chaining)"
+                aria-label="New task"
+                placeholder="What needs to get done?"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && add()}
-                autoFocus
               />
               <Button onClick={add}>
                 <Plus className="mr-1 h-4 w-4" /> Add
@@ -255,7 +238,7 @@ export default function TodoPage() {
             </p>
             <button
               onClick={rescheduleOverdue}
-              className="shrink-0 rounded-lg border border-rose-500/40 px-2.5 py-1 text-[11px] font-bold text-rose-400 transition-colors hover:border-rose-400 hover:text-rose-300"
+              className="shrink-0 rounded-lg border border-rose-500/40 px-2.5 py-1 text-xs font-bold text-rose-400 transition-colors hover:border-rose-400 hover:text-rose-300"
             >
               Push all to today
             </button>
@@ -327,26 +310,26 @@ export default function TodoPage() {
 
                     {/* Overdue badge */}
                     {!t.done && t.date < today && (
-                      <span className="shrink-0 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-500">
+                      <span className="shrink-0 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-xs font-semibold text-rose-500">
                         Overdue
                       </span>
                     )}
 
                     <span className="hidden shrink-0 sm:block">
-                      <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold", TAG_COLORS[t.tag])}>{t.tag}</span>
+                      <span className={cn("rounded-full border px-2 py-0.5 text-xs font-semibold", TAG_COLORS[t.tag])}>{t.tag}</span>
                     </span>
 
                     <button
                       onClick={() => cyclePriority(t)}
                       aria-label="Cycle priority"
-                      className="flex shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold transition-colors hover:bg-accent"
+                      className="flex shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-bold transition-colors hover:bg-accent"
                       title="Click to cycle priority"
                     >
                       <span className={cn("h-1.5 w-1.5 rounded-full", TODO_PRIORITIES.find((p) => p.id === t.priority)?.dot)} />
                       {t.priority}
                     </button>
 
-                    <span className="w-12 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+                    <span className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
                       {t.date === today ? "" : t.date.slice(5)}
                     </span>
 
@@ -384,6 +367,29 @@ export default function TodoPage() {
             )}
           </CardContent>
         </Card>
+        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
+
+        </details>
+        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+          <StoryPanel
+            eyebrow="Next action"
+            title="Today&apos;s next move"
+            action={<a href="#todo-list" className="dossier-back-link">Open task list</a>}
+          >
+            {openToday
+              ? `${openToday} task${openToday === 1 ? "" : "s"} waiting in today’s queue. Start with the highest-priority move.`
+              : "Add one concrete task to open the next scene, or use the completed view to review the streak."}
+          </StoryPanel>
+          <SignalPanel
+            label="Completion signal"
+            value={`${pct}%`}
+            detail={`${doneToday}/${todayList.length} done today · ${streak}-day streak`}
+            progress={pct}
+            tone="lime"
+          />
+        </div>
+        </details>
       </TrackerShell>
     </RequireAuth>
   );

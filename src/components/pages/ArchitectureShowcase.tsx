@@ -41,8 +41,8 @@ const PATTERNS: PatternItem[] = [
     categoryLabel: "Distributed Systems",
     problem: "Dual-write hazard: atomic database state mutations coupled with asynchronous message broker or external notifications.",
     solution: "Persist outgoing events into an `outbox` table within the identical database transaction, decoupled from worker dispatch with idempotency keys.",
-    productionUse: "Docita Healthcare OS: Guaranteed appointment SMS & billing receipts without 2PC or distributed deadlocks.",
-    stackUrl: "https://study.buildora.work/30-architecture/30.1-system-design/30.1.04-transactional-outbox",
+    productionUse: "Docita Healthcare OS: Durable event intent and background processing; external completion requires recovery evidence.",
+    stackUrl: "https://study.buildora.work/20-backend/20.6-microservices/03-data-and-consistency/20.6.3.06-transactional-outbox",
     codeSnippet: `// 1. Write state & outbox in same DB transaction
 await prisma.$transaction(async (tx) => {
   const appt = await tx.appointment.create({ data: apptDto });
@@ -64,15 +64,15 @@ await prisma.$transaction(async (tx) => {
     categoryLabel: "Distributed Security",
     problem: "Cross-tenant data leakage in shared database architectures and complex clinic role permissions.",
     solution: "PostgreSQL session variables with `current_setting('app.current_tenant_id')` backed by deny-by-default Attribute-Based Access Control.",
-    productionUse: "Docita Healthcare OS: Complete isolation across 25+ clinics with PHI compliance and zero query leakage.",
-    stackUrl: "https://study.buildora.work/20-backend/20.3-databases/20.3.08-postgres-rls",
-    codeSnippet: `-- Enforce RLS at Postgres kernel level
+    productionUse: "Docita Healthcare OS: Tenant-scoped authorization and RLS policies; effective enforcement depends on roles and transaction context.",
+    stackUrl: "https://study.buildora.work/20-backend/20.4-database/01-postgresql-foundations/20.4.1.06-row-level-security",
+    codeSnippet: `-- Illustrative policy; verify real role and transaction context
 ALTER TABLE patients ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tenant_isolation_policy ON patients
-  AS RESTRICTIVE
-  USING (tenant_id = current_setting('app.tenant_id')::uuid)
-  WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);`,
+  AS PERMISSIVE
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);`,
   },
   {
     id: "observer-sse",
@@ -82,7 +82,7 @@ CREATE POLICY tenant_isolation_policy ON patients
     problem: "Low-latency broadcast of state changes to multiple concurrent frontend clients without resource-heavy polling.",
     solution: "Decouple event publishers from subscribers using event emitters and multiplexed Server-Sent Events / WebSockets.",
     productionUse: "TeamOps & Docita: Live OPD queue progression, room calls, and real-time collaboration canvas.",
-    stackUrl: "https://study.buildora.work/30-architecture/30.3-gof-patterns/30.3.15-observer",
+    stackUrl: "https://study.buildora.work/30-architecture/30.1-design-patterns/04-behavioral/30.1.4.02-observer",
     codeSnippet: `export class RealtimeQueueSubject implements Subject {
   private observers: Set<QueueObserver> = new Set();
   
@@ -101,7 +101,7 @@ CREATE POLICY tenant_isolation_policy ON patients
     problem: "Volatile billing rules across private pay, CGHS government schemes, and corporate insurance tariffs.",
     solution: "Encapsulate invoice calculation strategies behind a uniform interface, selecting the pricing algorithm dynamically at runtime.",
     productionUse: "Docita Healthcare OS: Modular billing engine supporting insurance deductions, GST slabs, and discount tariffs.",
-    stackUrl: "https://study.buildora.work/30-architecture/30.3-gof-patterns/30.3.18-strategy",
+    stackUrl: "https://study.buildora.work/30-architecture/30.1-design-patterns/04-behavioral/30.1.4.01-strategy",
     codeSnippet: `interface BillingStrategy {
   calculate(invoice: Invoice): InvoiceBreakdown;
 }
@@ -120,8 +120,8 @@ class CGHSGovernmentStrategy implements BillingStrategy {
     categoryLabel: "Distributed Systems",
     problem: "Race conditions in high-concurrency booking workflows causing double-booking of doctor appointment slots.",
     solution: "PostgreSQL transaction-level advisory locks (`pg_try_advisory_xact_lock`) ensuring serialized execution per resource ID.",
-    productionUse: "Docita Healthcare OS: Zero double-bookings during peak morning OPD appointment rushes.",
-    stackUrl: "https://study.buildora.work/20-backend/20.3-databases/20.3.12-advisory-locks",
+    productionUse: "Docita Healthcare OS: Booking concurrency is an invariant to verify with competing requests and actual database behavior.",
+    stackUrl: "https://study.buildora.work/20-backend/20.4-database/03-transactions-and-replication/20.4.3.03-optimistic-pessimistic-locking",
     codeSnippet: `// Acquire session-scoped advisory lock on doctor + timeslot hash
 const acquired = await prisma.$queryRaw\`
   SELECT pg_try_advisory_xact_lock(hashtext(\${lockKey})) AS locked;
@@ -137,8 +137,8 @@ if (!acquired[0].locked) {
     categoryLabel: "Creational (GoF)",
     problem: "Tight coupling to concrete messaging channels (WhatsApp Business API, Twilio SMS, Resend Email).",
     solution: "Define a notification provider factory that instantiates channel handlers conforming to a shared dispatch contract.",
-    productionUse: "Docita Healthcare OS: Failover dispatch between WhatsApp, SMS, and Email for patient Rx reminders.",
-    stackUrl: "https://study.buildora.work/30-architecture/30.3-gof-patterns/30.3.02-factory-method",
+    productionUse: "Docita Healthcare OS: Provider adapters for communications; verify delivery and fallback on the selected path.",
+    stackUrl: "https://study.buildora.work/30-architecture/30.1-design-patterns/02-creational/30.1.2.02-factory-method",
     codeSnippet: `class NotificationFactory {
   static create(channel: ChannelType): NotificationProvider {
     switch (channel) {
@@ -156,8 +156,8 @@ if (!acquired[0].locked) {
     categoryLabel: "Structural (GoF)",
     problem: "Incompatible legacy diagnostic machine formats (HL7 v2, proprietary CSV) and modern FHIR JSON APIs.",
     solution: "Implement domain adapters that convert disparate diagnostic lab schemas into standardized internal patient records.",
-    productionUse: "Docita Healthcare OS: Seamless diagnostic lab report ingestion from pathology partner feeds.",
-    stackUrl: "https://study.buildora.work/30-architecture/30.3-gof-patterns/30.3.06-adapter",
+    productionUse: "Docita Healthcare OS: Lab/report integration paths with validation and external-provider evidence still required.",
+    stackUrl: "https://study.buildora.work/30-architecture/30.1-design-patterns/03-structural/30.1.3.01-adapter",
     codeSnippet: `class HL7DiagnosticAdapter implements LabReportTarget {
   constructor(private legacyHL7Message: HL7Payload) {}
   
@@ -178,7 +178,7 @@ if (!acquired[0].locked) {
     problem: "Invalid state jumps (e.g. prescribing medication before doctor check-in or billing unrendered services).",
     solution: "Formal finite state machine enforcing strict transition matrices, guard conditions, and audit event logs.",
     productionUse: "Docita Healthcare OS: Governs patient flow from Registration -> Triage -> Consultation -> Pharmacy -> Discharge.",
-    stackUrl: "https://study.buildora.work/30-architecture/30.3-gof-patterns/30.3.17-state",
+    stackUrl: "https://study.buildora.work/30-architecture/30.1-design-patterns/04-behavioral/30.1.4.04-state",
     codeSnippet: `const ALLOWED_TRANSITIONS: Record<PatientStatus, PatientStatus[]> = {
   REGISTERED: ['TRIAGED', 'CANCELLED'],
   TRIAGED:    ['IN_CONSULTATION'],
@@ -219,7 +219,7 @@ export default function ArchitectureShowcase() {
                 Proven Patterns for High-Stakes Software.
               </h2>
               <p className="mt-3 max-w-3xl text-sm sm:text-base leading-relaxed text-[var(--portfolio-muted)]">
-                Production architecture requires disciplined patterns. Below are core Gang of Four (GoF) and distributed systems patterns I have implemented in production systems like Docita and codified across the 560-chapter Senior Full Stack Bible.
+                These patterns explain decisions in my projects and study library. Examples illustrate mechanisms; each project case distinguishes implemented behavior, verification and proposed improvements.
               </p>
             </div>
 

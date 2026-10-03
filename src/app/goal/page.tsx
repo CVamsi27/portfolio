@@ -227,7 +227,7 @@ export default function GoalPage() {
         subtitle={`${goalMeta.desc}. Log your daily metric, manage milestones, and watch the trajectory.`}
         badge={<SyncBadge status={status} />}
         actions={{
-          primary: <a href="#daily-metric" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Log today&apos;s progress</a>,
+          primary: <a href="#daily-metric" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Log today&apos;s progress</a>,
           secondary: <a href="#milestones" className="text-xs font-semibold text-primary hover:underline">Open milestones →</a>,
         }}
       >
@@ -352,8 +352,8 @@ export default function GoalPage() {
                   </h2>
                 ) : (
                   <div className="flex flex-wrap items-center gap-2">
-                    <Input className="h-9 w-56" value={metricLabelDraft} onChange={(e) => setMetricLabelDraft(e.target.value)} placeholder="Metric name" />
-                    <Input className="h-9 w-20 tabular-nums" type="number" min={1} value={metricTargetDraft ?? ""} onChange={(e) => setMetricTargetDraft(e.target.value)} placeholder="Target" />
+                    <Input aria-label="Metric name" className="h-11 min-w-0 flex-1" value={metricLabelDraft} onChange={(e) => setMetricLabelDraft(e.target.value)} placeholder="Metric name" />
+                    <Input aria-label="Daily target" className="h-11 w-20 tabular-nums" type="number" min={1} value={metricTargetDraft ?? ""} onChange={(e) => setMetricTargetDraft(e.target.value)} placeholder="Target" />
                     <Button size="sm" onClick={saveMetricEdits}>
                       Save
                     </Button>
@@ -461,7 +461,7 @@ export default function GoalPage() {
               const pct = Math.round((hitDays / 7) * 100);
               return (
                 <div className="mt-2">
-                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
                     <span>{hitDays}/7 days on target</span>
                     <span>{pct}%</span>
                   </div>
@@ -503,7 +503,7 @@ export default function GoalPage() {
                     onClick={() => toggleMilestone(m.id)}
                     aria-label={m.done ? `Mark ${m.title} incomplete` : `Mark ${m.title} complete`}
                     className={cn(
-                      "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[11px] transition-all active:scale-90",
+                      "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-xs transition-all active:scale-90",
                       m.done ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground",
                     )}
                   >
@@ -512,7 +512,7 @@ export default function GoalPage() {
                   <div className="min-w-0 flex-1">
                     <p className={cn(m.done && "line-through opacity-70")}>{m.title}</p>
                     {m.done && m.doneAt && (
-                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400">
                         Completed {new Date(m.doneAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       </p>
                     )}

@@ -51,9 +51,9 @@ export default function NovaMark({
       >
         {simple ? (
           <>
-            <rect x="5" y="5" width="54" height="54" rx="13" fill="#0B1E23" stroke="#49E7FF" strokeWidth="3" />
-            <path d="M18 44V20L46 44V20" stroke="#C8FF3D" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="46" cy="20" r="3" fill="#49E7FF" />
+            <rect x="5" y="5" width="54" height="54" rx="13" fill="var(--color-card)" stroke="var(--color-primary)" strokeWidth="3" />
+            <path d="M18 44V20L46 44V20" stroke="var(--color-primary)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="46" cy="20" r="3" fill="var(--color-primary)" />
           </>
         ) : (
           <>

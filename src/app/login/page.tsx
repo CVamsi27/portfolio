@@ -77,15 +77,12 @@ export default function LoginPage() {
           ) : !configured ? (
             <>
               <StatusIcon variant="warn"><Wrench className="h-7 w-7 text-white" /></StatusIcon>
-              <h2 className="font-display mt-4 text-xl font-bold">Sync not configured yet</h2>
+              <h2 className="font-display mt-4 text-xl font-bold">Your workspace is ready</h2>
               <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                Add <code className="rounded bg-muted px-1.5 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code> to{" "}
-                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">.env.local</code> (see the
-                setup steps), then this button signs you in with Google.
+                Cloud sync is unavailable. Your trackers and saved items work on this device.
               </p>
-              <Link href="/share" className="mt-4 inline-block text-sm text-primary hover:underline">
-                Continue to Sharing
+              <Link href="/hub" className="mt-4 inline-block text-sm text-primary hover:underline">
+                Continue to Today
               </Link>
             </>
           ) : user ? (
@@ -93,9 +90,7 @@ export default function LoginPage() {
               <StatusIcon variant="success"><UserCheck className="h-7 w-7 text-white" /></StatusIcon>
               <h2 className="font-display mt-4 text-xl font-bold">You&apos;re signed in</h2>
               <p className="mt-2 text-sm text-muted-foreground">{user.email}</p>
-              <Link href="/hub" className="mt-5 w-full">
-                <Button className="w-full">Open my trackers</Button>
-              </Link>
+              <Button asChild className="mt-5 w-full"><Link href="/hub">Open my trackers</Link></Button>
               <Button
                 variant="ghost"
                 className="mt-2 w-full"

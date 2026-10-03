@@ -6,11 +6,11 @@ test.describe("tracker action bar", () => {
     await seed(page);
 
     const routes = [
-      ["/intermittent-fasting", /start fast|save routine/i],
-      ["/workout-tracking", /log session/i],
+      ["/intermittent-fasting", /open meal window/i],
+      ["/workout-tracking", /open session/i],
       ["/goal", /log today/i],
       ["/todo", /add task/i],
-      ["/motivation", /start focus/i],
+      ["/motivation", /open focus/i],
       ["/share", /create share/i],
       ["/share?view=incoming", /review|retry/i],
       ["/settings", /open backup controls/i],

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { useDialogFocus } from "@/components/common/useDialogFocus";
 
 const emptySubscribe = () => () => {};
 import {
@@ -146,22 +147,14 @@ export default function SuperTicTacToeModal({
     setIsXNext(true);
   };
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  const dialogRef = useDialogFocus(open, onClose);
 
   if (!mounted || !open) return null;
 
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Super Tic Tac Toe Game Engine"
@@ -199,7 +192,7 @@ export default function SuperTicTacToeModal({
             type="button"
             onClick={onClose}
             aria-label="Close game modal"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
           >
             <X className="h-4 w-4" />
           </button>

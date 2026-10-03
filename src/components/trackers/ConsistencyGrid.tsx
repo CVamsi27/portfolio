@@ -60,17 +60,17 @@ export default function ConsistencyGrid({
             {metCount} of {days} days hit ({consistencyPct}%)
           </p>
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-sm border border-border/70 bg-muted/20" />
             0
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm border border-[#C8FF3D]/40 bg-[#C8FF3D]/25" />
+            <span className="h-2.5 w-2.5 rounded-sm border border-primary/40 bg-primary/25" />
             &lt; target
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-[#C8FF3D]" />
+            <span className="h-2.5 w-2.5 rounded-sm bg-primary" />
             Met ({target}+)
           </span>
         </div>
@@ -80,7 +80,7 @@ export default function ConsistencyGrid({
         {["M", "T", "W", "T", "F", "S", "S"].map((d, index) => (
           <span
             key={`${d}-${index}`}
-            className="text-center font-mono text-[10px] font-semibold text-muted-foreground"
+            className="text-center font-mono text-xs font-semibold text-muted-foreground"
           >
             {d}
           </span>
@@ -93,14 +93,14 @@ export default function ConsistencyGrid({
               className={cn(
                 "group relative flex aspect-square items-center justify-center rounded border transition-all",
                 cell.met
-                  ? "border-[#C8FF3D] bg-[#C8FF3D] text-[#071014] font-bold shadow-[0_0_8px_rgba(200,255,61,0.25)]"
+                  ? "border-primary bg-primary text-primary-foreground font-bold shadow-[0_0_8px_rgba(200,255,61,0.25)]"
                   : cell.partial
-                  ? "border-[#C8FF3D]/50 bg-[#C8FF3D]/15 text-[#C8FF3D] font-medium"
+                  ? "border-primary/50 bg-primary/15 text-primary font-medium"
                   : "border-border/60 bg-muted/15 text-muted-foreground/50",
                 cell.isToday && "ring-1 ring-primary ring-offset-1 ring-offset-background"
               )}
             >
-              <span className="font-mono text-[9px] sm:text-[10px]">
+              <span className="font-mono text-xs sm:text-xs">
                 {cell.value > 0 ? cell.value : ""}
               </span>
             </div>

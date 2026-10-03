@@ -122,7 +122,7 @@ test.describe("motivation", () => {
     await page.getByPlaceholder(/RSC hydration/).fill("How Playwright seeding works");
     await page.getByPlaceholder(/set logger/).fill("Fix any flaky tests");
     await page.getByRole("button", { name: "Save reflection" }).click();
-    await expect(page.getByText("Saved ✓")).toBeVisible();
+    await expect(page.locator("#journal").getByText("Saved", { exact: true })).toBeVisible();
 
     const journal = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:journal"))) ?? "{}");
     const today = daysAgoKey(0);

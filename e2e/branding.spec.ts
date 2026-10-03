@@ -39,7 +39,7 @@ test.describe("product branding", () => {
     await expect(page.getByRole("link", { name: /NOVA/i }).first()).toBeVisible();
     await expect(page.locator("footer")).toContainText("NOVA");
     await expect(page.locator("footer")).toContainText("Your next chapter, in motion.");
-    await expect(page.getByText("NOVA // Chapter 01")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Tasks", exact: true })).toBeVisible();
     await expect(page.locator("body")).not.toContainText("NOVA//OS");
   });
 

@@ -240,32 +240,15 @@ export default function WorkoutPage() {
     <RequireAuth>
       <TrackerShell
         icon="workout"
-        title="Workout Tracking"
-        subtitle="Split-aware sessions with structured set logging, last-session prefill, PR tracking and a built-in rest timer."
+        title="Workouts"
+        subtitle="Record your sets, review previous lifts, and track your training."
         badge={<SyncBadge status={status} />}
         actions={{
-          primary: <a href="#exercise-logger" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Log session</a>,
+          primary: <a href="#exercise-logger" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Open session</a>,
           secondary: <a href="#exercise-logger" className="text-xs font-semibold text-primary hover:underline">Open exercise logger →</a>,
         }}
       >
-        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-          <StoryPanel
-            eyebrow="Current chapter"
-            title={tabs.find((t) => t.id === dayId)?.label ?? "Training session"}
-            action={<a href="#exercise-logger" className="dossier-back-link">Log sets</a>}
-          >
-            {dayPct === 100
-              ? "Session complete. Record the win, then let recovery set up the next progression."
-              : `${doneCount} of ${exercises.length} exercises complete. Follow the suggested day and build the next rep.`}
-          </StoryPanel>
-          <SignalPanel
-            label="Session signal"
-            value={`${dayPct}%`}
-            detail={`${weekSessions} session${weekSessions === 1 ? "" : "s"} logged`}
-            progress={dayPct}
-            tone="lime"
-          />
-        </div>
+
         {/* ── Header controls: split day tabs + unit toggle ── */}
         <Card variant="dossier" id="exercise-logger">
           <CardContent className="space-y-3 p-4">
@@ -364,7 +347,7 @@ export default function WorkoutPage() {
                       isToday && !isSel && "ring-1 ring-primary/40",
                     )}
                   >
-                    <span className="block text-[10px] uppercase text-muted-foreground">
+                    <span className="block text-xs uppercase text-muted-foreground">
                       {d.toLocaleDateString("en-US", { weekday: "narrow" })}
                     </span>
                     <span className="block text-sm tabular-nums">{d.getDate()}</span>
@@ -563,6 +546,26 @@ export default function WorkoutPage() {
             onClose={() => setRestTimer(null)}
           />
         )}
+        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+          <StoryPanel
+            eyebrow="Current chapter"
+            title={tabs.find((t) => t.id === dayId)?.label ?? "Training session"}
+            action={<a href="#exercise-logger" className="dossier-back-link">Log sets</a>}
+          >
+            {dayPct === 100
+              ? "Session complete. Record the win, then let recovery set up the next progression."
+              : `${doneCount} of ${exercises.length} exercises complete. Follow the suggested day and build the next rep.`}
+          </StoryPanel>
+          <SignalPanel
+            label="Session signal"
+            value={`${dayPct}%`}
+            detail={`${weekSessions} session${weekSessions === 1 ? "" : "s"} logged`}
+            progress={dayPct}
+            tone="lime"
+          />
+        </div>
+        </details>
       </TrackerShell>
     </RequireAuth>
   );
@@ -623,7 +626,7 @@ function ExerciseCard({
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-sm font-semibold">
             <span className="truncate">{ex.name}</span>
-            <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               {ex.tag}
             </span>
           </p>
@@ -690,7 +693,7 @@ function ExerciseCard({
           <div className="mt-2.5 space-y-1.5">
             {log.sets.map((s, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="w-12 shrink-0 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <span className="w-12 shrink-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Set {i + 1}
                 </span>
                 <Input
@@ -717,7 +720,7 @@ function ExerciseCard({
                   onChange={(e) => onSetField(i, "reps", Number(e.target.value) || 0)}
                 />
                 {s.weightKg && s.reps ? (
-                  <span className="hidden sm:inline-block rounded bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+                  <span className="hidden sm:inline-block rounded bg-muted/40 px-1.5 py-0.5 font-mono text-xs text-muted-foreground whitespace-nowrap">
                     e1RM {Math.round(kgToDisplay(est1RM(s.weightKg, s.reps), unit))} {unit}
                   </span>
                 ) : null}

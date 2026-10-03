@@ -32,8 +32,10 @@ export default function ScrollToTop({
     <a
       href="#Top"
       aria-label="Back to top"
+      aria-hidden={!visible}
+      tabIndex={visible ? 0 : -1}
       className={cn(
-        "portfolio-scroll-fab fixed bottom-6 right-5 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-muted)] shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] hover:shadow-xl sm:hidden",
+        "portfolio-scroll-fab fixed bottom-6 right-5 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-muted)] shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] hover:shadow-xl sm:hidden",
         visible
           ? "translate-y-0 opacity-100 pointer-events-auto"
           : "translate-y-4 opacity-0 pointer-events-none",

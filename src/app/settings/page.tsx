@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { useNotificationPermission, refreshNotificationPermission } from "@/lib/use-notification-permission";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -60,6 +61,7 @@ export default function SettingsPage() {
   const { value: lockdown, setValue: setLockdown, status: lockdownStatus } = useLockdownPreferences();
   const { setValue: setManualBedtime } = useSyncedStorage<boolean>("bedtime:manual", false);
 
+  const browserPermission = useNotificationPermission();
   const stats = useStorageStats();
   const [report, setReport] = useState<ImportReport | null>(null);
   const [confirmWipe, setConfirmWipe] = useState("");
@@ -122,6 +124,7 @@ export default function SettingsPage() {
   const enableBrowserReminders = async () => {
     if (!("Notification" in window)) { setReminders({ ...reminders, browserPermission: "unsupported" }); return; }
     const permission = await Notification.requestPermission();
+    refreshNotificationPermission();
     setReminders({ ...reminders, browserPermission: permission });
     toast({ title: permission === "granted" ? "Browser reminders enabled" : "Browser permission not granted", description: "Background push delivery will be available after production scheduling is configured." });
   };
@@ -142,33 +145,22 @@ export default function SettingsPage() {
       <TrackerShell
         icon="settings"
         title="Settings"
-        subtitle="Your data, your device — export the full suite, restore from a backup, or manage local storage."
+        subtitle="Manage your account, appearance, reminders, and saved data."
         badge={<SyncBadge status={status} />}
         actions={{
-          primary: <a href="#backup-restore" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Open backup controls</a>,
-          secondary: <a href="#backup-restore" className="text-xs font-semibold text-primary hover:underline">Manage preferences →</a>,
+          primary: <a href="#backup-restore" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Open backup controls</a>,
+          secondary: <a href="#preferences" className="text-xs font-semibold text-primary hover:underline">Manage preferences →</a>,
         }}
       >
-        <div data-editorial-action className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-          <StoryPanel
-            eyebrow="Archive controls"
-            title="Keep the dossier portable"
-            action={<a href="#backup-restore" className="dossier-back-link">Open backup</a>}
-          >
-            Export before making broad changes, restore a known-good snapshot, and clear local data only after the explicit confirmation step.
-          </StoryPanel>
-          <SignalPanel
-            label="Storage signal"
-            value={stats ? `${activeKeys} keys` : "Measuring"}
-            detail={user ? "Cloud sync available" : "Local browser storage"}
-            tone={status === "error" ? "red" : "lime"}
-          />
-        </div>
+        <nav aria-label="Settings sections" className="flex flex-wrap gap-2">
+          {[['Account', '#account-sync'], ['Reminders', '#reminder-settings'], ['Bedtime', '#bedtime'], ['Backup', '#backup-restore'], ['Preferences', '#preferences'], ['Data management', '#data-management']].map(([label, href]) => <a key={href} href={href} className="inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-sm hover:border-primary">{label}</a>)}
+        </nav>
+
         {/* ── Account ── */}
-        <Card variant="dossier">
+        <Card variant="dossier" id="account-sync">
           <CardContent className="flex items-center justify-between gap-3 p-5">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-dossier-lime)] text-[#071014]">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <UserRound className="h-5 w-5" />
               </span>
               <div>
@@ -184,8 +176,8 @@ export default function SettingsPage() {
 
         <Card variant="dossier" id="reminders">
           <CardContent className="space-y-4 p-5">
-            <div className="flex items-center gap-2"><BellRing className="h-5 w-5 text-[#49E7FF]" /><h2 className="font-display font-bold">Reminders</h2></div>
-            <p className="text-sm text-muted-foreground">Choose reminders in India Standard Time. In-app alerts appear while Personal Buildora is open. Browser alerts require your explicit opt-in; background push is not configured.</p>
+            <div className="flex items-center gap-2"><BellRing className="h-5 w-5 text-primary" /><h2 id="reminder-settings" className="font-display font-bold">Reminders</h2></div>
+            <p className="text-sm text-muted-foreground">Choose reminders in India Standard Time. In-app alerts appear while NOVA is open. Browser alerts require your explicit opt-in; background push is not configured.</p>
             <div className="space-y-3">{(["weighIn", "focus", "evening", "morning", "study", "roleResearch", "interview", "eveningReview", "windDown"] as const).map((key) => {
               const slot = (["weighIn", "focus", "evening"] as const).includes(key as "weighIn" | "focus" | "evening")
                 ? reminders[key as "weighIn" | "focus" | "evening"]
@@ -198,11 +190,11 @@ export default function SettingsPage() {
                     <input aria-label={REMINDER_LABELS[key]} type="checkbox" checked={Boolean(safeSlot.enabled)} onChange={(event) => updateReminder(key, { enabled: event.target.checked })} />
                     {REMINDER_LABELS[key]}
                   </label>
-                  <Input aria-label={timeLabel} className="h-9 w-28 tabular-nums" type="time" value={safeSlot.time} onChange={(event) => updateReminder(key, { time: event.target.value })} />
+                  <Input aria-label={timeLabel} className="h-11 w-40 max-w-full tabular-nums" type="time" value={safeSlot.time} onChange={(event) => updateReminder(key, { time: event.target.value })} />
                 </div>
               );
             })}</div>
-            <p className="text-xs text-muted-foreground">Browser permission: {reminders.browserPermission ?? (typeof Notification === "undefined" ? "not checked" : Notification.permission)} · permission is never requested automatically.</p>
+            <p className="text-xs text-muted-foreground">Browser permission: {reminders.browserPermission ?? browserPermission} · permission is never requested automatically.</p>
             <div className="flex flex-wrap gap-2"><Button onClick={saveReminders}>Save reminders</Button><Button variant="outline" onClick={enableBrowserReminders}>Enable browser reminders</Button></div>
           </CardContent>
         </Card>
@@ -232,9 +224,9 @@ export default function SettingsPage() {
                 ))}
               </div>
             </div>
-            <label className="flex min-h-11 items-center gap-3 border border-[#49e7ff]/30 bg-[#49e7ff]/5 px-3 text-sm font-semibold">
+            <label className="flex min-h-11 items-center gap-3 border border-primary/30 bg-primary/5 px-3 text-sm font-semibold">
               <input aria-label="Enable bedtime lock" type="checkbox" checked={lockdown.bedtimeEnabled} disabled={!bedtimeCanEnable && !lockdown.bedtimeEnabled} onChange={(event) => updateLockdown({ bedtimeEnabled: event.target.checked })} />
-              Enable bedtime lock inside Personal Buildora
+              Enable bedtime lock inside NOVA
             </label>
             <p className="text-xs text-muted-foreground">{bedtimeWindow ? `Next protected window ends at ${formatLockEnd(bedtimeWindow.end)} local time.` : "Choose a valid time and at least one day to preview the next window."}</p>
             <div className="flex flex-wrap items-center gap-2">
@@ -342,7 +334,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <h2 className="font-display font-bold">Preferences</h2>
+                <h2 id="preferences" className="font-display font-bold">Preferences</h2>
               </div>
               <span className="text-xs text-muted-foreground">{isSetup ? "setup complete" : "setup pending"}</span>
             </div>
@@ -400,7 +392,7 @@ export default function SettingsPage() {
           <CardContent className="space-y-3 p-5">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-500" />
-              <h2 className="font-display font-bold">Danger zone</h2>
+              <h2 id="data-management" className="font-display font-bold">Data management</h2>
             </div>
             <p className="text-sm text-muted-foreground">
               Clearing local data removes everything stored in this browser under the tracker
@@ -425,6 +417,26 @@ export default function SettingsPage() {
             </p>
           </CardContent>
         </Card>
+        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
+
+        </details>
+        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
+        <div data-editorial-action className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+          <StoryPanel
+            eyebrow="Archive controls"
+            title="Keep the dossier portable"
+            action={<a href="#backup-restore" className="dossier-back-link">Open backup</a>}
+          >
+            Export before making broad changes, restore a known-good snapshot, and clear local data only after the explicit confirmation step.
+          </StoryPanel>
+          <SignalPanel
+            label="Storage signal"
+            value={stats ? `${activeKeys} keys` : "Measuring"}
+            detail={user ? "Cloud sync available" : "Local browser storage"}
+            tone={status === "error" ? "red" : "lime"}
+          />
+        </div>
+        </details>
       </TrackerShell>
     </RequireAuth>
   );

@@ -284,17 +284,17 @@ export default function MotivationPage() {
     <RequireAuth>
       <TrackerShell
         icon="flame"
-        title="Motivation"
-        subtitle={`Daily ${prefs.motivationStyle} deck with your own affirmations, favorites, and a three-prompt reflection anchor.`}
+        title="Focus"
+        subtitle="Start a focus session, find inspiration, or reflect on your day."
         badge={<SyncBadge status={status} />}
         actions={{
-          primary: <a href="#focus-scene" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">Start focus scene</a>,
+          primary: <a href="#focus-scene" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Open focus scene</a>,
           secondary: <a href="#journal" className="text-xs font-semibold text-primary hover:underline">Write reflection →</a>,
         }}
       >
         <div className="flex flex-col gap-2 border border-border/60 bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-utility text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Inspiration source</p>
+            <p className="font-utility text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Inspiration source</p>
             <p className="mt-1 text-sm text-muted-foreground">Choose whether the scene follows your goal or stays broad.</p>
           </div>
           <Segmented
@@ -338,7 +338,7 @@ export default function MotivationPage() {
           {[
             { l: "Day streak", v: `${streak}`, Icon: Zap, color: "bg-amber-500" },
             { l: "Saved", v: `${safeFavs.length}`, Icon: Bookmark, color: "bg-[#ff554d]" },
-            { l: "Deck size", v: `${deck.length}`, Icon: Quote, color: "bg-[#49e7ff]" },
+            { l: "Deck size", v: `${deck.length}`, Icon: Quote, color: "bg-primary" },
           ].map((s) => (
             <Card variant="dossier" key={s.l} className="group overflow-hidden">
               <div className="flex items-center gap-3 p-4">
@@ -349,7 +349,7 @@ export default function MotivationPage() {
                   <s.Icon className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">{s.l}</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{s.l}</p>
                   <p className="font-display text-2xl font-bold">{s.v}</p>
                 </div>
               </div>
@@ -363,13 +363,13 @@ export default function MotivationPage() {
             <div className="flex items-center justify-between">
               <h2 className="font-display font-bold">Daily reflection</h2>
               {entry.updatedAt ? (
-                <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                <span className="text-xs text-emerald-600 dark:text-emerald-400">
                   saved {new Date(entry.updatedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                 </span>
               ) : null}
             </div>
             {reflectionStreak > 0 && (
-              <p className="mt-1.5 text-xs font-medium text-[#32b8c8]">
+              <p className="mt-1.5 text-xs font-medium text-primary">
                 Reflected {reflectionStreak} day{reflectionStreak === 1 ? "" : "s"} in a row
               </p>
             )}
@@ -384,7 +384,7 @@ export default function MotivationPage() {
                       <button
                         type="button"
                         onClick={convertFocusToTask}
-                        className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                       >
                         {taskAdded ? <Check className="h-3 w-3 text-emerald-500" /> : <Plus className="h-3 w-3" />}
                         {taskAdded ? "Added to tomorrow" : "Add as tomorrow's P1"}
@@ -438,7 +438,7 @@ export default function MotivationPage() {
                   <li key={q.id} className="flex items-start justify-between gap-3 rounded-xl border border-border/60 px-3 py-2.5 text-sm">
                     <span>
                       &ldquo;{q.text}&rdquo;
-                      <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{q.tag}</span>
+                      <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">{q.tag}</span>
                     </span>
                     <button
                       onClick={() => setCustomQuotes(safeCustom.filter((x) => x.id !== q.id))}

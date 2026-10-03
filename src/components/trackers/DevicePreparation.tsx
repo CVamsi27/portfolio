@@ -37,7 +37,7 @@ export default function DevicePreparation({ compact = false }: { compact?: boole
             />
             <span className="min-w-0">
               <span className="block text-sm font-semibold">{platform.label}</span>
-              <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground">{platform.steps.join(" ")}</span>
+              <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{platform.steps.join(" ")}</span>
             </span>
           </label>
         ))}

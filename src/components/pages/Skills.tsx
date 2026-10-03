@@ -35,18 +35,18 @@ const CAPABILITIES = [
       "NestJS, Express & Node.js microservices",
       "PostgreSQL schemas, RLS & migration safety",
       "Transactional Outbox, queues & advisory locks",
-      "Idempotent webhooks & payment integrations",
+      "Webhook verification and duplicate-effect handling",
     ],
   },
   {
     title: "Quality & Infrastructure",
     icon: ShieldCheck,
-    lead: "Defense-in-depth verification ensuring zero regressions in production.",
+    lead: "Meaningful tests and release checks for sensitive product workflows.",
     items: [
-      "85%+ coverage via Jest, Vitest & Playwright E2E",
+      "Jest, Vitest and Playwright failure-path checks",
       "Automated CI/CD pipelines with GitHub Actions",
       "Dockerized environments & snapshot validation",
-      "PHI-safe audit trails & deny-by-default ABAC",
+      "Sensitive-data audit logging and resource authorization",
     ],
   },
   {
@@ -190,7 +190,7 @@ const Skills = () => {
                   <h4 className="font-display text-sm font-bold text-[var(--portfolio-ink)]">
                     Senior Full Stack Interview Bible
                   </h4>
-                  <span className="portfolio-impact-pill">868 Files · 560 Chapters</span>
+                  <span className="portfolio-impact-pill">Mechanisms · Revision · Practical Exercises</span>
                 </div>
                 <p className="mt-0.5 text-xs text-[var(--portfolio-muted)]">
                   My open-source engineering reference covering 7 study stacks, 2 terminal interview lanes, and all 23 GoF design patterns.

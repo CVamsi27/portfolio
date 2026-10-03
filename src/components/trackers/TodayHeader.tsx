@@ -4,12 +4,6 @@ import WorldClockStrip from "./WorldClockStrip";
 import { useNow } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
 
-function getDayProgressPct(now: number) {
-  const d = new Date(now);
-  const dayMinutes = d.getHours() * 60 + d.getMinutes();
-  return Math.round((dayMinutes / 1440) * 100);
-}
-
 function getGreeting(now: number): string {
   const hour = new Date(now).getHours();
   if (hour >= 5 && hour < 12) return "Good morning";
@@ -38,7 +32,6 @@ function MomentumRing({ percent }: { percent: number }) {
   const circ = 2 * Math.PI * r;
   const safePercent = Math.max(0, Math.min(100, percent));
   const dashOffset = circ - (circ * safePercent) / 100;
-  const allDone = safePercent >= 100;
 
   return (
     <svg
@@ -57,7 +50,7 @@ function MomentumRing({ percent }: { percent: number }) {
         fill="none"
         stroke="currentColor"
         strokeWidth="4"
-        className="text-muted/30"
+        className="text-border"
       />
       {/* Arc */}
       <circle
@@ -65,7 +58,7 @@ function MomentumRing({ percent }: { percent: number }) {
         cy="28"
         r={r}
         fill="none"
-        stroke={allDone ? "#c8ff3d" : "#32b8c8"}
+        stroke="var(--color-primary)"
         strokeWidth="4"
         strokeLinecap="round"
         strokeDasharray={circ}
@@ -79,10 +72,10 @@ function MomentumRing({ percent }: { percent: number }) {
         y="28"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize="11"
+        fontSize="14"
         fontWeight="700"
         fontFamily="monospace"
-        fill={allDone ? "#c8ff3d" : "#32b8c8"}
+        fill="var(--color-primary)"
       >
         {safePercent}
       </text>
@@ -102,28 +95,20 @@ export default function TodayHeader({
   const now = useNow(1_000);
   const greeting = getGreeting(now);
   const tagline = getTagline(now, momentumPercent);
-  const dayProgressPct = getDayProgressPct(now);
   const allDone = momentumPercent >= 100;
 
   return (
     <section data-testid="today-header" className="grid gap-4 border-b border-border/70 pb-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
       <div>
         <div className="flex flex-wrap items-center gap-2">
-          <p className="dossier-kicker" data-editorial-kicker>Today // personal operating system</p>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.14em] text-muted-foreground shadow-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#c8ff3d] animate-pulse" />
-            Local-first
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/50 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.12em] text-muted-foreground">
-            <span className="text-[#32b8c8] font-bold tabular-nums">{dayProgressPct}%</span> of day elapsed
-          </span>
+          <p data-editorial-kicker className="text-sm font-medium text-muted-foreground">Today</p>
         </div>
         <div className="mt-2 flex items-center gap-3">
           <MomentumRing percent={momentumPercent} />
           <div className="min-w-0">
             <h1 className={cn(
-              "font-display text-[clamp(1.7rem,7vw,3.8rem)] font-black leading-[0.9] tracking-[-0.06em] transition-colors duration-700",
-              allDone ? "text-[#c8ff3d]" : "text-foreground",
+              "font-display text-[clamp(1.6rem,5vw,2.8rem)] font-semibold leading-tight tracking-tight transition-colors duration-700",
+              allDone ? "text-primary" : "text-foreground",
             )}>
               {name ? `${greeting}, ${name}.` : "Make the next move."}
             </h1>

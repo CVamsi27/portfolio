@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useDialogFocus } from "@/components/common/useDialogFocus";
 import { Keyboard, X } from "lucide-react";
 
 export type ShortcutGroup = {
@@ -62,10 +63,14 @@ export default function KeyboardShortcutsModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  const dialogRef = useDialogFocus(open, onClose);
+
   if (!open || typeof document === "undefined") return null;
 
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Keyboard Shortcuts"
@@ -95,7 +100,7 @@ export default function KeyboardShortcutsModal({
         <div className="max-h-[65vh] overflow-y-auto p-5 space-y-6">
           {SHORTCUT_GROUPS.map((group) => (
             <div key={group.title}>
-              <h4 className="font-mono text-[11px] font-bold uppercase tracking-wider text-primary">
+              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
                 {group.title}
               </h4>
               <div className="mt-2.5 space-y-2">
@@ -109,7 +114,7 @@ export default function KeyboardShortcutsModal({
                       {item.keys.map((k) => (
                         <kbd
                           key={k}
-                          className="min-w-6 text-center rounded border border-border bg-muted/60 px-1.5 py-0.5 font-mono text-[11px] font-bold text-foreground shadow-xs"
+                          className="min-w-6 text-center rounded border border-border bg-muted/60 px-1.5 py-0.5 font-mono text-xs font-bold text-foreground shadow-xs"
                         >
                           {k}
                         </kbd>
@@ -123,7 +128,7 @@ export default function KeyboardShortcutsModal({
         </div>
 
         <div className="border-t border-border/50 bg-muted/30 px-5 py-2.5 text-center text-xs text-muted-foreground">
-          Press <kbd className="rounded border border-border px-1 font-mono text-[10px]">?</kbd> anytime to toggle this menu.
+          Press <kbd className="rounded border border-border px-1 font-mono text-xs">?</kbd> anytime to toggle this menu.
         </div>
       </div>
     </div>,

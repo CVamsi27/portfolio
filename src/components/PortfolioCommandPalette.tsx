@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { createPortal } from "react-dom";
+import { useDialogFocus } from "@/components/common/useDialogFocus";
 import { useTheme } from "next-themes";
 
 const emptySubscribe = () => () => {};
@@ -33,7 +40,12 @@ import {
   Headphones,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CONTACT_EMAIL, CONTACT_PHONE, PROJECTS, RESUME_PATH } from "@/lib/const";
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE,
+  PROJECTS,
+  RESUME_PATH,
+} from "@/lib/const";
 import { toast } from "@/components/ui/use-toast";
 
 export type PaletteCommand = {
@@ -57,7 +69,11 @@ export default function PortfolioCommandPalette({
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [prevQuery, setPrevQuery] = useState(query);
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   if (query !== prevQuery) {
@@ -76,7 +92,9 @@ export default function PortfolioCommandPalette({
         icon: User,
         keywords: ["home", "intro", "about", "bio", "hero"],
         run: () => {
-          document.getElementById("Top")?.scrollIntoView({ behavior: "smooth" });
+          document
+            .getElementById("Top")
+            ?.scrollIntoView({ behavior: "smooth" });
         },
       },
       {
@@ -87,18 +105,31 @@ export default function PortfolioCommandPalette({
         icon: Briefcase,
         keywords: ["work", "projects", "systems", "docita", "portfolio"],
         run: () => {
-          document.getElementById("Work")?.scrollIntoView({ behavior: "smooth" });
+          document
+            .getElementById("Work")
+            ?.scrollIntoView({ behavior: "smooth" });
         },
       },
       {
         id: "nav-architecture",
         category: "Navigation",
         title: "Architecture & GoF Patterns",
-        subtitle: "Jump to Gang of Four design patterns & distributed invariants",
+        subtitle:
+          "Jump to Gang of Four design patterns & distributed invariants",
         icon: Workflow,
-        keywords: ["architecture", "gof", "patterns", "outbox", "rls", "design", "system"],
+        keywords: [
+          "architecture",
+          "gof",
+          "patterns",
+          "outbox",
+          "rls",
+          "design",
+          "system",
+        ],
         run: () => {
-          document.getElementById("Architecture")?.scrollIntoView({ behavior: "smooth" });
+          document
+            .getElementById("Architecture")
+            ?.scrollIntoView({ behavior: "smooth" });
         },
       },
       {
@@ -107,9 +138,18 @@ export default function PortfolioCommandPalette({
         title: "Open Source & Research",
         subtitle: "Jump to public tools, Bible repo & contribution tracks",
         icon: GitBranch,
-        keywords: ["open source", "oss", "github", "bible", "teamops", "public"],
+        keywords: [
+          "open source",
+          "oss",
+          "github",
+          "bible",
+          "teamops",
+          "public",
+        ],
         run: () => {
-          document.getElementById("OpenSource")?.scrollIntoView({ behavior: "smooth" });
+          document
+            .getElementById("OpenSource")
+            ?.scrollIntoView({ behavior: "smooth" });
         },
       },
       {
@@ -118,9 +158,18 @@ export default function PortfolioCommandPalette({
         title: "Career Record",
         subtitle: "Jump to roles at Docita, MAQ Software & Cognizant",
         icon: FileText,
-        keywords: ["experience", "jobs", "career", "history", "roles", "companies"],
+        keywords: [
+          "experience",
+          "jobs",
+          "career",
+          "history",
+          "roles",
+          "companies",
+        ],
         run: () => {
-          document.getElementById("Experience")?.scrollIntoView({ behavior: "smooth" });
+          document
+            .getElementById("Experience")
+            ?.scrollIntoView({ behavior: "smooth" });
         },
       },
       {
@@ -129,9 +178,18 @@ export default function PortfolioCommandPalette({
         title: "Capabilities & Tech Shelf",
         subtitle: "Jump to engineering pillars & production stack",
         icon: Layers,
-        keywords: ["skills", "stack", "tech", "tools", "capabilities", "languages"],
+        keywords: [
+          "skills",
+          "stack",
+          "tech",
+          "tools",
+          "capabilities",
+          "languages",
+        ],
         run: () => {
-          document.getElementById("Capabilities")?.scrollIntoView({ behavior: "smooth" });
+          document
+            .getElementById("Capabilities")
+            ?.scrollIntoView({ behavior: "smooth" });
         },
       },
       {
@@ -140,9 +198,17 @@ export default function PortfolioCommandPalette({
         title: "Verified Production Impact",
         subtitle: "Jump to clinical & enterprise endorsements and outcomes",
         icon: Quote,
-        keywords: ["impact", "testimonials", "endorsements", "reviews", "recommendations"],
+        keywords: [
+          "impact",
+          "testimonials",
+          "endorsements",
+          "reviews",
+          "recommendations",
+        ],
         run: () => {
-          document.getElementById("Impact")?.scrollIntoView({ behavior: "smooth" });
+          document
+            .getElementById("Impact")
+            ?.scrollIntoView({ behavior: "smooth" });
         },
       },
       {
@@ -153,7 +219,9 @@ export default function PortfolioCommandPalette({
         icon: Mail,
         keywords: ["contact", "email", "message", "hire", "reach out", "chat"],
         run: () => {
-          document.getElementById("Contact")?.scrollIntoView({ behavior: "smooth" });
+          document
+            .getElementById("Contact")
+            ?.scrollIntoView({ behavior: "smooth" });
         },
       },
 
@@ -275,9 +343,19 @@ export default function PortfolioCommandPalette({
         id: "act-deep-study",
         category: "Actions",
         title: "Start Deep Study Sprint (Anti-Distraction Shield)",
-        subtitle: "Lockdown focus reader with tab-switch guard, attention checks & progress tracking",
+        subtitle:
+          "Lockdown focus reader with tab-switch guard, attention checks & progress tracking",
         icon: ShieldCheck,
-        keywords: ["study", "focus", "distraction", "cockpit", "deep study", "lockdown", "attention", "bible"],
+        keywords: [
+          "study",
+          "focus",
+          "distraction",
+          "cockpit",
+          "deep study",
+          "lockdown",
+          "attention",
+          "bible",
+        ],
         run: () => {
           window.dispatchEvent(new CustomEvent("portfolio-open-study-cockpit"));
         },
@@ -286,20 +364,47 @@ export default function PortfolioCommandPalette({
         id: "act-germany-shield",
         category: "Actions",
         title: "Germany Goal Guardian & Distraction Shield",
-        subtitle: "Allowlist (buildora, notion, github), social media blocklist & 1h lockdown",
+        subtitle:
+          "Allowlist (buildora, notion, github), social media blocklist & 1h lockdown",
         icon: ShieldAlert,
-        keywords: ["distraction", "blocklist", "allowlist", "germany", "shield", "social media", "lockdown", "guardian", "dreams"],
+        keywords: [
+          "distraction",
+          "blocklist",
+          "allowlist",
+          "germany",
+          "shield",
+          "social media",
+          "lockdown",
+          "guardian",
+          "dreams",
+        ],
         run: () => {
-          window.dispatchEvent(new CustomEvent("portfolio-trigger-distraction-shield", { detail: { url: "https://instagram.com" } }));
+          window.dispatchEvent(
+            new CustomEvent("portfolio-trigger-distraction-shield", {
+              detail: { url: "https://instagram.com" },
+            }),
+          );
         },
       },
       {
         id: "act-revision-gate",
         category: "Actions",
-        title: "Active Recall Spaced Repetition Gate (Full-Screen Invariant Drill)",
-        subtitle: "Full-screen opaque recall screen with curriculum interview questions & Ebbinghaus intervals",
+        title:
+          "Active Recall Spaced Repetition Gate (Full-Screen Invariant Drill)",
+        subtitle:
+          "Full-screen opaque recall screen with curriculum interview questions & Ebbinghaus intervals",
         icon: RotateCcw,
-        keywords: ["revision", "recall", "spaced repetition", "ebbinghaus", "gate", "drill", "invariants", "refresh", "opaque"],
+        keywords: [
+          "revision",
+          "recall",
+          "spaced repetition",
+          "ebbinghaus",
+          "gate",
+          "drill",
+          "invariants",
+          "refresh",
+          "opaque",
+        ],
         run: () => {
           window.dispatchEvent(new CustomEvent("portfolio-open-revision-deck"));
         },
@@ -308,9 +413,20 @@ export default function PortfolioCommandPalette({
         id: "act-break-lounge",
         category: "Actions",
         title: "Mindful Break Lounge (YouTube Music & Top 10 Tech Podcasts)",
-        subtitle: "5–15m audio-only break: deep focus soundscapes, lo-fi beats, or world-class tech podcasts",
+        subtitle:
+          "5–15m audio-only break: deep focus soundscapes, lo-fi beats, or world-class tech podcasts",
         icon: Headphones,
-        keywords: ["break", "music", "youtube music", "podcast", "audio", "rest", "lofi", "relax", "listen"],
+        keywords: [
+          "break",
+          "music",
+          "youtube music",
+          "podcast",
+          "audio",
+          "rest",
+          "lofi",
+          "relax",
+          "listen",
+        ],
         run: () => {
           window.dispatchEvent(new CustomEvent("portfolio-open-break-lounge"));
         },
@@ -319,9 +435,18 @@ export default function PortfolioCommandPalette({
         id: "act-bible",
         category: "Actions",
         title: "Open Senior Full Stack Bible (study.buildora.work)",
-        subtitle: "868 reference files & 560 study chapters across 7 technical stacks",
+        subtitle:
+          "868 reference files & 560 study chapters across 7 technical stacks",
         icon: BookOpen,
-        keywords: ["bible", "study", "notes", "interview", "faang", "abroad", "cheatsheet"],
+        keywords: [
+          "bible",
+          "study",
+          "notes",
+          "interview",
+          "faang",
+          "abroad",
+          "cheatsheet",
+        ],
         run: () => {
           window.open("https://study.buildora.work", "_blank");
         },
@@ -330,11 +455,23 @@ export default function PortfolioCommandPalette({
         id: "act-bible-patterns",
         category: "Actions",
         title: "Browse All 23 GoF Design Patterns",
-        subtitle: "Creational, structural, and behavioral patterns in TypeScript",
+        subtitle:
+          "Creational, structural, and behavioral patterns in TypeScript",
         icon: BookOpen,
-        keywords: ["patterns", "gof", "design patterns", "architecture", "singleton", "factory", "observer"],
+        keywords: [
+          "patterns",
+          "gof",
+          "design patterns",
+          "architecture",
+          "singleton",
+          "factory",
+          "observer",
+        ],
         run: () => {
-          window.open("https://study.buildora.work/30-architecture/30.1-design-patterns/INDEX.html", "_blank");
+          window.open(
+            "https://study.buildora.work/30-architecture/30.1-design-patterns/INDEX.html",
+            "_blank",
+          );
         },
       },
     ];
@@ -352,14 +489,23 @@ export default function PortfolioCommandPalette({
           if (p.URL) {
             window.open(p.URL, "_blank");
           } else {
-            document.getElementById("Work")?.scrollIntoView({ behavior: "smooth" });
+            document
+              .getElementById("Work")
+              ?.scrollIntoView({ behavior: "smooth" });
           }
         },
       });
     });
 
     // Add tech filters
-    const popularTechs = ["React", "TypeScript", "Next.js", "NestJS", "PostgreSQL", "Prisma"];
+    const popularTechs = [
+      "React",
+      "TypeScript",
+      "Next.js",
+      "NestJS",
+      "PostgreSQL",
+      "Prisma",
+    ];
     popularTechs.forEach((tech) => {
       list.push({
         id: `tech-${tech.toLowerCase()}`,
@@ -369,8 +515,12 @@ export default function PortfolioCommandPalette({
         icon: Sparkles,
         keywords: ["tech", "filter", tech.toLowerCase()],
         run: () => {
-          window.dispatchEvent(new CustomEvent("portfolio-filter-tech", { detail: tech }));
-          document.getElementById("Work")?.scrollIntoView({ behavior: "smooth" });
+          window.dispatchEvent(
+            new CustomEvent("portfolio-filter-tech", { detail: tech }),
+          );
+          document
+            .getElementById("Work")
+            ?.scrollIntoView({ behavior: "smooth" });
         },
       });
     });
@@ -398,6 +548,8 @@ export default function PortfolioCommandPalette({
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target !== inputRef.current || e.isComposing || e.defaultPrevented)
+        return;
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
@@ -406,7 +558,9 @@ export default function PortfolioCommandPalette({
         setSelectedIndex((prev) => (prev + 1) % Math.max(1, filtered.length));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedIndex((prev) => (prev - 1 + filtered.length) % Math.max(1, filtered.length));
+        setSelectedIndex(
+          (prev) => (prev - 1 + filtered.length) % Math.max(1, filtered.length),
+        );
       } else if (e.key === "Enter") {
         e.preventDefault();
         if (filtered[selectedIndex]) {
@@ -419,10 +573,20 @@ export default function PortfolioCommandPalette({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose, filtered, selectedIndex]);
 
+  useEffect(() => {
+    if (open && filtered[selectedIndex])
+      document
+        .getElementById(`portfolio-command-${filtered[selectedIndex].id}`)
+        ?.scrollIntoView({ block: "nearest" });
+  }, [open, filtered, selectedIndex]);
+  const dialogRef = useDialogFocus(open, onClose);
+
   if (!mounted || !open) return null;
 
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Command Palette"
@@ -436,24 +600,33 @@ export default function PortfolioCommandPalette({
       />
 
       {/* Palette Container */}
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] shadow-2xl transition-all">
+      <div className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden sm:max-h-[calc(100dvh-8rem)] rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] shadow-2xl transition-all">
         {/* Search Input */}
-        <div className="flex items-center border-b border-[var(--portfolio-rule)] px-4 py-3">
+        <div className="flex shrink-0 items-center border-b border-[var(--portfolio-rule)] pl-4 pr-14 py-3">
           <Search className="h-4 w-4 shrink-0 text-[var(--portfolio-muted)]" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a command, project name, or technology..."
+            role="combobox"
+            aria-expanded={open}
+            aria-autocomplete="list"
+            aria-controls="portfolio-command-results"
+            aria-activedescendant={
+              filtered[selectedIndex]
+                ? `portfolio-command-${filtered[selectedIndex].id}`
+                : undefined
+            }
             aria-label="Search commands"
-            className="ml-3 flex-1 bg-transparent font-utility text-sm text-[var(--portfolio-ink)] placeholder:text-[var(--portfolio-muted)]/70 focus:outline-none"
+            placeholder="Search pages, projects, or actions…"
+            className="ml-3 min-w-0 flex-1 bg-transparent font-utility text-sm text-[var(--portfolio-ink)] placeholder:text-[var(--portfolio-muted)]/70 focus:outline-none"
           />
           {query ? (
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="rounded p-1 text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg p-1 text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]"
               aria-label="Clear query"
             >
               <X className="h-3.5 w-3.5" />
@@ -465,8 +638,21 @@ export default function PortfolioCommandPalette({
           )}
         </div>
 
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close command palette"
+          className="absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-[var(--portfolio-muted)] hover:bg-muted"
+        >
+          <X className="h-4 w-4" />
+        </button>
         {/* Results List */}
-        <div className="max-h-[380px] overflow-y-auto p-2 scrollbar-thin">
+        <div
+          id="portfolio-command-results"
+          role="listbox"
+          aria-label="Commands"
+          className="min-h-0 flex-1 overflow-y-auto p-2 scrollbar-thin"
+        >
           {filtered.length === 0 ? (
             <div className="py-8 text-center text-xs text-[var(--portfolio-muted)]">
               No matching commands or projects found.
@@ -476,7 +662,12 @@ export default function PortfolioCommandPalette({
               const Icon = item.icon;
               const isSelected = index === selectedIndex;
               return (
-                <div
+                <button
+                  type="button"
+                  role="option"
+                  id={`portfolio-command-${item.id}`}
+                  aria-selected={isSelected}
+                  tabIndex={-1}
                   key={item.id}
                   onClick={() => {
                     item.run();
@@ -484,7 +675,7 @@ export default function PortfolioCommandPalette({
                   }}
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={cn(
-                    "flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 transition-colors",
+                    "flex w-full cursor-pointer items-center justify-between text-left rounded-xl px-3 py-2.5 transition-colors",
                     isSelected
                       ? "bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)]"
                       : "text-[var(--portfolio-ink)] hover:bg-muted/40",
@@ -502,21 +693,21 @@ export default function PortfolioCommandPalette({
                       <Icon className="h-3.5 w-3.5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold">
+                      <p className="break-words text-sm font-semibold">
                         {item.title}
                       </p>
                       {item.subtitle ? (
-                        <p className="truncate font-utility text-[0.68rem] text-[var(--portfolio-muted)]">
+                        <p className="text-xs text-[var(--portfolio-muted)]">
                           {item.subtitle}
                         </p>
                       ) : null}
                     </div>
                   </div>
 
-                  <span className="ml-2 shrink-0 font-utility text-[0.62rem] text-[var(--portfolio-muted)]">
+                  <span className="ml-2 hidden shrink-0 text-xs sm:inline text-[var(--portfolio-muted)]">
                     {item.category}
                   </span>
-                </div>
+                </button>
               );
             })
           )}

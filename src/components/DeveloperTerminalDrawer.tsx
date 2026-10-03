@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { useDialogFocus } from "@/components/common/useDialogFocus";
 import { Terminal, X, CornerDownLeft, Minimize2, Trash2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -104,11 +105,11 @@ export default function DeveloperTerminalDrawer({
           type: "output",
           content: [
             "SENIOR FULL STACK INTERVIEW BIBLE (study.buildora.work):",
-            "  Scope:       868 Reference Files | 560 Study Chapters | 40 Interview Banks | 366K Lines",
+            "  Scope:       Mechanism-first chapters | Separate revision | Interview practice",
             "  Lanes (2):   [1] Abroad Full-Stack (EU/US Startups)  [2] Indian SDE / FAANG",
             "  Stacks (7):  Frontend, Backend, Architecture, Platform, Quality, Real-Time, Interview Toolkit",
             "  Patterns:    All 23 GoF Design Patterns + 31 Production System Design Case Studies",
-            "  Gates:       20 Automated Verification Gates enforcing zero-drift metrics",
+            "  Gates:       Automated structure, link, freshness and teaching-flow checks",
             "  Live Corpus: https://study.buildora.work",
             "  GitHub Repo: https://github.com/CVamsi27/software-developer-bible",
           ].join("\n"),
@@ -154,9 +155,9 @@ export default function DeveloperTerminalDrawer({
         newLines.push({
           type: "output",
           content: [
-            "VERIFIED BUSINESS & ENGINEERING OUTCOMES:",
-            "  • Docita Healthcare OS:   25+ Clinics Pan-India, 1,000+ monthly workflows, 99.9% uptime",
-            "  • MAQ Software:           -30% p95 API response latency, reusable component library",
+            "PRODUCT WORK & ENGINEERING SCOPE:",
+            "  • Docita Healthcare OS:   5 core workflows, scoped APIs, operational dashboard",
+            "  • MAQ Software:           API query tuning, reusable React components",
             "  • Cognizant:              4 Distributed Spring Boot microservices, Eureka & JWT routing",
             "  Navigating to Impact section...",
           ].join("\n"),
@@ -169,9 +170,9 @@ export default function DeveloperTerminalDrawer({
           type: "output",
           content: [
             "Vamsi Krishna Chandaluri",
-            "Title:    Senior Full Stack & Systems Engineer",
+            "Title:    Full Stack Engineer",
             "Focus:    Healthcare SaaS, Distributed Systems, High-Security Web Apps",
-            "Current:  Lead Full Stack Engineer at Docita (25+ Clinics Active)",
+            "Current:  Full Stack Engineer at Docita (Healthcare SaaS)",
             "Location: Pan-India / Remote (Open to Germany & Global Relocation)",
             "Stack:    TypeScript, React, Next.js, NestJS, Node.js, PostgreSQL, Prisma",
           ].join("\n"),
@@ -343,10 +344,14 @@ export default function DeveloperTerminalDrawer({
     }
   };
 
+  const dialogRef = useDialogFocus(open, onClose);
+
   if (!mounted || !open) return null;
 
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Developer Interactive Terminal"

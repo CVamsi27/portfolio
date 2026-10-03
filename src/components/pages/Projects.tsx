@@ -36,24 +36,24 @@ const PROJECT_EXTRAS: Record<
 > = {
   Docita: {
     category: "saas",
-    categoryLabel: "Production SaaS",
-    metrics: "25+ Clinics · 1,000+ Appts / Mo",
+    categoryLabel: "Healthcare SaaS",
+    metrics: "5 Core Clinical Workflows",
     highlights: [
       "Multi-tenant PostgreSQL Row-Level Security (RLS) & Deny-by-default ABAC",
-      "Transactional outbox & background queues for guaranteed notifications and billing",
-      "Zero-downtime database migrations with Prisma and tenant-scoped queries",
+      "Transactional outbox and background jobs with retries and recovery boundaries",
+      "Prisma migrations and tenant-scoped transactional writes",
       "Full-stack end-to-end type safety with shared Zod schemas and TanStack Query",
     ],
   },
   "Senior Full Stack Bible": {
     category: "platforms",
     categoryLabel: "Knowledge Engine",
-    metrics: "868 Files · 560 Chapters · 366k Lines",
+    metrics: "Mechanisms · Revision · Practical Exercises",
     highlights: [
       "2 Terminal Interview Lanes: Abroad Full-Stack (EU/US Startups) & Indian SDE (FAANG)",
       "7 Deep Technical Stacks: Frontend, Backend, Architecture, Platform, Quality, Real-Time, Interview Toolkit",
       "All 23 GoF Design Patterns + 31 Production System Design Case Studies",
-      "20 automated verification gates enforcing link health, schema depth, and zero-drift metrics",
+      "Automated structure, link, freshness and teaching-flow checks",
     ],
   },
   TeamOps: {
@@ -207,7 +207,7 @@ const Projects = () => {
                 Flagship Production System · Indian Healthcare
               </span>
             </div>
-            <span className="portfolio-impact-pill">25+ Clinics Active</span>
+            <span className="portfolio-impact-pill">5 Core Workflows</span>
           </div>
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-center">
@@ -263,15 +263,15 @@ const Projects = () => {
             </div>
 
             <div className="flex flex-col justify-center rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 shadow-xs">
-              <p className="portfolio-meta-label">System Specs & Impact</p>
+              <p className="portfolio-meta-label">Product Scope & Decisions</p>
               <div className="mt-4 space-y-3 border-b border-[var(--portfolio-rule)] pb-4">
                 <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
-                  <span className="text-[var(--portfolio-muted)]">Active Facilities:</span>
-                  <span className="font-semibold text-[var(--portfolio-ink)]">25+ Indian Clinics</span>
+                  <span className="text-[var(--portfolio-muted)]">Product scope:</span>
+                  <span className="font-semibold text-[var(--portfolio-ink)]">5 clinical workflows</span>
                 </div>
                 <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
-                  <span className="text-[var(--portfolio-muted)]">Monthly Workflows:</span>
-                  <span className="font-semibold text-[var(--portfolio-ink)]">1,000+ Completed</span>
+                  <span className="text-[var(--portfolio-muted)]">Measurement:</span>
+                  <span className="font-semibold text-[var(--portfolio-ink)]">Activity & request telemetry</span>
                 </div>
                 <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
                   <span className="text-[var(--portfolio-muted)]">Architecture:</span>
@@ -279,7 +279,7 @@ const Projects = () => {
                 </div>
                 <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
                   <span className="text-[var(--portfolio-muted)]">Security:</span>
-                  <span className="font-semibold text-[var(--portfolio-ink)]">PHI-Safe Audit Logs</span>
+                  <span className="font-semibold text-[var(--portfolio-ink)]">Encryption & audit logging</span>
                 </div>
               </div>
 

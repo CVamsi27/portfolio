@@ -61,6 +61,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   useEffect(() => {
     if (!isTracker) return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setPaletteOpen((prev) => !prev);
@@ -76,6 +77,8 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
       ) {
         return;
       }
+
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
 
       if (e.key === "?") {
         e.preventDefault();
@@ -122,6 +125,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   useEffect(() => {
     if (isTracker) return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
       const target = e.target as HTMLElement | null;
       if (
         target &&
@@ -143,6 +147,8 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         setTerminalOpen((prev) => !prev);
         return;
       }
+
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
 
       if (e.key === "?") {
         e.preventDefault();
@@ -272,12 +278,13 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             )}
           </a>
           <div className="flex items-center gap-1.5">
-            <div data-editorial-index className="hidden items-center gap-1 md:flex" data-testid={isTracker ? "tracker-primary-nav" : undefined}>
+            <div data-editorial-index className="hidden items-center gap-1 lg:flex" data-testid={isTracker ? "tracker-primary-nav" : undefined}>
               {menuItems.map((item) =>
                 isTracker ? (
                   <Link
                     key={item.href}
                     href={item.href}
+                    aria-current={isMenuActive(item.href) ? "page" : undefined}
                     className={cn(
                       "dossier-rail-link px-3 py-1.5 text-sm transition-colors",
                       isMenuActive(item.href)
@@ -291,6 +298,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                   <a
                     key={item.href}
                     href={item.href}
+                    aria-current={isMenuActive(item.href) ? "page" : undefined}
                     className={cn(
                       "dossier-rail-link px-3 py-1.5 text-sm transition-all duration-200",
                       isMenuActive(item.href)
@@ -339,7 +347,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                 </button>
               </>
             ) : null}
-            <div className="inline-flex items-center">
+            <div className={isTracker ? "hidden sm:inline-flex items-center" : "hidden"}>
               <AuthButton />
             </div>
             {!isTracker ? (
@@ -359,7 +367,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                 onClick={() => setPortfolioPaletteOpen(true)}
                 aria-label="Command Palette (⌘K)"
                 title="Command Palette (⌘K)"
-                className="hidden sm:inline-flex h-9 items-center gap-1.5 rounded-xl border border-border/60 bg-muted/30 px-2.5 text-xs text-muted-foreground transition-all hover:border-[var(--portfolio-accent)]/60 hover:bg-accent hover:text-foreground"
+                className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl border border-border/60 bg-muted/30 px-2.5 text-xs text-muted-foreground transition-all hover:border-[var(--portfolio-accent)]/60 hover:bg-accent hover:text-foreground"
               >
                 <Search className="h-3.5 w-3.5" />
                 <span className="hidden lg:inline font-utility text-[10px] uppercase tracking-wider">⌘K</span>
@@ -371,7 +379,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                 onClick={() => setTerminalOpen(true)}
                 aria-label="Developer Terminal (~)"
                 title="Developer Terminal (~)"
-                className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-xl border border-transparent hover:border-border/60 hover:bg-muted/40 text-muted-foreground transition-all active:scale-95"
+                className="hidden xl:inline-flex h-9 w-9 items-center justify-center rounded-xl border border-transparent hover:border-border/60 hover:bg-muted/40 text-muted-foreground transition-all active:scale-95"
               >
                 <Terminal className="h-4 w-4" />
               </button>
@@ -382,7 +390,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                 onClick={() => setPortfolioShortcutsOpen(true)}
                 aria-label="Keyboard Shortcuts (?)"
                 title="Keyboard Shortcuts (?)"
-                className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-xl border border-transparent hover:border-border/60 hover:bg-muted/40 text-muted-foreground transition-all active:scale-95"
+                className="hidden xl:inline-flex h-9 w-9 items-center justify-center rounded-xl border border-transparent hover:border-border/60 hover:bg-muted/40 text-muted-foreground transition-all active:scale-95"
               >
                 <Keyboard className="h-4 w-4" />
               </button>

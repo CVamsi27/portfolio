@@ -11,9 +11,11 @@ The public site is a personal portfolio; the tracker side is gated by auth when 
 
 The tracker UI is branded NOVA. Internal `vk:` localStorage keys and the `vk-tracker-suite` backup discriminator remain stable for existing data.
 
-### Editorial product system
+### UI and product system
 
-The repository now keeps two intentional visual systems: the public portfolio is a warm-paper editorial **Selected Work / Index**, while tracker routes are an archive-black **NOVA** workspace. The `src/components/editorial/` primitives are presentational only; tracker hooks, share/privacy behavior, local-first persistence, and host routing remain the source of truth.
+[UI/UX review and validation](docs/ui-ux-review.md) documents the redesign and its verification.
+
+The repository now keeps two intentional visual systems: the public portfolio uses a restrained blue **Selected Work / Index**, while tracker routes use a teal **NOVA** workspace. Both support readable light and dark themes, shared touch-sized controls, and responsive navigation. `src/app/ui-system.css` owns the current surface palettes and layout refinements. The `src/components/editorial/` primitives are presentational only; tracker hooks, share/privacy behavior, local-first persistence, and host routing remain the source of truth.
 
 The system is responsive across the supported 320px, 390px, and 430px mobile viewports and honors `prefers-reduced-motion` by removing non-essential reveals and transitions. The current release includes explainable next-action prioritization, recovery mode, ordered milestones, weekly review, archive capture, and compact world clocks without changing the existing tracker-data contract.
 

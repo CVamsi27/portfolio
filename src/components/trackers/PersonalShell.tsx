@@ -11,14 +11,14 @@ import { cn } from "@/lib/utils";
 import LockdownGate from "./LockdownGate";
 
 const DEFAULT_EYEBROWS: Partial<Record<TrackerIconName, string>> = {
-  todo: "Workspace // Chapter 01",
-  log: "Workspace // Signal & Log Capture",
-  timer: "Workspace // Fasting & Nutrition",
-  workout: "Workspace // Physical Training",
-  flag: "Workspace // Trajectory & Milestones",
-  scale: "Workspace // Body & Recovery",
-  archive: "Workspace // Second Brain",
-  settings: "Workspace // System Settings",
+  todo: "Planning",
+  log: "Quick capture",
+  timer: "Health",
+  workout: "Health",
+  flag: "Planning",
+  scale: "Health",
+  archive: "Library",
+  settings: "Preferences",
 };
 
 export default function PersonalShell({
@@ -42,11 +42,11 @@ export default function PersonalShell({
   showDock?: boolean;
   children: ReactNode;
 }) {
-  const effectiveEyebrow = eyebrow ?? (icon ? DEFAULT_EYEBROWS[icon] : undefined) ?? "Workspace // Chapter 01";
+  const effectiveEyebrow = eyebrow ?? (icon ? DEFAULT_EYEBROWS[icon] : undefined) ?? "Planning";
 
   return (
     <EditorialFrame surface="archive" className="dossier-frame personal-shell">
-      <div className={cn("mx-auto w-full max-w-6xl", showDock ? "pb-28 sm:pb-8" : "pb-8")}>
+      <div className={cn("mx-auto w-full max-w-6xl", showDock ? "pb-28 lg:pb-8" : "pb-8")}>
         {title == null ? null : (
           <ChapterHeader
             compact
@@ -72,7 +72,7 @@ export default function PersonalShell({
         )}
         {actions ? <TrackerActionBar {...actions} /> : null}
         <LockdownGate>
-          <main className="mt-5 space-y-5">{children}</main>
+          <div className="personal-content mt-5 space-y-5">{children}</div>
           <TrackerNavDock showDock={showDock} />
         </LockdownGate>
       </div>

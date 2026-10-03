@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { useDialogFocus } from "@/components/common/useDialogFocus";
 import { Keyboard, X } from "lucide-react";
 
 export type ShortcutItem = {
@@ -51,10 +52,14 @@ export default function PortfolioShortcutsModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
 
+  const dialogRef = useDialogFocus(open, onClose);
+
   if (!mounted || !open) return null;
 
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Keyboard Shortcuts"
@@ -71,7 +76,7 @@ export default function PortfolioShortcutsModal({
       <div className="relative w-full max-w-lg rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 shadow-2xl transition-all">
         <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)]">
               <Keyboard className="h-4 w-4" />
             </div>
             <div>
@@ -88,7 +93,7 @@ export default function PortfolioShortcutsModal({
             type="button"
             onClick={onClose}
             aria-label="Close keyboard shortcuts modal"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
           >
             <X className="h-4 w-4" />
           </button>

@@ -70,7 +70,7 @@ export default function ProgressRail({
         <strong
           className={cn(
             "font-display text-3xl font-black tabular-nums transition-colors duration-700",
-            allDone ? "text-[#c8ff3d]" : "text-[#32b8c8]",
+            allDone ? "text-primary" : "text-primary",
           )}
         >
           {safePercent}%
@@ -87,7 +87,7 @@ export default function ProgressRail({
         <span
           className={cn(
             "block h-full rounded-full transition-[width] duration-500 motion-reduce:transition-none",
-            allDone ? "bg-[#c8ff3d] shadow-[0_0_12px_rgba(200,255,61,0.55)]" : "bg-[#32b8c8]",
+            allDone ? "bg-primary shadow-[0_0_12px_rgba(200,255,61,0.55)]" : "bg-primary",
           )}
           style={{ width: `${safePercent}%` }}
         />
@@ -104,7 +104,7 @@ export default function ProgressRail({
                 className={cn(
                   "group flex items-center justify-between rounded-lg border px-2.5 py-1.5 text-xs transition-colors",
                   anchor.completed
-                    ? "border-[#c8ff3d]/50 bg-[#c8ff3d]/10 text-foreground"
+                    ? "border-primary/50 bg-primary/10 text-foreground"
                     : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/60 hover:text-foreground",
                 )}
               >
@@ -112,13 +112,13 @@ export default function ProgressRail({
                   <Icon
                     className={cn(
                       "h-3.5 w-3.5 shrink-0",
-                      anchor.completed ? "text-[#c8ff3d]" : "text-muted-foreground group-hover:text-primary",
+                      anchor.completed ? "text-primary" : "text-muted-foreground group-hover:text-primary",
                     )}
                   />
                   <span className="truncate font-medium">{anchor.label}</span>
                 </div>
                 {anchor.completed ? (
-                  <Check className="h-3.5 w-3.5 shrink-0 text-[#c8ff3d]" />
+                  <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
                 ) : (
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-border group-hover:bg-primary" />
                 )}
@@ -131,7 +131,7 @@ export default function ProgressRail({
       {/* Completion celebration toast */}
       {showCelebration && (
         <div
-          className="mt-4 flex items-center gap-2.5 rounded-xl border border-[#c8ff3d]/40 bg-[#c8ff3d]/10 px-4 py-3 text-sm font-semibold text-[#c8ff3d] animate-[slide-up_0.35s_ease]"
+          className="mt-4 flex items-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary animate-[slide-up_0.35s_ease]"
           role="status"
           aria-live="polite"
         >

@@ -84,7 +84,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         ) : null}
 
         <a
-          href={isTracker ? "/trackers" : "#Top"}
+          href={isTracker ? "/hub" : "#Top"}
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-utility transition-all hover:text-foreground",
             isTracker
@@ -92,7 +92,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
               : "border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-muted)] hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:-translate-y-0.5"
           )}
         >
-          <span>{isTracker ? "Hub" : "Back to top"}</span>
+          <span>{isTracker ? "Today" : "Back to top"}</span>
           <ArrowUp className="h-3 w-3" />
         </a>
       </div>

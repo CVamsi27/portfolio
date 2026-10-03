@@ -19,7 +19,7 @@ export default function Stat({
           : "border-border/60 bg-card hover:border-primary/30",
       )}
     >
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
       <p className={cn("mt-0.5 font-semibold tabular-nums", accent && "text-primary")}>

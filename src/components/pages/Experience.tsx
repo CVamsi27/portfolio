@@ -12,21 +12,21 @@ const COMPANY_LOCATIONS: Record<string, string> = {
 };
 
 const COMPANY_HIGHLIGHTS: Record<string, string[]> = {
-  Docita: ["25+ Clinics Live", "1,000+ Appts / Mo", "PostgreSQL RLS", "Outbox & Queues"],
-  "MAQ Software": ["-30% p95 Latency", "25% Faster Delivery", "85%+ Test Coverage", "Mentored 4 Devs"],
+  Docita: ["5 Core Workflows", "Operational Dashboard", "Scoped APIs", "Outbox & Queues"],
+  "MAQ Software": ["Recruitment Workflows", "API Query Tuning", "Reusable React UI", "Reviews & Mentoring"],
   Cognizant: ["4 Microservices", "Spring Boot & Eureka", "Zuul Gateway", "E-Commerce"],
 };
 
 const KEY_PHRASES = [
-  "25+ clinics and 1,000+ appointment workflows per month",
+  "5 core workflows",
   "PostgreSQL Row-Level Security, deny-by-default ABAC",
   "PostgreSQL queues, transactional outbox, idempotency, retries",
   "tenant-scoped queries, migrations, indexes, pagination, and transactional writes",
   "TanStack Query and shared Zod schemas",
-  "cut rest api p95 latency by 30%",
-  "reduced delivery time for recruitment and internal-workflow modules by 25%",
-  "85%+ test coverage",
-  "mentored four engineers",
+  "optimized rest apis and postgresql queries",
+  "recruitment and internal-workflow applications",
+  "GitHub Actions, Jest and release checks",
+  "mentored engineers",
   "4 Spring Boot microservices",
   "Eureka service discovery, Zuul gateway routing, JWT authorization",
 ];

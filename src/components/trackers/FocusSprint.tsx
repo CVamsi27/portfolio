@@ -137,7 +137,7 @@ export default function FocusSprint({
         <div className="min-w-0">
           <p className="dossier-kicker">Focus sprint // one move</p>
           <h2 className="mt-1 flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
-            <Timer className="h-4 w-4 text-[#49E7FF]" aria-hidden />
+            <Timer className="h-4 w-4 text-primary" aria-hidden />
             {active?.label ?? "Make room for the next move"}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -145,7 +145,7 @@ export default function FocusSprint({
           </p>
         </div>
         {isRunning ? (
-          <span className="font-mono text-xs uppercase tracking-[0.16em] text-[#49E7FF]">
+          <span className="font-mono text-xs uppercase tracking-[0.16em] text-primary">
             {isPaused ? "Paused" : "In progress"}
           </span>
         ) : null}
@@ -169,15 +169,15 @@ export default function FocusSprint({
               <X className="mr-1.5 h-3.5 w-3.5" /> Cancel
             </Button>
           </div>
-          <p data-testid="focus-interruptions" className="mt-3 text-[11px] text-muted-foreground">
+          <p data-testid="focus-interruptions" className="mt-3 text-xs text-muted-foreground">
             {active?.interruptions ?? 0} interruption{active?.interruptions === 1 ? "" : "s"} recorded
           </p>
         </div>
       ) : (
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <div className="flex rounded-md border border-border/60 p-1" role="group" aria-label="Focus session mode">
-            <button type="button" aria-pressed={mode === "timed"} onClick={() => setMode("timed")} className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${mode === "timed" ? "bg-[#49E7FF] font-bold text-[#071014]" : "text-muted-foreground hover:text-foreground"}`}>Timed</button>
-            <button type="button" aria-pressed={mode === "open"} onClick={() => setMode("open")} className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${mode === "open" ? "bg-[#49E7FF] font-bold text-[#071014]" : "text-muted-foreground hover:text-foreground"}`}>Open-ended</button>
+            <button type="button" aria-pressed={mode === "timed"} onClick={() => setMode("timed")} className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${mode === "timed" ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Timed</button>
+            <button type="button" aria-pressed={mode === "open"} onClick={() => setMode("open")} className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${mode === "open" ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Open-ended</button>
           </div>
           {mode === "timed" ? (
           <div className="flex rounded-md border border-border/60 p-1" role="group" aria-label="Focus sprint length">
@@ -188,7 +188,7 @@ export default function FocusSprint({
                 aria-pressed={plannedMinutes === preset.minutes}
                 onClick={() => setPlannedMinutes(preset.minutes)}
                 className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${
-                  plannedMinutes === preset.minutes ? "bg-[#C8FF3D] font-bold text-[#071014]" : "text-muted-foreground hover:text-foreground"
+                  plannedMinutes === preset.minutes ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {preset.label}
@@ -202,11 +202,11 @@ export default function FocusSprint({
         </div>
       )}
 
-      {!isRunning ? <p className="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#49E7FF]" />Focus hides in-app navigation and warns if you leave the tab. Turn on Do Not Disturb and app limits from your device before starting.</p> : null}
+      {!isRunning ? <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />Focus hides in-app navigation and warns if you leave the tab. Turn on Do Not Disturb and app limits from your device before starting.</p> : null}
 
       {!isRunning ? (
         <details className="mt-4 border-t border-border/60 pt-3">
-          <summary className="cursor-pointer list-none text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground">Prepare your device</summary>
+          <summary className="cursor-pointer list-none text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground">Prepare your device</summary>
           <div className="mt-3"><DevicePreparation compact /></div>
         </details>
       ) : null}
@@ -219,7 +219,7 @@ export default function FocusSprint({
       ) : null}
       {storageError ? <p className="mt-3 text-xs text-amber-500">Not saved yet — keep this tab open and retry after sync returns.</p> : null}
       {!isRunning && safeSessions.length > 0 ? (
-        <p className="mt-3 text-[11px] text-muted-foreground">{safeSessions.length} focus block{safeSessions.length === 1 ? "" : "s"} recorded</p>
+        <p className="mt-3 text-xs text-muted-foreground">{safeSessions.length} focus block{safeSessions.length === 1 ? "" : "s"} recorded</p>
       ) : null}
       <span className="sr-only"><Square aria-hidden /> Focus sprint controls</span>
     </section>

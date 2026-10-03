@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Bell, BellOff, Pause, Play, RotateCcw, X } from "lucide-react";
 import { SimpleRing } from "./Ring";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ export default function RestTimer({
   onClose: () => void;
   onComplete?: () => void;
 }) {
+  const [durationSeconds, setDurationSeconds] = useState(seconds);
   const [endsAt, setEndsAt] = useState(() => Date.now() + seconds * 1000);
   const [pausedLeft, setPausedLeft] = useState<number | null>(null);
   const [sound, setSound] = useState(true);
@@ -33,7 +35,7 @@ export default function RestTimer({
   }, []);
 
   const leftMs = pausedLeft ?? Math.max(0, endsAt - now);
-  const totalMs = seconds * 1000;
+  const totalMs = durationSeconds * 1000;
   const pct = totalMs ? (leftMs / totalMs) * 100 : 0;
   const done = leftMs <= 0;
 
@@ -54,7 +56,9 @@ export default function RestTimer({
 
   const togglePause = () => {
     if (pausedLeft !== null) {
-      setEndsAt(Date.now() + pausedLeft);
+      const resumedAt = Date.now();
+      setEndsAt(resumedAt + pausedLeft);
+      setNow(resumedAt);
       setPausedLeft(null);
     } else {
       setPausedLeft(leftMs);
@@ -67,6 +71,7 @@ export default function RestTimer({
     const at = Date.now();
     firedRef.current = false;
     setPausedLeft(null);
+    setDurationSeconds(s);
     setEndsAt(at + s * 1000);
     setNow(at);
   };
@@ -76,59 +81,74 @@ export default function RestTimer({
     return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
   }, [leftMs]);
 
-  return (
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <div
+      data-testid="rest-timer"
+      role="region"
+      aria-label="Workout rest timer"
       className={cn(
-        "fixed inset-x-3 bottom-24 z-[80] mx-auto flex max-w-sm items-center gap-3 rounded-2xl border border-primary/30 bg-card/95 p-3 shadow-2xl shadow-primary/20 backdrop-blur-md sm:bottom-6 sm:right-6 sm:left-auto sm:mx-0",
+        "fixed inset-x-3 bottom-24 z-[80] mx-auto flex max-w-sm items-center gap-3 rounded-2xl border border-primary/30 bg-card/95 p-3 shadow-2xl shadow-primary/20 backdrop-blur-md lg:bottom-6 lg:right-6 lg:left-auto lg:mx-0",
         done && "border-emerald-500/50",
       )}
     >
+      <div role="progressbar" aria-label="Rest remaining" aria-valuemin={0} aria-valuemax={durationSeconds} aria-valuenow={Math.ceil(leftMs / 1000)} aria-valuetext={`${mmss} remaining`} className="shrink-0">
       <SimpleRing pct={pct} size={64} thickness={7} from={done ? "#10b981" : "#3b82f6"} to={done ? "#34d399" : "#8b5cf6"}>
         <span className="font-display text-[13px] font-bold tabular-nums">{mmss}</span>
       </SimpleRing>
+      </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">{done ? "Rest done — next set!" : "Rest timer"}</p>
         <div className="mt-1 flex flex-wrap gap-1">
           {PRESETS.map((s) => (
             <button
               key={s}
+              type="button"
+              aria-pressed={durationSeconds === s}
               onClick={() => restart(s)}
-              className="rounded-md border border-border/60 px-1.5 py-0.5 text-[11px] font-medium tabular-nums transition-colors hover:border-primary/50 hover:text-primary"
+              className={cn("min-h-11 min-w-11 rounded-md border border-border/60 px-1.5 py-0.5 text-xs font-medium tabular-nums transition-colors hover:border-primary/50 hover:text-primary", durationSeconds === s && "border-primary bg-primary/10 text-primary")}
             >
               {s}s
             </button>
           ))}
           <button
+            type="button"
+            disabled={done}
             onClick={togglePause}
             aria-label={pausedLeft !== null ? "Resume" : "Pause"}
-            className="rounded-md border border-border/60 p-1 transition-colors hover:border-primary/50 hover:text-primary"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border/60 p-1 disabled:opacity-40 transition-colors hover:border-primary/50 hover:text-primary"
           >
             {pausedLeft !== null ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
           </button>
           <button
-            onClick={() => restart(seconds)}
+            type="button"
+            onClick={() => restart(durationSeconds)}
             aria-label="Restart"
-            className="rounded-md border border-border/60 p-1 transition-colors hover:border-primary/50 hover:text-primary"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border/60 p-1 disabled:opacity-40 transition-colors hover:border-primary/50 hover:text-primary"
           >
             <RotateCcw className="h-3 w-3" />
           </button>
           <button
+            type="button"
+            aria-pressed={!sound}
             onClick={() => setSound((v) => !v)}
             aria-label={sound ? "Mute" : "Unmute"}
-            className="rounded-md border border-border/60 p-1 transition-colors hover:border-primary/50 hover:text-primary"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border/60 p-1 disabled:opacity-40 transition-colors hover:border-primary/50 hover:text-primary"
           >
             {sound ? <Bell className="h-3 w-3" /> : <BellOff className="h-3 w-3" />}
           </button>
         </div>
       </div>
       <button
+        type="button"
         onClick={onClose}
         aria-label="Close rest timer"
-        className="self-start rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex h-11 w-11 shrink-0 self-start items-center justify-center rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
       >
         <X className="h-4 w-4" />
       </button>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

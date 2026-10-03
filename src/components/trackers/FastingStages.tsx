@@ -76,7 +76,7 @@ export default function FastingStages({ elapsedHours }: { elapsedHours: number }
     <div className="rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/50 pb-3">
         <div>
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#49e7ff]">
+          <span className="font-mono text-xs uppercase tracking-[0.16em] text-primary">
             Physiological Timeline
           </span>
           <h3 className="mt-1 font-display text-base font-bold sm:text-lg">
@@ -114,11 +114,11 @@ export default function FastingStages({ elapsedHours }: { elapsedHours: number }
                   isCurrent
                     ? "bg-primary text-primary-foreground font-bold"
                     : isComplete
-                      ? "bg-muted text-[#c8ff3d]"
+                      ? "bg-muted text-primary"
                       : "bg-muted text-muted-foreground",
                 )}
               >
-                {isComplete ? <Check className="h-4 w-4 text-[#c8ff3d]" /> : <Icon className="h-4 w-4" />}
+                {isComplete ? <Check className="h-4 w-4 text-primary" /> : <Icon className="h-4 w-4" />}
               </div>
 
               <div className="min-w-0 flex-1">
@@ -131,7 +131,7 @@ export default function FastingStages({ elapsedHours }: { elapsedHours: number }
                   >
                     {stage.name}
                   </span>
-                  <span className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+                  <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">
                     {stage.startHour}h – {stage.endHour}h
                   </span>
                 </div>

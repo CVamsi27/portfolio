@@ -15,11 +15,11 @@ import {
   Timer,
   TrendingUp,
 } from "lucide-react";
-import { useFasting, useGoalState, useJournal, useNow, useTodos } from "@/lib/tracker-store";
-import { computeFastingState, dateKey, protocolById, type Todo, type TodoPriority } from "@/lib/trackers";
+import { useFasting, useFastingHistory, useGoalState, useJournal, useNow, useTodos } from "@/lib/tracker-store";
+import { computeFastingState, dateKey, kgToDisplay, protocolById, type Todo, type TodoPriority } from "@/lib/trackers";
 import { metricFor, useUserPrefs } from "@/lib/user-prefs";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import { DEFAULT_WEIGHT_LOSS_STATE, inputToKg, type WeightLossState } from "@/lib/health";
+import { DEFAULT_WEIGHT_LOSS_STATE, displayWeight, inputToKg, type WeightLossState } from "@/lib/health";
 import { cn } from "@/lib/utils";
 
 const SCALE = [1, 2, 3, 4, 5] as const;
@@ -30,6 +30,7 @@ export default function LogCapture() {
   const { value: todos, setValue: setTodos } = useTodos();
   const { value: journal, setValue: setJournal } = useJournal();
   const { value: fasting, setValue: setFasting } = useFasting();
+  const { setValue: setHistory } = useFastingHistory();
   const { value: goal, setValue: setGoal } = useGoalState();
   const { value: weightState, setValue: setWeightState } = useSyncedStorage<WeightLossState>(
     "weight-loss",
@@ -40,6 +41,7 @@ export default function LogCapture() {
   const [priority, setPriority] = useState<TodoPriority>("P2");
   const [note, setNote] = useState("");
   const [weightInput, setWeightInput] = useState("");
+  const [weightError, setWeightError] = useState<string | null>(null);
   const [metricInput, setMetricInput] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -55,7 +57,9 @@ export default function LogCapture() {
   const fastSt = fasting ?? { protocolId: "16-8", phase: "fasting" as const, startedAt: null };
   const protocol = protocolById(fastSt.protocolId);
   const fastDerived = computeFastingState(fastSt, now, protocol.fastHours);
-  const isFasting = fastSt.startedAt !== null;
+  const isFasting = fastSt.phase === "fasting" && fastSt.startedAt !== null;
+  const minWeight = Math.ceil(kgToDisplay(20, prefs.weightUnit));
+  const maxWeight = Math.floor(kgToDisplay(300, prefs.weightUnit));
 
   const currentWeightEntry = safeWeight.entries[today];
   const recovery = safeWeight.recoveryByDay[today];
@@ -95,7 +99,10 @@ export default function LogCapture() {
   };
 
   const toggleFast = () => {
-    if (isFasting) {
+    if (isFasting && fastSt.startedAt !== null) {
+      const endedAt = Date.now();
+      const entry = { id: `fast_${endedAt.toString(36)}`, start: fastSt.startedAt, end: endedAt, protocolId: fastSt.protocolId, source: "timer" as const };
+      setHistory(previous => [...(previous ?? []), entry]);
       setFasting({ ...fastSt, startedAt: null });
       setMessage("Fast ended and saved to history");
     } else {
@@ -106,7 +113,12 @@ export default function LogCapture() {
 
   const saveWeight = () => {
     const nextWeight = Number(weightInput);
-    if (!Number.isFinite(nextWeight) || nextWeight <= 0) return;
+    if (!weightInput.trim() || !Number.isFinite(nextWeight) || nextWeight < minWeight || nextWeight > maxWeight) {
+      setWeightError(`Enter a weight between ${minWeight} and ${maxWeight} ${prefs.weightUnit}.`);
+      setMessage(null);
+      return;
+    }
+    setWeightError(null);
     setWeightState({
       ...safeWeight,
       entries: {
@@ -149,7 +161,7 @@ export default function LogCapture() {
   return (
     <section data-testid="log-capture" className="space-y-4">
       {message ? (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-400">
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
           <Check className="h-4 w-4" />
           <span role="status">{message}</span>
         </div>
@@ -157,7 +169,7 @@ export default function LogCapture() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         {/* Task capture */}
-        <div className="border border-border/70 bg-card/60 p-4 sm:p-5">
+        <div className="rounded-2xl border border-border/70 bg-card/60 p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <ListChecks className="mt-0.5 h-5 w-5 text-primary" />
@@ -171,9 +183,11 @@ export default function LogCapture() {
                 <button
                   key={p}
                   type="button"
+                  aria-label={`Priority ${p}`}
+                  aria-pressed={priority === p}
                   onClick={() => setPriority(p)}
                   className={cn(
-                    "rounded px-2 py-0.5 font-mono text-[10px] font-bold transition-colors",
+                    "min-h-11 min-w-11 rounded px-2 py-0.5 font-mono text-xs font-bold transition-colors",
                     priority === p
                       ? "bg-primary text-primary-foreground"
                       : "border border-border text-muted-foreground hover:text-foreground",
@@ -204,14 +218,14 @@ export default function LogCapture() {
         </div>
 
         {/* Fasting Quick Action */}
-        <div className="border border-border/70 bg-card/60 p-4 sm:p-5">
+        <div className="rounded-2xl border border-border/70 bg-card/60 p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
-              <Timer className="mt-0.5 h-5 w-5 text-[#49e7ff]" />
+              <Timer className="mt-0.5 h-5 w-5 text-primary" />
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="font-display text-lg font-bold">Fasting</h2>
-                  <span className="rounded-full bg-[#49e7ff]/10 px-2 py-0.5 font-mono text-[10px] text-[#49e7ff]">
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary">
                     {protocol.fastHours}h protocol
                   </span>
                 </div>
@@ -238,7 +252,7 @@ export default function LogCapture() {
                 "inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-xs font-bold transition-all",
                 isFasting
                   ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  : "bg-[#49e7ff] text-[#071014] hover:opacity-95",
+                  : "bg-primary text-primary-foreground hover:opacity-95",
               )}
             >
               <Timer className="h-3.5 w-3.5" />
@@ -254,7 +268,7 @@ export default function LogCapture() {
         </div>
 
         {/* Weight & Recovery Quick Action */}
-        <div className="border border-border/70 bg-card/60 p-4 sm:p-5">
+        <div className="rounded-2xl border border-border/70 bg-card/60 p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <Scale className="mt-0.5 h-5 w-5 text-primary" />
@@ -262,7 +276,7 @@ export default function LogCapture() {
                 <h2 className="font-display text-lg font-bold">Weight & Recovery</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {currentWeightEntry
-                    ? `Today: ${currentWeightEntry.weightKg} kg logged`
+                    ? `Today: ${displayWeight(currentWeightEntry.weightKg, prefs.weightUnit)} logged`
                     : "One 15-second check-in keeps decisions honest."}
                 </p>
               </div>
@@ -279,9 +293,11 @@ export default function LogCapture() {
             <input
               type="number"
               step="0.1"
-              min="20"
-              max="300"
+              min={minWeight}
+              max={maxWeight}
               aria-label="Today's weight"
+              aria-invalid={Boolean(weightError)}
+              aria-describedby={weightError ? "log-weight-error" : undefined}
               className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
               placeholder={`Weigh-in (${prefs.weightUnit})…`}
               value={weightInput}
@@ -296,18 +312,21 @@ export default function LogCapture() {
               Log
             </button>
           </div>
+          {weightError ? <p id="log-weight-error" role="alert" className="mt-2 text-sm text-destructive">{weightError}</p> : null}
           <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-            <span className="text-[11px] font-semibold text-muted-foreground">Energy:</span>
+            <span className="text-xs font-semibold text-muted-foreground">Energy:</span>
             <div className="flex gap-1">
               {SCALE.map((s) => (
                 <button
                   key={s}
                   type="button"
+                  aria-label={`Energy ${s} of 5`}
+                  aria-pressed={recovery?.energy === s}
                   onClick={() => saveRecovery("energy", s)}
                   className={cn(
-                    "h-6 w-6 rounded-full border text-[10px] font-bold transition-colors",
+                    "h-11 w-11 shrink-0 rounded-full border text-xs font-bold transition-colors",
                     recovery?.energy === s
-                      ? "border-[#c8ff3d] bg-[#c8ff3d] text-[#071014]"
+                      ? "border-primary bg-primary text-primary-foreground"
                       : "border-border text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -315,17 +334,19 @@ export default function LogCapture() {
                 </button>
               ))}
             </div>
-            <span className="text-[11px] font-semibold text-muted-foreground ml-2">Sleep:</span>
+            <span className="text-xs font-semibold text-muted-foreground ml-2">Sleep:</span>
             <div className="flex gap-1">
               {SCALE.map((s) => (
                 <button
                   key={s}
                   type="button"
+                  aria-label={`Sleep ${s} of 5`}
+                  aria-pressed={recovery?.sleep === s}
                   onClick={() => saveRecovery("sleep", s)}
                   className={cn(
-                    "h-6 w-6 rounded-full border text-[10px] font-bold transition-colors",
+                    "h-11 w-11 shrink-0 rounded-full border text-xs font-bold transition-colors",
                     recovery?.sleep === s
-                      ? "border-[#49e7ff] bg-[#49e7ff] text-[#071014]"
+                      ? "border-primary bg-primary text-primary-foreground"
                       : "border-border text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -337,10 +358,10 @@ export default function LogCapture() {
         </div>
 
         {/* Goal / Metric Quick Action */}
-        <div className="border border-border/70 bg-card/60 p-4 sm:p-5">
+        <div className="rounded-2xl border border-border/70 bg-card/60 p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
-              <TrendingUp className="mt-0.5 h-5 w-5 text-[#c8ff3d]" />
+              <TrendingUp className="mt-0.5 h-5 w-5 text-primary" />
               <div>
                 <h2 className="font-display text-lg font-bold">Goal Progress</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -369,6 +390,7 @@ export default function LogCapture() {
             </button>
             <div className="flex gap-1">
               <input
+                aria-label={`Custom ${metric.label}`}
                 type="number"
                 min="1"
                 placeholder="Custom…"
@@ -397,7 +419,7 @@ export default function LogCapture() {
       {/* Workout Quick Launcher Card */}
       <Link
         href="/workout-tracking"
-        className="group flex items-center justify-between border border-border/70 bg-card/60 p-4 transition-colors hover:border-primary/70 sm:p-5"
+        className="group flex items-center justify-between rounded-2xl border border-border/70 bg-card/60 p-4 transition-colors hover:border-primary/70 sm:p-5"
       >
         <div className="flex items-start gap-3">
           <Dumbbell className="mt-0.5 h-5 w-5 text-primary" />
@@ -412,7 +434,7 @@ export default function LogCapture() {
       </Link>
 
       {/* Note & Reflection Capture */}
-      <div className="border border-border/70 bg-card/60 p-4 sm:p-5">
+      <div className="rounded-2xl border border-border/70 bg-card/60 p-4 sm:p-5">
         <div className="flex items-start gap-3">
           <FileText className="mt-0.5 h-5 w-5 text-primary" />
           <div>

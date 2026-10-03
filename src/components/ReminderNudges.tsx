@@ -38,7 +38,7 @@ export default function ReminderNudges() {
     const dedupeKey = `vk:reminder-fired:${clock.date}:${due.key}`;
     if (window.localStorage.getItem(dedupeKey)) return;
     window.localStorage.setItem(dedupeKey, "1");
-    if ("Notification" in window && Notification.permission === "granted") new Notification(REMINDER_LABELS[due.key], { body: "Open Personal Buildora to continue your dated career plan." });
+    if ("Notification" in window && Notification.permission === "granted") new Notification(REMINDER_LABELS[due.key], { body: "Open NOVA to continue your dated career plan." });
   }, [clock.date, due]);
   if (!due || !due.slot) return null;
   const href = ["weighIn", "focus", "evening"].includes(due.key) ? due.key === "weighIn" ? "/weight-loss" : due.key === "focus" ? "/motivation" : "/hub" : "/roadmap";

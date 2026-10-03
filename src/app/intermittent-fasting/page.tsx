@@ -144,36 +144,17 @@ export default function FastingPage() {
         subtitle="Add the time of your first and last meal. NOVA calculates the fasting window from what you actually logged."
         badge={<SyncBadge status={status} />}
         actions={{
-          primary: <a href="#meal-window" className="inline-flex min-h-10 items-center border border-[#C8FF3D] bg-[#C8FF3D] px-4 font-mono text-xs font-bold uppercase tracking-[0.1em] text-[#071014]">{safeState.mealRoutine ? "Save today's window" : "Save routine and use for today"}</a>,
+          primary: <a href="#meal-window" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Open meal window</a>,
           secondary: <a href="#fasting-history" className="text-xs font-semibold text-primary hover:underline">Open history →</a>,
         }}
       >
-        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-          <StoryPanel
-            eyebrow="Meal window chapter"
-            title={todayEntry ? "Today’s window is on record" : safeState.mealRoutine ? "Log today’s window" : "Set your daily routine"}
-            action={<a href="#meal-window" className="dossier-back-link">Open meal window</a>}
-          >
-            {todayEntry
-              ? `${((todayEntry.end - todayEntry.start) / 3_600_000).toFixed(1)} hours fasting from ${todayEntry.firstMealTime} to ${todayEntry.lastMealTime}.`
-              : safeState.mealRoutine
-                ? "Your routine is ready as a starting point. Adjust today’s times whenever the day changes."
-                : "Add your usual first and last meal times once. We will use them to prefill each new day until you change them."}
-          </StoryPanel>
-          <SignalPanel
-            label="Today’s signal"
-            value={todayEntry ? `${((todayEntry.end - todayEntry.start) / 3_600_000).toFixed(1)}h` : "Ready"}
-            detail={`${streak}-day fasting streak · ${safeHistory.length} windows logged`}
-            progress={progress}
-            tone="violet"
-          />
-        </div>
+
 
         <Card variant="dossier" id="meal-window" className="overflow-hidden">
           <CardContent className="p-5 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="font-utility text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+                <p className="font-utility text-xs font-bold uppercase tracking-[0.18em] text-primary">
                   {safeState.mealRoutine ? "Daily routine" : "First setup"}
                 </p>
                 <h2 className="mt-2 font-display text-3xl font-black tracking-[-0.04em]">
@@ -295,6 +276,28 @@ export default function FastingPage() {
             <p className="text-xs text-muted-foreground">The first and last meal fields above are used for this date.</p>
           </div>
         </Modal>
+        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+          <StoryPanel
+            eyebrow="Meal window chapter"
+            title={todayEntry ? "Today’s window is on record" : safeState.mealRoutine ? "Log today’s window" : "Set your daily routine"}
+            action={<a href="#meal-window" className="dossier-back-link">Open meal window</a>}
+          >
+            {todayEntry
+              ? `${((todayEntry.end - todayEntry.start) / 3_600_000).toFixed(1)} hours fasting from ${todayEntry.firstMealTime} to ${todayEntry.lastMealTime}.`
+              : safeState.mealRoutine
+                ? "Your routine is ready as a starting point. Adjust today’s times whenever the day changes."
+                : "Add your usual first and last meal times once. We will use them to prefill each new day until you change them."}
+          </StoryPanel>
+          <SignalPanel
+            label="Today’s signal"
+            value={todayEntry ? `${((todayEntry.end - todayEntry.start) / 3_600_000).toFixed(1)}h` : "Ready"}
+            detail={`${streak}-day fasting streak · ${safeHistory.length} windows logged`}
+            progress={progress}
+            tone="violet"
+          />
+        </div>
+        </details>
       </TrackerShell>
     </RequireAuth>
   );

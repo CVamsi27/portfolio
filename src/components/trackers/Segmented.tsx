@@ -22,15 +22,16 @@ export default function Segmented<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className="grid auto-cols-fr grid-flow-col gap-1 rounded-2xl bg-muted/50 p-1"
+      className="flex flex-wrap gap-1 rounded-2xl bg-muted/50 p-1"
     >
       {options.map((o) => (
         <button
           key={o.value}
+          type="button"
           onClick={() => onChange(o.value)}
           aria-pressed={value === o.value}
           className={cn(
-            "truncate rounded-xl px-3 py-1.5 text-sm font-medium transition-all",
+            "min-h-11 flex-1 rounded-xl px-3 py-2 text-sm font-medium transition-all",
             value === o.value
               ? variant === "solid"
                 ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"

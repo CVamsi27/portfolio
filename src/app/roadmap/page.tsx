@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNotificationPermission, refreshNotificationPermission } from "@/lib/use-notification-permission";
+import { useAuth } from "@/lib/auth-store";
+import { alignPersonalTimetable, personalSchedule } from "@/lib/personal-timetable";
+import DailyTimetable from "@/components/trackers/DailyTimetable";
 import curriculum from "@/data/career-curriculum.json";
 import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
@@ -148,21 +152,6 @@ function CopyBtn({ text, label }: { text: string; label: string }) {
   );
 }
 
-// ─── Schedule row ─────────────────────────────────────────────────────────────
-function ScheduleRow({ time, activity, isActive }: { time: string; activity: string | { label: string; output?: string; minutes?: number; work?: boolean }; isActive: boolean }) {
-  const label = typeof activity === "string" ? activity : activity.label;
-  const output = typeof activity === "string" ? "" : activity.output ?? "";
-  return (
-    <div className={`flex gap-3 rounded-lg px-3 py-2 text-xs transition-colors ${isActive ? "bg-primary/12 ring-1 ring-primary/30" : "hover:bg-muted/40"}`}>
-      <span className={`w-28 shrink-0 font-mono text-[11px] ${isActive ? "text-primary font-bold" : "text-muted-foreground"}`}>{time}</span>
-      <span className={`${isActive ? "text-foreground font-medium" : "text-foreground/80"}`}>
-        {label}{output && <span className="ml-1 text-muted-foreground">— {output}</span>}
-        {isActive && <span className="ml-2 rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">NOW</span>}
-      </span>
-    </div>
-  );
-}
-
 // ─── Day card ─────────────────────────────────────────────────────────────────
 function DayCard({
   plan,
@@ -190,19 +179,12 @@ function DayCard({
   const isPast = plan.date < istDateTime().date;
   const color = getColor(plan.topic);
   const doneCount = plan.checklist.filter(c => c.done).length;
-  const nowHH = istDateTime().time;
 
   const totalChapters = plan.chapters?.length || 1;
   const masteredCount = useMemo(() => {
     return plan.chapters?.filter(ch => completedChapterIdSet?.has(ch.id)).length || 0;
   }, [plan.chapters, completedChapterIdSet]);
   const allChaptersMastered = masteredCount > 0 && masteredCount === totalChapters;
-
-  function isActive(t: string) {
-    if (!isToday) return false;
-    const [s, e] = t.split(/\s*[-–]\s*/);
-    return !!s && !!e && nowHH >= s && nowHH < e;
-  }
 
   const TABS = [
     { id: "checklist" as const, icon: <CheckSquare className="h-3.5 w-3.5" />, label: "Checklist" },
@@ -225,11 +207,11 @@ function DayCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${color.bg}`} style={{ color: color.ring }}>{color.short}</span>
-            {isToday && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">TODAY</span>}
+            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${color.bg}`} style={{ color: color.ring }}>{color.short}</span>
+            {isToday && <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">TODAY</span>}
             {masteredCount > 0 && (
               <span className={cn(
-                "rounded-full px-2 py-0.5 text-[10px] font-bold border",
+                "rounded-full px-2 py-0.5 text-xs font-bold border",
                 allChaptersMastered
                   ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
                   : "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
@@ -237,12 +219,12 @@ function DayCard({
                 {allChaptersMastered ? "ALL STUDY MASTERED" : `${masteredCount}/${totalChapters} STUDY MASTERED`}
               </span>
             )}
-            {progress === 100 && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">DONE</span>}
-            {isPast && progress > 0 && progress < 100 && <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">IN PROGRESS</span>}
-            {isPast && progress === 0 && <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold text-rose-400">OVERDUE</span>}
+            {progress === 100 && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-bold text-emerald-400">DONE</span>}
+            {isPast && progress > 0 && progress < 100 && <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-bold text-amber-400">IN PROGRESS</span>}
+            {isPast && progress === 0 && <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-xs font-bold text-rose-400">OVERDUE</span>}
           </div>
           <p className="font-display font-bold text-sm leading-tight">{plan.title}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">{plan.date} · {doneCount}/{plan.checklist.length} done{masteredCount > 0 ? ` · ${masteredCount}/${totalChapters} study mastered` : ""}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{plan.date} · {doneCount}/{plan.checklist.length} done{masteredCount > 0 ? ` · ${masteredCount}/${totalChapters} study mastered` : ""}</p>
           {/* Mini progress bar */}
           <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted">
             <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: color.ring }} />
@@ -272,7 +254,7 @@ function DayCard({
                   <p className={cn("text-xs font-bold", allChaptersMastered ? "text-emerald-400" : "text-primary")}>
                     {allChaptersMastered ? "Review Deep Focus Study (All Mastered) →" : "Deep Focus Study (Anti-Distraction Shield) →"}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">study.buildora.work · {masteredCount > 0 ? `${masteredCount}/${totalChapters} mastered · ` : ""}{totalChapters} chapter{totalChapters > 1 ? "s" : ""} · tab-switch guard active</p>
+                  <p className="text-xs text-muted-foreground">study.buildora.work · {masteredCount > 0 ? `${masteredCount}/${totalChapters} mastered · ` : ""}{totalChapters} chapter{totalChapters > 1 ? "s" : ""} · tab-switch guard active</p>
                 </div>
               </div>
               <ArrowRight className={cn("h-3.5 w-3.5 shrink-0", allChaptersMastered ? "text-emerald-400" : "text-primary")} />
@@ -295,7 +277,7 @@ function DayCard({
                       type="button"
                       onClick={() => onOpenStudy?.({ ...ch, stack: plan.topic }, plan.day)}
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] transition-colors cursor-pointer",
+                        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors cursor-pointer",
                         isMastered
                           ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
                           : "border-border/60 bg-muted/20 text-foreground hover:border-primary/50 hover:bg-primary/5"
@@ -306,10 +288,10 @@ function DayCard({
                       ) : (
                         <BookOpen className="h-3 w-3 text-primary" />
                       )}
-                      <span className="font-mono text-[10px] opacity-75">Ch {idx + 1}:</span>
+                      <span className="font-mono text-xs opacity-75">Ch {idx + 1}:</span>
                       <span className="truncate max-w-[200px]">{ch.title}</span>
                       {isMastered && (
-                        <span className="text-[9px] font-mono uppercase text-emerald-400 font-semibold ml-0.5">
+                        <span className="text-xs font-mono uppercase text-emerald-400 font-semibold ml-0.5">
                           Done
                         </span>
                       )}
@@ -329,7 +311,7 @@ function DayCard({
               { icon: <Search className="h-3 w-3" />, label: "Find Roles", href: "https://wellfound.com/jobs?q=node+typescript+senior" },
             ].map(p => (
               <a key={p.label} href={p.href} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-card px-2.5 py-1 text-[11px] hover:border-primary/50 hover:bg-primary/5 transition-colors">
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-card px-2.5 py-1 text-xs hover:border-primary/50 hover:bg-primary/5 transition-colors">
                 {p.icon}{p.label}
               </a>
             ))}
@@ -339,9 +321,9 @@ function DayCard({
           <div className="flex overflow-x-auto border-b border-border/40 mt-3 px-4 gap-0 scrollbar-none">
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex shrink-0 items-center gap-1 border-b-2 px-2.5 pb-2 pt-1 text-[11px] font-medium transition-colors whitespace-nowrap ${tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+                className={`flex shrink-0 items-center gap-1 border-b-2 px-2.5 pb-2 pt-1 text-xs font-medium transition-colors whitespace-nowrap ${tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
                 {t.icon}{t.label}
-                {t.id === "checklist" && doneCount > 0 && <span className="rounded-full bg-primary/20 px-1 text-[10px] text-primary">{doneCount}</span>}
+                {t.id === "checklist" && doneCount > 0 && <span className="rounded-full bg-primary/20 px-1 text-xs text-primary">{doneCount}</span>}
               </button>
             ))}
           </div>
@@ -351,8 +333,8 @@ function DayCard({
             {tab === "checklist" && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Verify completion — tick each when actually done</p>
-                  <span className="text-[11px] tabular-nums text-muted-foreground">{doneCount}/{plan.checklist.length}</span>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Verify completion — tick each when actually done</p>
+                  <span className="text-xs tabular-nums text-muted-foreground">{doneCount}/{plan.checklist.length}</span>
                 </div>
                 <div className="space-y-0.5">
                   {plan.checklist.map(item => (
@@ -360,7 +342,7 @@ function DayCard({
                       <button onClick={() => { setSelected(item); setEvidenceValue(evidence[item.id]?.evidence.value ?? ""); setEvidenceSourceUrl(evidence[item.id]?.evidence.sourceUrl ?? ""); setConfirmed(evidence[item.id]?.evidence.confirmed ?? false); setValidationError(""); }}
                         className="group flex w-full items-start gap-2.5 text-left text-sm">
                         {item.done ? <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <Square className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />}
-                        <span className={item.done ? "text-muted-foreground" : ""}>{item.text}<span className="block text-[10px] leading-relaxed text-muted-foreground">{item.done ? (evidence[item.id]?.verifiedAt ? "Evidence saved · verified" : "Evidence saved · needs final verification") : `Evidence required · ${item.acceptanceCriteria}`}</span></span>
+                        <span className={item.done ? "text-muted-foreground" : ""}>{item.text}<span className="block text-xs leading-relaxed text-muted-foreground">{item.done ? (evidence[item.id]?.verifiedAt ? "Evidence saved · verified" : "Evidence saved · needs final verification") : `Evidence required · ${item.acceptanceCriteria}`}</span></span>
                       </button>
                       {item.instructions?.length ? <details className="ml-7 mt-1.5 rounded-md bg-muted/25 px-2.5 py-2 text-xs">
                         <summary className="cursor-pointer font-medium text-primary">How to complete this task</summary>
@@ -387,30 +369,23 @@ function DayCard({
             {tab === "mission" && (
               <div className="space-y-4">
                 <div className="rounded-xl border border-amber-500/30 bg-amber-500/8 p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-2 flex items-center gap-1.5"><Flame className="h-3.5 w-3.5" />Daily Mission</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2 flex items-center gap-1.5"><Flame className="h-3.5 w-3.5" />Daily Mission</p>
                   <p className="text-sm leading-relaxed">{plan.mission}</p>
                 </div>
                 <div className="rounded-xl border border-primary/30 bg-primary/8 p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2 flex items-center gap-1.5"><Code2 className="h-3.5 w-3.5" />Practice Challenge</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-primary mb-2 flex items-center gap-1.5"><Code2 className="h-3.5 w-3.5" />Practice Challenge</p>
                   <p className="text-sm leading-relaxed">{plan.practiceTask}</p>
                 </div>
               </div>
             )}
 
             {/* SCHEDULE */}
-            {tab === "schedule" && (
-              <div className="space-y-0.5">
-                {isToday && <p className="text-[10px] text-primary font-semibold mb-2">Active block highlighted based on current time</p>}
-                {Object.entries(plan.schedule).map(([time, activity]) => (
-                  <ScheduleRow key={time} time={time} activity={activity} isActive={isActive(time)} />
-                ))}
-              </div>
-            )}
+            {tab === "schedule" && <DailyTimetable title="Day schedule" schedule={plan.schedule} date={plan.date} timeZone="Asia/Kolkata" />}
 
             {/* STEPS */}
             {tab === "steps" && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">Complete in order — each step builds on the last</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Complete in order — each step builds on the last</p>
                 <ol className="space-y-2">
                   {plan.steps.map((step, i) => {
                     const url = step.match(/https?:\/\/\S+/)?.[0];
@@ -418,7 +393,7 @@ function DayCard({
                     const after = url ? step.slice(step.indexOf(url) + url.length) : "";
                     return (
                       <li key={i} className="flex gap-3 rounded-lg px-2.5 py-2.5 hover:bg-muted/30 transition-colors">
-                        <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">{i + 1}</span>
+                        <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-muted text-xs font-bold text-muted-foreground">{i + 1}</span>
                         <span className="text-sm leading-relaxed">
                           {before}
                           {url && <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:no-underline inline-flex items-center gap-0.5">{url.replace(/https?:\/\//, "").split("/")[0]}<ExternalLink className="h-3 w-3" /></a>}
@@ -434,16 +409,16 @@ function DayCard({
             {/* INTERVIEW Q */}
             {tab === "interview" && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">Answer each out loud. Record yourself. This IS the interview.</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Answer each out loud. Record yourself. This IS the interview.</p>
                 <div className="space-y-2">
                   {plan.interviewQuestions.map((q, i) => (
                     <div key={i} className={`rounded-lg border p-3 transition-colors ${i === (plan.day - 1) % plan.interviewQuestions.length ? "border-primary/40 bg-primary/8" : "border-border/40 bg-card/40"}`}>
                       <div className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[10px] font-bold text-muted-foreground shrink-0">Q{i + 1}</span>
+                        <span className="mt-0.5 text-xs font-bold text-muted-foreground shrink-0">Q{i + 1}</span>
                         <p className="text-sm">{q}</p>
                       </div>
                       {i === (plan.day - 1) % plan.interviewQuestions.length && (
-                        <p className="mt-1.5 text-[10px] text-primary font-semibold">← TODAY&apos;S FOCUS QUESTION</p>
+                        <p className="mt-1.5 text-xs text-primary font-semibold">← TODAY&apos;S FOCUS QUESTION</p>
                       )}
                     </div>
                   ))}
@@ -501,7 +476,7 @@ function ResumeSection({ data }: { data: CareerData["resumeAnalysis"] }) {
               <div key={i} className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-xs font-semibold text-emerald-400">{s.item}</p>
-                  <span className="shrink-0 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">{s.fitScore}/10</span>
+                  <span className="shrink-0 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-bold text-emerald-400">{s.fitScore}/10</span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">{s.impact}</p>
               </div>
@@ -514,7 +489,7 @@ function ResumeSection({ data }: { data: CareerData["resumeAnalysis"] }) {
               <div key={i} className={`rounded-lg border p-3 ${g.urgency === "critical" ? "border-rose-500/30 bg-rose-500/8" : g.urgency === "high" ? "border-amber-500/30 bg-amber-500/8" : "border-border/40 bg-card/40"}`}>
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-xs font-semibold">{g.item}</p>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${g.urgency === "critical" ? "bg-rose-500/20 text-rose-400" : g.urgency === "high" ? "bg-amber-500/20 text-amber-400" : "bg-muted text-muted-foreground"}`}>{g.urgency}</span>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold uppercase ${g.urgency === "critical" ? "bg-rose-500/20 text-rose-400" : g.urgency === "high" ? "bg-amber-500/20 text-amber-400" : "bg-muted text-muted-foreground"}`}>{g.urgency}</span>
                 </div>
                 <p className="mt-1 text-xs text-primary">{g.action}</p>
               </div>
@@ -544,9 +519,9 @@ function RolesSection({ data, note }: { data: CareerData["targetRoles"]; note?: 
         <div className="flex items-center gap-2 mb-2">
           <Briefcase className="h-4 w-4 text-primary" />
           <h2 className="font-display font-bold">Target Roles</h2>
-          <span className="ml-auto text-[10px] text-muted-foreground">{list.length} leads · last refresh {note?.match(/Source check: ([0-9-]+)/)?.[1] ?? "—"}</span>
+          <span className="ml-auto text-xs text-muted-foreground">{list.length} leads · last refresh {note?.match(/Source check: ([0-9-]+)/)?.[1] ?? "—"}</span>
         </div>
-        {note && <p className="mb-4 text-[11px] text-muted-foreground leading-relaxed">{note}</p>}
+        {note && <p className="mb-4 text-xs text-muted-foreground leading-relaxed">{note}</p>}
         <div className="flex flex-wrap gap-2 mb-4">
           {tabs.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
@@ -566,24 +541,24 @@ function RolesSection({ data, note }: { data: CareerData["targetRoles"]; note?: 
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-xs font-bold">{r.company}</p>
                     {("city" in r) && (r as { city?: string }).city && (
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                      <span className="text-xs text-muted-foreground flex items-center gap-0.5">
                         <MapPin className="h-2.5 w-2.5" />{(r as { city: string }).city}
                       </span>
                     )}
                     {("salary" in r) && (r as { salary?: string }).salary && (
-                      <span className="text-[10px] text-emerald-400 font-mono">{(r as { salary: string }).salary}</span>
+                      <span className="text-xs text-emerald-400 font-mono">{(r as { salary: string }).salary}</span>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">{r.role}</p>
-                  {r.sourceChecked && <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">Source checked {r.sourceChecked} · {r.status}</p>}
-                  <p className="text-[11px] text-foreground/70 mt-1 leading-relaxed">{r.notes}</p>
+                  {r.sourceChecked && <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-emerald-400">Source checked {r.sourceChecked} · {r.status}</p>}
+                  <p className="text-xs text-foreground/70 mt-1 leading-relaxed">{r.notes}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.fitScore >= 9 ? "bg-emerald-500/20 text-emerald-300" : r.fitScore >= 7 ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${r.fitScore >= 9 ? "bg-emerald-500/20 text-emerald-300" : r.fitScore >= 7 ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
                     {r.fitScore}/10
                   </span>
                   <a href={r.link} target="_blank" rel="noopener noreferrer"
-                    className="rounded-full border border-border/60 px-2.5 py-1 text-[10px] font-medium hover:border-primary/50 transition-colors">
+                    className="rounded-full border border-border/60 px-2.5 py-1 text-xs font-medium hover:border-primary/50 transition-colors">
                     Apply →
                   </a>
                 </div>
@@ -615,7 +590,7 @@ function WeeklyTargetsSection({ targets }: { targets: Record<string, number> }) 
         <div className="flex items-center gap-2 mb-3">
           <Target className="h-4 w-4 text-primary" />
           <h2 className="font-display font-bold">Weekly Targets</h2>
-          <span className="ml-auto text-[10px] text-muted-foreground">Treat as floors, not ceilings.</span>
+          <span className="ml-auto text-xs text-muted-foreground">Treat as floors, not ceilings.</span>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {entries.map(([key, value]) => {
@@ -625,8 +600,8 @@ function WeeklyTargetsSection({ targets }: { targets: Record<string, number> }) 
               <div key={key} className="flex items-center gap-2 rounded-lg border border-border/40 bg-card/30 p-2.5">
                 <Icon className="h-4 w-4 shrink-0 text-primary" />
                 <div className="min-w-0">
-                  <p className="text-[10px] text-muted-foreground truncate">{meta.label}</p>
-                  <p className="font-mono text-sm font-bold tabular-nums">{value}<span className="ml-1 text-[10px] font-normal text-muted-foreground">/ wk</span></p>
+                  <p className="text-xs text-muted-foreground truncate">{meta.label}</p>
+                  <p className="font-mono text-sm font-bold tabular-nums">{value}<span className="ml-1 text-xs font-normal text-muted-foreground">/ wk</span></p>
                 </div>
               </div>
             );
@@ -637,7 +612,7 @@ function WeeklyTargetsSection({ targets }: { targets: Record<string, number> }) 
   );
 }
 
-function DayScheduleSection({ schedule }: { schedule: NonNullable<CareerData["daySchedule"]> }) {
+function DayScheduleSection({ schedule, aligned = false }: { schedule: NonNullable<CareerData["daySchedule"]>; aligned?: boolean }) {
   const typeColor: Record<string, string> = {
     health: "border-emerald-500/30 bg-emerald-500/5",
     ritual: "border-cyan-500/30 bg-cyan-500/5",
@@ -658,23 +633,23 @@ function DayScheduleSection({ schedule }: { schedule: NonNullable<CareerData["da
         <div className="flex items-center gap-2 mb-1">
           <CalendarDays className="h-4 w-4 text-primary" />
           <h2 className="font-display font-bold">Daily Schedule Template</h2>
-          <span className="ml-auto text-[10px] text-muted-foreground">07:00 → 22:00 IST · {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m mapped</span>
+          <span className="ml-auto text-xs text-muted-foreground">{schedule.timezone} · {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m mapped</span>
         </div>
-        <p className="mb-4 text-[11px] text-muted-foreground">
-          Designed for 10h focused study + 2h family time + 90m exercise + 2 meals. Shift block order on days with interviews or appointments.
+        <p className="mb-4 text-xs text-muted-foreground">
+          {aligned ? (schedule.blocks.length ? "Personal Bible timetable: example IST times; keep the durations. Ten focused hours each weekday, four on both Saturday and Sunday. Interview preparation replaces planned work rather than adding hours." : "No scheduled work.") : "Designed for 10h focused study + 2h family time + 90m exercise + 2 meals. Shift block order on days with interviews or appointments."}
         </p>
         <div className="space-y-1.5">
           {schedule.blocks.map((block) => (
             <div key={block.time} className={`flex items-center gap-3 rounded-lg border p-2.5 ${typeColor[block.type] ?? "border-border/40 bg-card/30"}`}>
-              <span className="w-24 shrink-0 font-mono text-[11px] font-semibold tabular-nums text-foreground/90">{block.time}</span>
+              <span className="w-24 shrink-0 font-mono text-xs font-semibold tabular-nums text-foreground/90">{block.time}</span>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium">{block.label}</p>
-                {block.output && <p className="mt-0.5 text-[10px] text-muted-foreground">→ {block.output}</p>}
+                {block.output && <p className="mt-0.5 text-xs text-muted-foreground">→ {block.output}</p>}
               </div>
-              <span className="shrink-0 rounded-full bg-background/60 px-2 py-0.5 text-[10px] font-mono tabular-nums">
+              <span className="shrink-0 rounded-full bg-background/60 px-2 py-0.5 text-xs font-mono tabular-nums">
                 {block.minutes > 0 ? `${block.minutes}m` : "anchor"}
               </span>
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${block.type === "study" ? "bg-blue-500/20 text-blue-300" : block.type === "job" ? "bg-pink-500/20 text-pink-300" : block.type === "interview" ? "bg-rose-500/20 text-rose-300" : block.type === "family" || block.type === "meal" || block.type === "health" ? "bg-emerald-500/20 text-emerald-300" : "bg-muted text-muted-foreground"}`}>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wider ${block.type === "study" ? "bg-blue-500/20 text-blue-300" : block.type === "job" ? "bg-pink-500/20 text-pink-300" : block.type === "interview" ? "bg-rose-500/20 text-rose-300" : block.type === "family" || block.type === "meal" || block.type === "health" ? "bg-emerald-500/20 text-emerald-300" : "bg-muted text-muted-foreground"}`}>
                 {block.type}
               </span>
             </div>
@@ -692,11 +667,11 @@ function MotivationalResourcesSection({ resources }: { resources: NonNullable<Ca
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="h-4 w-4 text-primary" />
           <h2 className="font-display font-bold">Resources & Where to Apply</h2>
-          <span className="ml-auto text-[10px] text-muted-foreground">Bookmarks for the job-search engine.</span>
+          <span className="ml-auto text-xs text-muted-foreground">Bookmarks for the job-search engine.</span>
         </div>
         {resources.inspiration && resources.inspiration.length > 0 && (
           <div className="mb-4">
-            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Inspiration</p>
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Inspiration</p>
             <div className="space-y-1.5">
               {resources.inspiration.map((r) => (
                 <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer"
@@ -704,7 +679,7 @@ function MotivationalResourcesSection({ resources }: { resources: NonNullable<Ca
                   <Flame className="h-4 w-4 shrink-0 text-rose-400" />
                   <div className="min-w-0">
                     <p className="text-xs font-semibold group-hover:text-primary transition-colors">{r.title}</p>
-                    <p className="text-[11px] text-muted-foreground">{r.why}</p>
+                    <p className="text-xs text-muted-foreground">{r.why}</p>
                   </div>
                   <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary" />
                 </a>
@@ -714,7 +689,7 @@ function MotivationalResourcesSection({ resources }: { resources: NonNullable<Ca
         )}
         <div className="grid gap-3 sm:grid-cols-3">
           <div>
-            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mock interviews</p>
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Mock interviews</p>
             <div className="space-y-1.5">
               {(resources.mockInterview ?? []).map((r) => (
                 <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer"
@@ -722,14 +697,14 @@ function MotivationalResourcesSection({ resources }: { resources: NonNullable<Ca
                   <Users className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
                   <div className="min-w-0">
                     <p className="text-xs font-semibold group-hover:text-primary transition-colors truncate">{r.label}</p>
-                    {r.why && <p className="text-[10px] text-muted-foreground">{r.why}</p>}
+                    {r.why && <p className="text-xs text-muted-foreground">{r.why}</p>}
                   </div>
                 </a>
               ))}
             </div>
           </div>
           <div>
-            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">OSS targets</p>
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">OSS targets</p>
             <div className="space-y-1.5">
               {(resources.oss ?? []).map((r) => (
                 <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer"
@@ -737,14 +712,14 @@ function MotivationalResourcesSection({ resources }: { resources: NonNullable<Ca
                   <GitPullRequest className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
                   <div className="min-w-0">
                     <p className="text-xs font-semibold group-hover:text-primary transition-colors truncate">{r.label}</p>
-                    {r.why && <p className="text-[10px] text-muted-foreground">{r.why}</p>}
+                    {r.why && <p className="text-xs text-muted-foreground">{r.why}</p>}
                   </div>
                 </a>
               ))}
             </div>
           </div>
           <div>
-            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Job boards</p>
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Job boards</p>
             <div className="space-y-1.5">
               {(resources.jobBoards ?? []).map((r) => (
                 <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer"
@@ -763,7 +738,7 @@ function MotivationalResourcesSection({ resources }: { resources: NonNullable<Ca
               <BookOpen className="h-5 w-5 text-primary" />
               <div>
                 <p className="text-sm font-bold">{resources.study.label}</p>
-                <p className="text-[10px] text-muted-foreground">{resources.study.url}</p>
+                <p className="text-xs text-muted-foreground">{resources.study.url}</p>
               </div>
             </div>
             <ArrowUpRight className="h-4 w-4 text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -803,7 +778,7 @@ function VerificationSection({ data }: { data: NonNullable<CareerData["verificat
               }}
                 className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-muted/30 transition-colors ${isDone ? "opacity-60" : ""}`}>
                 {isDone ? <CheckSquare className="h-4 w-4 mt-0.5 shrink-0 text-emerald-400" /> : <Square className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />}
-                <span className={`text-[11px] leading-relaxed ${isDone ? "line-through" : ""}`}>{text}</span>
+                <span className={`text-xs leading-relaxed ${isDone ? "line-through" : ""}`}>{text}</span>
               </button>
             );
           })}
@@ -814,13 +789,11 @@ function VerificationSection({ data }: { data: NonNullable<CareerData["verificat
 }
 
 function NotificationsPanel({ notifications }: { notifications: NonNullable<DayPlan["notifications"]> }) {
-  const [permState, setPermState] = useState<NotificationPermission | "unsupported">(
-    typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
-  );
+  const permState = useNotificationPermission();
   const requestPermission = useCallback(async () => {
     if (typeof window === "undefined" || !("Notification" in window)) return;
-    const result = await Notification.requestPermission();
-    setPermState(result);
+    await Notification.requestPermission();
+    refreshNotificationPermission();
   }, []);
   const fire = useCallback((n: NonNullable<DayPlan["notifications"]>[number]) => {
     if (typeof window === "undefined" || !("Notification" in window) || Notification.permission !== "granted") return;
@@ -847,30 +820,30 @@ function NotificationsPanel({ notifications }: { notifications: NonNullable<DayP
         <div className="flex items-center gap-2 mb-3">
           <Bell className="h-4 w-4 text-primary" />
           <h2 className="font-display font-bold">Today&apos;s Notifications</h2>
-          <span className="ml-auto text-[10px] text-muted-foreground">{sorted.length} cues · browser-supported</span>
+          <span className="ml-auto text-xs text-muted-foreground">{sorted.length} cues · browser-supported</span>
         </div>
         {permState === "unsupported" ? (
-          <p className="rounded-lg border border-dashed border-border/40 p-2.5 text-[11px] text-muted-foreground">Browser notifications unsupported here. Set a phone alarm at each listed time.</p>
+          <p className="rounded-lg border border-dashed border-border/40 p-2.5 text-xs text-muted-foreground">Browser notifications unsupported here. Set a phone alarm at each listed time.</p>
         ) : permState === "default" ? (
           <button onClick={requestPermission}
             className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
             <Bell className="h-3.5 w-3.5" />Enable browser notifications
           </button>
         ) : permState === "granted" ? (
-          <p className="mb-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Notifications enabled</p>
+          <p className="mb-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-300">Notifications enabled</p>
         ) : (
-          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] text-amber-200">Notifications blocked — open browser site settings to enable.</p>
+          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-200">Notifications blocked — open browser site settings to enable.</p>
         )}
         <div className="space-y-1.5">
           {sorted.map((n) => (
             <div key={n.key} className="flex items-center gap-3 rounded-lg border border-border/40 bg-card/30 p-2.5">
-              <span className="w-14 shrink-0 font-mono text-[11px] font-semibold tabular-nums text-primary">{n.time}</span>
-              <p className="min-w-0 flex-1 text-[11px] leading-relaxed">{n.message}</p>
+              <span className="w-14 shrink-0 font-mono text-xs font-semibold tabular-nums text-primary">{n.time}</span>
+              <p className="min-w-0 flex-1 text-xs leading-relaxed">{n.message}</p>
               {permState === "granted" && (
-                <button onClick={() => fire(n)} className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[10px] hover:border-primary/50">Test</button>
+                <button onClick={() => fire(n)} className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-xs hover:border-primary/50">Test</button>
               )}
               {n.href && (
-                <a href={n.href} className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[10px] hover:border-primary/50">Open</a>
+                <a href={n.href} className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-xs hover:border-primary/50">Open</a>
               )}
             </div>
           ))}
@@ -896,7 +869,7 @@ function OutreachSection({ templates }: { templates: CareerData["outreachTemplat
         <div className="flex items-center gap-2 mb-4">
           <Mail className="h-4 w-4 text-primary" />
           <h2 className="font-display font-bold">Outreach Templates</h2>
-          <span className="ml-auto text-[11px] text-muted-foreground">Copy → personalise → send</span>
+          <span className="ml-auto text-xs text-muted-foreground">Copy → personalise → send</span>
         </div>
         <div className="flex flex-wrap gap-2 mb-4">
           {TMPL.map(t => (
@@ -907,12 +880,12 @@ function OutreachSection({ templates }: { templates: CareerData["outreachTemplat
           ))}
         </div>
         <div className="relative">
-          <pre className="rounded-xl border border-border/40 bg-muted/20 p-4 text-[11px] leading-relaxed text-foreground/90 whitespace-pre-wrap font-mono overflow-x-auto">{text}</pre>
+          <pre className="rounded-xl border border-border/40 bg-muted/20 p-4 text-xs leading-relaxed text-foreground/90 whitespace-pre-wrap font-mono overflow-x-auto">{text}</pre>
           <div className="mt-2">
             <CopyBtn text={text} label="Copy Template" />
           </div>
         </div>
-        <p className="mt-3 text-[11px] text-muted-foreground">Replace {`{Company}`}, {`{Name}`}, and the product observation before sending. Personalise every message.</p>
+        <p className="mt-3 text-xs text-muted-foreground">Replace {`{Company}`}, {`{Name}`}, and the product observation before sending. Personalise every message.</p>
       </CardContent>
     </Card>
   );
@@ -1009,40 +982,40 @@ function MotivationHero({
       <CardContent className="p-0">
         <div className="grid grid-cols-1 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border/30">
           <div className="flex flex-col gap-1 p-5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Overall</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Overall</span>
             <div className="flex items-baseline gap-1.5">
               <span className="font-mono text-3xl font-bold tabular-nums">{overallPct}<span className="text-base text-muted-foreground">%</span></span>
-              <span className="text-[10px] text-muted-foreground">{doneItems}/{totalItems} items</span>
+              <span className="text-xs text-muted-foreground">{doneItems}/{totalItems} items</span>
             </div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
               <div className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-400 transition-all duration-700" style={{ width: `${overallPct}%` }} />
             </div>
-            <span className="mt-1.5 text-[10px] text-muted-foreground">{completedDays} full days · {daysLeft} to go</span>
+            <span className="mt-1.5 text-xs text-muted-foreground">{completedDays} full days · {daysLeft} to go</span>
           </div>
           <div className="flex flex-col gap-1 p-5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Today</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Today</span>
             <div className="flex items-baseline gap-1.5">
               <span className="font-mono text-3xl font-bold tabular-nums">{todayPct}<span className="text-base text-muted-foreground">%</span></span>
-              <span className="text-[10px] text-muted-foreground">Day {today?.day ?? "—"}</span>
+              <span className="text-xs text-muted-foreground">Day {today?.day ?? "—"}</span>
             </div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
               <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${todayPct}%` }} />
             </div>
-            <span className="mt-1.5 truncate text-[10px] text-muted-foreground">{today?.title ?? "—"}</span>
+            <span className="mt-1.5 truncate text-xs text-muted-foreground">{today?.title ?? "—"}</span>
           </div>
           <div className="flex flex-col gap-1 p-5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Streak</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Streak</span>
             <div className="flex items-baseline gap-1.5">
               <Flame className={`h-5 w-5 ${streak > 0 ? "text-rose-400" : "text-muted-foreground"}`} />
               <span className="font-mono text-3xl font-bold tabular-nums">{streak}</span>
-              <span className="text-[10px] text-muted-foreground">day{streak === 1 ? "" : "s"}</span>
+              <span className="text-xs text-muted-foreground">day{streak === 1 ? "" : "s"}</span>
             </div>
-            <span className="mt-2 text-[10px] text-muted-foreground">
+            <span className="mt-2 text-xs text-muted-foreground">
               {streak === 0 ? "Start today. Tomorrow you'll be proud." : streak < 7 ? "Keep going. Senior is built one day at a time." : "Compounding. You're in the zone."}
             </span>
           </div>
           <div className="flex flex-col gap-1 p-5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Next milestone</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Next milestone</span>
             <div className="flex items-center gap-1.5">
               <span className="text-2xl">{nextMilestone.emoji}</span>
               <span className="font-display font-bold text-sm leading-tight">{nextMilestone.label}</span>
@@ -1050,7 +1023,7 @@ function MotivationHero({
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
               <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-rose-400 transition-all duration-700" style={{ width: `${Math.min(100, Math.round((completedDays / nextMilestone.at) * 100))}%` }} />
             </div>
-            <span className="mt-1.5 text-[10px] text-muted-foreground">{Math.max(0, nextMilestone.at - completedDays)} days away</span>
+            <span className="mt-1.5 text-xs text-muted-foreground">{Math.max(0, nextMilestone.at - completedDays)} days away</span>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-px bg-border/30 sm:grid-cols-2">
@@ -1061,7 +1034,7 @@ function MotivationHero({
             </div>
             <p className="text-sm leading-relaxed">{today?.mission ?? "Pick a chapter. Read it twice. Save the invariant, an example, and a failure mode. Then close the tab and answer from memory."}</p>
             {today && (
-              <div className="mt-3 grid grid-cols-2 gap-2 text-[10px]">
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-md border border-border/40 bg-muted/30 p-2">
                   <p className="text-muted-foreground">Study minutes</p>
                   <p className="font-mono font-bold tabular-nums">{today.chapters.reduce((a, c) => a + (("estimatedMinutes" in c && typeof (c as { estimatedMinutes?: number }).estimatedMinutes === "number") ? (c as { estimatedMinutes: number }).estimatedMinutes : 0), 0)}m</p>
@@ -1081,7 +1054,7 @@ function MotivationHero({
             <div className="flex items-center gap-2 mb-2">
               <BarChart2 className="h-4 w-4 text-emerald-400" />
               <h3 className="text-xs font-bold uppercase tracking-wider">Last 7 days · weekly wins</h3>
-              <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">{recentDoneCount}/{recentTotalCount} items</span>
+              <span className="ml-auto text-xs tabular-nums text-muted-foreground">{recentDoneCount}/{recentTotalCount} items</span>
             </div>
             <div className="flex items-end gap-1.5">
               {weeklyWins.map((w) => {
@@ -1092,12 +1065,12 @@ function MotivationHero({
                     <div className="relative w-full flex items-end" style={{ height: 40 }}>
                       <div className={`w-full rounded-t ${color} transition-all duration-500`} style={{ height: `${height}px` }} title={`${w.date} · ${w.pct}%`} />
                     </div>
-                    <span className="text-[9px] text-muted-foreground">{w.date.slice(8, 10)}/{w.date.slice(5, 7)}</span>
+                    <span className="text-xs text-muted-foreground">{w.date.slice(8, 10)}/{w.date.slice(5, 7)}</span>
                   </div>
                 );
               })}
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-1.5 text-[10px]">
+            <div className="mt-3 grid grid-cols-2 gap-1.5 text-xs">
               {weeklyWins.filter(w => w.pct === 100).slice(-3).map(w => (
                 <div key={w.date} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1.5">
                   <p className="font-mono text-emerald-300">{w.date}</p>
@@ -1117,11 +1090,12 @@ function MotivationHero({
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function RoadmapPage() {
+  const { user } = useAuth();
   const { value: timetable } = useSyncedStorage<Timetable | null>("timetable_100_days", null);
   const { value: career, setValue: setCareer } = useSyncedStorage<CareerData | null>("career_command_center", null);
   const { value: executionState, setValue: setExecutionState } = useSyncedStorage<CareerExecutionState>("career_execution_state", EMPTY_CAREER_EXECUTION_STATE);
   const { value: completedChapters, setValue: setCompletedChapters } = useSyncedStorage<ExtendedCompletedChapter[]>("study:completed_chapters", []);
-  const [filter, setFilter] = useState<"all" | "today" | "pending" | "done">("all");
+  const [filter, setFilter] = useState<"all" | "today" | "pending" | "done">("today");
   const [search, setSearch] = useState("");
   const [section, setSection] = useState<"roadmap" | "revision" | "career" | "germany" | "outreach">("roadmap");
   const [revisionDeckOpen, setRevisionDeckOpen] = useState(false);
@@ -1172,14 +1146,14 @@ export default function RoadmapPage() {
 
   const today = istDateTime().date;
   const days = useMemo(() => {
-    const source = timetable?.days?.length ? timetable.days : curriculum.days;
+    const source = alignPersonalTimetable(user?.email, { days: timetable?.days?.length ? timetable.days : curriculum.days }).days;
     return source.map((raw, index) => {
       const day = raw as DayPlan & { chapters?: Array<{ id: string; title: string; studyUrl: string }>; phaseLabel?: string; schedule: DayPlan["schedule"] };
       const chapterList = day.chapters ?? [];
       const checklist = (day.checklist ?? []).map(item => ({ ...item, done: Boolean(executionState.evidenceByItemId[item.id]) }));
       return { ...day, day: day.day ?? index + 1, topic: day.topic ?? "Study", chapterId: day.chapterId ?? chapterList[0]?.id ?? "", title: day.title ?? chapterList.map(chapter => chapter.title).join(" + "), chapters: chapterList, studyLink: day.studyLink ?? chapterList[0]?.studyUrl ?? "https://study.buildora.work", schedule: day.schedule ?? {}, mission: day.mission ?? "Study, build, and save verifiable evidence.", practiceTask: day.practiceTask ?? "Implement a small, tested improvement.", roleTrack: day.roleTrack ?? { lane: "Full-stack TypeScript", action: "Save one source-verified role action." }, interviewQuestions: day.interviewQuestions ?? [], steps: day.steps ?? [], checklist, notification: day.notification ?? { time: "08:00", message: "Start today's career roadmap block." }, oSSProject: day.oSSProject ?? "Langfuse", mockInterviewPlatform: day.mockInterviewPlatform ?? "Recorded self-mock", founderOutreachTarget: day.founderOutreachTarget ?? "One relevant outreach action", resources: day.resources ?? [] };
     });
-  }, [timetable, executionState]);
+  }, [timetable, executionState, user?.email]);
   const completedDays = useMemo(() => days.filter(d => pct(d.checklist) === 100).length, [days]);
   const totalItems = useMemo(() => days.reduce((a, d) => a + d.checklist.length, 0), [days]);
   const doneItems = useMemo(() => days.reduce((a, d) => a + d.checklist.filter(c => c.done).length, 0), [days]);
@@ -1234,7 +1208,7 @@ export default function RoadmapPage() {
 
   return (
     <RequireAuth>
-      <PersonalShell icon="book" title="Career Command Center" subtitle="100-day plan · resume · target roles · outreach · Germany relocation." eyebrow="NOVA // Execution">
+      <PersonalShell icon="book" title="Career roadmap" subtitle="Your daily study plan, evidence, and next career steps." eyebrow="NOVA // Execution">
         {/* Study Bible banner */}
         <a href="https://study.buildora.work" target="_blank" rel="noopener noreferrer"
           className="flex items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary/10 px-5 py-3.5 hover:bg-primary/15 transition-colors">
@@ -1242,12 +1216,14 @@ export default function RoadmapPage() {
             <BookOpen className="h-5 w-5 text-primary shrink-0" />
             <div>
               <p className="font-display font-bold text-sm">Software Developer Bible</p>
-          <p className="text-[11px] text-muted-foreground">study.buildora.work · 556 chapters · 176.8h estimated reading · dated across 100 days</p>
+          <p className="text-xs text-muted-foreground">study.buildora.work · 556 chapters · 176.8h estimated reading · dated across 100 days</p>
             </div>
           </div>
           <ArrowUpRight className="h-4 w-4 text-primary shrink-0" />
         </a>
 
+        <details className="rounded-2xl border border-border p-4">
+          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress and weekly overview</summary>
         <MotivationHero
           days={days}
           todayDate={today}
@@ -1255,11 +1231,12 @@ export default function RoadmapPage() {
           doneItems={doneItems}
           completedDays={completedDays}
         />
+        </details>
 
         {/* Section nav */}
         <div className="flex gap-2 flex-wrap">
           {NAV.map(n => (
-            <button key={n.id} onClick={() => setSection(n.id)}
+            <button key={n.id} type="button" aria-pressed={section === n.id} onClick={() => setSection(n.id)}
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${section === n.id ? "border-primary bg-primary text-primary-foreground" : "border-border/60 text-muted-foreground hover:border-primary/50"}`}>
               {n.icon}{n.label}
             </button>
@@ -1292,10 +1269,10 @@ export default function RoadmapPage() {
                     )
                   }
                   className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-400/40 bg-indigo-500/10 px-3.5 py-1.5 text-xs font-bold text-indigo-300 hover:bg-indigo-500/20 transition-all cursor-pointer shadow-xs"
-                  title="Configure 10:00 PM Bedtime Curfew & Phone Lockdown"
+                  title="Configure your in-app bedtime schedule"
                 >
                   <Moon className="h-3.5 w-3.5 text-indigo-400" />
-                  <span>10 PM Phone Lockdown</span>
+                  <span>Bedtime settings</span>
                 </button>
               </div>
 
@@ -1306,7 +1283,7 @@ export default function RoadmapPage() {
                   className="inline-flex items-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/40 px-3.5 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/25 transition-all cursor-pointer shadow-xs"
                 >
                   <RotateCcw className="h-3.5 w-3.5 animate-spin-slow text-amber-400" />
-                  <span>Launch Opaque Recall Gate ({dueRevisionList.length} Due) →</span>
+                  <span>Review due topics ({dueRevisionList.length} Due) →</span>
                 </button>
               )}
             </div>
@@ -1322,9 +1299,9 @@ export default function RoadmapPage() {
                   { label: "Overall", value: `${overallPct}%`, color: "text-primary", note: "progress" },
                 ].map(s => (
                   <div key={s.label} className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{s.label}</p>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{s.label}</p>
                     <p className={`mt-1 font-display text-2xl font-bold tabular-nums ${s.color}`}>{s.value}</p>
-                    <p className="text-[10px] text-muted-foreground">{s.note}</p>
+                    <p className="text-xs text-muted-foreground">{s.note}</p>
                   </div>
                 ))}
               </div>
@@ -1345,14 +1322,14 @@ export default function RoadmapPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Today · {todayPlan.date} · Day {todayPlan.day}</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-primary">Today · {todayPlan.date} · Day {todayPlan.day}</span>
                       </div>
                       <p className="font-display font-bold">{todayPlan.title}</p>
                       <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{todayPlan.mission}</p>
                       <div className="mt-4 rounded-lg border border-border/60 bg-background/50 p-3">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Study in this order</p>
-                          <span className="text-[10px] font-mono text-primary flex items-center gap-1">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Study in this order</p>
+                          <span className="text-xs font-mono text-primary flex items-center gap-1">
                             <ShieldCheck className="h-3 w-3" /> Anti-distraction guard enabled
                           </span>
                         </div>
@@ -1371,7 +1348,7 @@ export default function RoadmapPage() {
                                     {chapter.title}
                                   </button>
                                   {isMastered && (
-                                    <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-400 shrink-0">
+                                    <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-xs font-bold text-emerald-400 shrink-0">
                                       <Check className="h-2.5 w-2.5" />
                                       <span>Mastered</span>
                                     </span>
@@ -1382,7 +1359,7 @@ export default function RoadmapPage() {
                                     type="button"
                                     onClick={() => handleOpenStudy({ ...chapter, stack: todayPlan.topic }, todayPlan.day)}
                                     className={cn(
-                                      "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold transition-colors cursor-pointer",
+                                      "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold transition-colors cursor-pointer",
                                       isMastered
                                         ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                                         : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
@@ -1391,7 +1368,7 @@ export default function RoadmapPage() {
                                     <ShieldCheck className="h-3 w-3" />
                                     <span>{isMastered ? "Review Sprint" : "Deep Study"}</span>
                                   </button>
-                                  <a href={chapter.studyUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                                  <a href={chapter.studyUrl} target="_blank" rel="noopener noreferrer" aria-label={`Open ${chapter.title} in new tab`} className="text-muted-foreground hover:text-primary">
                                     <ExternalLink className="h-3 w-3" />
                                   </a>
                                 </div>
@@ -1401,61 +1378,13 @@ export default function RoadmapPage() {
                         </ol>
                       </div>
 
-                      {/* Today's Hourly Timetable */}
-                      {todayPlan.schedule && Object.keys(todayPlan.schedule).length > 0 && (
-                        <div className="mt-3 rounded-lg border border-border/60 bg-background/50 p-3 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                              <CalendarDays className="h-3.5 w-3.5 text-primary" /> Today&apos;s Hourly Timetable
-                            </p>
-                            <span className="text-[10px] font-mono text-muted-foreground">
-                              {Object.keys(todayPlan.schedule).length} blocks planned
-                            </span>
-                          </div>
-                          <div className="grid gap-1 sm:grid-cols-2 max-h-56 overflow-y-auto pr-1">
-                            {Object.entries(todayPlan.schedule).map(([time, desc]) => {
-                              const nowHH = new Date().toTimeString().slice(0, 5);
-                              const parts = time.includes(" - ") ? time.split(" - ") : time.split("-");
-                              const s = parts[0]?.trim();
-                              const e = parts[1]?.trim();
-                              const isCurrent = Boolean(s && e && nowHH >= s && nowHH < e);
-                              const isPassed = Boolean(e && nowHH >= e);
-                              const label = typeof desc === "string" ? desc : (desc as { label?: string })?.label ?? "";
-
-                              return (
-                                <div
-                                  key={time}
-                                  className={cn(
-                                    "flex items-start gap-2 rounded-md p-1.5 text-xs transition-colors",
-                                    isCurrent
-                                      ? "bg-primary/20 border border-primary/40 text-foreground font-semibold"
-                                      : isPassed
-                                      ? "bg-muted/20 text-muted-foreground line-through opacity-70"
-                                      : "bg-muted/30 text-foreground/90"
-                                  )}
-                                >
-                                  <span className={cn(
-                                    "font-mono text-[10px] shrink-0 font-bold",
-                                    isCurrent ? "text-primary" : "text-muted-foreground"
-                                  )}>
-                                    {time}
-                                  </span>
-                                  <span className="truncate flex-1 text-[11px]">{label}</span>
-                                  {isCurrent && (
-                                    <span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[8px] font-mono font-bold text-emerald-400 shrink-0">
-                                      NOW
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
+                      <div className="mt-3">
+                        <DailyTimetable schedule={todayPlan.schedule} date={todayPlan.date} timeZone="Asia/Kolkata" />
+                      </div>
 
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                        <div className="rounded-lg bg-muted/35 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Build and verify</p><p className="mt-1 text-sm leading-relaxed">{todayPlan.practiceTask}</p></div>
-                        <div className="rounded-lg bg-muted/35 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Career outcome</p><p className="mt-1 text-sm leading-relaxed">{todayPlan.roleTrack.action}</p></div>
+                        <div className="rounded-lg bg-muted/35 p-3"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Build and verify</p><p className="mt-1 text-sm leading-relaxed">{todayPlan.practiceTask}</p></div>
+                        <div className="rounded-lg bg-muted/35 p-3"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Career outcome</p><p className="mt-1 text-sm leading-relaxed">{todayPlan.roleTrack.action}</p></div>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <button
@@ -1463,7 +1392,7 @@ export default function RoadmapPage() {
                           onClick={() => handleOpenStudy(todayPlan.chapters[0] || { id: todayPlan.chapterId, title: todayPlan.title, studyUrl: todayPlan.studyLink, stack: todayPlan.topic }, todayPlan.day)}
                           className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-xs"
                         >
-                          <ShieldCheck className="h-3.5 w-3.5" />Start Deep Study Sprint
+                          <ShieldCheck className="h-3.5 w-3.5" />Start study session
                         </button>
                         <a href={todayPlan.studyLink} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors">
@@ -1499,7 +1428,7 @@ export default function RoadmapPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     {phaseGroups.map(g => (
                       <div key={g.label} className="space-y-1">
-                        <div className="flex justify-between text-[11px]">
+                        <div className="flex justify-between text-xs">
                           <span className="font-medium truncate">{g.label}</span>
                           <span className="shrink-0 tabular-nums text-muted-foreground">{g.done}/{g.total}</span>
                         </div>
@@ -1517,7 +1446,7 @@ export default function RoadmapPage() {
             <div className="flex flex-wrap gap-2 items-center">
               <div className="flex gap-1.5">
                 {(["all", "today", "pending", "done"] as const).map(f => (
-                  <button key={f} onClick={() => setFilter(f)}
+                  <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)}
                     className={`rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors ${filter === f ? "border-primary bg-primary text-primary-foreground" : "border-border/70 bg-card text-muted-foreground hover:border-primary/60"}`}>
                     {f}
                   </button>
@@ -1525,17 +1454,18 @@ export default function RoadmapPage() {
               </div>
               <div className="relative flex-1 min-w-[140px]">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search topic…"
+                <input aria-label="Search roadmap" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search topic…"
                   className="h-8 w-full rounded-full border border-border/70 bg-card pl-8 pr-3 text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none" />
               </div>
               <span className="text-xs text-muted-foreground">{filtered.length} days</span>
             </div>
 
+            {days.length > 0 && filtered.length === 0 ? <div className="rounded-xl border border-dashed border-border p-6"><h2 className="font-semibold">No days match this view</h2><p className="mt-2 text-sm text-muted-foreground">Choose all days or clear your search to find another study block.</p><button type="button" onClick={() => { setFilter("all"); setSearch(""); }} className="mt-4 min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Show all days</button></div> : null}
             {days.length === 0 && (
               <div className="rounded-xl border border-dashed border-border/60 py-16 text-center">
                 <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                 <p className="font-display font-bold">Timetable syncing…</p>
-                <p className="mt-1 text-sm text-muted-foreground">Sign in with your Personal Buildora account — your data loads automatically.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Sign in with your NOVA account — your data loads automatically.</p>
               </div>
             )}
 
@@ -1556,7 +1486,7 @@ export default function RoadmapPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <RotateCcw className="h-5 w-5 text-primary" />
                   <h2 className="font-display font-bold text-lg">Spaced Repetition & High-Yield Hub</h2>
-                  <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-bold text-primary font-mono">
+                  <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-bold text-primary font-mono">
                     Ebbinghaus SRS
                   </span>
                 </div>
@@ -1572,7 +1502,7 @@ export default function RoadmapPage() {
                   className="inline-flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2.5 text-xs font-bold transition-all shadow-md shadow-amber-500/20 cursor-pointer"
                 >
                   <Brain className="h-4 w-4" />
-                  <span>Launch Opaque Recall Gate ({dueRevisionList.length > 0 ? `${dueRevisionList.length} Due` : "Start Drill"})</span>
+                  <span>Review due topics ({dueRevisionList.length > 0 ? `${dueRevisionList.length} Due` : "Start Drill"})</span>
                 </button>
                 <button
                   type="button"
@@ -1597,39 +1527,39 @@ export default function RoadmapPage() {
             {/* Metrics Strip */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3.5 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-400">Due Today</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-amber-400">Due Today</p>
                 <p className="mt-1 font-display text-2xl font-bold tabular-nums text-amber-400">
                   {revisionMetrics.dueTodayCount}
                 </p>
-                <p className="text-[10px] text-muted-foreground">needs review</p>
+                <p className="text-xs text-muted-foreground">needs review</p>
               </div>
               <div className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Mastered</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Mastered</p>
                 <p className="mt-1 font-display text-2xl font-bold tabular-nums text-cyan-400">
                   {revisionMetrics.totalMastered}
                 </p>
-                <p className="text-[10px] text-muted-foreground">bible chapters</p>
+                <p className="text-xs text-muted-foreground">bible chapters</p>
               </div>
               <div className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Starred Yield</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Starred Yield</p>
                 <p className="mt-1 font-display text-2xl font-bold tabular-nums text-yellow-400">
                   {revisionMetrics.starredCount}
                 </p>
-                <p className="text-[10px] text-muted-foreground">high-yield flagged</p>
+                <p className="text-xs text-muted-foreground">high-yield flagged</p>
               </div>
               <div className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Retention Rate</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Retention Rate</p>
                 <p className="mt-1 font-display text-2xl font-bold tabular-nums text-emerald-400">
                   {revisionMetrics.retentionRate}%
                 </p>
-                <p className="text-[10px] text-muted-foreground">on-schedule</p>
+                <p className="text-xs text-muted-foreground">on-schedule</p>
               </div>
               <div className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Stage 4+ Mastery</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Stage 4+ Mastery</p>
                 <p className="mt-1 font-display text-2xl font-bold tabular-nums text-purple-400">
                   {revisionMetrics.masteredStageCount}
                 </p>
-                <p className="text-[10px] text-muted-foreground">&gt;30d interval</p>
+                <p className="text-xs text-muted-foreground">&gt;30d interval</p>
               </div>
             </div>
 
@@ -1641,7 +1571,7 @@ export default function RoadmapPage() {
                     <Sparkles className="h-4 w-4 text-primary" />
                     <h3 className="font-display font-bold text-sm">Curriculum Invariant Drill (Staff-Level Interview Presets)</h3>
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground">5 Architecture Invariants</span>
+                  <span className="text-xs font-mono text-muted-foreground">5 Architecture Invariants</span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {HIGH_YIELD_CURRICULUM_PRESETS.map((preset, idx) => (
@@ -1650,7 +1580,7 @@ export default function RoadmapPage() {
                       className="rounded-xl border border-border/60 bg-background/50 p-3.5 space-y-2 flex flex-col justify-between hover:border-primary/40 transition-colors"
                     >
                       <div>
-                        <span className="rounded bg-primary/15 text-primary px-1.5 py-0.5 text-[9px] font-mono font-semibold">
+                        <span className="rounded bg-primary/15 text-primary px-1.5 py-0.5 text-xs font-mono font-semibold">
                           {preset.topic}
                         </span>
                         <h4 className="mt-1.5 font-display text-xs font-bold text-foreground leading-snug">
@@ -1666,7 +1596,7 @@ export default function RoadmapPage() {
                           onClick={() => {
                             setRevisionDeckOpen(true);
                           }}
-                          className="text-[11px] font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1"
+                          className="text-xs font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1"
                         >
                           <Brain className="h-3 w-3" />
                           <span>Active Recall Drill →</span>
@@ -1780,19 +1710,19 @@ export default function RoadmapPage() {
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                                <span className="rounded-full bg-primary/15 text-primary px-2 py-0.5 text-[10px] font-mono font-semibold">
+                                <span className="rounded-full bg-primary/15 text-primary px-2 py-0.5 text-xs font-mono font-semibold">
                                   Day {chapter.day} · {chapter.stack}
                                 </span>
                                 {stat.isDue ? (
-                                  <span className="rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold">
+                                  <span className="rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 text-xs font-bold">
                                     {stat.daysOverdue > 0 ? `${stat.daysOverdue}d overdue` : "Due today"}
                                   </span>
                                 ) : (
-                                  <span className="rounded-full bg-muted/40 text-muted-foreground px-2 py-0.5 text-[10px] font-mono">
+                                  <span className="rounded-full bg-muted/40 text-muted-foreground px-2 py-0.5 text-xs font-mono">
                                     Due in {stat.daysUntilDue}d
                                   </span>
                                 )}
-                                <span className="rounded bg-muted/30 text-muted-foreground px-1.5 py-0.5 text-[10px] font-mono">
+                                <span className="rounded bg-muted/30 text-muted-foreground px-1.5 py-0.5 text-xs font-mono">
                                   Stage {stat.stage} ({stat.intervalDays}d)
                                 </span>
                               </div>
@@ -1819,7 +1749,7 @@ export default function RoadmapPage() {
                           </div>
 
                           {chapter.notes && (
-                            <p className="rounded-lg bg-muted/20 p-2 font-mono text-[11px] text-muted-foreground line-clamp-2">
+                            <p className="rounded-lg bg-muted/20 p-2 font-mono text-xs text-muted-foreground line-clamp-2">
                               {chapter.notes}
                             </p>
                           )}
@@ -1870,7 +1800,7 @@ export default function RoadmapPage() {
             <ResumeSection data={career.resumeAnalysis} />
             <RolesSection data={career.targetRoles} note={career.roleResearchNote} />
             {career.weeklyTargets && <WeeklyTargetsSection targets={career.weeklyTargets} />}
-            {career.daySchedule && <DayScheduleSection schedule={career.daySchedule} />}
+            {career.daySchedule && <DayScheduleSection aligned={personalSchedule(user?.email, today) !== undefined} schedule={personalSchedule(user?.email, today) !== undefined ? { timezone: "Asia/Kolkata", blocks: Object.entries(personalSchedule(user?.email, today)!).map(([time, block]) => ({ ...block, time, type: "practice" })) } : career.daySchedule} />}
             {career.motivationalResources && <MotivationalResourcesSection resources={career.motivationalResources} />}
             {career.verificationChecklist && <VerificationSection data={career.verificationChecklist} />}
           </>
@@ -1930,7 +1860,7 @@ export default function RoadmapPage() {
                       className="flex items-start gap-2 rounded-lg border border-border/40 bg-card/40 p-2.5 hover:border-primary/40 hover:bg-primary/5 transition-colors group">
                       <div className="min-w-0">
                         <p className="text-xs font-semibold group-hover:text-primary transition-colors">{label}</p>
-                        <p className="text-[11px] text-muted-foreground">{desc}</p>
+                        <p className="text-xs text-muted-foreground">{desc}</p>
                       </div>
                     </a>
                   ))}
@@ -1951,7 +1881,7 @@ export default function RoadmapPage() {
                     <ShieldAlert className="h-5 w-5 text-purple-400 shrink-0" />
                     <div>
                       <h2 className="font-display font-bold text-base">Germany Goal Guardian & Distraction Shield</h2>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         Strict social media blocklist · 10m leash · 1-hour lockdown · allowlist only
                       </p>
                     </div>
@@ -1974,10 +1904,10 @@ export default function RoadmapPage() {
 
                 <div className="grid gap-2.5 sm:grid-cols-2 text-xs">
                   <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-1.5">
-                    <p className="font-mono text-[10px] font-bold uppercase text-emerald-400 flex items-center gap-1">
+                    <p className="font-mono text-xs font-bold uppercase text-emerald-400 flex items-center gap-1">
                       <CheckCircle2 className="h-3 w-3" /> Protected Allowlist
                     </p>
-                    <div className="flex flex-wrap gap-1 font-mono text-[11px] text-emerald-300">
+                    <div className="flex flex-wrap gap-1 font-mono text-xs text-emerald-300">
                       <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 border border-emerald-500/20">buildora.work</span>
                       <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 border border-emerald-500/20">notion.com</span>
                       <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 border border-emerald-500/20">github.com</span>
@@ -1985,10 +1915,10 @@ export default function RoadmapPage() {
                   </div>
 
                   <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3 space-y-1.5">
-                    <p className="font-mono text-[10px] font-bold uppercase text-rose-400 flex items-center gap-1">
+                    <p className="font-mono text-xs font-bold uppercase text-rose-400 flex items-center gap-1">
                       <ShieldAlert className="h-3 w-3" /> Guarded Social Apps (12 Blocked)
                     </p>
-                    <div className="flex flex-wrap gap-1 font-mono text-[11px] text-rose-300">
+                    <div className="flex flex-wrap gap-1 font-mono text-xs text-rose-300">
                       <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">x.com</span>
                       <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">instagram.com</span>
                       <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">youtube.com</span>
@@ -1999,7 +1929,7 @@ export default function RoadmapPage() {
                 </div>
 
                 <div className="rounded-xl border border-border/60 bg-muted/20 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                  <span className="text-muted-foreground text-[11px]">
+                  <span className="text-muted-foreground text-xs">
                     Visiting any blocked app reminds you of your Germany relocation goals, requires a conscious &ldquo;Forget your dreams&rdquo; confirmation, limits access to 10 minutes, and locks down for 1 hour.
                   </span>
                   <button
@@ -2056,11 +1986,11 @@ export default function RoadmapPage() {
                       className="flex items-center justify-between rounded-lg border border-border/40 bg-card/30 px-3 py-2.5 hover:border-primary/40 transition-colors group">
                       <div>
                         <p className="text-xs font-bold group-hover:text-primary transition-colors">{r.company} <span className="text-muted-foreground font-normal">· {r.city}</span></p>
-                        <p className="text-[11px] text-muted-foreground">{r.role}</p>
+                        <p className="text-xs text-muted-foreground">{r.role}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[10px] text-emerald-400 font-mono">{r.salary}</span>
-                        <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold text-primary">{r.fitScore}/10</span>
+                        <span className="text-xs text-emerald-400 font-mono">{r.salary}</span>
+                        <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary">{r.fitScore}/10</span>
                       </div>
                     </a>
                   ))}

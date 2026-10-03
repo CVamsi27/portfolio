@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { useDialogFocus } from "@/components/common/useDialogFocus";
 import {
   ExternalLink,
   Laptop,
@@ -37,17 +38,7 @@ export default function LivePreviewModal({
   const [copied, setCopied] = useState(false);
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  const dialogRef = useDialogFocus(open, onClose);
 
   const handleCopy = async () => {
     try {
@@ -73,6 +64,8 @@ export default function LivePreviewModal({
 
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label={`Live preview of ${title}`}
@@ -86,7 +79,7 @@ export default function LivePreviewModal({
       />
 
       {/* Main Container */}
-      <div className="relative flex flex-col w-full max-w-7xl h-[94vh] overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="relative flex flex-col w-full max-w-7xl h-[94dvh] overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Browser Top Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3 bg-muted/30">
           {/* Title & Dots */}
@@ -131,7 +124,7 @@ export default function LivePreviewModal({
                 type="button"
                 onClick={() => setDevice("desktop")}
                 className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors",
+                  "flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors",
                   device === "desktop" && "bg-card text-foreground shadow-xs font-semibold"
                 )}
                 title="Desktop View"
@@ -142,7 +135,7 @@ export default function LivePreviewModal({
                 type="button"
                 onClick={() => setDevice("tablet")}
                 className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors",
+                  "flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors",
                   device === "tablet" && "bg-card text-foreground shadow-xs font-semibold"
                 )}
                 title="Tablet View (768px)"
@@ -153,7 +146,7 @@ export default function LivePreviewModal({
                 type="button"
                 onClick={() => setDevice("mobile")}
                 className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors",
+                  "flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors",
                   device === "mobile" && "bg-card text-foreground shadow-xs font-semibold"
                 )}
                 title="Mobile View (390px)"
@@ -165,7 +158,7 @@ export default function LivePreviewModal({
             <button
               type="button"
               onClick={handleReload}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/80 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               title="Reload Frame"
             >
               <RefreshCw className="h-3.5 w-3.5" />
@@ -175,7 +168,7 @@ export default function LivePreviewModal({
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-2.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-2.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
               title="Open full site in new tab"
             >
               <ExternalLink className="h-3.5 w-3.5" />
@@ -185,7 +178,7 @@ export default function LivePreviewModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               aria-label="Close preview"
             >
               <X className="h-4 w-4" />

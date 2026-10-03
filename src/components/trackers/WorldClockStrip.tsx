@@ -1,89 +1,119 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import { Moon, Sun } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 
-type Clock = { label: string; timeZone?: string };
-
+type Clock = { label: string; timeZone: string };
 const CLOCKS: Clock[] = [
-  { label: "Local" },
   { label: "Munich", timeZone: "Europe/Berlin" },
   { label: "San Francisco", timeZone: "America/Los_Angeles" },
 ];
 
-function formatClock(now: number, timeZone?: string) {
+function clockTime(now: number, timeZone: string) {
   return new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-    ...(timeZone ? { timeZone } : {}),
+    hourCycle: "h23",
+    timeZone,
   }).format(now);
 }
-
-function isDaytime(now: number, timeZone?: string): boolean {
-  try {
-    const hourStr = new Intl.DateTimeFormat("en-GB", {
-      hour: "numeric",
-      hour12: false,
-      ...(timeZone ? { timeZone } : {}),
-    }).format(now);
-    const hour = parseInt(hourStr, 10);
-    return hour >= 6 && hour < 20;
-  } catch {
-    return true;
-  }
+function clockDate(now: number, timeZone: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone,
+  }).format(now);
+}
+function clockZone(now: number, timeZone: string) {
+  return (
+    new Intl.DateTimeFormat("en-GB", { timeZone, timeZoneName: "shortOffset" })
+      .formatToParts(now)
+      .find((part) => part.type === "timeZoneName")?.value ?? timeZone
+  );
 }
 
-/** A deliberately compact replacement for the former multi-row telemetry block. */
+/** Minute precision avoids a constantly ticking header; every city keeps its own date. */
 export default function WorldClockStrip({ badge }: { badge?: ReactNode }) {
   const [now, setNow] = useState<number | null>(null);
-
   useEffect(() => {
-    const tick = () => setNow(Date.now());
+    const tick = () => setNow(Math.floor(Date.now() / 60_000) * 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
     tick();
     const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
+    window.addEventListener("focus", tick);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("focus", tick);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
-  const date = now == null ? "Today" : new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" }).format(now);
-  const local = CLOCKS[0];
-  const remote = CLOCKS.slice(1);
-  const localDay = now != null ? isDaytime(now, local.timeZone) : true;
+  const localZone =
+    now == null ? "UTC" : Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const localTime = now == null ? "--:--" : clockTime(now, localZone);
+  const localDate = now == null ? "Your date" : clockDate(now, localZone);
+  const localOffset =
+    now == null ? "Device timezone" : clockZone(now, localZone);
+  const timestamp = now == null ? undefined : new Date(now).toISOString();
 
   return (
-    <div data-testid="world-clock-strip" data-editorial-telemetry className="dossier-world-clock" aria-label="World clocks">
-      <details data-testid="clock-disclosure" className="dossier-clock-disclosure transition-all">
-        <summary className="cursor-pointer select-none">
-          <span className="dossier-world-date">{date}</span>
-          <span className="dossier-world-time flex items-center gap-1.5">
-            {localDay ? (
-              <Sun className="h-3 w-3 text-amber-400 shrink-0" />
-            ) : (
-              <Moon className="h-3 w-3 text-[#32b8c8] shrink-0" />
-            )}
-            <span>{local.label}</span>
-            <strong className="tabular-nums font-mono">{now == null ? "--:--:--" : formatClock(now, local.timeZone)}</strong>
+    <div
+      data-testid="world-clock-strip"
+      data-editorial-telemetry
+      role="group"
+      aria-label="World clocks"
+      className="dossier-world-clock"
+    >
+      <details
+        data-testid="clock-disclosure"
+        className="dossier-clock-disclosure"
+      >
+        <summary>
+          <span className="clock-local-copy">
+            <span className="dossier-world-date">{localDate}</span>
+            <span
+              className="clock-local-zone"
+              data-testid="local-clock-zone"
+              title={localZone}
+            >
+              Your time · {localOffset}
+            </span>
           </span>
-          <span className="dossier-clock-summary-label">World clocks</span>
+          <span className="clock-local-value">
+            <time data-testid="local-clock-time" dateTime={timestamp}>
+              {localTime}
+            </time>
+            <span className="dossier-clock-summary-label">
+              World clocks{" "}
+              <ChevronDown aria-hidden className="clock-chevron h-3.5 w-3.5" />
+            </span>
+          </span>
         </summary>
         <div className="dossier-clock-details">
-          {remote.map((clock) => {
-            const day = now != null ? isDaytime(now, clock.timeZone) : true;
-            return (
-              <span key={clock.label} className="dossier-world-time flex items-center gap-1.5">
-                {day ? (
-                  <Sun className="h-3 w-3 text-amber-400 shrink-0" />
-                ) : (
-                  <Moon className="h-3 w-3 text-[#32b8c8] shrink-0" />
-                )}
-                <span>{clock.label}</span>
-                <strong className="tabular-nums font-mono">{now == null ? "--:--:--" : formatClock(now, clock.timeZone)}</strong>
-              </span>
-            );
-          })}
-          {badge ? <span className="dossier-world-status">{badge}</span> : null}
+          {CLOCKS.map((clock) => (
+            <div
+              key={clock.label}
+              data-testid={`clock-${clock.label}`}
+              className="clock-city-row"
+            >
+              <div className="min-w-0">
+                <span className="clock-city-name">{clock.label}</span>
+                <span className="clock-city-meta" title={clock.timeZone}>
+                  {now == null
+                    ? "Loading time…"
+                    : `${clockDate(now, clock.timeZone)} · ${clockZone(now, clock.timeZone)}`}
+                </span>
+              </div>
+              <time dateTime={timestamp}>
+                {now == null ? "--:--" : clockTime(now, clock.timeZone)}
+              </time>
+            </div>
+          ))}
+          {badge ? <div className="dossier-world-status">{badge}</div> : null}
         </div>
       </details>
     </div>

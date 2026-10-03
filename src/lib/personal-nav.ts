@@ -1,6 +1,7 @@
 import type { TrackerIconName } from "@/components/trackers/icons";
 
 export type PersonalPrimaryId =
+  | "tasks"
   | "today"
   | "focus"
   | "log"
@@ -32,6 +33,7 @@ export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
 ] as const;
 
 export const PERSONAL_MORE_NAV: readonly PersonalNavItem[] = [
+  { id: "tasks", href: "/todo", label: "Tasks", short: "Tasks", icon: "todo" },
   { id: "roadmap", href: "/roadmap", label: "100-Day Roadmap", short: "Roadmap", icon: "book" },
   { id: "goal", href: "/goal", label: "Goals", short: "Goals", icon: "flag" },
   { id: "health", href: "/weight-loss", label: "Health / Weight loss", short: "Health", icon: "scale" },
@@ -42,5 +44,9 @@ export const PERSONAL_MORE_NAV: readonly PersonalNavItem[] = [
 ];
 
 export function isPersonalPrimaryPath(pathname: string, href: string): boolean {
-  return pathname === href || (href === "/hub" && pathname === "/trackers");
+  if (pathname === href) return true;
+  if (href === "/hub") return pathname === "/trackers";
+  if (href === "/share") return pathname.startsWith("/share/") || pathname === "/shared-with-me";
+  if (href === "/more") return PERSONAL_MORE_NAV.some(item => pathname === item.href || pathname.startsWith(`${item.href}/`));
+  return false;
 }

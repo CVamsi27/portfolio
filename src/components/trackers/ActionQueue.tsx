@@ -12,8 +12,8 @@ export type ActionQueueRow = {
 };
 
 const toneClasses = {
-  cyan: "bg-[#49E7FF]",
-  lime: "bg-[#C8FF3D]",
+  cyan: "bg-primary",
+  lime: "bg-primary",
   amber: "bg-amber-400",
   violet: "bg-[#ff554d]",
 } as const;
@@ -27,7 +27,7 @@ export default function ActionQueue({ rows }: { rows: ActionQueueRow[] }) {
           <p className="dossier-kicker">Action queue // today</p>
           <h2 className="mt-1 font-display text-xl font-extrabold tracking-tight">Four anchors. One clear day.</h2>
         </div>
-        <span className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{rows.length} anchors</span>
+        <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{rows.length} anchors</span>
       </div>
       {rows.length ? (
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -37,7 +37,7 @@ export default function ActionQueue({ rows }: { rows: ActionQueueRow[] }) {
               {row.complete ? <Check className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden /> : <Circle className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />}
               <div className="min-w-0 flex-1">
                 <p className={cn("truncate text-sm font-semibold", row.complete && "text-muted-foreground line-through")}>{row.label}</p>
-                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{row.detail}</p>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">{row.detail}</p>
               </div>
               <Link href={row.href} aria-label={`Open ${row.label}`} className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:text-primary focus-visible:text-primary">
                 <ArrowUpRight className="h-4 w-4" aria-hidden />

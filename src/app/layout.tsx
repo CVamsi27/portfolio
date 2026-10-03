@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Suspense } from "react";
 import { Bebas_Neue, IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import "./ui-system.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/common/ThemeProvider";
 import Navbar from "@/components/Navbar";

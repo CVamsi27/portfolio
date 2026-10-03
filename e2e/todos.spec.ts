@@ -6,7 +6,7 @@ test.describe("todo manager", () => {
     await seed(page);
     await page.goto("/todo");
 
-    const input = page.getByPlaceholder(/Add a task/);
+    const input = page.getByRole("textbox", { name: "New task", exact: true });
     await input.fill("Write E2E tests");
     // Pick P1 and Work tag before adding. "Work" collides with "Deep Work"
     // and the tag-filter group — pin both dimensions.
@@ -33,7 +33,7 @@ test.describe("todo manager", () => {
   test("inline edit renames a task", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
-    await page.getByPlaceholder(/Add a task/).fill("Original name");
+    await page.getByRole("textbox", { name: "New task", exact: true }).fill("Original name");
     await page.keyboard.press("Enter");
 
     const task = page.getByText("Original name");
@@ -50,7 +50,7 @@ test.describe("todo manager", () => {
   test("toggle done moves task between views", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
-    await page.getByPlaceholder(/Add a task/).fill("Finishable task");
+    await page.getByRole("textbox", { name: "New task", exact: true }).fill("Finishable task");
     await page.keyboard.press("Enter");
 
     // Complete it.

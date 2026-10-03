@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Connections from "../Connections";
 import { Button } from "@/components/ui/button";
@@ -22,25 +22,6 @@ import {
 } from "lucide-react";
 import ResumeModal from "@/components/ResumeModal";
 
-function useCountUp(target: number, duration = 1600, start = false) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let startTime: number | null = null;
-    const step = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      // easeOutExpo
-      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      setCount(Math.round(ease * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    const raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration, start]);
-  return count;
-}
-
 const STATS = [
   {
     value: "5+",
@@ -51,28 +32,28 @@ const STATS = [
     icon: Clock,
   },
   {
-    value: "25+",
-    numericValue: 25,
-    suffix: "+",
-    label: "Clinics in production",
-    subtext: "Pan-India multi-tenant clinical deployment",
+    value: "5",
+    numericValue: 5,
+    suffix: "",
+    label: "Core workflows",
+    subtext: "Scheduling, records, prescriptions, billing, inventory",
     icon: Building2,
   },
   {
-    value: "1k+",
+    value: "1",
     numericValue: 1,
     prefix: "",
-    suffix: "k+",
-    label: "Workflows / month",
-    subtext: "Active appointments, records & billing",
+    suffix: "",
+    label: "Operational dashboard",
+    subtext: "Activity, request samples and measurement coverage",
     icon: Activity,
   },
   {
-    value: "560+",
-    numericValue: 560,
-    suffix: "+",
-    label: "Bible chapters authored",
-    subtext: "868 files across 7 stacks on study.buildora.work",
+    value: "7",
+    numericValue: 7,
+    suffix: "",
+    label: "Technical study areas",
+    subtext: "Frontend, backend, architecture, platform and quality",
     icon: BookOpen,
   },
 ];
@@ -80,10 +61,8 @@ const STATS = [
 const About = () => {
   const [copied, setCopied] = useState(false);
   const [nameLangIndex, setNameLangIndex] = useState(0);
-  const [statsStarted, setStatsStarted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [resumeOpen, setResumeOpen] = useState(false);
-  const statsRef = useRef<HTMLDivElement>(null);
 
   const currentTranslation =
     NAME_TRANSLATIONS[nameLangIndex % NAME_TRANSLATIONS.length];
@@ -92,22 +71,6 @@ const About = () => {
     const onScroll = () => setScrolled(window.scrollY > 80);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    const node = statsRef.current;
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setStatsStarted(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 }
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
   }, []);
 
   const handleCopyEmail = async () => {
@@ -185,10 +148,11 @@ const About = () => {
 
           <div className="mt-7 sm:mt-9 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3">
             <a href="#Work" className="portfolio-primary-action w-full sm:w-auto text-center">
-              Explore selected work
+              View selected work
               <ArrowUpRight className="h-4 w-4" />
             </a>
 
+            <a href="#Contact" className="portfolio-secondary-action justify-center">Contact me <ArrowUpRight className="h-4 w-4" /></a>
             <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:gap-3">
               <Button
                 type="button"
@@ -198,7 +162,7 @@ const About = () => {
                 title="View interactive résumé modal"
               >
                 <FileText className="h-4 w-4 text-[var(--portfolio-accent)]" />
-                <span>View Résumé</span>
+                <span>View resume</span>
               </Button>
 
               <button
@@ -279,7 +243,7 @@ const About = () => {
               Docita · Multi-Tenant Healthcare OS
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-[var(--portfolio-muted)]">
-              Powering patient queues, clinical documentation, Rx prescriptions, and multi-tier billing for 25+ healthcare facilities.
+              Building scheduling, patient records, prescriptions, billing and inventory workflows in a multi-tenant healthcare SaaS.
             </p>
 
             <div className="mt-3.5 border-t border-[var(--portfolio-rule)] pt-3">
@@ -298,7 +262,7 @@ const About = () => {
                 </a>
               </div>
               <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
-                Author of 560 chapters &amp; 868 reference files covering 7 stacks, 2 interview lanes, and 23 GoF design patterns.
+                Maintaining a structured study library with mechanism-first chapters, separate revision and practical interview exercises.
               </p>
             </div>
           </div>
@@ -330,7 +294,7 @@ const About = () => {
         </aside>
       </div>
 
-      <div ref={statsRef} className="relative mx-auto mt-16 max-w-7xl">
+      <div className="relative mx-auto mt-16 max-w-7xl">
         <div className="portfolio-stat-grid">
           {STATS.map((stat) => {
             const Icon = stat.icon;
@@ -338,7 +302,6 @@ const About = () => {
               <StatCard
                 key={stat.label}
                 stat={stat}
-                statsStarted={statsStarted}
                 Icon={Icon}
               />
             );
@@ -356,17 +319,12 @@ const About = () => {
 
 function StatCard({
   stat,
-  statsStarted,
   Icon,
 }: {
   stat: (typeof STATS)[number];
-  statsStarted: boolean;
   Icon: React.ElementType;
 }) {
-  const count = useCountUp(stat.numericValue, 1400, statsStarted);
-  const displayValue = statsStarted
-    ? `${count}${stat.suffix ?? ""}`
-    : stat.value;
+  const displayValue = stat.value;
 
   return (
     <div className="portfolio-stat-card group">

@@ -17,6 +17,11 @@ test.describe("Personal lockdown", () => {
     await page.goto("/trackers");
     await expect(page.getByTestId("bedtime-lock-screen")).toBeVisible();
     await expect(page.getByTestId("lockdown-limitations")).toBeVisible();
+    const dialog = page.getByRole("dialog", { name: "Bedtime mode" });
+    expect(await dialog.evaluate(el => el.parentElement === document.body)).toBe(true);
+    await dialog.focus();
+    await page.keyboard.press("Shift+Tab");
+    expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true);
     await page.getByRole("button", { name: /exit bedtime lock/i }).click();
     await expect(page.getByTestId("bedtime-lock-screen")).toHaveCount(0);
     await expect(page.getByTestId("today-header")).toBeVisible();

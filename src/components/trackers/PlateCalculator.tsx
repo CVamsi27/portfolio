@@ -59,7 +59,7 @@ export default function PlateCalculator({
 
   const numWeight = Number(targetWeight);
   const result = useMemo(() => {
-    if (!Number.isFinite(numWeight) || numWeight <= 0) return null;
+    if (!Number.isFinite(numWeight) || numWeight < barWeight) return null;
     return calculatePlates(numWeight, unit, barWeight);
   }, [numWeight, unit, barWeight]);
 
@@ -71,7 +71,7 @@ export default function PlateCalculator({
         <div className="flex items-center gap-2">
           <Calculator className="h-4 w-4 text-primary" />
           <h3 className="font-display font-bold text-sm sm:text-base">Barbell Plate Calculator</h3>
-          <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground uppercase">
+          <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground uppercase">
             {barWeight} {unit} bar
           </span>
         </div>
@@ -95,6 +95,8 @@ export default function PlateCalculator({
               type="number"
               step="0.5"
               min={barWeight}
+              aria-invalid={!result}
+              aria-describedby={!result ? "plate-weight-error" : undefined}
               value={targetWeight}
               onChange={(e) => setTargetWeight(e.target.value)}
               className="mt-1 block w-32 rounded-lg border border-input bg-background px-3 py-1.5 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -105,6 +107,7 @@ export default function PlateCalculator({
               <button
                 key={p}
                 type="button"
+                aria-pressed={numWeight === p}
                 onClick={() => setTargetWeight(String(p))}
                 className={cn(
                   "rounded-md border px-2 py-1 font-mono text-xs transition-colors",
@@ -123,7 +126,7 @@ export default function PlateCalculator({
           <div className="mt-5 rounded-lg border border-border/60 bg-muted/20 p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/40 pb-2">
               <div>
-                <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+                <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
                   Load per side
                 </span>
                 <p className="font-display text-2xl font-bold tabular-nums text-foreground">
@@ -137,7 +140,7 @@ export default function PlateCalculator({
 
             {/* Visual Plate Display */}
             <div className="mt-4">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
                 Plates for each side:
               </span>
               {result.plates.length === 0 ? (
@@ -160,14 +163,14 @@ export default function PlateCalculator({
             </div>
 
             {result.remainder > 0 ? (
-              <p className="mt-3 text-[11px] text-amber-500 font-medium">
+              <p className="mt-3 text-xs text-amber-500 font-medium">
                 Note: {result.remainder} {unit} remainder cannot be loaded with standard plate increments.
               </p>
             ) : null}
           </div>
         ) : (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Enter a valid target weight higher than the {barWeight} {unit} bar.
+          <p id="plate-weight-error" role="alert" className="mt-4 text-sm text-destructive">
+            Enter a target weight of at least {barWeight} {unit}.
           </p>
         )}
       </div>

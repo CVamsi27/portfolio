@@ -20,7 +20,7 @@ test.describe("intermittent fasting tracker", () => {
     await page.getByLabel("First meal time").fill("12:00");
     await page.getByLabel("Last meal time").fill("20:00");
     await page.getByRole("button", { name: "Save routine and use for today" }).click();
-    await expect(page.getByText("16.0 hours fasting")).toBeVisible();
+    await expect(page.getByText("16.0 hours", { exact: true })).toBeVisible();
 
     const history = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:fasting:history"))) ?? "[]");
     expect(history[0].source).toBe("meal-window");

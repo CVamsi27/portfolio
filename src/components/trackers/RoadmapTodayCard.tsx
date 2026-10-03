@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
+import { useAuth } from "@/lib/auth-store";
+import { personalSchedule } from "@/lib/personal-timetable";
 import { dateKey } from "@/lib/trackers";
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleRing } from "@/components/trackers/Ring";
 import {
-  BookOpen, CheckSquare, Square, Flame, Clock, ArrowUpRight,
+  BookOpen, CheckSquare, Square, Flame, ArrowUpRight,
   Users, GitPullRequest, MapPin, Brain, ShieldCheck, RotateCcw, Headphones,
-  CalendarDays, ChevronDown, ChevronUp,
+  CalendarDays,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import DailyTimetable from "@/components/trackers/DailyTimetable";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
 import FullPageRevisionGate from "@/components/study/FullPageRevisionGate";
 import StudyBreakLoungeModal from "@/components/study/StudyBreakLoungeModal";
@@ -25,7 +27,7 @@ interface DayPlan {
   studyLink: string; mission: string; practiceTask: string;
   interviewQuestions: string[];
   checklist: ChecklistItem[];
-  schedule: Record<string, string>;
+  schedule: Record<string, string | { label: string; minutes?: number; work?: boolean; output?: string }>;
   oSSProject: string; mockInterviewPlatform: string; founderOutreachTarget: string;
 }
 interface Timetable { days: DayPlan[] }
@@ -78,67 +80,27 @@ function HubMotivationStrip({ todayDate }: { todayDate: string }) {
       <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted/30 p-2.5">
         <Flame className={`h-4 w-4 ${streak > 0 ? "text-rose-400" : "text-muted-foreground"}`} />
         <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Streak</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Streak</p>
           <p className="font-mono text-base font-bold tabular-nums leading-tight">{streak} day{streak === 1 ? "" : "s"}</p>
         </div>
       </div>
       <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted/30 p-2.5">
         <CalendarDays className="h-4 w-4 text-emerald-400" />
         <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Last 7 days</p>
-          <p className="font-mono text-base font-bold tabular-nums leading-tight">{completedRecent}/{recent.length} <span className="text-[10px] font-normal text-muted-foreground">full days</span></p>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Last 7 days</p>
+          <p className="font-mono text-base font-bold tabular-nums leading-tight">{completedRecent}/{recent.length} <span className="text-xs font-normal text-muted-foreground">full days</span></p>
         </div>
       </div>
     </div>
   );
 }
 
-/** Send a browser notification once per day at 08:00 */
-function useDailyNotification(plan: DayPlan | undefined) {
-  useEffect(() => {
-    if (!plan || typeof window === "undefined") return;
-    if (!("Notification" in window)) return;
-
-    const STORAGE_KEY = `notif_sent_${plan.date}`;
-    if (localStorage.getItem(STORAGE_KEY)) return;
-
-    const now = new Date();
-    const h = now.getHours();
-    // Fire if we're between 08:00 and 12:00 and haven't sent yet today
-    if (h < 8 || h >= 12) return;
-
-    const send = () => {
-      if (Notification.permission === "granted") {
-        new Notification(`Day ${plan.day}: ${plan.title}`, {
-          body: plan.mission.slice(0, 150),
-          icon: "/icon.svg",
-          badge: "/icon.svg",
-          tag: `roadmap-${plan.date}`,
-        });
-        localStorage.setItem(STORAGE_KEY, "1");
-      } else if (Notification.permission === "default") {
-        Notification.requestPermission().then(perm => {
-          if (perm === "granted") {
-            new Notification(`Day ${plan.day}: ${plan.title}`, {
-              body: plan.mission.slice(0, 150),
-              icon: "/icon.svg",
-              tag: `roadmap-${plan.date}`,
-            });
-            localStorage.setItem(STORAGE_KEY, "1");
-          }
-        });
-      }
-    };
-
-    // Immediate or schedule for 08:00
-    send();
-  }, [plan]);
-}
-
 export default function RoadmapTodayCard() {
+  const { user } = useAuth();
+  const aligned = personalSchedule(user?.email, new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
   const { value: timetable, setValue: setTimetable } = useSyncedStorage<Timetable | null>("timetable_100_days", null);
   const { value: completedChapters } = useSyncedStorage<ExtendedCompletedChapter[]>("study:completed_chapters", []);
-  const today = dateKey();
+  const today = aligned !== undefined ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()) : dateKey();
   const [studyCockpitOpen, setStudyCockpitOpen] = useState(false);
   const [revisionGateOpen, setRevisionGateOpen] = useState(false);
   const [breakLoungeOpen, setBreakLoungeOpen] = useState(false);
@@ -147,7 +109,6 @@ export default function RoadmapTodayCard() {
     return getDueRevisionItems(completedChapters || []);
   }, [completedChapters]);
 
-  const [timetableOpen, setTimetableOpen] = useState(true);
 
   const plan = useMemo(() => {
     const userPlan = timetable?.days?.find(d => d.date === today);
@@ -165,22 +126,10 @@ export default function RoadmapTodayCard() {
   }, [todayChapters, completedChapters]);
   const allTodayMastered = todayChapters.length > 0 && masteredTodayCount === todayChapters.length;
 
-  useDailyNotification(plan);
 
   const progress = pct(plan.checklist);
   const ringColor = TOPIC_COLOR[plan.topic] ?? "#6b7280";
   const doneCount = plan.checklist.filter(c => c.done).length;
-  const nowHH = new Date().toTimeString().slice(0, 5);
-
-  // Find active schedule block
-  const scheduleEntries = Object.entries(plan.schedule || {});
-  const activeBlock = scheduleEntries.find(([time]) => {
-    const parts = time.includes(" - ") ? time.split(" - ") : time.split("-");
-    const s = parts[0]?.trim();
-    const e = parts[1]?.trim();
-    return s && e && nowHH >= s && nowHH < e;
-  });
-
   const todayQ = plan.interviewQuestions?.[(plan.day - 1) % (plan.interviewQuestions?.length || 1)];
 
   function toggle(itemId: string) {
@@ -209,12 +158,12 @@ export default function RoadmapTodayCard() {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <Flame className="h-3.5 w-3.5 text-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">
                 Day {plan.day} of 78 · Today
               </span>
             </div>
             <p className="mt-0.5 font-display font-bold text-sm leading-snug">{plan.title}</p>
-            <div className="mt-0.5 flex items-center gap-1.5 flex-wrap text-[11px] text-muted-foreground">
+            <div className="mt-0.5 flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
               <span>{doneCount}/{plan.checklist.length} tasks done</span>
               {todayChapters.length > 0 && (
                 <>
@@ -227,96 +176,18 @@ export default function RoadmapTodayCard() {
             </div>
           </div>
           <Link href="/roadmap"
-            className="shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/20 transition-colors">
+            className="shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
             Full Plan →
           </Link>
         </div>
 
-        {/* Today's Timetable Section */}
-        <div className="mx-4 mb-3 rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-primary" />
-              <h3 className="font-display text-xs font-bold uppercase tracking-wider text-foreground">
-                Today&apos;s Timetable &amp; Schedule
-              </h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => setTimetableOpen((prev) => !prev)}
-              className="text-[11px] font-mono text-primary hover:underline cursor-pointer flex items-center gap-1"
-            >
-              <span>{timetableOpen ? "Collapse" : `View Full (${scheduleEntries.length} blocks)`}</span>
-              {timetableOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            </button>
-          </div>
-
-          {activeBlock && (
-            <div className="rounded-lg bg-primary/20 border border-primary/40 px-3 py-2 flex items-start gap-2.5 shadow-xs">
-              <span className="relative flex h-2 w-2 mt-1 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
-                    Active Right Now: {activeBlock[0]}
-                  </span>
-                  <span className="rounded bg-emerald-500/20 px-1.5 py-0.2 text-[9px] font-mono font-bold text-emerald-300 border border-emerald-500/30">
-                    Live
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs font-semibold text-foreground leading-snug">
-                  {typeof activeBlock[1] === "string" ? activeBlock[1] : (activeBlock[1] as { label?: string })?.label ?? ""}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {timetableOpen && scheduleEntries.length > 0 && (
-            <div className="space-y-1.5 pt-1 border-t border-border/50 max-h-60 overflow-y-auto pr-1">
-              {scheduleEntries.map(([time, desc]) => {
-                const parts = time.includes(" - ") ? time.split(" - ") : time.split("-");
-                const s = parts[0]?.trim();
-                const e = parts[1]?.trim();
-                const isCurrent = Boolean(s && e && nowHH >= s && nowHH < e);
-                const isPassed = Boolean(e && nowHH >= e);
-                const label = typeof desc === "string" ? desc : (desc as { label?: string })?.label ?? "";
-
-                return (
-                  <div
-                    key={time}
-                    className={cn(
-                      "flex items-start gap-2.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors",
-                      isCurrent
-                        ? "bg-primary/20 border border-primary/40 text-foreground font-medium"
-                        : isPassed
-                        ? "bg-muted/20 text-muted-foreground line-through opacity-70"
-                        : "hover:bg-muted/30 text-foreground/90"
-                    )}
-                  >
-                    <span className={cn(
-                      "font-mono text-[11px] shrink-0 font-semibold",
-                      isCurrent ? "text-primary font-bold" : "text-muted-foreground"
-                    )}>
-                      {time}
-                    </span>
-                    <span className="flex-1 truncate">{label}</span>
-                    {isCurrent && (
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400 font-bold shrink-0">
-                        Current
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+        <div className="mx-4 mb-3">
+          <DailyTimetable schedule={aligned ?? plan.schedule ?? {}} date={plan.date} timeZone={aligned !== undefined ? "Asia/Kolkata" : undefined} />
         </div>
 
         {/* Today's mission */}
         <div className="mx-4 mb-3 rounded-lg border border-amber-500/20 bg-amber-500/8 px-3 py-2.5">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">Today&apos;s goal</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">Today&apos;s goal</p>
           <p className="text-xs leading-relaxed text-foreground/90">{plan.mission}</p>
         </div>
 
@@ -325,7 +196,7 @@ export default function RoadmapTodayCard() {
 
         {/* Checklist (first 4 items) */}
         <div className="px-4 pb-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Today&apos;s Checklist</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Today&apos;s Checklist</p>
           <div className="space-y-0.5">
             {plan.checklist.slice(0, 4).map(item => (
               <button key={item.id} onClick={() => toggle(item.id)}
@@ -342,7 +213,7 @@ export default function RoadmapTodayCard() {
         {/* Interview Q of the day */}
         {todayQ && (
           <div className="mx-4 mt-3 mb-3 rounded-lg border border-violet-500/20 bg-violet-500/8 px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-violet-400 mb-1 flex items-center gap-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-violet-400 mb-1 flex items-center gap-1">
               <Brain className="h-3 w-3" /> Interview Q of the Day
             </p>
             <p className="text-xs leading-relaxed">{todayQ}</p>
@@ -354,40 +225,40 @@ export default function RoadmapTodayCard() {
           <button
             type="button"
             onClick={() => setStudyCockpitOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-xs"
           >
             <ShieldCheck className="h-3 w-3" />
             {allTodayMastered ? "Review Focus Sprint" : "Deep Focus Sprint"}
           </button>
           <a href={plan.studyLink} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-[11px] hover:border-primary/50 transition-colors">
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors">
             <BookOpen className="h-3 w-3" />Web tab
           </a>
           <a href={plan.oSSProject === "Langfuse"
               ? "https://github.com/langfuse/langfuse/issues?q=label%3A%22good+first+issue%22"
               : "https://github.com/lightdash/lightdash/issues?q=label%3A%22good+first+issue%22"}
             target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-[11px] hover:border-primary/50 transition-colors">
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors">
             <GitPullRequest className="h-3 w-3" />OSS
           </a>
           <a href={plan.mockInterviewPlatform === "micro1.ai" ? "https://micro1.ai" : "https://interviewsby.ai"}
             target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-[11px] hover:border-primary/50 transition-colors">
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors">
             <Users className="h-3 w-3" />Mock
           </a>
           <a href="https://wellfound.com/jobs?q=node+typescript+senior"
             target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-[11px] hover:border-primary/50 transition-colors">
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors">
             <MapPin className="h-3 w-3" />Roles
           </a>
             <Link href="/roadmap"
-            className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] text-primary hover:bg-primary/20 transition-colors">
+            className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs text-primary hover:bg-primary/20 transition-colors">
             <ArrowUpRight className="h-3 w-3" />All Details
           </Link>
           <button
             type="button"
             onClick={() => setRevisionGateOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer"
           >
             <RotateCcw className="h-3 w-3 text-amber-400" />
             <span>Recall Gate{dueRevisionList.length > 0 ? ` (${dueRevisionList.length})` : ""}</span>
@@ -395,7 +266,7 @@ export default function RoadmapTodayCard() {
           <button
             type="button"
             onClick={() => setBreakLoungeOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-500/20 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20 transition-colors cursor-pointer"
             title="Mindful Audio Break: YouTube Music & Top 10 Tech Podcasts"
           >
             <Headphones className="h-3 w-3 text-cyan-400" />

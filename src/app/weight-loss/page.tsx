@@ -166,11 +166,11 @@ export default function WeightLossPage() {
       <TrackerShell icon="scale" title="Weight Loss" subtitle="One honest check-in, one sustainable direction." >
         {/* Weigh-in pending chip */}
         {pendingWeighIn && (
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-[#c8ff3d]/30 bg-[#c8ff3d]/8 px-3 py-2">
-            <p className="text-xs font-semibold text-[#c8ff3d]">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/8 px-3 py-2">
+            <p className="text-xs font-semibold text-primary">
               Weigh-in pending — one honest number keeps the trend clean
             </p>
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[#c8ff3d]" />
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
           </div>
         )}
 
@@ -187,7 +187,7 @@ export default function WeightLossPage() {
               <CardContent className="p-5">
                 <p className="dossier-kicker">Trend / last 7 entries</p>
                 <p className="mt-2 flex items-center gap-2 font-display text-3xl font-bold tabular-nums">
-                  <TrendingDown className="h-6 w-6 text-[#49E7FF]" />
+                  <TrendingDown className="h-6 w-6 text-primary" />
                   {trend == null ? "Start logging" : `${trend > 0 ? "+" : ""}${displayWeight(trend, prefs.weightUnit)}`}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">{trend == null ? "Two entries reveal your first trend." : "Change from your first to latest recent entry."}</p>
@@ -197,7 +197,7 @@ export default function WeightLossPage() {
               <CardContent className="p-5">
                 <p className="dossier-kicker">7-Day Moving Average</p>
                 <p className="mt-2 flex items-center gap-2 font-display text-3xl font-bold tabular-nums">
-                  <Activity className="h-6 w-6 text-[#C8FF3D]" />
+                  <Activity className="h-6 w-6 text-primary" />
                   {sevenDayAvg == null ? "—" : displayWeight(sevenDayAvg, prefs.weightUnit)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -226,7 +226,7 @@ export default function WeightLossPage() {
                     const done = range !== 0 ? Math.max(0, Math.min(100, ((startKg - current.weightKg) / range) * 100)) : 100;
                     return (
                       <div className="h-2 overflow-hidden rounded-full bg-muted">
-                        <div className="h-full bg-[#c8ff3d] transition-all" style={{ width: `${done}%` }} />
+                        <div className="h-full bg-primary transition-all" style={{ width: `${done}%` }} />
                       </div>
                     );
                   })()}
@@ -269,7 +269,7 @@ export default function WeightLossPage() {
               <div className="mt-4 rounded-xl border border-border/70 bg-card/60 p-3.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-[#C8FF3D]" />
+                    <Sparkles className="h-4 w-4 text-primary" />
                     <span className="font-display text-sm font-bold">{readiness.label}</span>
                   </div>
                   <span className="font-mono text-xs font-bold text-primary">{readiness.score}% score</span>
@@ -278,8 +278,8 @@ export default function WeightLossPage() {
                   <div
                     className={cn(
                       "h-full transition-all",
-                      readiness.tone === "lime" && "bg-[#C8FF3D]",
-                      readiness.tone === "cyan" && "bg-[#49E7FF]",
+                      readiness.tone === "lime" && "bg-primary",
+                      readiness.tone === "cyan" && "bg-primary",
                       readiness.tone === "amber" && "bg-amber-400",
                       readiness.tone === "rose" && "bg-[#FF554D]",
                     )}
@@ -296,7 +296,7 @@ export default function WeightLossPage() {
 
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               {([ ["energy", "Energy"], ["sleep", "Sleep quality"], ["soreness", "Soreness"] ] as const).map(([field, label]) => (
-                <div key={field}><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</p><div className="mt-2 flex gap-1">{SCALE.map((score) => <button key={score} type="button" aria-label={`${label} ${score} of 5`} onClick={() => saveRecovery(field, score)} className={`h-9 w-9 rounded-full border text-sm font-bold ${recovery?.[field] === score ? "border-[#c8ff3d] bg-[#c8ff3d] text-[#071014]" : "border-border/70 hover:border-primary"}`}>{score}</button>)}</div></div>
+                <div key={field}><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</p><div className="mt-2 flex gap-1">{SCALE.map((score) => <button key={score} type="button" aria-label={`${label} ${score} of 5`} aria-pressed={recovery?.[field] === score} onClick={() => saveRecovery(field, score)} className={`h-11 w-11 rounded-full border text-sm font-bold ${recovery?.[field] === score ? "border-primary bg-primary text-primary-foreground" : "border-border/70 hover:border-primary"}`}>{score}</button>)}</div></div>
               ))}
             </div>
           </CardContent>

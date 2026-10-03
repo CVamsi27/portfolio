@@ -172,7 +172,7 @@ function IncomingList({ uid }: { uid: string }) {
                 <Link key={item.id} href={`/share/${item.id}`} className="shared-inbox__item">
                   {item.image_path || item.image_url ? <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" /> : <PenLine className="h-4 w-4 shrink-0 text-muted-foreground" />}
                   <span className="min-w-0 flex-1 truncate text-sm">{item.text || "(image)"}</span>
-                  <span className="shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+                  <span className="shrink-0 text-right text-xs tabular-nums text-muted-foreground">
                     <span className="block">{accessMode(item)}</span>
                     <span className="block">{expiryCopy(item.expires_at)}</span>
                   </span>

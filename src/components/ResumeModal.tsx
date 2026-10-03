@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { useDialogFocus } from "@/components/common/useDialogFocus";
 import { Download, ExternalLink, FileText, X, Mail } from "lucide-react";
 import { CONTACT_EMAIL, RESUME_PATH } from "@/lib/const";
 
@@ -16,22 +17,14 @@ export default function ResumeModal({
 }) {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  const dialogRef = useDialogFocus(open, onClose);
 
   if (!mounted || !open) return null;
 
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Résumé Viewer"
@@ -45,11 +38,11 @@ export default function ResumeModal({
       />
 
       {/* Modal Dialog */}
-      <div className="relative flex flex-col w-full max-w-5xl h-[92vh] max-h-[900px] overflow-hidden rounded-2xl border border-border/80 bg-card/95 shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="relative flex flex-col w-full max-w-5xl h-[92dvh] max-h-[900px] overflow-hidden rounded-2xl border border-border/80 bg-card/95 shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border/60 px-5 py-3.5 bg-muted/20">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 bg-muted/20">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="hidden h-9 w-9 shrink-0 items-center justify-center sm:flex rounded-xl bg-primary/10 text-primary">
               <FileText className="h-5 w-5" />
             </div>
             <div>
@@ -66,7 +59,7 @@ export default function ResumeModal({
             <a
               href={RESUME_PATH}
               download="VamsiKrishna_Resume"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border/80 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border/80 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
               title="Download PDF"
             >
               <Download className="h-3.5 w-3.5 text-primary" />
@@ -77,7 +70,7 @@ export default function ResumeModal({
               href={RESUME_PATH}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border/80 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border/80 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
               title="Open PDF in new tab"
             >
               <ExternalLink className="h-3.5 w-3.5" />
@@ -87,7 +80,7 @@ export default function ResumeModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               aria-label="Close résumé modal"
             >
               <X className="h-4 w-4" />

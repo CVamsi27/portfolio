@@ -1,0 +1,226 @@
+/* Surface tokens and shared layout rules for the approved UX redesign.
+   Keep component-specific styles in globals; semantic values live here. */
+@media screen {
+  body.tracker-surface {
+    --color-background: #f3f7fb;
+    --color-foreground: #172b40;
+    --color-card: #ffffff;
+    --color-card-foreground: #172b40;
+    --color-popover: #ffffff;
+    --color-popover-foreground: #172b40;
+    --color-primary: #176c78;
+    --color-primary-foreground: #ffffff;
+    --color-secondary: #e5edf3;
+    --color-secondary-foreground: #172b40;
+    --color-muted: #e5edf3;
+    --color-muted-foreground: #526579;
+    --color-accent: #e5edf3;
+    --color-accent-foreground: #172b40;
+    --color-border: #d8e1ec;
+    --color-input: #c2cfdd;
+    --color-ring: #176c78;
+    --color-dossier-lime: #176c78;
+    --color-dossier-red: #ba3647;
+    --color-dossier-violet: #176c78;
+    --nova-archive: #f3f7fb;
+    --nova-paper: #ffffff;
+    --nova-ink: #172b40;
+    --nova-cyan: #176c78;
+    --nova-lime: #176c78;
+    --nova-red: #ba3647;
+    --nova-violet: #176c78;
+    --nova-mist: #526579;
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+  html.dark body.tracker-surface {
+    --color-background: #101820;
+    --color-foreground: #f1f5f9;
+    --color-card: #192530;
+    --color-card-foreground: #f1f5f9;
+    --color-popover: #192530;
+    --color-popover-foreground: #f1f5f9;
+    --color-primary: #70d6db;
+    --color-primary-foreground: #102127;
+    --color-secondary: #223240;
+    --color-secondary-foreground: #f1f5f9;
+    --color-muted: #223240;
+    --color-muted-foreground: #abbac8;
+    --color-accent: #223240;
+    --color-accent-foreground: #f1f5f9;
+    --color-border: #354657;
+    --color-input: #465c70;
+    --color-ring: #70d6db;
+    --color-destructive: #fb8895;
+    --color-destructive-foreground: #291015;
+    --color-dossier-lime: #70d6db;
+    --color-dossier-red: #fb8895;
+    --color-dossier-violet: #70d6db;
+    --nova-archive: #101820;
+    --nova-paper: #192530;
+    --nova-ink: #f1f5f9;
+    --nova-cyan: #70d6db;
+    --nova-lime: #70d6db;
+    --nova-red: #fb8895;
+    --nova-violet: #70d6db;
+    --nova-mist: #abbac8;
+  }
+  body.portfolio-surface {
+    --portfolio-paper: #f7f9fc;
+    --portfolio-ink: #172b40;
+    --portfolio-muted: #526579;
+    --portfolio-accent: #245cb3;
+    --portfolio-rule: #d8e1ec;
+    --portfolio-blue-soft: #eaf0fa;
+    --color-background: var(--portfolio-paper);
+    --color-foreground: var(--portfolio-ink);
+    --color-card: #ffffff;
+    --color-card-foreground: var(--portfolio-ink);
+    --color-primary: var(--portfolio-accent);
+    --color-primary-foreground: #ffffff;
+    --color-muted-foreground: var(--portfolio-muted);
+    --color-border: var(--portfolio-rule);
+    --color-input: var(--portfolio-rule);
+    --color-ring: var(--portfolio-accent);
+  }
+  html.dark body.portfolio-surface {
+    --portfolio-paper: #101820;
+    --portfolio-ink: #f1f5f9;
+    --portfolio-muted: #abbac8;
+    --portfolio-accent: #a3c4ff;
+    --portfolio-rule: #354657;
+    --portfolio-blue-soft: #223240;
+    --color-card: #192530;
+    --color-primary-foreground: #172b40;
+    --color-destructive: #fb8895;
+  }
+
+  body :focus-visible { outline-color: var(--color-ring); }
+  body :is(input, textarea, select) { scroll-margin-block: 6rem; }
+  body :is(button, a, input, textarea, select) { -webkit-tap-highlight-color: transparent; }
+  body :is(button, a) { touch-action: manipulation; }
+  body :is(section[id], div[id]) { scroll-margin-top: 6rem; }
+
+  .tracker-surface .editorial-frame[data-surface="archive"] { color: var(--color-foreground); background: var(--color-background); }
+  .tracker-surface .editorial-frame::before { content: none; }
+  .tracker-surface .dossier-command-rail { --color-dossier-lime: var(--color-primary); background: var(--color-background); }
+  .tracker-surface .dossier-command-rail > div:last-of-type { max-width: 76rem; }
+  .dossier-rail-link,
+  .portfolio-surface .dossier-rail-link {
+    display: inline-flex; align-items: center; min-height: 44px;
+    font-family: var(--font-sans); font-size: 14px; font-weight: 500;
+    letter-spacing: 0; text-transform: none; border-radius: 10px;
+  }
+  .tracker-surface .dossier-rail-link.is-active { color: var(--color-primary); border-color: transparent; background: var(--color-accent); }
+  .tracker-surface .dossier-command-dock { border-color: var(--color-border); background: var(--color-card); box-shadow: 0 4px 24px #0002; }
+  .tracker-surface .dossier-command-link.is-active { color: var(--color-primary); border-color: transparent; background: var(--color-accent); }
+  .tracker-surface .dossier-command-link { letter-spacing: 0; text-transform: none; }
+  .tracker-surface :is(.dossier-card, .dossier-panel) { border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-card); color: var(--color-foreground); box-shadow: none; }
+  .tracker-surface :is(.dossier-card, .dossier-panel)::before { content: none; }
+  .tracker-surface .dossier-panel { padding: 1.25rem; }
+  .tracker-surface :is(.dossier-kicker, .editorial-kicker) { color: var(--color-muted-foreground); font-size: 12px; font-family: var(--font-sans); font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
+  .tracker-surface .dossier-chapter-header h1 { font-weight: 600; line-height: 1.15; letter-spacing: -0.035em; }
+  .tracker-surface .dossier-chapter-header { border-bottom: 1px solid var(--color-border); padding-bottom: 1.25rem; }
+  .tracker-surface .dossier-world-clock { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0; text-transform: none; }
+  .tracker-surface .dossier-world-clock strong { font-size: 13px; }
+  .tracker-surface .dossier-back-link { min-height: 44px; font-family: var(--font-sans); font-size: 14px; text-transform: none; letter-spacing: 0; }
+  .tracker-surface .dossier-signal { min-height: auto; }
+  .tracker-surface .dossier-signal-value { font-size: 2rem; }
+  .tracker-page-actions a { min-height: 44px; display: inline-flex; align-items: center; }
+  .personal-content > section:has(> .flex + .grid) { border-radius: 16px; }
+  [data-testid="next-move-card"] { border-color: var(--color-border); }
+  .tracker-surface footer { padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)); }
+  .tracker-surface footer a { min-height: 44px; }
+  .tracker-surface [data-testid="more-links"] a { border-radius: 14px; }
+  [role="dialog"][aria-modal="true"] { overscroll-behavior: contain; }
+  [role="dialog"] :is(input, textarea, select) { font-size: 16px; }
+  .tracker-surface [role="dialog"] { color: var(--color-foreground); }
+
+  .portfolio-hero__title { font-size: clamp(2.6rem, 5.2vw, 4.75rem); line-height: 1.08; letter-spacing: -0.045em; font-weight: 600; }
+  .portfolio-hero__title--shimmer { background: none; color: var(--portfolio-accent); -webkit-text-fill-color: currentColor; animation: none; }
+  .portfolio-status-pill { animation: none; font-family: var(--font-sans); font-size: 12px; letter-spacing: 0; }
+  .portfolio-hero__wash, .portfolio-hero__ambient { display: none; }
+  .portfolio-hero__aside { background: var(--color-card); box-shadow: none; }
+  .portfolio-section-heading { margin-bottom: 2rem; }
+  .portfolio-section-heading .editorial-statement { max-width: 24ch; font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.15; font-weight: 600; letter-spacing: -0.035em; text-transform: none; }
+  .portfolio-section-heading .editorial-kicker { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.04em; }
+  .portfolio-section-heading::after { display: none; }
+  .portfolio-section :is(.portfolio-work-row, .portfolio-flagship-card, .portfolio-capability-group) { box-shadow: none; }
+  .portfolio-surface :is(.portfolio-primary-action, .portfolio-secondary-action, .portfolio-copy-action, .portfolio-submit-action) { min-height: 44px; font-family: var(--font-sans); font-size: 14px; letter-spacing: 0; text-transform: none; box-shadow: none; }
+  .portfolio-primary-action, .portfolio-submit-action { background: var(--portfolio-accent); color: var(--color-primary-foreground); }
+  .portfolio-surface :is(.portfolio-topic-chip, .portfolio-filter-tab, .portfolio-tech-chip) { min-height: 36px; font-family: var(--font-sans); font-size: 12px; }
+  .portfolio-surface :is(.portfolio-meta-label, .portfolio-impact-pill, .portfolio-tag-pill, .portfolio-work-live-badge) { font-size: 12px; letter-spacing: 0.02em; }
+  .portfolio-stat-card :is(.truncate, p) { white-space: normal; overflow: visible; }
+  .portfolio-stat-grid { background: var(--color-card); }
+  .portfolio-surface .portfolio-contact-form { background: var(--color-card); }
+  .portfolio-contact-form :is(input, textarea) { font-size: 16px; }
+  .portfolio-surface .portfolio-contact-form :is(.text-destructive, [role="alert"]) { color: var(--color-destructive); }
+
+  @media (max-width: 1023px) {
+    .tracker-surface .dossier-command-dock { display: block; }
+    .tracker-surface [data-testid="tracker-primary-nav"] { display: none; }
+    .portfolio-surface [data-editorial-index] { display: none; }
+    .tracker-surface .personal-shell > div { padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)); }
+  }
+  @media (min-width: 1024px) {
+    .tracker-surface .dossier-command-dock { display: none; }
+    .tracker-surface footer { padding-bottom: 0; }
+  }
+  @media (max-width: 639px) {
+    .tracker-surface .editorial-frame.dossier-frame { padding: 1.25rem 1rem; }
+    .tracker-surface .personal-content { gap: 1rem; }
+    .tracker-surface .dossier-panel { padding: 1rem; }
+    .tracker-page-actions { gap: 0.5rem; }
+    .tracker-surface .dossier-chapter-header > div > div:first-child { gap: 0.25rem; }
+    .portfolio-hero__title { font-size: clamp(2.4rem, 9vw, 3.3rem); }
+    .portfolio-primary-action { width: 100%; }
+    .portfolio-contact-form textarea { resize: vertical; }
+  }
+}
+@media screen {
+  .tracker-surface .dossier-chapter-header h1 { text-transform: none; }
+  .tracker-surface .personal-content > details > div { margin-top: 1rem; }
+  .tracker-surface .dossier-clock-disclosure summary { min-height: 44px; }
+  .tracker-surface .dossier-clock-summary-label { display: inline; font-size: 12px; }
+  .tracker-surface .personal-content button:not([role="switch"]):not(.dossier-day-cell) { min-height: 44px; }
+  .tracker-surface .personal-content button[aria-label]:has(> svg:only-child) { min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .tracker-surface .personal-content :is(input, select, textarea) { font-size: 16px; }
+  .tracker-surface .personal-content select { min-height: 44px; }
+  .tracker-surface .personal-content :is(.font-black, .font-extrabold) { font-weight: 600; }
+  .tracker-surface .personal-content :is(.font-mono, .font-utility) { letter-spacing: 0; }
+  .tracker-surface [data-testid="tracker-action-bar"] + .personal-content { margin-top: 1.25rem; }
+  @media (min-width: 1024px) {
+    .portfolio-surface [data-editorial-index] > a:nth-child(2),
+    .portfolio-surface [data-editorial-index] > a:nth-child(3),
+    .portfolio-surface [data-editorial-index] > a:nth-child(6) { display: none; }
+  }
+  @media (max-width: 639px) {
+    .tracker-surface .dossier-clock-summary-label { display: inline; }
+  }
+}
+@media screen and (max-width: 639px) {
+  .tracker-surface .personal-shell #focus-scene { width: calc(100% + 2rem); margin-inline: -1rem; }
+}
+
+/* Clock disclosure: explicit device zone, stable time width, and city dates. */
+@media screen {
+  .tracker-surface .dossier-world-clock { width: 100%; max-width: 26rem; overflow: visible; color: var(--color-muted-foreground); padding: 0; }
+  .tracker-surface .dossier-clock-disclosure { width: 100%; min-width: 15rem; }
+  .tracker-surface .dossier-clock-disclosure > summary { justify-content: space-between; gap: 1.25rem; min-height: 56px; border-radius: 10px; cursor: pointer; }
+  .tracker-surface .dossier-clock-disclosure > summary::after { content: none; }
+  .tracker-surface .clock-local-copy, .tracker-surface .clock-local-value { display: flex; flex-direction: column; gap: 0.25rem; }
+  .tracker-surface .clock-local-value { align-items: flex-end; }
+  .tracker-surface .dossier-world-date { display: block; color: var(--color-foreground); font-size: 14px; font-weight: 500; }
+  .tracker-surface .clock-local-zone { font-size: 12px; white-space: nowrap; }
+  .tracker-surface .clock-local-value > time { font-size: 20px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; color: var(--color-foreground); letter-spacing: -0.02em; }
+  .tracker-surface .dossier-clock-summary-label { display: inline-flex; align-items: center; gap: 0.25rem; color: var(--color-primary); font-size: 12px; }
+  .tracker-surface .dossier-clock-details { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 0.75rem; border: 1px solid var(--color-border); border-radius: 12px; padding: 0.25rem 0.75rem; background: var(--color-card); animation: none; }
+  .tracker-surface .clock-city-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 0.75rem; }
+  .tracker-surface .clock-city-row + .clock-city-row { border-top: 1px solid var(--color-border); }
+  .tracker-surface .clock-city-name { display: block; font-size: 14px; font-weight: 500; color: var(--color-foreground); }
+  .tracker-surface .clock-city-meta { display: block; margin-top: 0.25rem; font-size: 12px; }
+  .tracker-surface .clock-city-row time { flex-shrink: 0; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--color-foreground); }
+  .tracker-surface .dossier-clock-disclosure[open] .clock-chevron { transform: rotate(180deg); }
+  .tracker-surface .dossier-clock-details .dossier-world-status { padding-block: 0.75rem; border-top: 1px solid var(--color-border); }
+  @media (max-width: 639px) { .tracker-surface .dossier-utility:has(.dossier-world-clock) { width: 100%; } }
+}
