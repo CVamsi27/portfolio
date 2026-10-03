@@ -5,6 +5,7 @@ import { useNotificationPermission, refreshNotificationPermission } from "@/lib/
 import { useAuth } from "@/lib/auth-store";
 import { alignPersonalTimetable, personalSchedule } from "@/lib/personal-timetable";
 import DailyTimetable from "@/components/trackers/DailyTimetable";
+import { refreshBibleChapters, type BibleChapter } from "@/lib/bible-sync";
 import curriculum from "@/data/career-curriculum.json";
 import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
@@ -44,7 +45,7 @@ import { canCompleteEvidence, EMPTY_CAREER_EXECUTION_STATE, type CareerChecklist
 interface ChecklistItem extends CareerChecklistItem { done: boolean }
 interface DayPlan {
   day: number; date: string; topic: string; chapterId: string; title: string;
-  chapters: Array<{ id: string; title: string; studyUrl: string }>;
+  chapters: BibleChapter[];
   studyLink: string; schedule: Record<string, string | { label: string; output?: string; minutes?: number; work?: boolean }>;
   mission: string; practiceTask: string; roleTrack: { lane: string; action: string };
   interviewQuestions: string[];
@@ -290,6 +291,7 @@ function DayCard({
                       )}
                       <span className="font-mono text-xs opacity-75">Ch {idx + 1}:</span>
                       <span className="truncate max-w-[200px]">{ch.title}</span>
+                      <span className="text-muted-foreground">Role: {ch.rolePriority ?? "Unclassified"} · General: {ch.generalImportance ?? "Unclassified"}</span>
                       {isMastered && (
                         <span className="text-xs font-mono uppercase text-emerald-400 font-semibold ml-0.5">
                           Done
@@ -1145,15 +1147,16 @@ export default function RoadmapPage() {
   };
 
   const today = istDateTime().date;
-  const days = useMemo(() => {
-    const source = alignPersonalTimetable(user?.email, { days: timetable?.days?.length ? timetable.days : curriculum.days }).days;
+  const days = (() => {
+    const saved = timetable?.days?.length ? timetable.days : curriculum.days;
+    const source = alignPersonalTimetable(user?.email, { days: refreshBibleChapters<DayPlan | (typeof curriculum.days)[number]>(saved, curriculum.days) }).days;
     return source.map((raw, index) => {
       const day = raw as DayPlan & { chapters?: Array<{ id: string; title: string; studyUrl: string }>; phaseLabel?: string; schedule: DayPlan["schedule"] };
       const chapterList = day.chapters ?? [];
       const checklist = (day.checklist ?? []).map(item => ({ ...item, done: Boolean(executionState.evidenceByItemId[item.id]) }));
       return { ...day, day: day.day ?? index + 1, topic: day.topic ?? "Study", chapterId: day.chapterId ?? chapterList[0]?.id ?? "", title: day.title ?? chapterList.map(chapter => chapter.title).join(" + "), chapters: chapterList, studyLink: day.studyLink ?? chapterList[0]?.studyUrl ?? "https://study.buildora.work", schedule: day.schedule ?? {}, mission: day.mission ?? "Study, build, and save verifiable evidence.", practiceTask: day.practiceTask ?? "Implement a small, tested improvement.", roleTrack: day.roleTrack ?? { lane: "Full-stack TypeScript", action: "Save one source-verified role action." }, interviewQuestions: day.interviewQuestions ?? [], steps: day.steps ?? [], checklist, notification: day.notification ?? { time: "08:00", message: "Start today's career roadmap block." }, oSSProject: day.oSSProject ?? "Langfuse", mockInterviewPlatform: day.mockInterviewPlatform ?? "Recorded self-mock", founderOutreachTarget: day.founderOutreachTarget ?? "One relevant outreach action", resources: day.resources ?? [] };
     });
-  }, [timetable, executionState, user?.email]);
+  })();
   const completedDays = useMemo(() => days.filter(d => pct(d.checklist) === 100).length, [days]);
   const totalItems = useMemo(() => days.reduce((a, d) => a + d.checklist.length, 0), [days]);
   const doneItems = useMemo(() => days.reduce((a, d) => a + d.checklist.filter(c => c.done).length, 0), [days]);
@@ -1216,11 +1219,18 @@ export default function RoadmapPage() {
             <BookOpen className="h-5 w-5 text-primary shrink-0" />
             <div>
               <p className="font-display font-bold text-sm">Software Developer Bible</p>
-          <p className="text-xs text-muted-foreground">study.buildora.work · 556 chapters · 176.8h estimated reading · dated across 100 days</p>
+          <p className="text-xs text-muted-foreground">study.buildora.work · {curriculum.chapterCount} chapters · {(curriculum.totalStudyMinutes / 60).toFixed(1)}h estimated reading · {curriculum.days.length}-day navigation backlog</p>
             </div>
           </div>
           <ArrowUpRight className="h-4 w-4 text-primary shrink-0" />
         </a>
+
+        <div className="rounded-xl border border-border px-4 py-3 text-sm" data-testid="bible-sync-policy">
+          <p>Study Essential concepts first: JavaScript/TypeScript, core React, APIs, PostgreSQL, security and system design. HTML/CSS basics matter; animation and alternative libraries can wait. Java is deferred.</p>
+          <p className="mt-1 text-xs text-muted-foreground">This dated inventory is a navigation backlog, not a requirement to finish every page. Optional and Deferred chapters may be skipped. Keep applying while practising. Saved evidence is retained.</p>
+          <a className="mt-2 inline-block text-primary underline" href="https://study.buildora.work/docs/topic-importance" target="_blank" rel="noopener noreferrer">Bible importance guide</a>
+          <p className="mt-1 font-mono text-xs text-muted-foreground">Bible snapshot: {curriculum.sourceDigest.slice(0, 12)}</p>
+        </div>
 
         <details className="rounded-2xl border border-border p-4">
           <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress and weekly overview</summary>
@@ -1346,6 +1356,7 @@ export default function RoadmapPage() {
                                     className="text-left font-medium text-foreground hover:text-primary transition-colors truncate cursor-pointer"
                                   >
                                     {chapter.title}
+                                    <span className="block text-xs font-normal text-muted-foreground">Role: {chapter.rolePriority ?? "Unclassified"} · General: {chapter.generalImportance ?? "Unclassified"}</span>
                                   </button>
                                   {isMastered && (
                                     <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-xs font-bold text-emerald-400 shrink-0">

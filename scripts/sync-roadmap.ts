@@ -1,3 +1,4 @@
+import { applyCareerRows, verifyCareerReadback } from "./career-seed-apply.ts";
 import { alignPersonalTimetable } from "../src/lib/personal-timetable.ts";
 import { createClient } from "@supabase/supabase-js";
 import curriculum from "../src/data/career-curriculum.json" with { type: "json" };
@@ -50,7 +51,7 @@ function careerData() {
       ],
       gaps: [
         { item: "Senior-level public proof is hard to assess from a CV alone", action: "Publish 2 compact architecture case studies (Docita + Senior Full Stack Bible) with diagrams, trade-offs, tests, and outcomes. Pin them in portfolio.", urgency: "high" },
-        { item: "Kubernetes/Terraform depth is not as well evidenced as app/backend work", action: "Build and operate a small tested deployment; describe failure recovery and observability. Use 40-platform chapters 40.1–40.4 as the script.", urgency: "medium" },
+        { item: "Kubernetes/Terraform depth is not as well evidenced as app/backend work", action: "Optional until a matching vacancy requires it. Prioritize core TypeScript/Node, PostgreSQL, reliability and system-design evidence first.", urgency: "medium" },
         { item: "No recent DSA/system-design public artifacts", action: "Use the active four-hour/two-hour timetable; attempt one coding variation and repair the observed gap.", urgency: "high" },
         { item: "Resume bullets need claim-by-claim evidence and role tailoring", action: "Maintain a source-of-truth achievement ledger and tailor a one-page variant per role family (Germany SaaS / remote-EU / remote-India / OSS maintainer).", urgency: "high" },
         { item: "German language and relocation logistics need verification", action: "Start a sustainable A1 routine and validate degree recognition, salary threshold, and offer conditions from official sources.", urgency: "medium" },
@@ -61,7 +62,7 @@ function careerData() {
       core: { score: 9, items: ["TypeScript", "React", "Node.js", "NestJS", "PostgreSQL", "Prisma", "TanStack Query", "Zod", "REST APIs", "Git", "Docker", "GitHub Actions"] },
       strong: { score: 8, items: ["Java", "Spring Boot", "Microservices", "TanStack Query patterns", "RLS / multi-tenant", "Queues/outbox/idempotency", "Playwright e2e", "Accessibility"] },
       developing: { score: 6, items: ["Kubernetes (production)", "Terraform / IaC", "GCP / AWS depth", "GraphQL at scale", "Observability stacks (OTel, Prometheus)", "System-design post writing", "DSA interview readiness"] },
-      toLearn: { score: 3, items: ["Kafka deep-dive", "Service mesh (Istio/Linkerd)", "Rust basics", "ML infra basics"] },
+      toLearn: { score: 3, items: ["Core JavaScript/TypeScript recall", "PostgreSQL and API failure cases", "System-design explanations", "Docita and MAQ project evidence"] },
     },
     targetRoles: {
       germany: [
@@ -69,7 +70,7 @@ function careerData() {
         { company: "Celonis", city: "Munich", role: "Senior Software Engineer — Backend", fitScore: 8, salary: "Not verified for this role", link: "https://www.celonis.com/careers/", status: "historical lead · recheck exact role", sourceChecked: "2026-10-01", notes: "Historical discovery lead. Confirm the exact current role, stack, country eligibility, compensation and relocation terms before applying." },
         { company: "Zalando", city: "Berlin", role: "Senior Engineer — Logistics Platform", fitScore: 7, salary: "Not verified for this role", link: "https://jobs.zalando.com/en/jobs/", status: "historical lead · recheck exact role", sourceChecked: "2026-10-01", notes: "Historical discovery lead. Confirm the exact current role, stack, country eligibility, compensation and relocation terms before applying." },
         { company: "Delivery Hero", city: "Berlin", role: "Senior Software Engineer — Backend", fitScore: 7, salary: "Not verified for this role", link: "https://careers.deliveryhero.com/", status: "historical lead · recheck exact role", sourceChecked: "2026-10-01", notes: "Historical discovery lead. Confirm the exact current role, stack, country eligibility, compensation and relocation terms before applying." },
-        { company: "Trade Republic", city: "Berlin", role: "Senior Backend Engineer — Java/Kotlin", fitScore: 7, salary: "Not verified for this role", link: "https://www.traderepublic.com/careers/", status: "historical lead · recheck exact role", sourceChecked: "2026-10-01", notes: "Historical discovery lead. Confirm the exact current role, stack, country eligibility, compensation and relocation terms before applying." },
+        { company: "Trade Republic", city: "Berlin", role: "Senior Backend Engineer — Java/Kotlin (deferred track)", fitScore: 0, salary: "Not verified for this role", link: "https://www.traderepublic.com/careers/", status: "historical lead · recheck exact role", sourceChecked: "2026-10-01", notes: "Historical discovery lead. Confirm the exact current role, stack, country eligibility, compensation and relocation terms before applying." },
         { company: "N26", city: "Berlin", role: "Senior Engineer — Backend", fitScore: 7, salary: "Not verified for this role", link: "https://n26.com/en/careers", status: "historical lead · recheck exact role", sourceChecked: "2026-10-01", notes: "Historical discovery lead. Confirm the exact current role, stack, country eligibility, compensation and relocation terms before applying." },
         { company: "GetYourGuide", city: "Berlin", role: "Senior Software Engineer", fitScore: 7, salary: "Not verified for this role", link: "https://www.getyourguide.com/careers", status: "historical lead · recheck exact role", sourceChecked: "2026-10-01", notes: "Historical discovery lead. Confirm the exact current role, stack, country eligibility, compensation and relocation terms before applying." },
         { company: "SumUp", city: "Berlin", role: "Senior Backend Engineer — Payments", fitScore: 8, salary: "Not verified for this role", link: "https://www.sumup.com/careers/", status: "historical lead · recheck exact role", sourceChecked: "2026-10-01", notes: "Historical discovery lead. Confirm the exact current role, stack, country eligibility, compensation and relocation terms before applying." },
@@ -249,36 +250,15 @@ let userId = "00000000-0000-4000-8000-000000000000";
   };
   const rows = keys.map(key => ({ user_id: userId, key, value: values[key] }));
   validateSeedPayload({ ownerEmail, curriculum: curriculum as unknown as CareerCurriculum, rows }, ownerEmail);
-  console.log(JSON.stringify({ mode: apply ? "apply" : "dry-run", ownerConfigured: Boolean(configuredOwnerEmail), accountResolved: Boolean(client), curriculumDays: curriculum.days.length, chapters: curriculum.chapterCount, checklistItems: checklistIds.length, rows: rows.length, preservedTodoRows: todos.filter(row => !row.id.startsWith("career-plan:")).length, executionEvidencePreserved: Object.keys(executionState.evidenceByItemId).length, priorChecklistClaimsPreservedForReview: executionState.legacyClaims.length, remindersDefaultOff: true }, null, 2));
+  console.log(JSON.stringify({ mode: apply ? "apply" : "dry-run", ownerConfigured: Boolean(configuredOwnerEmail), accountResolved: Boolean(client), sourceDigest: curriculum.sourceDigest, curriculumDays: curriculum.days.length, chapters: curriculum.chapterCount, checklistItems: checklistIds.length, rows: rows.length, preservedTodoRows: todos.filter(row => !row.id.startsWith("career-plan:")).length, executionEvidencePreserved: Object.keys(executionState.evidenceByItemId).length, priorChecklistClaimsPreservedForReview: executionState.legacyClaims.length, remindersDefaultOff: true }, null, 2));
   if (!apply) return;
   if (!client) throw new Error("Database client was not initialized.");
 
-  const rpcProbe = await (client as any).rpc("sync_career_roadmap", { p_user_id: userId, p_rows: [] });
-  const rpcAvailable = !rpcProbe.error;
-  if (!rpcAvailable) {
-    console.warn(`sync_career_roadmap RPC unavailable (${rpcProbe.error?.message ?? "unknown"}); falling back to sequential upsert with the same row key validation. Apply migration 0006 to enable the atomic path.`);
-  }
-
-  if (rpcAvailable) {
-    const { data: applied, error } = await (client as any).rpc("sync_career_roadmap", { p_user_id: userId, p_rows: rows });
-    if (error) throw new Error(`Atomic career sync failed: ${error.message}`);
-    if (applied !== rows.length) throw new Error(`Atomic sync applied ${String(applied)} rows; expected ${rows.length}.`);
-  } else {
-    for (const row of rows) {
-      const { error: upsertError } = await (client as any)
-        .from("tracker_data")
-        .upsert({ user_id: row.user_id, key: row.key, value: row.value, updated_at: new Date().toISOString() }, { onConflict: "user_id,key" });
-      if (upsertError) throw new Error(`Fallback upsert failed for ${row.key}: ${upsertError.message}`);
-    }
-  }
+  const writeMode = await applyCareerRows(client as unknown as Parameters<typeof applyCareerRows>[0], userId, rows);
   const { data: readback, error: readError } = await (client as any).from("tracker_data").select("key,value").eq("user_id", userId).in("key", [...keys]);
   if (readError) throw new Error(`Sync succeeded but verification readback failed: ${readError.message}`);
-  const result = new Map((readback ?? []).map((row: { key: string; value: unknown }) => [row.key, row.value]));
-  const savedCurriculum = result.get("timetable_100_days") as typeof curriculum | undefined;
-  const savedTodos = result.get("todos") as typeof todos | undefined;
-  if (savedCurriculum?.version !== curriculum.version || savedCurriculum.days.length !== curriculum.days.length || savedTodos?.length !== todos.length) {
-    throw new Error("Database readback did not match the validated planner snapshot.");
-  }
+  verifyCareerReadback(rows, readback ?? []);
+  console.log(`Atomic write path: ${writeMode}; Bible digest: ${curriculum.sourceDigest}.`);
   console.log("Career roadmap database sync and readback verification succeeded.");
 }
 

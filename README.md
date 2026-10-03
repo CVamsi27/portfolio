@@ -90,7 +90,7 @@ pnpm dev            # http://localhost:3000 → tracker suite
 | `pnpm career:validate` | Check snapshot freshness, chapter coverage, dates, capacity, and links |
 | `pnpm test:career-curriculum` | Run curriculum generator tests |
 | `pnpm career:seed` | Validate and preview owner-scoped Supabase rows; dry-run only |
-| `CAREER_OWNER_EMAIL=… pnpm career:seed -- --apply` | After applying migration 0006, atomically sync five rows and verify readback; keep the email in ignored environment configuration |
+| `CAREER_OWNER_EMAIL=… pnpm career:seed -- --apply` | Atomically sync five owner-scoped rows and verify readback; keep the email in ignored environment configuration |
 | `pnpm test:e2e` | Playwright suite (its `pretest:e2e` hook rebuilds in local mode first) |
 | `pnpm exec playwright test e2e/reduced-motion.spec.ts` | Reduced-motion contract test against the current production build |
 
@@ -98,7 +98,7 @@ pnpm dev            # http://localhost:3000 → tracker suite
 
 ### Share storage and access
 
-Run Supabase migrations in order: `0001_tracker_data.sql`, `0002_drops_storage.sql`, `0003_shared_drops.sql`, `0004_shared_allowlist.sql`, `0005_private_share_media.sql`, then `0006_career_roadmap_atomic_sync.sql`. Migration 0006 adds a `SECURITY INVOKER` function with a fixed search path and strict row-key/user validation; only `service_role` can execute it. The career seed defaults to dry-run. After migration 0006 is deployed, configure `CAREER_OWNER_EMAIL`, `SUPABASE_URL`, and `SUPABASE_SECRET_KEY` privately, then run `pnpm career:seed -- --apply`. It reads only the five planner keys, preserves unrelated todos, evidence, and reminder choices, performs a single atomic RPC, then compares a readback. Never print or commit private account identifiers or service credentials. The share migration makes the `drops` bucket private, adds public/private access mode and storage-path columns, backfills compatible paths, and applies owner/allowlist/expiry RLS.
+Run Supabase migrations in order: `0001_tracker_data.sql`, `0002_drops_storage.sql`, `0003_shared_drops.sql`, `0004_shared_allowlist.sql`, `0005_private_share_media.sql`, then `0006_career_roadmap_atomic_sync.sql`. Migration 0006 adds a `SECURITY INVOKER` function with a fixed search path and strict row-key/user validation; only `service_role` can execute it. The career seed defaults to dry-run. After migration 0006 is deployed, configure `CAREER_OWNER_EMAIL`, `SUPABASE_URL`, and `SUPABASE_SECRET_KEY` privately, then run `pnpm career:seed -- --apply`. It reads only the five planner keys, preserves unrelated todos, evidence, and reminder choices, performs one atomic RPC (or one bulk upsert if the function is absent), then compares every value in readback. Never print or commit private account identifiers or service credentials. The share migration makes the `drops` bucket private, adds public/private access mode and storage-path columns, backfills compatible paths, and applies owner/allowlist/expiry RLS.
 
 Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximately 1.2 MB limit per local-only image, and an approximately 5,000 KB browser-storage display capacity. Expired drops are removed from the active list and cleaned opportunistically. Private links require a matching signed-in email; public links are an explicit “Anyone with the link” choice and are readable only until expiry. Public detail pages use the server route to issue a five-minute signed media URL. Backups include link URL, expiry, allowlist, and access mode metadata, but never storage tokens.
 
@@ -123,3 +123,14 @@ Key mechanics: the config blanks `NEXT_PUBLIC_SUPABASE_*` for the build (auth op
 ## CI
 
 `.github/workflows/ci.yml` runs on every push/PR to `main`: frozen-lockfile install (pnpm 11, Node 22), lint, typecheck, then the E2E suite with lockfile-keyed browser caching. No secrets required — the local-mode build is the point. Failed runs upload the Playwright report as an artifact.
+
+
+## Keeping the personal roadmap aligned with the Bible
+
+The Bible owns chapter titles, read times, role priority and general importance. `career:generate` copies only the numbered technical study chapters, with a content digest; private Bible files never enter the bundle. `career:validate` fails when that generated snapshot differs from the source. The page computes its totals and shows both priorities and the digest. It refreshes saved chapter facts from the shipped catalogue while retaining dated schedules and separate evidence.
+
+Treat the 100-day inventory as navigation, not a completion deadline. Essential core engineering and system design come first; animation/alternative libraries are optional and Java is deferred. The private Bible execution plan remains the timetable owner.
+
+For each Bible content/priority change: regenerate, run `career:validate`, the curriculum/sync tests and the roadmap browser tests, inspect the diff, then publish portfolio main. The Git-connected production deployment publishes the new bundle. A deployed bundle does not prove cloud planner rows are updated: run the owner-scoped seed in dry-run first, then `--apply`, and verify its complete readback. Keep credentials and owner identity in ignored environment configuration. If the RPC is unavailable, the seed uses one atomic bulk upsert; other RPC failures stop the sync. Existing evidence, unrelated todos and reminder preferences are retained.
+
+No cross-repository scheduled sync is configured. A new Bible push requires regeneration/publication of this snapshot; the visible digest identifies what was actually shipped.

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { buildCurriculum, validateCurriculum } from "./generate-career-curriculum.mjs";
@@ -12,21 +12,21 @@ for (let index = 1; index <= 100; index += 1) {
   fixtureExpectedChapterPaths.push(path);
   const file = join(fixtureBible, path);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, `# Chapter ${index}\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n`);
+  writeFileSync(file, `<!-- section: JavaScript | role-priority: essential | general-importance: foundational -->\n# Chapter ${index}\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n`);
 }
 mkdirSync(join(fixtureBible, "80-lanes-abroad-full-stack", "personal"), { recursive: true });
 writeFileSync(join(fixtureBible, "80-lanes-abroad-full-stack", "personal", "cv.md"), "# Private CV\n");
 writeFileSync(join(fixtureBible, "10-frontend", "INDEX.md"), "# Navigation only\n");
 const backendChapterPath = "20-backend/20.1-node/20.1.01-runtime.md";
 mkdirSync(dirname(join(fixtureBible, backendChapterPath)), { recursive: true });
-writeFileSync(join(fixtureBible, backendChapterPath), "# Runtime\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n");
+writeFileSync(join(fixtureBible, backendChapterPath), "<!-- section: Node | role-priority: essential | general-importance: foundational -->\n# Runtime\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n");
 fixtureExpectedChapterPaths.push(backendChapterPath);
 for (const [path, title] of [
   ["10-frontend/10.2-typescript/10.2.01-types.md", "TypeScript"],
   ["10-frontend/10.3-react/10.3.01-components.md", "React"],
 ]) {
   mkdirSync(dirname(join(fixtureBible, path)), { recursive: true });
-  writeFileSync(join(fixtureBible, path), `# ${title}\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n`);
+  writeFileSync(join(fixtureBible, path), `<!-- section: Frontend | role-priority: essential | general-importance: foundational -->\n# ${title}\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n`);
   fixtureExpectedChapterPaths.push(path);
 }
 
@@ -94,4 +94,21 @@ test("starts in JavaScript and keeps the full-stack study sequence ordered", () 
   assert.equal(day.checklist.length, 7);
   assert.ok(day.checklist.every(item => Array.isArray(item.instructions) && item.instructions.length >= 2));
   assert.ok(day.steps.length >= 7);
+});
+
+
+test("imports independent role and general priorities and detects content-only edits", () => {
+  const path = join(fixtureBible, fixtureExpectedChapterPaths[0]);
+  const original = readFileSync(path, "utf8");
+  try {
+    writeFileSync(path, "<!-- section: JavaScript | role-priority: optional | general-importance: foundational -->\n" + original);
+    const before = buildFixture();
+    const chapter = before.days[0].chapters[0];
+    assert.equal(chapter.rolePriority, "Optional");
+    assert.equal(chapter.generalImportance, "Foundational");
+    writeFileSync(path, readFileSync(path, "utf8") + "\nA corrected explanation with unchanged title and read time.\n");
+    assert.notEqual(buildFixture().sourceDigest, before.sourceDigest);
+    writeFileSync(path, "<!-- role-priority: urgent | general-importance: foundational -->\n" + original);
+    assert.throws(buildFixture, /priority/i);
+  } finally { writeFileSync(path, original); }
 });

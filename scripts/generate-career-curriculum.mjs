@@ -68,6 +68,13 @@ function readChapter(path, bibleRoot, studyBaseUrl) {
   if (!title) throw new Error(`Chapter has no H1 title: ${relative(bibleRoot, path)}`);
   const minutes = Number(markdown.match(/read--time-(\d+)_min/i)?.[1] ?? 15);
   if (!Number.isInteger(minutes) || minutes < 1) throw new Error(`Invalid read time: ${relative(bibleRoot, path)}`);
+  const metadata = markdown.match(/<!--[^\n]*role-priority:[^\n]*-->/)?.[0] ?? "";
+  const priority = metadata.match(/role-priority:\s*([a-z]+)/i)?.[1]?.toLowerCase();
+  const importance = metadata.match(/general-importance:\s*([a-z]+)/i)?.[1]?.toLowerCase();
+  if (!["essential", "important", "optional", "deferred"].includes(priority) || !["foundational", "important", "specialized"].includes(importance)) {
+    throw new Error(`Missing or invalid Bible priority metadata: ${relative(bibleRoot, path)}`);
+  }
+  const titleCase = value => value[0].toUpperCase() + value.slice(1);
   const chapterPath = relative(bibleRoot, path).split(sep).join("/");
   const studyPath = chapterPath.split("/").map(encodeURIComponent).join("/");
   const stack = chapterPath.split("/")[0];
@@ -78,6 +85,8 @@ function readChapter(path, bibleRoot, studyBaseUrl) {
     studyUrl: `${studyBaseUrl.replace(/\/$/, "")}/${studyPath}`,
     stack,
     estimatedMinutes: minutes,
+    rolePriority: titleCase(priority),
+    generalImportance: titleCase(importance),
   };
 }
 
@@ -219,7 +228,7 @@ function roleAction(day) {
 function checklistFor(date, chapter, day, practiceTask, roleTask, oss) {
   const prefix = `career:${date}`;
   return [
-    { id: `${prefix}:study-notes`, text: "Write concise notes for today's assigned chapters", evidenceType: "note", acceptanceCriteria: "At least 5 accurate ideas, one worked example, one open question, and links to the assigned chapters.", instructions: ["Read the linked chapters and capture definitions only when they help explain a mechanism.", "For each chapter, write its invariant, one small example, and one failure mode.", "Add one question you still have and keep the note in the matching project or study folder."], estimatedMinutes: 25 },
+    { id: `${prefix}:study-notes`, text: "Write concise notes for chosen role-relevant chapters", evidenceType: "note", acceptanceCriteria: "At least 5 accurate ideas, one worked example, one open question, and links to the assigned chapters.", instructions: ["Choose Essential concepts first, then Important topics. Skip Optional/Deferred detail unless a vacancy or actual feature needs it; capture definitions only when they explain a mechanism.", "For each chapter, write its invariant, one small example, and one failure mode.", "Add one question you still have and keep the note in the matching project or study folder."], estimatedMinutes: 25 },
     { id: `${prefix}:retrieval`, text: "Explain one chapter concept from memory", evidenceType: "recording", acceptanceCriteria: "A 2–5 minute recording or written answer created before reopening notes, covering mechanism, trade-off, failure mode, and a verification method.", instructions: ["Choose one assigned chapter and close the chapter and notes.", "Explain the concept from first principles, then name a realistic failure and a way to test for it.", "Reopen the source, mark what was missing, and record one correction for tomorrow."], estimatedMinutes: 15 },
     { id: `${prefix}:practice`, text: "Complete the applied engineering exercise", evidenceType: "commit", acceptanceCriteria: "A reproducible commit or runnable artifact with a focused test and a short explanation of the design trade-off.", instructions: [`Use this exercise: ${practiceTask}`, "Reduce it to the smallest useful change that demonstrates today's chapter in a realistic feature.", "Run the relevant test or command, inspect the result, and capture a commit URL/hash or runnable artifact.", "Write down one alternative you rejected and why."], estimatedMinutes: 120 },
     { id: `${prefix}:role-scorecard`, text: "Complete today's role research or application action", evidenceType: "note", acceptanceCriteria: "Company, exact live role URL, source-check date, location/work-authorisation eligibility, resume-backed evidence match, gap, and next action are recorded.", instructions: [roleTask, "Open the employer's own listing and confirm it is still accepting applications; record the checked date and location/work-authorisation constraints.", "Match each required skill to an existing resume or portfolio example; label missing evidence honestly.", "Save one next action as a draft. Submit only after reviewing the final application yourself."], estimatedMinutes: 90 },
@@ -296,7 +305,7 @@ export function buildCurriculum({ bibleRoot, startDate, dayCount, studyBaseUrl }
       schedule: DAILY_SCHEDULE,
       mission: activation
         ? "Activate the system: audit your resume and portfolio, confirm the first target role, study the assigned chapter, and finish one practice artifact that is feasible from the current time. Earlier blocks today are not overdue."
-        : `Study ${chapters.length} assigned chapter${chapters.length === 1 ? "" : "s"} for ${chapters.reduce((sum, chapter) => sum + chapter.estimatedMinutes, 0)} minutes. Then turn ${primary.title} into a small, reviewable engineering proof and connect it to a target role.`,
+        : `Use these ${chapters.length} chapter options as a navigation backlog. Prioritize Essential core and system-design topics, then Important ones; Optional and Deferred detail can wait. Build one reviewable proof from a relevant concept and continue applying.`,
       practiceTask: stackAction(primary.stack, day),
       interviewQuestion: question,
       interviewQuestions: [question],
@@ -306,7 +315,7 @@ export function buildCurriculum({ bibleRoot, startDate, dayCount, studyBaseUrl }
       mockInterviewPlatform: "micro1 free AI mock or Exponent/Pramp peer practice; recorded self-review every day",
       founderOutreachTarget: "At most one relevant follow-up or warm conversation; quality before volume",
       steps: [
-        `Open each assigned chapter from study.buildora.work and note its main invariant: ${chapters.map(chapter => chapter.title).join("; ")}.`,
+        `Choose role-relevant chapters from study.buildora.work; optional/deferred pages may be skipped. Available topics: ${chapters.map(chapter => chapter.title).join("; ")}.`,
         "Close the reading tab and write the recall answer before checking your notes.",
         "Complete the practice task in a small branch or isolated exercise; run the relevant tests and capture the result.",
         "Verify one Germany or remote role from its exact listing and save its source, eligibility, evidence match, and gap.",
