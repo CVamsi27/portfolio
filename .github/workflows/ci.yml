@@ -56,6 +56,9 @@ jobs:
       - name: Typecheck
         run: ./node_modules/.bin/tsc --noEmit
 
+      - name: Career curriculum and sync unit tests
+        run: pnpm test:career-curriculum
+
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
