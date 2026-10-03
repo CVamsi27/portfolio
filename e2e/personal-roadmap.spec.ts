@@ -141,14 +141,14 @@ test.describe("personal roadmap", () => {
     await expect(page.getByRole("link", { name: "Execution Context" })).toHaveAttribute("href", /study\.buildora\.work\/10-frontend\/10\.1-javascript/);
     await page.getByText("How to complete this task").first().click();
     await expect(page.getByText("For each chapter, write its invariant, one small example, and one failure mode.")).toBeVisible();
-    await page.getByRole("button", { name: /write concise notes for today's assigned chapters/i }).click();
+    await page.getByRole("button", { name: /write concise notes for chosen role-relevant chapters/i }).click();
     await expect(page.getByRole("dialog")).toContainText("At least 5 accurate ideas");
     await page.getByPlaceholder(/add your notes/i).fill("Five key ideas: closures, lexical scope, stack frames, hoisting, and temporal dead zones. Open question: how do module scopes differ?");
     await page.getByRole("dialog").getByRole("button", { name: "Save evidence" }).click();
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:career_execution_state") ?? "{}"));
     expect(Object.keys(saved.evidenceByItemId)).toHaveLength(1);
     expect(saved.evidenceByItemId[Object.keys(saved.evidenceByItemId)[0]].verifiedAt).toBeUndefined();
-    await page.getByRole("button", { name: /write concise notes for today's assigned chapters/i }).click();
+    await page.getByRole("button", { name: /write concise notes for chosen role-relevant chapters/i }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Verify saved evidence" }).click();
     const verified = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:career_execution_state") ?? "{}"));
     expect(verified.evidenceByItemId[Object.keys(verified.evidenceByItemId)[0]].verifiedAt).toBeTruthy();
