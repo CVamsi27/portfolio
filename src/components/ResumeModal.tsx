@@ -50,7 +50,7 @@ export default function ResumeModal({
                 Vamsi Krishna Chandaluri — Résumé
               </h2>
               <p className="text-xs text-muted-foreground font-mono">
-                Senior Full Stack &amp; Systems Engineer · PDF Document
+                Senior Full Stack Engineer · One-page PDF
               </p>
             </div>
           </div>

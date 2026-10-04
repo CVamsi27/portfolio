@@ -44,9 +44,7 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
       "Build React/Vite clinical forms and server-state updates with TanStack Query, React Hook Form and shared Zod contracts, handling validation, pending submissions and API errors.",
       "Develop NestJS, Prisma and PostgreSQL APIs with tenant-scoped authorization, resource-level access policies, migrations and transactional writes; implement Row-Level Security policies, field encryption and sensitive-data audit logging.",
       "Implement PostgreSQL-backed background jobs and a transactional outbox with bounded retries and dead-letter replay; integrate HMAC-verified payment webhooks and asynchronous document workflows.",
-      "Built an internal operational dashboard combining clinic activity and retained API telemetry, showing latency percentiles, server-error rates and sample coverage, with explicit unavailable and failure states.",
-      "Build AI-assisted intake and clinical-support features with schema-validated outputs, quotas, timeouts and kill switches, keeping clinical decisions under human review.",
-      "Maintain Jest, Vitest, Playwright and GitHub Actions checks; manage API, worker and frontend delivery with Docker, Fly.io, AWS RDS and Cloudflare storage integrations."
+      "Built an internal operational dashboard for clinic activity, API latency percentiles and error rates; maintain Jest/Vitest/Playwright checks and deliver API, worker and frontend releases with Docker, Fly.io, AWS RDS and Cloudflare."
     ]
   },
   {
@@ -57,8 +55,8 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     company: "MAQ Software",
     URL: "https://maqsoftware.com",
     details: [
-      "Developed recruitment and internal-workflow applications with TypeScript, React and Node.js; introduced reusable service patterns, input validation and clearer module boundaries.",
-      "Optimized REST APIs and PostgreSQL queries through profiling, indexing, pagination, targeted caching and removal of N+1 access patterns.",
+      "Developed recruitment and internal-workflow applications with TypeScript, React and Node.js; centralized shared service logic and input validation across application modules.",
+      "Profiled REST APIs and PostgreSQL queries; addressed query bottlenecks with indexing, pagination, targeted caching and removal of N+1 access patterns.",
       "Built reusable React and TypeScript components for responsive interfaces, standardizing loading, validation and error states with keyboard and screen-reader support.",
       "Improved delivery practices with GitHub Actions, Jest and release checks; mentored engineers through code reviews, debugging and design discussions."
     ]
