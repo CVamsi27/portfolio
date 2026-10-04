@@ -7,7 +7,7 @@ test.describe("product branding", () => {
     await page.goto("/trackers");
     await expect(page.getByTestId("nova-mark").first()).toBeVisible();
     await expect(page.getByRole("link", { name: /NOVA/i }).first()).toBeVisible();
-    await expect(page.locator("body")).toContainText("Your next chapter, in motion.");
+    await expect(page.getByTestId("today-header")).toBeVisible();
     await expect(page).toHaveTitle(/NOVA/i);
     await expect(page.locator("body")).not.toContainText("NOVA//OS");
   });
@@ -33,12 +33,11 @@ test.describe("product branding", () => {
     expect(html).not.toContain("Sign in required");
   });
 
-  test("tracker navigation and footer use NOVA", async ({ page }) => {
+  test("tracker navigation retains NOVA without a redundant workspace footer", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
     await expect(page.getByRole("link", { name: /NOVA/i }).first()).toBeVisible();
-    await expect(page.locator("footer")).toContainText("NOVA");
-    await expect(page.locator("footer")).toContainText("Your next chapter, in motion.");
+    await expect(page.locator("footer")).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 1, name: "Tasks", exact: true })).toBeVisible();
     await expect(page.locator("body")).not.toContainText("NOVA//OS");
   });

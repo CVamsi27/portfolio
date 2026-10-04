@@ -8,6 +8,7 @@ export default function HealthPage() {
   return (
     <RequireAuth>
       <PersonalShell
+        showBack={false}
         title="Health"
         icon="scale"
         subtitle="Food, movement and recovery in one place."

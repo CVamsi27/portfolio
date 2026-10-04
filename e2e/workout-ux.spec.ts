@@ -20,7 +20,9 @@ test("rest timer stays above tablet navigation with usable controls", async ({ p
 });
 
 test("rest preset updates the progress duration and completed timer cannot pause", async ({ page }) => {
-  await page.clock.install();
+  const start = new Date("2026-10-04T09:00:00Z");
+  await page.clock.install({ time: start });
+  await page.clock.pauseAt(start);
   await openRest(page);
   await page.getByRole("button", { name: "60s", exact: true }).click();
   const timer = page.getByTestId("rest-timer");

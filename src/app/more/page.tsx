@@ -6,6 +6,7 @@ export default function MorePage() {
   return (
     <RequireAuth>
       <PersonalShell
+        showBack={false}
         title="More"
         icon="settings"
         subtitle="Supporting tools, when you need them."

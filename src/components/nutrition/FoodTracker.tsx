@@ -430,7 +430,7 @@ export default function FoodTracker() {
             return (
               <section
                 key={group}
-                className="rounded-xl border border-border p-4"
+                className="rounded-xl border border-border bg-card p-4"
               >
                 <h2 className="font-semibold">{group}</h2>
                 {items.length > 0 && (
@@ -522,7 +522,7 @@ export default function FoodTracker() {
           })}
       </div>
       {Object.values(store.foods.value).some((item) => !item.deleted) && (
-        <details className="rounded-xl border border-border p-4">
+        <details className="rounded-xl border border-border bg-card p-4">
           <summary className="flex min-h-11 cursor-pointer items-center font-medium">
             Saved foods
           </summary>
@@ -581,7 +581,7 @@ export default function FoodTracker() {
         </details>
       )}
       {Object.values(store.recipes.value).some((item) => !item.deleted) && (
-        <details className="rounded-xl border border-border p-4">
+        <details className="rounded-xl border border-border bg-card p-4">
           <summary className="flex min-h-11 cursor-pointer items-center font-medium">
             Saved recipes
           </summary>
@@ -628,7 +628,7 @@ export default function FoodTracker() {
             ))}
         </details>
       )}
-      <details className="rounded-xl border border-border p-4">
+      <details className="rounded-xl border border-border bg-card p-4">
         <summary className="flex min-h-11 items-center cursor-pointer font-medium">
           Nutrition targets (optional)
         </summary>

@@ -22,20 +22,25 @@ export default function ChapterHeader({
       data-editorial-chapter="true"
       className={`dossier-reveal dossier-chapter-header${compact ? " dossier-chapter-header--compact" : ""}`}
     >
-      <div data-testid="personal-section-header">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {action ? <div>{action}</div> : <span />}
-          {utility ? <div className="dossier-utility">{utility}</div> : null}
-        </div>
-        <div className="mt-3 max-w-4xl sm:mt-4">
+      <div
+        data-testid="personal-section-header"
+        className="chapter-heading-layout"
+      >
+        <div className="chapter-heading-copy">
           <ChapterLabel eyebrow={eyebrow} />
-          <h1 className="font-display mt-1.5 text-3xl font-black uppercase leading-[0.95] tracking-[-0.05em] sm:text-5xl">
+          <h1 className="font-display mt-1.5 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
             {title}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-            {subtitle}
-          </p>
+          {subtitle ? (
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              {subtitle}
+            </p>
+          ) : null}
+          {action ? (
+            <div className="chapter-heading-action">{action}</div>
+          ) : null}
         </div>
+        {utility ? <div className="dossier-utility">{utility}</div> : null}
       </div>
     </header>
   );

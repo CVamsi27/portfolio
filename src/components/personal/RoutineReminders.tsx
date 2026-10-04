@@ -101,7 +101,7 @@ export default function RoutineReminders({
   };
   return (
     <section
-      className="rounded-xl border border-border p-4 space-y-4"
+      className="rounded-xl border border-border bg-card p-4 space-y-4"
       aria-label="Meal and supplement reminders"
     >
       <div className="flex flex-wrap justify-between items-center gap-2">

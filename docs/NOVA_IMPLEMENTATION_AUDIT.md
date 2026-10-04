@@ -32,3 +32,11 @@ Final local verification and pushed commit evidence are recorded in the change s
 ## Final local verification
 
 215 browser tests passed against the final production build; 17 nutrition/storage/session tests and 18 curriculum/sync tests passed. TypeScript, ESLint, build, Bible snapshot validation and staged whitespace checks passed. Phone/light and desktop/dark views were reviewed, including the corrected phone task editor. These results are local auth-open evidence; they do not replace the production gates above.
+
+## Workspace refinement — 4 October 2026
+
+The shared personal shell now leads with page purpose rather than clock utilities. Primary sections no longer repeat a Today back link; secondary pages retain their return action. Related destinations use one compact list surface, with keyboard focus and full-row touch targets. Mobile navigation is anchored to the screen edge with safe-area padding; content has matching bottom clearance. Food, Review, recovery and routine panels use consistent card backgrounds. The personal marketing footer and placeholder subtitle were removed; the public portfolio footer remains. Focus setup uses direct, sentence-case wording.
+
+Scope: presentation and navigation hierarchy, with no changes to saved record formats, owner timetable hours, meal/supplement schedules, cloud authorization or provider configuration. Visual captures are local QA under `artifacts/ui-ux/refined-*`, not authenticated production evidence. Production setup gates in NUTRITION_AND_REMINDER_SETUP.md remain separate.
+
+Verification: final production-build Chromium regression **215 passed**; TypeScript, ESLint and build passed. The rest timer regression now pauses its clock during setup to avoid elapsed setup time invalidating an exact halfway assertion. Public portfolio behavior and personal persistence checks remain in the full suite.

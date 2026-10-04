@@ -30,7 +30,7 @@ test("tracker shell reads as one editorial chapter", async ({ page }) => {
   await page.goto("/todo");
   await expect(page.getByTestId("chapter-header")).toHaveAttribute("data-editorial-chapter", "true");
   await expect(page.locator("[data-editorial-index]").first()).toBeVisible();
-  await expect(page.locator("footer")).toContainText("Your next chapter, in motion.");
+  await expect(page.locator("footer")).toHaveCount(0);
 });
 
 test("desktop and mobile shells keep the primary action visible", async ({ page }) => {

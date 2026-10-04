@@ -71,7 +71,7 @@ export default function PersonalShell({
                 <span>{title}</span>
               </span>
             }
-            subtitle={subtitle ?? "One clear move, then the next."}
+            subtitle={subtitle}
             action={
               showBack ? (
                 <Link href="/hub" className="dossier-back-link">

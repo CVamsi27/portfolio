@@ -115,6 +115,7 @@ export default function ReviewPage() {
   return (
     <RequireAuth>
       <PersonalShell
+        showBack={false}
         title="Review"
         eyebrow="Reflection"
         icon="log"
@@ -142,7 +143,7 @@ export default function ReviewPage() {
           {first} – {date} · Your calendar
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
-          <section className="rounded-xl border border-border p-4">
+          <section className="rounded-xl border border-border bg-card p-4">
             <h2 className="font-semibold">Focus</h2>
             <p className="mt-2 text-2xl">
               {sessions.reduce((sum, item) => sum + item.durationMinutes, 0)}{" "}
@@ -152,7 +153,7 @@ export default function ReviewPage() {
               {sessions.length} saved sessions
             </p>
           </section>
-          <section className="rounded-xl border border-border p-4">
+          <section className="rounded-xl border border-border bg-card p-4">
             <h2 className="font-semibold">Food</h2>
             <p className="mt-2 text-2xl">
               {total.values.energy == null
@@ -164,7 +165,7 @@ export default function ReviewPage() {
               entries have calories
             </p>
           </section>
-          <section className="rounded-xl border border-border p-4">
+          <section className="rounded-xl border border-border bg-card p-4">
             <h2 className="font-semibold">Sleep</h2>
             <p className="mt-2 text-2xl">
               {sleeps.length
@@ -182,7 +183,7 @@ export default function ReviewPage() {
           weights.length > 0) && (
           <div className="grid gap-3 sm:grid-cols-2">
             {learned.length > 0 && (
-              <section className="rounded-xl border border-border p-4">
+              <section className="rounded-xl border border-border bg-card p-4">
                 <h2 className="font-semibold">Learning</h2>
                 <p className="mt-2">
                   {learned.reduce((sum, item) => sum + item.durationMinutes, 0)}{" "}
@@ -202,7 +203,7 @@ export default function ReviewPage() {
               </section>
             )}
             {(movementDays.length > 0 || waterDays.length > 0) && (
-              <section className="rounded-xl border border-border p-4">
+              <section className="rounded-xl border border-border bg-card p-4">
                 <h2 className="font-semibold">Movement and water</h2>
                 <p className="mt-2">
                   {movementDays.length} recorded workout days
@@ -218,7 +219,7 @@ export default function ReviewPage() {
               </section>
             )}
             {weights.length > 0 && (
-              <section className="rounded-xl border border-border p-4">
+              <section className="rounded-xl border border-border bg-card p-4">
                 <h2 className="font-semibold">Body trend</h2>
                 <p className="mt-2">
                   Latest:{" "}
@@ -234,7 +235,7 @@ export default function ReviewPage() {
             )}
           </div>
         )}
-        <section className="rounded-xl border border-border p-4">
+        <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="font-semibold">Actions and reflection</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {completedTasks.length} completed tasks · {milestones.length}{" "}

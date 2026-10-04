@@ -181,19 +181,19 @@ export default function FocusSprint({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="dossier-kicker">Focus sprint // one move</p>
+          <p className="dossier-kicker">Focus session</p>
           <h2 className="mt-1 flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
             <Timer className="h-4 w-4 text-primary" aria-hidden />
-            {active?.label ?? "Make room for the next move"}
+            {active?.label ?? "Focus on one task"}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
             {isRunning
               ? active?.mode === "open"
-                ? "Stay with this move until you explicitly finish it."
-                : "Stay with this move until the timer ends."
+                ? "Finish the session when you are ready."
+                : "Your session ends when the timer reaches zero."
               : label.trim()
                 ? `For: ${label}`
-                : "A short, contained block of attention."}
+                : "Choose a duration and start when you are ready."}
           </p>
         </div>
         {isRunning ? (
@@ -312,14 +312,13 @@ export default function FocusSprint({
       {!isRunning ? (
         <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
           <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-          Navigation stays available. Fullscreen is optional; device Focus and
-          app limits are controlled by your device.
+          You can navigate freely during a session.
         </p>
       ) : null}
 
       {!isRunning ? (
         <details className="mt-4 border-t border-border/60 pt-3">
-          <summary className="cursor-pointer list-none text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground">
+          <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground">
             Prepare your device
           </summary>
           <div className="mt-3">

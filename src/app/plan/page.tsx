@@ -28,6 +28,7 @@ function PlanWorkspace() {
   return (
     <RequireAuth>
       <PersonalShell
+        showBack={false}
         title="Plan"
         icon="todo"
         subtitle="Choose the next step, then give it your attention."

@@ -43,7 +43,7 @@ export default function RecoveryTracker() {
     setMessage("Saved on this device.");
   };
   return (
-    <details className="rounded-xl border border-border p-4">
+    <details className="rounded-xl border border-border bg-card p-4">
       <summary className="min-h-11 cursor-pointer font-semibold">
         Recovery · optional daily check-in
       </summary>

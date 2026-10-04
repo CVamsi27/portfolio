@@ -245,3 +245,77 @@
   .goal-inspiration__story { padding: 1.25rem; }
   .goal-inspiration__reminder { margin-top: 1.5rem; }
 }
+
+/* Personal workspace: title-first hierarchy and compact destinations. */
+@media screen {
+  body.tracker-surface {
+    --color-background: #f6f7f5;
+    --nova-archive: #f6f7f5;
+    --color-border: #dce3df;
+    --color-muted: #e9eeeb;
+    --color-accent: #e9eeeb;
+  }
+  html.dark body.tracker-surface {
+    --color-background: #101820;
+    --nova-archive: #101820;
+    --color-border: #354657;
+    --color-muted: #223240;
+    --color-accent: #223240;
+  }
+  .tracker-surface .chapter-heading-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+    align-items: start;
+    gap: 1.5rem;
+  }
+  .tracker-surface .chapter-heading-copy { min-width: 0; }
+  .tracker-surface .chapter-heading-action { margin-top: .5rem; }
+  .tracker-surface .dossier-chapter-header--compact > div > div:last-child { margin-top: 0; }
+  .tracker-surface .dossier-chapter-header { padding-bottom: 1.5rem; }
+  .tracker-surface .dossier-chapter-header h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); overflow-wrap: anywhere; }
+  .tracker-surface .dossier-icon-mark { border-radius: .65rem; width: 2.25rem; height: 2.25rem; background: var(--color-accent); color: var(--color-primary); border: 0; }
+  .tracker-surface .dossier-back-link { font-size: .8125rem; gap: .4rem; }
+  .tracker-surface .dossier-utility { min-width: 0; text-transform: none; }
+  .tracker-surface .dossier-clock-disclosure { min-width: 0; }
+  .tracker-surface .dossier-clock-disclosure > summary { min-height: 44px; gap: .75rem; }
+  .tracker-surface .clock-local-value > time { font-size: 1rem; }
+  .tracker-surface .dossier-world-date { font-size: .8125rem; }
+  .tracker-surface .dossier-clock-details { margin-top: .5rem; }
+  .tracker-surface .personal-destination-list {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 1.5rem; border: 1px solid var(--color-border);
+    border-radius: 1rem; padding: .25rem 1.25rem; background: var(--color-card);
+  }
+  .tracker-surface .personal-destination-link {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    min-width: 0; min-height: 76px; padding: 1rem .25rem;
+    border-bottom: 1px solid var(--color-border); border-radius: .25rem;
+    transition: color 120ms ease, background-color 120ms ease;
+  }
+  .tracker-surface .personal-destination-link:nth-last-child(-n+2) { border-bottom: 0; }
+  .tracker-surface .personal-destination-link:hover { color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 4%, transparent); }
+  .tracker-surface .personal-destination-link:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 3px; }
+  .tracker-surface .personal-content :is(h2, h3) { text-wrap: pretty; }
+  .tracker-surface .personal-content :is(p, label) { overflow-wrap: anywhere; }
+  .tracker-surface .personal-content summary { cursor: pointer; min-height: 44px; }
+  .tracker-surface .personal-content :is(input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea) { min-height: 44px; }
+  .tracker-surface .personal-shell > div { padding-bottom: 2rem; }
+  @media (max-width: 767px) {
+    .tracker-surface .chapter-heading-layout { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
+    .tracker-surface .dossier-utility:has(.dossier-world-clock) { border-top: 1px solid var(--color-border); padding-top: .75rem; }
+    .tracker-surface .dossier-world-clock { max-width: none; }
+    .tracker-surface .personal-destination-list { grid-template-columns: minmax(0, 1fr); padding-inline: 1rem; }
+    .tracker-surface .personal-destination-link:nth-last-child(2) { border-bottom: 1px solid var(--color-border); }
+    .tracker-surface .personal-destination-link { min-height: 68px; padding-block: .875rem; }
+  }
+  @media (max-width: 1023px) {
+    .tracker-surface .personal-shell > div { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
+    .tracker-surface .dossier-command-dock { inset-inline: 0; bottom: 0; border-radius: 0; border-inline: 0; border-bottom: 0; box-shadow: 0 -2px 16px #0000000a; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tracker-surface .personal-destination-link { transition: none; }
+  }
+}
+@media screen and (min-width: 768px) {
+  .tracker-surface .personal-destination-link:nth-child(2n):nth-last-child(2) { border-bottom: 1px solid var(--color-border); }
+}
