@@ -310,3 +310,7 @@ Planning collections are `plan:blocks` and `plan:days`, account-scoped with time
 The complete regression run passed **244 browser tests**. All **52 library/domain tests** passed, including explicit rollout gating and cross-calendar timezone collisions. The final focused journeys were rechecked after the gate and calendar safeguards. TypeScript, ESLint and the production build passed; Bible validation matched 100 days / 556 chapters and the 7 generator plus 11 sync/seed tests passed. Populated 390px light and 1440px dark views were reviewed; the full matrix covers 320/390/768/1440px in both themes.
 
 These are local, auth-open checks. No production SQL, provider credential, authenticated device verification or delivery activation is claimed. The build flag keeps signed-in planning edits closed until the documented migration/cloud gates pass.
+
+### Mobile capture follow-up — 2026-10-04
+
+The mobile Add action now carries the selected calendar date and originating page/query into capture. Saving a record from a historical Plan day keeps that date, and Return restores the original day/week view. A browser regression reproduced the wrong-date save before the fix and passes after it. All 14 daily-life browser journeys, ESLint and the production build passed for this follow-up. Production/cloud activation gates above remain outstanding.

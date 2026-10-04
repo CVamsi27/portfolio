@@ -426,3 +426,17 @@ test("water undo never corrects a different selected day", async ({ page }) => {
     ),
   ).toBe(4);
 });
+
+test("mobile capture preserves the selected day and returns to its planning view", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  await page.goto("/plan?date=2026-10-03&view=week");
+  await page.getByTestId("mobile-command-dock").getByRole("link", { name: "Add a record" }).click();
+  await page.getByRole("button", { name: "Task", exact: true }).click();
+  await page.getByLabel("Task name", { exact: true }).fill("Historical capture");
+  await page.getByRole("button", { name: "Save task", exact: true }).click();
+  const records = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:todos")!));
+  expect(records[0].date).toBe("2026-10-03");
+  await page.getByRole("link", { name: "Return to previous page", exact: true }).click();
+  await expect(page).toHaveURL(/\/plan\?date=2026-10-03&view=week$/);
+});
