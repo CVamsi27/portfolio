@@ -29,3 +29,11 @@ To roll back the UI, redeploy the previously verified application revision. Reta
 ## Active-session compatibility
 
 `work:active` is the authoritative focus/study record. Existing `focus:active` and `study:active_session` keys remain compatibility mirrors and are included in backups. A legacy active session is adopted only when no authoritative record exists; an explicitly cleared authoritative session does not resurrect a stale legacy timer. Authenticated adoption waits for cloud pulls. Verify this transition on signed-in devices before rollout. Completed chapter records may now include `sessionId` for retry deduplication; existing records remain intact.
+
+## Daily planning rollout
+
+Apply migration `0009_day_planning_records.sql` after 0007/0008 through the existing migration workflow. It extends the owner-only `merge_tracker_records` allowlist with `plan:blocks` and `plan:days`; it does not reset or drop existing records. Export backups first.
+
+The new schedule/priority mutation controls are available in local mode. Configured Supabase builds default to read-only planning until the build variable `NEXT_PUBLIC_DAILY_PLAN_ENABLED=true` is enabled. Keep it unset while applying and verifying the migration. Validate two signed-in accounts and two devices: private blocks/priorities, concurrent different-block edits, same-block timestamp resolution, deletion/undo across devices, offline retry, sign-out/account switching and export/import. Verify legacy timetable projection and owner-only 600/240-minute budgets. Then rebuild with the flag enabled. These checks are pending; no production migration or account/device QA was performed by this release.
+
+Rollback: unset the planning flag and redeploy the previously verified revision. Retain `plan:blocks`, `plan:days`, their account-prefixed browser caches and migration 0009; never delete records to remove a UI. Full backup validation rejects malformed dates, zones, durations and mismatched planning IDs before any write.

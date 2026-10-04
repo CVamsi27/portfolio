@@ -30,8 +30,12 @@ export default function WeightLossPage() {
     "weight-loss",
     DEFAULT_WEIGHT_LOSS_STATE,
   );
-  const [selectedDate, setDate] = useState<string>();
-  const date = selectedDate ?? today;
+  const [selectedDate, setDate] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    const day = new URLSearchParams(window.location.search).get("date");
+    return day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : "";
+  });
+  const date = selectedDate || today;
   const current = state.entries[date];
   const [draft, setDraft] = useState<{
     date: string;

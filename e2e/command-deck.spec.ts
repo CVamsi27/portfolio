@@ -43,11 +43,11 @@ test("command deck leads with the goal and next move", async ({ page }) => {
     "Relocate to Canada",
   );
   await expect(
-    page.getByRole("heading", { name: "Top three tasks" }),
+    page.getByRole("heading", { name: "No time assigned" }),
   ).toBeVisible();
-  await page.goto("/review");
+  await page.goto("/dashboard?view=work&metric=learning");
   await expect(page.getByText("25 min", { exact: true })).toBeVisible();
-  await page.goto("/plan");
+  await page.goto("/plan?view=focus");
   await expect(
     page.getByRole("button", { name: /start focus sprint/i }),
   ).toBeVisible();

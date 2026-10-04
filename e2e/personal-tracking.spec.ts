@@ -59,7 +59,6 @@ test("primary navigation stays clickable during an active focus session", async 
     "Plan",
     "Health",
     "Progress",
-    "More",
   ]);
   await nav.getByRole("link", { name: "Health", exact: true }).click();
   await expect(page).toHaveURL(/\/health$/);
@@ -109,7 +108,7 @@ test("disabled Today modules disappear without deleting their records", async ({
   page,
 }) => {
   await seed(page);
-  await page.goto("/settings");
+  await page.goto("/settings#modules");
   await page.getByLabel("Food and nutrients", { exact: true }).uncheck();
   await page.goto("/hub");
   await expect(
@@ -135,6 +134,9 @@ test("recipe portions use the declared yield and edits leave meal snapshots unch
   };
   await seed(page, { "vk:nutrition:foods": { ingredient: food } });
   await page.goto("/food");
+  await page
+    .getByRole("button", { name: "Saved foods & recipes", exact: true })
+    .click();
   await page.getByRole("button", { name: "Create recipe" }).click();
   const recipe = page.getByRole("dialog", { name: "Create recipe" });
   await recipe.getByLabel("Recipe name").fill("Batch meal");
@@ -145,6 +147,7 @@ test("recipe portions use the declared yield and edits leave meal snapshots unch
   await recipe.getByRole("button", { name: "Add ingredient" }).click();
   await recipe.getByLabel("Final batch yield").fill("4");
   await recipe.getByRole("button", { name: "Save recipe" }).click();
+  await page.getByRole("button", { name: "Diary", exact: true }).click();
   await page.getByRole("button", { name: "Log food", exact: true }).click();
   const log = page.getByRole("dialog", { name: "Log food", exact: true });
   const id = await page.evaluate(
@@ -156,11 +159,15 @@ test("recipe portions use the declared yield and edits leave meal snapshots unch
   await expect(log).toContainText("This portion: 100 kcal");
   await log.getByRole("button", { name: "Save food", exact: true }).click();
   await expect(page.getByText("1 serving · 100 kcal")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Saved foods & recipes", exact: true })
+    .click();
   await page.getByText("Saved recipes", { exact: true }).click();
   await page.getByRole("button", { name: "Edit recipe", exact: true }).click();
   const edit = page.getByRole("dialog", { name: "Edit recipe" });
   await edit.getByLabel("Final batch yield").fill("2");
   await edit.getByRole("button", { name: "Save recipe" }).click();
+  await page.getByRole("button", { name: "Diary", exact: true }).click();
   await expect(page.getByText("1 serving · 100 kcal")).toBeVisible();
 });
 
@@ -181,7 +188,7 @@ test("nutrition backup preserves unknown values and invalid imports write nothin
     updatedAt: 5,
   };
   await seed(page, { "vk:nutrition:entries": { food: entry } });
-  await page.goto("/settings");
+  await page.goto("/settings#data");
   const downloadP = page.waitForEvent("download");
   await page.getByRole("button", { name: /Export full backup/ }).click();
   const download = await downloadP;

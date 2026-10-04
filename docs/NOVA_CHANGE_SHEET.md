@@ -16,15 +16,15 @@ The product supports the whole person, not just the career timetable. Health rec
 
 ### Primary navigation
 
-**Today → Plan → Health → Progress → More** on desktop and mobile.
+**Today → Plan → Health → Progress**, with **Add** and **Tools** separate on desktop and mobile.
 
 | Destination | What belongs here | Main action |
 | --- | --- | --- |
-| Today | Next useful action, top three tasks, current/next schedule block, compact enabled-module summary | Start/resume or capture the next useful action |
-| Plan | Tasks, Goals, Roadmap, Timetable; focus/study workspace reached from a planned block | Plan or begin work |
-| Health | Food, Movement, Body, Recovery; hydration and fasting are contextual tools | Log food or the selected health record |
-| Progress | All-domain 7/30/90-day dashboard, trends, logging coverage and saved targets; detailed reflection remains at /review | Inspect a trend or edit its source records |
-| More | Motivation, Library, Sharing, Settings, optional tools and help | Open a secondary tool |
+| Today | Selected day, chronological work/meal/supplement agenda, one Now/Next action, unscheduled tasks and up to three pinned priorities | Execute or capture for the selected day |
+| Plan | Day/week time blocks, backlog, goal and learning links; focus setup reached by an exact task ID | Schedule or start selected work |
+| Health | Dated records, history, direct food/water/exercise/weight capture and optional recovery | Record or correct the selected day |
+| Progress | Compact overview, one selected Health or Work metric at a time, 7/30/90-day trends and Reflection; /review redirects to Reflection | Inspect one question or reflect |
+| Tools /more | Library, Sharing, Settings and secondary tools; Motivation is reached from Goal | Open a secondary tool |
 
 Quick capture is always reachable from the shell and Today. `/log` remains the direct capture route; it is not removed. `/motivation` stays entirely goal-oriented, rather than becoming a timer dashboard. Existing routes and bookmarks remain usable; aliases must preserve their destination and selected view. Desktop and mobile use the same names and active-state rules. A compact Motivation link is available from the goal summary, without reproducing its content on Today.
 
@@ -38,7 +38,7 @@ This supersedes the earlier Today/Plan/Focus/Review/More proposal: Focus becomes
 | Implemented locally | Modal click recovery, visible focus cancellation, off-page timer expiration, service-worker router-cache fix | Not deployed; authenticated live click issue still requires confirmation |
 | Implemented locally | Audio break opens three relevant podcast searches on YouTube Music; optional break timer; exact Music hostname exception | No hidden playback; timer survives closing its mounted chooser, not a page reload |
 | Implemented locally | Goal-led Motivation page; removed journal/timer/stats/rotation/fullscreen clutter; personal reminders on demand; navigation/search/setup consistency | Included in the integrated local regression suite; historical phase evidence retained |
-| Implemented locally | Today/Plan/Health/Review/More navigation, compact Today, optional modules/habits/recovery, optional focus/rest/guard and consolidated recall | Local browser verification; existing destination routes and records retained |
+| Implemented locally | Today/Plan/Health/Progress navigation plus Add/Tools, daily agenda, optional modules/habits/recovery, optional focus/rest/guard and consolidated recall | Local browser verification; existing destination routes and records retained |
 | Implemented locally | Food portions, recipes, macro/micronutrient coverage, saved/favorite foods, optional targets and typed backup/restore | Manual logging works without provider credentials; live database search needs its server key |
 | Implemented locally | Owner-only IST meal/supplement schedule, occurrence history, snooze/undo, notification opt-in and private push infrastructure | In-app checklist available; closed-site delivery requires migrations, server credentials, scheduler and a real signed-in device |
 
@@ -48,7 +48,7 @@ The earlier consolidation was merged into main at `f58d68a`. The new progress wo
 
 | Area | Decision | Final behavior / changes |
 | --- | --- | --- |
-| Today / hub / tracker entry | Consolidate | One overview, one next action, top tasks and compact optional health summary; detailed timetable and history on request |
+| Today / hub / tracker entry | Consolidate | One selected day, chronological planned/routine agenda, one Now/Next action and unscheduled task queue; records open in their owners |
 | Navigation and search | Redesign | Five destinations above; consistent labels, active states, keyboard search and shortcuts; stable old routes |
 | Tasks | Keep and simplify | Quick add, priority, due date, useful filters, explicit edit, completion, undo delete; no duplicate task queues |
 | Goals | Keep and simplify | Saved purpose, milestones and weekly commitment; clear units/denominators; settings behind Edit goal |
@@ -180,7 +180,7 @@ These are the user's supplied routine, not dosage recommendations. The app must 
 
 ### Reminder experience
 
-- Today and Health show the next reminder and a compact due checklist. Notification click opens the corresponding food capture or supplement reminder, not a blocking full-screen overlay.
+- Today includes generated occurrences in the daily agenda; Health provides a quiet Manage reminders link. Notification click opens the corresponding food capture or supplement reminder, not a blocking full-screen overlay.
 - Group Lunch and Omega-3 into one notification to reduce noise, with independent completion controls. Link Omega-3 to the configured lunch reminder: editing lunch time moves the linked reminder. If lunch is logged early or late, keep its Omega-3 Taken/Skip status visible; do not infer that the supplement was taken.
 - Offer Snooze 10 minutes / 30 minutes, Done/Taken, Skip today, and Edit schedule. Show actual completion time and distinguish Scheduled, Due, Snoozed, Done/Taken and Skipped. Completion can be undone to correct an accidental tap.
 - Acknowledging a meal reminder does not fabricate a food log or calories. A supplement Taken action does not add nutrients to dietary totals without separately entered, validated supplement composition and quantity; that nutrient integration is deferred.
@@ -281,7 +281,7 @@ Final verification against the integrated production build: **215 Chromium tests
 
 The latest request expands the overview into a main Progress destination at /dashboard. Include weight and saved target; daily calories/macros and full micronutrient coverage; exercise days/sets/repetitions/known load/duration; water, sleep and completed fasting; separate focus and study; tasks, current-goal milestones, routine and habit completion records. Support 7/30/90-day ranges, ending-date and period navigation, accessible charts and daily readings, and direct entry/edit actions. Missing values remain unknown; partial nutrient totals must be labeled. Existing /review remains the detailed reflection route. No new inferred targets, readiness scores, exercise calories or supplement nutrient estimates.
 
-Connect detail pages through section navigation and scoped seven-day summaries. Plan must let the person choose a task and begin focus before secondary navigation. Body and weight must support dated corrections, removal/undo, independent target editing and calendar-spaced charts; preserve previous recovery observations without calculated readiness claims.
+Superseded by the approved daily-life structure below: detail pages use a contextual back link and local views; automatic section tabs, clocks, action bars and seven-day summaries are removed. Plan defaults to day/week scheduling; focus setup opens for selected work. Body and weight must support dated corrections, removal/undo, independent target editing and calendar-spaced charts; preserve previous recovery observations without calculated readiness claims.
 
 ## Workspace workflow completion — 4 October 2026
 
@@ -292,3 +292,21 @@ Goals replaces the repeated story and score panels with the next saved milestone
 Local QA captures: artifacts/ui-ux/completion-{todo,goal,dashboard}-{390-light,1440-dark}.png. Reviewed populated mobile Tasks and Goals after fixing squeezed row names. Production authentication, provider/migration configuration and real-device notification checks retain their existing separate release gates.
 
 Verification: **231 Chromium regression tests passed (2.6 minutes)** and **25 domain/storage tests passed**. Final production rebuild, TypeScript and ESLint passed; **12 focused browser tests passed** after the journal copy/filter styling cleanup. Regression scenarios cover combined filters without record mutation, today's completion timestamps, contextual back links, journal and zero/missing goal readings, mobile text widths, persisted goal logging and milestone CRUD. Auth-open local checks do not establish live deployment or external service readiness.
+
+## Approved daily-life restructure — 4 October 2026
+
+The user selected “Run my day: work, meals, exercise and reminders together” and approved the [complete design](superpowers/specs/2026-10-04-daily-life-ux-restructure-design.md). This section supersedes earlier five-destination, dashboard-first and always-mounted focus/capture descriptions. Existing records and routes are preserved.
+
+- Today projects saved time blocks, owner/saved timetables and recurring meals/supplements into one agenda, with neutral earlier/complete states. Owner blocks remain 10h weekdays / 4h weekends in IST; source days are translated into the selected calendar timezone. Water is one action with undo; weight opens in one action; recent food takes three actions from Today: Food, select food, Save after reviewing the portion (typing excluded).
+- Plan provides day/week scheduling, exact task references, conflict preview with explicit override, remove/undo and three optional priority references. Task backlog adds Schedule and batch reschedule preview. Focus starts on demand; a single cross-page session bar resumes its exact task and provides Finish/Cancel. Finishing never silently completes a task.
+- Global Add and standalone /log share single-type dated forms. Weight/recovery corrections retain notes and other recorded fields. Food portion snapshots stay independent from reminder states. Health shows direct daily records/history; food separates Diary/Saved/Nutrients, repetition opens portion/date review; workouts move setup/history behind disclosures and offer a factual finish summary. Body keeps optional target configuration after entry.
+- Goal configuration is on demand; tasks may reference milestones. Learning source policy and optional career resources are secondary. Progress opens compact summaries and explores one metric at a time; date/range/view deep links persist, with /review as the Reflection alias. Settings has Profile/Modules/Notifications/Work/Data; old hash links open their intended section. Routine separates Schedule/History/Notifications and requires preview/confirmation for schedule edits, retaining past history.
+- Legacy bookmarks, source evidence, Bible snapshot, local migration/storage behavior, public portfolio and resume remain covered. Removed UI components do not delete their backing records.
+
+Planning collections are `plan:blocks` and `plan:days`, account-scoped with timestamp merges, deletion tombstones and validated backups. Migration 0009 extends the existing owner-only merge allowlist without resetting data. In configured Supabase builds, planning mutation controls remain disabled until `NEXT_PUBLIC_DAILY_PLAN_ENABLED=true` is deliberately enabled after signed-in, multi-device/offline tests. Local auth-open coverage cannot prove that gate. See [setup and rollback](NUTRITION_AND_REMINDER_SETUP.md).
+
+### Daily-life release verification
+
+The complete regression run passed **244 browser tests**. All **52 library/domain tests** passed, including explicit rollout gating and cross-calendar timezone collisions. The final focused journeys were rechecked after the gate and calendar safeguards. TypeScript, ESLint and the production build passed; Bible validation matched 100 days / 556 chapters and the 7 generator plus 11 sync/seed tests passed. Populated 390px light and 1440px dark views were reviewed; the full matrix covers 320/390/768/1440px in both themes.
+
+These are local, auth-open checks. No production SQL, provider credential, authenticated device verification or delivery activation is claimed. The build flag keeps signed-in planning edits closed until the documented migration/cloud gates pass.

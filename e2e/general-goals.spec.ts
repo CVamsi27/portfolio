@@ -35,7 +35,7 @@ test.describe("general momentum goal", () => {
 
   test("offers General momentum in onboarding", async ({ page }) => {
     await seed(page, { "vk:prefs": { questionnaireDone: false } });
-    await page.goto("/trackers");
+    await page.goto("/trackers?setup=1");
     await page.getByRole("button", { name: "Next" }).click();
     await expect(page.getByText("General momentum")).toBeVisible();
     await expect(page.getByPlaceholder("e.g. Build a steady weekly rhythm")).toBeVisible();

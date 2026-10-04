@@ -70,7 +70,7 @@ test("study sessions stay visible across routes and use the same active record",
   await expect(page.getByTestId("study-session-status")).toContainText(
     "Database design",
   );
-  await page.goto("/plan");
+  await page.goto("/plan?view=focus");
   await page
     .getByRole("button", { name: "Start focus sprint", exact: true })
     .click();
@@ -120,22 +120,23 @@ test("Review includes saved study, water, movement and body records without inve
     },
   });
   await page.goto("/review");
+  await expect(page).toHaveURL(/view=reflection/);
   await expect(
-    page.getByRole("heading", { name: "Learning", exact: true }),
+    page.getByRole("heading", { name: "Daily reflection" }),
   ).toBeVisible();
-  await expect(page.getByText("18 min of recorded study")).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Movement and water", exact: true }),
-  ).toBeVisible();
-  await expect(page.getByText("3 glasses recorded")).toBeVisible();
-  await expect(page.getByText("Latest: 70 kg")).toBeVisible();
+  await page.goto("/dashboard?view=work&metric=learning");
+  await expect(page.locator("#learning")).toContainText("18 min");
+  await page.goto("/dashboard?view=health&metric=wellbeing");
+  await expect(page.locator("#wellbeing")).toContainText("3");
+  await page.getByLabel("Progress metric").selectOption("body");
+  await expect(page.locator("#body")).toContainText("70 kg");
 });
 
 test("invalid active-session backups fail before changing any records", async ({
   page,
 }) => {
   await seed(page, { "vk:todos": [task] });
-  await page.goto("/settings");
+  await page.goto("/settings#data");
   const chooser = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: /Import backup/ }).click();
   await (
@@ -177,12 +178,11 @@ test("Today keeps the routine compact while all schedule items remain reachable"
     ),
   });
   await page.goto("/hub");
-  const routine = page.getByRole("region", {
-    name: "Meal and supplement reminders",
-  });
-  await expect(routine.getByRole("listitem")).toHaveCount(2);
-  await routine
-    .getByRole("link", { name: "All reminders and history" })
+  const routine = page.getByTestId("day-agenda");
+  await expect(routine).toContainText("Omega-3 with lunch");
+  await expect(routine.getByRole("listitem")).toHaveCount(7);
+  await page
+    .getByRole("link", { name: "Manage reminders", exact: true })
     .click();
   await expect(
     page.getByText("Omega-3 with lunch", { exact: true }).first(),

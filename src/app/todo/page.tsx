@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { planningCanEdit } from "@/lib/day-plan";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import Modal from "@/components/trackers/Modal";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -20,7 +23,12 @@ import {
   calculateStreak,
   dateKey,
 } from "@/lib/trackers";
-import { useMigrateTodos, useTodos, newTodo } from "@/lib/tracker-store";
+import {
+  useMigrateTodos,
+  useTodos,
+  useGoalState,
+  newTodo,
+} from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
 import {
   CalendarDays,
@@ -32,8 +40,6 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import SignalPanel from "@/components/trackers/SignalPanel";
-import StoryPanel from "@/components/trackers/StoryPanel";
 
 type View = "today" | "tomorrow" | "upcoming" | "done";
 
@@ -46,6 +52,10 @@ const tomorrowKey = () => {
 export default function TodoPage() {
   useMigrateTodos();
   const { value: todos, setValue: setTodos, status } = useTodos();
+  const goal = useGoalState();
+  const milestones = Object.values(
+    goal.value.milestonesByCategory ?? {},
+  ).flat();
   const safe = useMemo(() => todos ?? [], [todos]);
 
   const [text, setText] = useState("");
@@ -179,6 +189,7 @@ export default function TodoPage() {
   };
 
   // Push all overdue tasks to today
+  const [reschedulePreview, setReschedulePreview] = useState(false);
   const rescheduleOverdue = () =>
     setTodos(
       safe.map((t) => (t.date < today && !t.done ? { ...t, date: today } : t)),
@@ -225,6 +236,31 @@ export default function TodoPage() {
             </Button>
           </p>
         )}
+        <Modal
+          open={reschedulePreview}
+          onClose={() => setReschedulePreview(false)}
+          title="Move overdue tasks to today"
+        >
+          <p>
+            {overdueTasks.length} pending tasks will move to {today}. Completed
+            tasks stay unchanged.
+          </p>
+          <ul>
+            {overdueTasks.map((t) => (
+              <li key={t.id}>
+                {t.text} · {t.date} → {today}
+              </li>
+            ))}
+          </ul>
+          <Button
+            onClick={() => {
+              rescheduleOverdue();
+              setReschedulePreview(false);
+            }}
+          >
+            Confirm reschedule
+          </Button>
+        </Modal>
         {/* ── Quick add ── */}
         <Card variant="dossier" id="todo-list">
           <CardContent className="space-y-3 p-5">
@@ -277,26 +313,18 @@ export default function TodoPage() {
           </CardContent>
         </Card>
 
-        {/* ── Progress + streak ── */}
-        <Card variant="dossier">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold">
-                {doneToday}/{todayList.length} done today
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {streak}-day completion streak
-              </span>
-            </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full bg-[var(--color-dossier-lime)] transition-all"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
+        <p className="text-sm text-muted-foreground">
+          <span>
+            {doneToday}/{todayList.length} done today
+          </span>{" "}
+          ·{" "}
+          <Link
+            className="text-primary"
+            href="/dashboard?view=work&metric=goals"
+          >
+            Task history →
+          </Link>
+        </p>
         {/* ── Views + tag filter ── */}
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <Segmented
@@ -378,7 +406,7 @@ export default function TodoPage() {
               {overdueTasks.length === 1 ? "" : "s"} carried from previous days
             </p>
             <button
-              onClick={rescheduleOverdue}
+              onClick={() => setReschedulePreview(true)}
               className="shrink-0 rounded-lg border border-rose-500/40 px-2.5 py-1 text-xs font-bold text-rose-400 transition-colors hover:border-rose-400 hover:text-rose-300"
             >
               Push all to today
@@ -454,6 +482,33 @@ export default function TodoPage() {
                           }}
                           autoFocus
                         />
+                        <label className="field-label">
+                          Goal milestone
+                          <select
+                            aria-label="Goal milestone"
+                            value={t.milestoneId ?? ""}
+                            onChange={(e) =>
+                              setTodos((p) =>
+                                p.map((item) =>
+                                  item.id === t.id
+                                    ? {
+                                        ...item,
+                                        milestoneId:
+                                          e.target.value || undefined,
+                                      }
+                                    : item,
+                                ),
+                              )
+                            }
+                          >
+                            <option value="">No milestone</option>
+                            {milestones.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.title}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                         <label className="text-xs">
                           Due date
                           <Input
@@ -491,6 +546,18 @@ export default function TodoPage() {
                       </button>
                     )}
 
+                    {!t.done &&
+                      planningCanEdit(
+                        isSupabaseConfigured(),
+                        process.env.NEXT_PUBLIC_DAILY_PLAN_ENABLED,
+                      ) && (
+                        <Link
+                          className="inline-action task-schedule order-last w-full sm:order-none sm:w-auto"
+                          href={`/plan?schedule=${encodeURIComponent(t.id)}&date=${t.date < today ? today : t.date}`}
+                        >
+                          Schedule
+                        </Link>
+                      )}
                     {/* Overdue badge */}
                     {!t.done && t.date < today && (
                       <span className="shrink-0 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-xs font-semibold text-rose-500">
@@ -568,33 +635,6 @@ export default function TodoPage() {
             )}
           </CardContent>
         </Card>
-        <details className="rounded-2xl border border-border p-4">
-          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">
-            Progress summary
-          </summary>
-          <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-            <StoryPanel
-              eyebrow="Next action"
-              title="Today's next move"
-              action={
-                <a href="#todo-list" className="dossier-back-link">
-                  Open task list
-                </a>
-              }
-            >
-              {openToday
-                ? `${openToday} task${openToday === 1 ? "" : "s"} waiting in today’s queue. Start with the highest-priority move.`
-                : "Add one concrete task to open the next scene, or use the completed view to review the streak."}
-            </StoryPanel>
-            <SignalPanel
-              label="Completion signal"
-              value={`${pct}%`}
-              detail={`${doneToday}/${todayList.length} done today · ${streak}-day streak`}
-              progress={pct}
-              tone="lime"
-            />
-          </div>
-        </details>
       </TrackerShell>
     </RequireAuth>
   );

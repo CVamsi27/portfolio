@@ -27,6 +27,8 @@ import {
   Search,
   Terminal,
 } from "lucide-react";
+import Modal from "./trackers/Modal";
+import CaptureWorkspace from "./daily/CaptureWorkspace";
 import PortfolioShortcutsModal from "./PortfolioShortcutsModal";
 import PortfolioCommandPalette from "./PortfolioCommandPalette";
 import DeveloperTerminalDrawer from "./DeveloperTerminalDrawer";
@@ -54,6 +56,12 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const router = useRouter();
   const { setTheme, resolvedTheme } = useTheme();
   const host = useSyncExternalStore(subscribeHostname, getHostname, () => "");
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const [captureContext, setCaptureContext] = useState({
+    returnTo: "/hub",
+    date: undefined as string | undefined,
+  });
+  const [captureDirty, setCaptureDirty] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [portfolioShortcutsOpen, setPortfolioShortcutsOpen] = useState(false);
@@ -414,13 +422,29 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
           ) : null}
           {isTracker ? (
             <>
-              <Link
-                href="/log"
+              <button
                 aria-label="Quick capture"
-                title="Quick capture"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border text-primary"
+                title="Add a record"
+                onClick={() => {
+                  setCaptureContext({
+                    returnTo: window.location.pathname + window.location.search,
+                    date:
+                      new URLSearchParams(window.location.search).get("date") ??
+                      undefined,
+                  });
+                  setCaptureOpen(true);
+                }}
+                className="inline-flex h-11 items-center gap-1 rounded-xl border border-border px-3 text-primary"
               >
                 <Plus className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Add</span>
+              </button>
+              <Link
+                href="/more"
+                aria-label="Account and tools"
+                className="inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-sm"
+              >
+                Tools
               </Link>
               <button
                 type="button"
@@ -552,6 +576,24 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         open={breakLoungeOpen}
         onClose={() => setBreakLoungeOpen(false)}
       />
+      {isTracker && (
+        <Modal
+          open={captureOpen}
+          onClose={() => {
+            if (captureDirty && !window.confirm("Discard the unsaved entry?"))
+              return;
+            setCaptureOpen(false);
+            setCaptureDirty(false);
+          }}
+          title="Add a record"
+        >
+          <CaptureWorkspace
+            returnTo={captureContext.returnTo}
+            initialDate={captureContext.date}
+            onDirty={setCaptureDirty}
+          />
+        </Modal>
+      )}
     </nav>
   );
 };

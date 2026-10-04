@@ -43,7 +43,6 @@ export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
     short: "Progress",
     icon: "log",
   },
-  { id: "more", href: "/more", label: "More", short: "More", icon: "settings" },
 ];
 
 export const PERSONAL_MORE_NAV: readonly PersonalNavItem[] = [

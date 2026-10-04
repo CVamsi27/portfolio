@@ -2,30 +2,42 @@ import { expect, test } from "@playwright/test";
 import { seed, daysAgoKey, workoutCell } from "./helpers";
 
 test.describe("onboarding questionnaire", () => {
-  test("relocation asks for a neutral destination and confirms the chosen goal", async ({ page }) => {
+  test("relocation asks for a neutral destination and confirms the chosen goal", async ({
+    page,
+  }) => {
     await page.addInitScript(() => {
       if (window.sessionStorage.getItem("__vkOnboardDestination")) return;
       window.sessionStorage.setItem("__vkOnboardDestination", "1");
       window.localStorage.clear();
     });
-    await page.goto("/trackers");
+    await page.goto("/trackers?setup=1");
     await page.getByPlaceholder("Your name").fill("Destination Test");
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await page.getByRole("button", { name: /Relocation/i }).click();
 
     await expect(page.getByLabel("Destination country")).toBeVisible();
-    await expect(page.getByRole("option", { name: "United States" })).toHaveCount(1);
+    await expect(
+      page.getByRole("option", { name: "United States" }),
+    ).toHaveCount(1);
     await expect(page.getByRole("option", { name: "Japan" })).toHaveCount(1);
-    await expect(page.locator('input[placeholder*="Relocate to"]')).toHaveCount(0);
+    await expect(page.locator('input[placeholder*="Relocate to"]')).toHaveCount(
+      0,
+    );
 
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await page.getByRole("button", { name: "Next", exact: true }).click();
-    await expect(page.getByText("Your goal is the starting point")).toBeVisible();
-    await expect(page.getByRole("button", { name: "General inspiration" })).toHaveCount(0);
+    await expect(
+      page.getByText("Your goal is the starting point"),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "General inspiration" }),
+    ).toHaveCount(0);
   });
 
-  test("walks goal → workout → fasting → motivation and persists prefs", async ({ page }) => {
+  test("walks goal → workout → fasting → motivation and persists prefs", async ({
+    page,
+  }) => {
     // Fresh visitor — no prefs at all (do not use the standard seed).
     // sessionStorage guard: survives reloads, fresh per test context.
     await page.addInitScript(() => {
@@ -33,7 +45,7 @@ test.describe("onboarding questionnaire", () => {
       window.sessionStorage.setItem("__vkOnboard1", "1");
       window.localStorage.clear();
     });
-    await page.goto("/trackers");
+    await page.goto("/trackers?setup=1");
 
     await expect(page.getByText("Welcome to NOVA")).toBeVisible();
 
@@ -59,13 +71,18 @@ test.describe("onboarding questionnaire", () => {
     await page.getByRole("button", { name: "Next", exact: true }).click();
 
     // Final step confirms the chosen goal, then finishes.
-    await expect(page.getByText("Your goal is the starting point")).toBeVisible();
+    await expect(
+      page.getByText("Your goal is the starting point"),
+    ).toBeVisible();
     await page.getByRole("button", { name: /Get started/ }).click();
 
     // Prefs persisted + onboarding dismissed.
-    await expect(page.getByTestId("today-header")).toContainText("E2E Runner", { timeout: 10_000 });
+    await expect(page.getByTestId("today-header")).toContainText("E2E Runner", {
+      timeout: 10_000,
+    });
     const prefs = JSON.parse(
-      (await page.evaluate(() => window.localStorage.getItem("vk:prefs"))) ?? "{}",
+      (await page.evaluate(() => window.localStorage.getItem("vk:prefs"))) ??
+        "{}",
     );
     expect(prefs.questionnaireDone).toBe(true);
     expect(prefs.name).toBe("E2E Runner");
@@ -76,13 +93,15 @@ test.describe("onboarding questionnaire", () => {
     expect(prefs.dailyMetricTarget).toBe(25);
   });
 
-  test("reappears until finished — leaving mid-flow keeps onboarding pending", async ({ page }) => {
+  test("reappears until finished — leaving mid-flow keeps onboarding pending", async ({
+    page,
+  }) => {
     await page.addInitScript(() => {
       if (window.sessionStorage.getItem("__vkOnboard2")) return;
       window.sessionStorage.setItem("__vkOnboard2", "1");
       window.localStorage.clear();
     });
-    await page.goto("/trackers");
+    await page.goto("/trackers?setup=1");
     await expect(page.getByText("Welcome to NOVA")).toBeVisible();
     await page.getByPlaceholder("Your name").fill("Halfway");
     await page.getByRole("button", { name: "Next", exact: true }).click();
@@ -94,15 +113,27 @@ test.describe("onboarding questionnaire", () => {
 });
 
 test.describe("hub command center", () => {
-  test("Today cockpit, quick logging, and details render from seeded data", async ({ page }) => {
+  test("Today cockpit, quick logging, and details render from seeded data", async ({
+    page,
+  }) => {
     const now = Date.now();
     const today = daysAgoKey(0);
     await seed(page, {
       // One fast yesterday (~16h) and one active fast today.
       "vk:fasting:history": [
-        { id: "f1", start: now - 40 * 3600_000, end: now - 24 * 3600_000, protocolId: "16-8", source: "timer" },
+        {
+          id: "f1",
+          start: now - 40 * 3600_000,
+          end: now - 24 * 3600_000,
+          protocolId: "16-8",
+          source: "timer",
+        },
       ],
-      "vk:fasting": { protocolId: "16-8", phase: "fasting", startedAt: now - 3600_000 },
+      "vk:fasting": {
+        protocolId: "16-8",
+        phase: "fasting",
+        startedAt: now - 3600_000,
+      },
       // Squats logged today (anchor: workout) + one past session for last-session hints.
       "vk:workouts": {
         [daysAgoKey(3)]: { squats: workoutCell(10, 60) },
@@ -110,8 +141,25 @@ test.describe("hub command center", () => {
       },
       // One P1 task done today, one open (anchor: tasks).
       "vk:todos": [
-        { id: "t1", text: "Seed done task", done: true, date: today, priority: "P1", tag: "Work", createdAt: now - 7200_000, completedAt: now - 3600_000 },
-        { id: "t2", text: "Seed open task", done: false, date: today, priority: "P2", tag: "Work", createdAt: now - 3600_000 },
+        {
+          id: "t1",
+          text: "Seed done task",
+          done: true,
+          date: today,
+          priority: "P1",
+          tag: "Work",
+          createdAt: now - 7200_000,
+          completedAt: now - 3600_000,
+        },
+        {
+          id: "t2",
+          text: "Seed open task",
+          done: false,
+          date: today,
+          priority: "P2",
+          tag: "Work",
+          createdAt: now - 3600_000,
+        },
       ],
       // Goal metric logged today (anchor: goal).
       "vk:goal": { metricByDay: { [today]: 3 }, milestonesByCategory: {} },
@@ -120,24 +168,45 @@ test.describe("hub command center", () => {
     await page.goto("/trackers");
 
     await expect(page.getByTestId("today-header")).toContainText("Test User");
-    await expect(page.getByRole("heading",{name:"Top three tasks"})).toBeVisible();
-    await expect(page.getByTestId("next-move-card")).toContainText("Seed open task");
+    await expect(
+      page.getByRole("heading", { name: "No time assigned" }),
+    ).toBeVisible();
+    await expect(page.getByTestId("next-move-card")).toContainText(
+      "Seed open task",
+    );
 
     // Quick action: add a task from the hub → lands in todo store.
-    await page.getByPlaceholder("Add a task…").fill("From the hub");
-    await page.keyboard.press("Enter");
-    const todos = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ?? "[]");
-    expect(todos.some((t: { text: string }) => t.text === "From the hub")).toBe(true);
+    await page.getByRole("button", { name: "Quick capture" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Task", exact: true }).click();
+    await dialog.getByLabel("Task name").fill("From the hub");
+    await dialog.getByRole("button", { name: "Save task" }).click();
+    const todos = JSON.parse(
+      (await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ??
+        "[]",
+    );
+    expect(todos.some((t: { text: string }) => t.text === "From the hub")).toBe(
+      true,
+    );
 
     // Existing metrics remain reachable through quick capture.
-    await page.goto("/log");await expect(page.getByTestId("log-capture")).toBeVisible();
-    expect(JSON.parse((await page.evaluate(()=>localStorage.getItem("vk:goal")))??"{}").metricByDay[today]).toBe(3);
+    await page.goto("/log");
+    await expect(page.getByTestId("capture-workspace")).toBeVisible();
+    expect(
+      JSON.parse(
+        (await page.evaluate(() => localStorage.getItem("vk:goal"))) ?? "{}",
+      ).metricByDay[today],
+    ).toBe(3);
   });
 
-  test("all clear state: fresh seed shows 0% momentum and empty activity", async ({ page }) => {
+  test("all clear state: fresh seed shows 0% momentum and empty activity", async ({
+    page,
+  }) => {
     await seed(page);
     await page.goto("/trackers");
     await expect(page.getByTestId("progress-rail")).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Choose one useful action for today" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Make room for what matters today" }),
+    ).toBeVisible();
   });
 });

@@ -12,7 +12,8 @@ import {
 } from "./tracker-store";
 import { useUserPrefs } from "./user-prefs";
 import { DEFAULT_WEIGHT_LOSS_STATE, type WeightLossState } from "./health";
-import { dateKey } from "./trackers";
+import { zonedDate } from "./routine-reminders";
+import { calendarZone } from "./day-plan";
 import { buildProgress } from "./personal-progress";
 import type { FocusSession } from "./focus-sprint";
 import type { CompletedChapterRecord } from "./study-focus";
@@ -21,13 +22,13 @@ import type { HabitCompletion } from "@/components/personal/HabitChecklist";
 import type { RoutineHistory } from "./routine-reminders";
 export function usePersonalProgress(days = 30, endDate?: string) {
   const now = useNow(60_000);
-  const end = endDate ?? dateKey(new Date(now));
+  const { prefs } = useUserPrefs();
+  const end = endDate || zonedDate(now, calendarZone(prefs.timeZone));
   const nutrition = useNutrition();
   const workouts = useWorkouts();
   const tasks = useTodos();
   const goals = useGoalState();
   const journal = useJournal();
-  const { prefs } = useUserPrefs();
   const weights = useSyncedStorage<WeightLossState>(
     "weight-loss",
     DEFAULT_WEIGHT_LOSS_STATE,

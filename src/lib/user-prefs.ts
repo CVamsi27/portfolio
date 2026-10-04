@@ -24,6 +24,7 @@ export type CustomSplitDay = { id: string; label: string };
 
 export type UserPrefs = {
   name: string;
+  timeZone?: string;
   goalCategory: GoalCategory;
   goalTitle: string;
   goalCountry?: string;

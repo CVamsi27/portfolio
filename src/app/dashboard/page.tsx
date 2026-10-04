@@ -1,4 +1,5 @@
 "use client";
+import { Suspense } from "react";
 import RequireAuth from "@/components/auth/RequireAuth";
 import PersonalShell from "@/components/trackers/PersonalShell";
 import ProgressDashboard from "@/components/progress/ProgressDashboard";
@@ -12,7 +13,9 @@ export default function DashboardPage() {
         showBack={false}
         subtitle="See what changed, check what is missing and choose your next action."
       >
-        <ProgressDashboard />
+        <Suspense fallback={<p>Loading progress…</p>}>
+          <ProgressDashboard />
+        </Suspense>
       </PersonalShell>
     </RequireAuth>
   );

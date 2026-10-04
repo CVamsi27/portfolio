@@ -161,7 +161,7 @@ test.describe("todo manager", () => {
     await expect(page.getByText("Plan tomorrow")).toHaveCount(0);
   });
 
-  test("completion streak counts consecutive done days", async ({ page }) => {
+  test("completed history preserves prior days without an execution streak", async ({ page }) => {
     const now = Date.now();
     const mk = (i: number) => {
       const d = new Date();
@@ -182,6 +182,6 @@ test.describe("todo manager", () => {
     ]);
     await seed(page, { "vk:todos": todos });
     await page.goto("/todo");
-    await expect(page.getByText("3-day completion streak")).toBeVisible();
+    await expect(page.getByText("3-day completion streak")).toHaveCount(0);await page.getByRole("button",{name:"Completed",exact:true}).click();await expect(page.getByRole("button",{name:/Mark.*not done/})).toHaveCount(3);
   });
 });

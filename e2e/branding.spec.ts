@@ -49,7 +49,7 @@ test.describe("product branding", () => {
       const prefs = JSON.parse(window.localStorage.getItem("vk:prefs") ?? "{}");
       window.localStorage.setItem("vk:prefs", JSON.stringify({ ...prefs, questionnaireDone: false }));
     });
-    await page.reload();
+    await page.goto("/trackers?setup=1");
     await expect(page.locator("body")).not.toContainText(["Personal", "Suite"].join(" "));
     await expect(page.locator("body")).not.toContainText(["VK", "Personal", "Suite"].join(" "));
     await expect(page.getByText("Welcome to NOVA")).toBeVisible();

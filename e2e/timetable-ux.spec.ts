@@ -67,7 +67,7 @@ async function setup(page: import("@playwright/test").Page) {
     },
   });
   await page.goto("/hub");
-  return page.getByRole("region", { name: "Today's timetable" });
+  return page.getByTestId("day-agenda");
 }
 
 test("timetable shows focus budget and full instructions without marking elapsed work complete", async ({
@@ -75,9 +75,9 @@ test("timetable shows focus budget and full instructions without marking elapsed
 }) => {
   await page.setViewportSize({ width: 320, height: 700 });
   const timetable = await setup(page);
-  await expect(timetable).toContainText("1h 40m planned focus");
+  await expect(timetable).toContainText("60 min");
   await expect(timetable).toContainText("Notes and a correct recall answer");
-  await timetable.getByRole("button", { name: "Show schedule" }).click();
+
   const label = timetable.locator("ol").getByText(longLabel, { exact: true });
   await expect(label).toBeVisible();
   expect(
@@ -92,46 +92,38 @@ test("timetable shows focus budget and full instructions without marking elapsed
       .getByText("Earlier research block", { exact: true })
       .evaluate((el) => getComputedStyle(el).textDecorationLine),
   ).not.toContain("line-through");
-  await expect(timetable).toContainText("Next: 09:15–09:45");
+  await expect(timetable).toContainText("Practical follow-up");
 });
 
-test("current block refreshes at the boundary and break keeps the next action visible", async ({
+test("current block refreshes at the boundary and next action remains visible", async ({
+  page,
+}) => {
+  await setup(page);
+  const next = page.getByTestId("next-move-card");
+  await expect(next).toContainText("Now");
+  await expect(next).toContainText(longLabel);
+  await page.clock.fastForward(5 * 60_000);
+  await expect(next).toContainText("Next");
+  await expect(next).toContainText("Practical follow-up");
+  await page.clock.fastForward(5 * 60_000);
+  await expect(next).toContainText("Now");
+});
+test("agenda is directly available without opening a second schedule", async ({
   page,
 }) => {
   const timetable = await setup(page);
-  await expect(timetable).toContainText("Now: 09:00–09:10");
-  await page.clock.fastForward(5 * 60_000);
-  await expect(timetable).toContainText("Between blocks");
-  await expect(timetable).toContainText("Next: 09:15–09:45");
-  await page.clock.fastForward(5 * 60_000);
-  await expect(timetable).toContainText("Now: 09:15–09:45");
-});
-
-test("schedule disclosure exposes its state and keeps summary available", async ({
-  page,
-}) => {
-  const timetable = await setup(page);
-  const toggle = timetable.getByRole("button", { name: "Show schedule" });
-  await expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await toggle.click();
-  await expect(
-    timetable.getByRole("button", { name: "Hide schedule" }),
-  ).toHaveAttribute("aria-expanded", "true");
-  await timetable.getByRole("button", { name: "Hide schedule" }).click();
   await expect(
     timetable.getByText("Earlier research block", { exact: true }),
-  ).toBeHidden();
-  await expect(timetable).toContainText("1h 40m planned focus");
+  ).toBeVisible();
   await expect(
     timetable.getByRole("button", { name: "Show schedule" }),
-  ).toHaveAttribute("aria-expanded", "false");
+  ).toHaveCount(0);
 });
-
 test("open Today updates its plan across midnight", async ({ page }) => {
   const timetable = await setup(page);
   await page.clock.fastForward(15 * 60 * 60_000);
   await expect(timetable).toContainText("Tomorrow's practice");
-  await expect(timetable).toContainText("1h planned focus");
+  await expect(timetable).toContainText("60 min");
   await expect(
     timetable.getByText("Earlier research block", { exact: true }),
   ).toHaveCount(0);
@@ -161,7 +153,7 @@ test("legacy schedules show planned time without inventing a focus budget", asyn
     localStorage.setItem("vk:timetable_100_days", JSON.stringify(plan));
   });
   await page.reload();
-  const timetable = page.getByRole("region", { name: "Today's timetable" });
-  await expect(timetable).toContainText("1h scheduled");
+  const timetable = page.getByTestId("day-agenda");
+  await expect(timetable).toContainText("60 min");
   await expect(timetable).not.toContainText("planned focus");
 });

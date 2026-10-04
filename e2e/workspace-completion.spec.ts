@@ -115,7 +115,7 @@ test("progress includes journal coverage and goal readings without filling missi
 }) => {
   const now = new Date("2026-10-04T09:00:00+05:30");
   await page.clock.install({ time: now });
-  await page.clock.pauseAt(now);
+
   await seed(page, {
     "vk:goal": {
       metricByDay: { "2026-10-03": 0, "2026-10-04": 5 },
@@ -130,7 +130,7 @@ test("progress includes journal coverage and goal readings without filling missi
       },
     },
   });
-  await page.goto("/dashboard");
+  await page.goto("/dashboard?view=work&metric=goals");
   await expect(page.locator("#goals")).toContainText(
     "Journal days recorded in this range: 1",
   );

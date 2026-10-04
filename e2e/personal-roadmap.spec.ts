@@ -59,9 +59,9 @@ test.describe("personal roadmap", () => {
 
     await page.goto("/hub");
     await page.goto("/health");
-    await expect(page.getByRole("link", { name: /Body/ })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: /Weight/ })).toHaveAttribute(
       "href",
-      "/weight-loss",
+      /\/weight-loss\?date=\d{4}-\d{2}-\d{2}/,
     );
     expect(
       await page.evaluate(
@@ -80,12 +80,10 @@ test.describe("personal roadmap", () => {
     await seed(page);
     await page.goto("/hub");
 
-    await expect(
-      page.getByTestId("today-header").getByTestId("world-clock-strip"),
-    ).toContainText("Munich");
-    await expect(
-      page.getByTestId("today-header").getByTestId("world-clock-strip"),
-    ).toContainText("San Francisco");
+    await expect(page.getByTestId("world-clock-strip")).toContainText("Munich");
+    await expect(page.getByTestId("world-clock-strip")).toContainText(
+      "San Francisco",
+    );
     await expect(page.getByTestId("progress-rail")).toHaveCount(0);
     await expect(page.getByTestId("next-move-card")).toBeVisible();
     await expect(page.getByTestId("up-next-lane")).toHaveCount(0);
@@ -199,8 +197,7 @@ test.describe("personal roadmap", () => {
       },
       "vk:weight-loss": { entries: {}, recoveryByDay: {} },
     });
-    await page.goto("/health");
-    await page.getByText("Recovery · optional daily check-in").click();
+    await page.goto("/health?view=recovery");
     await expect(page.getByLabel("Sleep duration (hours)")).toBeVisible();
   });
 
@@ -236,7 +233,7 @@ test.describe("personal roadmap", () => {
     page,
   }) => {
     await seed(page);
-    await page.goto("/settings");
+    await page.goto("/settings#reminders");
 
     await page.getByLabel("Weigh-in reminder").check();
     await page.getByLabel("Weigh-in time").fill("08:15");

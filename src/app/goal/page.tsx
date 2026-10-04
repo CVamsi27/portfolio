@@ -8,7 +8,6 @@ import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
 import TrendChart from "@/components/progress/TrendChart";
 import { progressDates } from "@/lib/personal-progress";
-import ConsistencyGrid from "@/components/trackers/ConsistencyGrid";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -447,258 +446,235 @@ export default function GoalPage() {
             </div>
           </CardContent>
         </Card>
-        {/* ── Category selector ── */}
-        <Card variant="dossier" id="milestones">
-          <CardContent className="p-5">
-            <p className="text-sm font-medium">Goal Category</p>
-            <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
-              {GOAL_CATEGORIES.map((gc) => (
-                <button
-                  key={gc.id}
-                  onClick={() => changeCategory(gc.id)}
-                  className={cn(
-                    "rounded-xl border p-2 text-center text-xs transition-all",
-                    goalCat === gc.id
-                      ? "border-primary bg-primary/10 font-semibold shadow-sm"
-                      : "border-border/60 hover:bg-accent",
-                  )}
-                >
-                  <TrackerIcon
-                    name={gc.iconName}
-                    className="mx-auto h-5 w-5 text-primary"
-                  />
-                  <p className="mt-0.5 font-medium">{gc.label}</p>
-                </button>
-              ))}
-            </div>
-            {relocationMode && (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="destination-country"
-                    className="text-xs font-medium text-muted-foreground"
+        <details className="workspace-panel">
+          <summary>Edit goal and category</summary>
+          {/* ── Category selector ── */}
+          <Card variant="dossier" id="milestones">
+            <CardContent className="p-5">
+              <p className="text-sm font-medium">Goal Category</p>
+              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                {GOAL_CATEGORIES.map((gc) => (
+                  <button
+                    key={gc.id}
+                    onClick={() => changeCategory(gc.id)}
+                    className={cn(
+                      "rounded-xl border p-2 text-center text-xs transition-all",
+                      goalCat === gc.id
+                        ? "border-primary bg-primary/10 font-semibold shadow-sm"
+                        : "border-border/60 hover:bg-accent",
+                    )}
                   >
-                    Destination country
-                  </label>
-                  <div className="mt-1.5">
-                    <select
-                      id="destination-country"
-                      className="flex h-10 w-full rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                      value={prefs.goalCountry ?? ""}
-                      onChange={(event) =>
-                        setPrefs({
-                          ...prefs,
-                          goalCountry: event.target.value || undefined,
-                        })
-                      }
-                    >
-                      <option value="">Choose a destination</option>
-                      {RELOCATION_COUNTRIES.map((country) => (
-                        <option key={country} value={country}>
-                          {country}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Visa Pathway
-                  </p>
-                  <div className="mt-1.5">
-                    <Segmented
-                      label="Visa pathway"
-                      variant="soft"
-                      options={[
-                        { value: "EU Blue Card", label: "EU Blue Card" },
-                        {
-                          value: "IT Specialist Fast-Track",
-                          label: "IT Specialist",
-                        },
-                      ]}
-                      value={safe.visa ?? "EU Blue Card"}
-                      onChange={(visa) => setG({ ...safe, visa })}
+                    <TrackerIcon
+                      name={gc.iconName}
+                      className="mx-auto h-5 w-5 text-primary"
                     />
+                    <p className="mt-0.5 font-medium">{gc.label}</p>
+                  </button>
+                ))}
+              </div>
+              {relocationMode && (
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="destination-country"
+                      className="text-xs font-medium text-muted-foreground"
+                    >
+                      Destination country
+                    </label>
+                    <div className="mt-1.5">
+                      <select
+                        id="destination-country"
+                        className="flex h-10 w-full rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        value={prefs.goalCountry ?? ""}
+                        onChange={(event) =>
+                          setPrefs({
+                            ...prefs,
+                            goalCountry: event.target.value || undefined,
+                          })
+                        }
+                      >
+                        <option value="">Choose a destination</option>
+                        {RELOCATION_COUNTRIES.map((country) => (
+                          <option key={country} value={country}>
+                            {country}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Visa Pathway
+                    </p>
+                    <div className="mt-1.5">
+                      <Segmented
+                        label="Visa pathway"
+                        variant="soft"
+                        options={[
+                          { value: "EU Blue Card", label: "EU Blue Card" },
+                          {
+                            value: "IT Specialist Fast-Track",
+                            label: "IT Specialist",
+                          },
+                        ]}
+                        value={safe.visa ?? "EU Blue Card"}
+                        onChange={(visa) => setG({ ...safe, visa })}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
+              )}
+            </CardContent>
+          </Card>
+        </details>
         {/* ── Daily metric ── */}
-        <Card variant="dossier" id="daily-metric">
-          <CardContent className="p-5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="min-w-0">
-                {metricLabelDraft === null ? (
-                  <h2 className="font-display flex items-center gap-2 font-bold">
-                    <span className="truncate">{metric.label}</span>
-                    <button
-                      onClick={() => {
-                        setMetricLabelDraft(metric.label);
-                        setMetricTargetDraft(String(metric.target));
-                      }}
-                      aria-label="Edit metric"
-                      className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                  </h2>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Input
-                      aria-label="Metric name"
-                      className="h-11 min-w-0 flex-1"
-                      value={metricLabelDraft}
-                      onChange={(e) => setMetricLabelDraft(e.target.value)}
-                      placeholder="Metric name"
-                    />
-                    <Input
-                      aria-label="Daily target"
-                      className="h-11 w-20 tabular-nums"
-                      type="number"
-                      min={1}
-                      value={metricTargetDraft ?? ""}
-                      onChange={(e) => setMetricTargetDraft(e.target.value)}
-                      placeholder="Target"
-                    />
-                    <Button size="sm" onClick={saveMetricEdits}>
-                      Save
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setMetricLabelDraft(null);
-                        setMetricTargetDraft(null);
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  Daily target: {metric.target} · hit streak: {streak}{" "}
-                  {streak === 1 ? "day" : "days"}
-                </p>
-              </div>
-              <span className="font-display text-2xl font-bold tabular-nums text-primary">
-                {todayValue}
-                <span className="text-sm font-medium text-muted-foreground">
-                  {" "}
-                  / {metric.target}
+        <details className="workspace-panel">
+          <summary>Log goal metric</summary>
+          <Card variant="dossier" id="daily-metric">
+            <CardContent className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  {metricLabelDraft === null ? (
+                    <h2 className="font-display flex items-center gap-2 font-bold">
+                      <span className="truncate">{metric.label}</span>
+                      <button
+                        onClick={() => {
+                          setMetricLabelDraft(metric.label);
+                          setMetricTargetDraft(String(metric.target));
+                        }}
+                        aria-label="Edit metric"
+                        className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    </h2>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Input
+                        aria-label="Metric name"
+                        className="h-11 min-w-0 flex-1"
+                        value={metricLabelDraft}
+                        onChange={(e) => setMetricLabelDraft(e.target.value)}
+                        placeholder="Metric name"
+                      />
+                      <Input
+                        aria-label="Daily target"
+                        className="h-11 w-20 tabular-nums"
+                        type="number"
+                        min={1}
+                        value={metricTargetDraft ?? ""}
+                        onChange={(e) => setMetricTargetDraft(e.target.value)}
+                        placeholder="Target"
+                      />
+                      <Button size="sm" onClick={saveMetricEdits}>
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setMetricLabelDraft(null);
+                          setMetricTargetDraft(null);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Daily target: {metric.target}
+                  </p>
+                </div>
+                <span className="font-display text-2xl font-bold tabular-nums text-primary">
+                  {todayValue}
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {" "}
+                    / {metric.target}
+                  </span>
                 </span>
-              </span>
-            </div>
+              </div>
 
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full bg-[var(--color-dossier-lime)] transition-all"
-                style={{
-                  width: `${Math.min(100, metric.target ? (todayValue / metric.target) * 100 : 0)}%`,
-                }}
-              />
-            </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-[var(--color-dossier-lime)] transition-all"
+                  style={{
+                    width: `${Math.min(100, metric.target ? (todayValue / metric.target) * 100 : 0)}%`,
+                  }}
+                />
+              </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Input
-                type="number"
-                min={0}
-                className="w-32 tabular-nums"
-                placeholder="Add amount"
-                value={todayLog}
-                onChange={(e) => setTodayLog(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  className="w-32 tabular-nums"
+                  placeholder="Add amount"
+                  value={todayLog}
+                  onChange={(e) => setTodayLog(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      logToday(Number(todayLog) || 0);
+                      setTodayLog("");
+                    }
+                  }}
+                />
+                <Button
+                  onClick={() => {
                     logToday(Number(todayLog) || 0);
                     setTodayLog("");
-                  }
-                }}
-              />
-              <Button
-                onClick={() => {
-                  logToday(Number(todayLog) || 0);
-                  setTodayLog("");
-                }}
-              >
-                Log
-              </Button>
-              {[1, 3, 5].map((n) => (
-                <Button
-                  key={n}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => logToday(n)}
-                  className="tabular-nums"
+                  }}
                 >
-                  +{n}
+                  Log
                 </Button>
-              ))}
-              {todayValue > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => logToday(-todayValue)}
-                >
-                  Reset today
-                </Button>
-              )}
-            </div>
+                {[1, 3, 5].map((n) => (
+                  <Button
+                    key={n}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => logToday(n)}
+                    className="tabular-nums"
+                  >
+                    +{n}
+                  </Button>
+                ))}
+                {todayValue > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => logToday(-todayValue)}
+                  >
+                    Reset today
+                  </Button>
+                )}
+              </div>
 
-            <div className="mt-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Last 30 days
-              </p>
-              <TrendChart
-                label={metric.label}
-                unit={metric.label.toLowerCase()}
-                points={progressDates(today, 30).map((date) => ({
-                  date,
-                  value:
-                    typeof metricByDay[date] === "number" &&
-                    Number.isFinite(metricByDay[date]) &&
-                    metricByDay[date] >= 0
-                      ? metricByDay[date]
-                      : null,
-                }))}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ── Trajectory stats ── */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat label="7-day total" value={`${last7Total}`} />
-          <Stat label="Daily avg (7d)" value={avg7.toFixed(1)} />
-          <Stat label="Goal total" value={`${goalTotal}`} />
-          <Stat
-            label="Est. finish"
-            value={
-              etaDate
-                ? etaDate.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })
-                : "—"
-            }
-            accent
-          />
-        </div>
-        {etaDays !== null && (
-          <p className="-mt-1 flex items-center gap-1.5 px-1 text-xs text-muted-foreground">
-            <TrendingUp className="h-3.5 w-3.5 text-primary" />
-            At your current pace of {avg7.toFixed(1)}/day, you&apos;re on track
-            in about {etaDays} days.
-          </p>
-        )}
-
-        <ConsistencyGrid
-          metricByDay={metricByDay}
-          target={metric.target}
-          label={metric.label}
-        />
-
+              <div className="mt-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Last 30 days
+                </p>
+                <TrendChart
+                  label={metric.label}
+                  unit={metric.label.toLowerCase()}
+                  points={progressDates(today, 30).map((date) => ({
+                    date,
+                    value:
+                      typeof metricByDay[date] === "number" &&
+                      Number.isFinite(metricByDay[date]) &&
+                      metricByDay[date] >= 0
+                        ? metricByDay[date]
+                        : null,
+                  }))}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </details>
+        <Link
+          href="/dashboard?view=work&metric=goals"
+          className="capture-return"
+        >
+          Goal progress and dated trends →
+        </Link>
         {/* Weekly commitment progress */}
         {weeklyCommitment && (
           <div className="rounded-xl border border-border/70 bg-card/50 px-4 py-3">
@@ -868,32 +844,39 @@ export default function GoalPage() {
           </CardContent>
         </Card>
 
-        {/* ── Outreach / reflection generator ── */}
-        <Card variant="dossier">
-          <CardContent className="p-5">
-            <h2 className="font-display font-bold">
-              {relocationMode ? "Outreach generator" : "Daily reflection"}
-            </h2>
-            <p className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-4 text-sm leading-relaxed">
-              {snippet}
-            </p>
-            <div className="mt-3 flex justify-end">
-              <Button variant="secondary" size="sm" onClick={copy}>
-                {copied ? (
-                  <>
-                    <Check className="mr-1.5 h-4 w-4" /> Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="mr-1.5 h-4 w-4" /> Copy
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <details className="workspace-panel">
+          <summary>
+            {relocationMode
+              ? "Optional outreach template"
+              : "Reflection prompt"}
+          </summary>
+          {/* ── Outreach / reflection generator ── */}
+          <Card variant="dossier">
+            <CardContent className="p-5">
+              <h2 className="font-display font-bold">
+                {relocationMode ? "Outreach generator" : "Daily reflection"}
+              </h2>
+              <p className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-4 text-sm leading-relaxed">
+                {snippet}
+              </p>
+              <div className="mt-3 flex justify-end">
+                <Button variant="secondary" size="sm" onClick={copy}>
+                  {copied ? (
+                    <>
+                      <Check className="mr-1.5 h-4 w-4" /> Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="mr-1.5 h-4 w-4" /> Copy
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* ── Milestone modal ── */}
+          {/* ── Milestone modal ── */}
+        </details>
         <Modal
           open={msModal !== null}
           onClose={() => setMsModal(null)}

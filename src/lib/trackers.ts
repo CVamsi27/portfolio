@@ -961,6 +961,7 @@ export type TodoTag = "Work" | "Health" | "Goal" | "Personal" | "Deep Work";
 
 export type Todo = {
   id: string;
+  milestoneId?: string;
   text: string;
   done: boolean;
   date: string;

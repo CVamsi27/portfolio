@@ -97,12 +97,14 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 export function useNow(intervalMs = 1000): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
+    const initial = window.setTimeout(() => setNow(Date.now()), 0);
     const id = window.setInterval(() => setNow(Date.now()), intervalMs);
     const onVisible = () => {
       if (document.visibilityState === "visible") setNow(Date.now());
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
+      window.clearTimeout(initial);
       window.clearInterval(id);
       document.removeEventListener("visibilitychange", onVisible);
     };
@@ -117,7 +119,9 @@ export function useNow(intervalMs = 1000): number {
 type V1Cell = { done: boolean; sets?: string; minutes?: string };
 
 /** "9, 7" → [{reps:9,weightKg:null},{reps:7,weightKg:null}] */
-function parseV1Sets(s: string | undefined): { reps: number; weightKg: number | null }[] {
+function parseV1Sets(
+  s: string | undefined,
+): { reps: number; weightKg: number | null }[] {
   if (!s) return [];
   return s
     .split(/[,+\s]+/)
@@ -205,11 +209,19 @@ function adaptFastHistory(v: unknown): FastHistoryEntry[] | null {
   let changed = false;
   const out: FastHistoryEntry[] = [];
   for (const raw of v) {
-    if (isRecord(raw) && typeof raw.start === "number" && typeof raw.end === "number") {
+    if (
+      isRecord(raw) &&
+      typeof raw.start === "number" &&
+      typeof raw.end === "number"
+    ) {
       out.push(raw as unknown as FastHistoryEntry);
       continue;
     }
-    if (isRecord(raw) && typeof raw.date === "string" && typeof raw.hours === "number") {
+    if (
+      isRecord(raw) &&
+      typeof raw.date === "string" &&
+      typeof raw.hours === "number"
+    ) {
       changed = true;
       const end = Date.parse(`${raw.date.slice(0, 10)}T20:00:00`);
       if (Number.isNaN(end) || raw.hours <= 0) continue;
@@ -217,7 +229,12 @@ function adaptFastHistory(v: unknown): FastHistoryEntry[] | null {
         id: `migrated-${raw.date}-${out.length}`,
         start: end - raw.hours * 3600_000,
         end,
-        protocolId: typeof raw.protocol === "string" ? (raw.protocol.startsWith("1") || raw.protocol.startsWith("2") ? raw.protocol.slice(0, 4).replace(":", "-").slice(0, 4) : "16-8") : "16-8",
+        protocolId:
+          typeof raw.protocol === "string"
+            ? raw.protocol.startsWith("1") || raw.protocol.startsWith("2")
+              ? raw.protocol.slice(0, 4).replace(":", "-").slice(0, 4)
+              : "16-8"
+            : "16-8",
         source: "timer",
       });
     } else {
@@ -375,7 +392,12 @@ export function useCustomQuotes() {
 }
 
 export function newCustomQuote(text: string, tag: string): CustomQuote {
-  return { id: `q_${Date.now().toString(36)}`, text, tag, createdAt: Date.now() };
+  return {
+    id: `q_${Date.now().toString(36)}`,
+    text,
+    tag,
+    createdAt: Date.now(),
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -390,7 +412,10 @@ export function useExerciseLibrary() {
 }
 
 /** Sanitize one day's library entries through normalizeExercise. */
-export function libraryExercises(library: ExerciseLibrary | null | undefined, dayId: string) {
+export function libraryExercises(
+  library: ExerciseLibrary | null | undefined,
+  dayId: string,
+) {
   const raw = library?.[dayId];
   if (!Array.isArray(raw)) return null;
   const list = raw.map(normalizeExercise).filter((e) => e !== null);
@@ -414,7 +439,9 @@ let statsCache: { raw: string; stats: KeyStat[] } | null = null;
 function statsSnapshot(): KeyStat[] {
   const stats = collectKeyStats();
   // Content-hash cache keeps the snapshot referentially stable across renders.
-  const raw = stats.map((s) => `${s.key}:${s.bytes}:${s.items}:${s.exists}`).join("|");
+  const raw = stats
+    .map((s) => `${s.key}:${s.bytes}:${s.items}:${s.exists}`)
+    .join("|");
   if (statsCache?.raw === raw) return statsCache.stats;
   statsCache = { raw, stats };
   return stats;

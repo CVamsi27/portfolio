@@ -12,12 +12,16 @@ import {
   type RoutineOccurrence,
   type RoutineSchedule,
 } from "@/lib/routine-reminders";
+import Modal from "@/components/trackers/Modal";
 import PushPreferences from "./PushPreferences";
 export default function RoutineReminders({
   configure = false,
 }: {
   configure?: boolean;
 }) {
+  const [view, setView] = useState("schedule");
+  const [drafts, setDrafts] = useState<Record<string, RoutineSchedule>>({});
+  const [preview, setPreview] = useState<RoutineSchedule | null>(null);
   const { schedules, history, items } = useRoutine();
   const now = useNow(30_000);
   const date = zonedDate(now);
@@ -74,13 +78,10 @@ export default function RoutineReminders({
       ...change,
       updatedAt: Math.max(now, item.updatedAt + 1),
     };
-    if (!validSchedule(next)) {
-      setError("Choose a valid time, timezone, and at least one repeat day.");
-      return;
-    }
-    schedules.setValue((previous) => ({ ...previous, [item.id]: next }));
+    setDrafts((p) => ({ ...p, [item.id]: next }));
     setError("");
   };
+
   const add = () => {
     if (!newName.trim()) return;
     const item: RoutineSchedule = {
@@ -104,6 +105,24 @@ export default function RoutineReminders({
       className="rounded-xl border border-border bg-card p-4 space-y-4"
       aria-label="Meal and supplement reminders"
     >
+      {configure && (
+        <nav className="workspace-views" aria-label="Routine views">
+          {[
+            ["schedule", "Schedule"],
+            ["history", "History"],
+            ["notifications", "Notifications"],
+          ].map(([id, label]) => (
+            <Button
+              key={id}
+              variant="ghost"
+              aria-pressed={view === id}
+              onClick={() => setView(id)}
+            >
+              {label}
+            </Button>
+          ))}
+        </nav>
+      )}
       <div className="flex flex-wrap justify-between items-center gap-2">
         <h2 className="font-semibold">Your routine</h2>
         {!configure && (
@@ -119,101 +138,106 @@ export default function RoutineReminders({
         {date} · Times shown in IST. Completion never adds food or an assumed
         dose.
       </p>
-      {!occurrences.length ? (
-        <p className="text-sm text-muted-foreground">
-          No reminders for today. Set your own routine in reminder settings.
-        </p>
-      ) : (
-        <ul className="divide-y divide-border">
-          {visibleOccurrences.map((item) => {
-            const stored = history.value?.[item.id];
-            const record = stored && !stored.deleted ? stored : undefined;
-            const done =
-              record && !record.deleted && record.status !== "snoozed";
-            const due = now >= (record?.snoozeUntil ?? item.scheduledAt);
-            return (
-              <li key={item.id} className="py-3 space-y-2">
-                <div className="flex flex-wrap justify-between gap-2">
-                  <p className="font-medium">{item.label}</p>
-                  <span className="text-sm text-muted-foreground">
-                    {new Intl.DateTimeFormat("en", {
-                      timeZone: "Asia/Kolkata",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    }).format(item.scheduledAt)}{" "}
-                    ·{" "}
-                    {done
-                      ? record.status
-                      : record?.status === "snoozed" && !due
-                        ? "Snoozed"
-                        : due
-                          ? "Due"
-                          : "Scheduled"}
-                  </span>
-                </div>
-                {done ? (
-                  <Button
-                    variant="ghost"
-                    onClick={() =>
-                      history.setValue((previous) => ({
-                        ...previous,
-                        [item.id]: {
-                          ...record,
-                          deleted: true,
-                          updatedAt: Math.max(Date.now(), record.updatedAt + 1),
-                        },
-                      }))
-                    }
-                  >
-                    Undo completion
-                  </Button>
-                ) : (
-                  <div className="flex flex-wrap gap-1">
-                    {item.meal && (
-                      <Button asChild variant="outline">
-                        <Link
-                          href={`/food?meal=${encodeURIComponent(item.meal)}`}
-                        >
-                          Log {item.meal.toLowerCase()}
-                        </Link>
-                      </Button>
-                    )}
+      <div hidden={configure && view !== "schedule"}>
+        {!occurrences.length ? (
+          <p className="text-sm text-muted-foreground">
+            No reminders for today. Set your own routine in reminder settings.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {visibleOccurrences.map((item) => {
+              const stored = history.value?.[item.id];
+              const record = stored && !stored.deleted ? stored : undefined;
+              const done =
+                record && !record.deleted && record.status !== "snoozed";
+              const due = now >= (record?.snoozeUntil ?? item.scheduledAt);
+              return (
+                <li key={item.id} className="py-3 space-y-2">
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <p className="font-medium">{item.label}</p>
+                    <span className="text-sm text-muted-foreground">
+                      {new Intl.DateTimeFormat("en", {
+                        timeZone: "Asia/Kolkata",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      }).format(item.scheduledAt)}{" "}
+                      ·{" "}
+                      {done
+                        ? record.status
+                        : record?.status === "snoozed" && !due
+                          ? "Snoozed"
+                          : due
+                            ? "Due"
+                            : "Scheduled"}
+                    </span>
+                  </div>
+                  {done ? (
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       onClick={() =>
-                        complete(
-                          item,
-                          item.type === "supplement" ? "taken" : "done",
-                        )
+                        history.setValue((previous) => ({
+                          ...previous,
+                          [item.id]: {
+                            ...record,
+                            deleted: true,
+                            updatedAt: Math.max(
+                              Date.now(),
+                              record.updatedAt + 1,
+                            ),
+                          },
+                        }))
                       }
                     >
-                      {item.type === "supplement" ? "Taken" : "Done"}
+                      Undo completion
                     </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => complete(item, "snoozed", 10)}
-                    >
-                      Snooze 10 min
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => complete(item, "snoozed", 30)}
-                    >
-                      Snooze 30 min
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => complete(item, "skipped")}
-                    >
-                      Skip today
-                    </Button>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                  ) : (
+                    <div className="flex flex-wrap gap-1">
+                      {item.meal && (
+                        <Button asChild variant="outline">
+                          <Link
+                            href={`/food?meal=${encodeURIComponent(item.meal)}`}
+                          >
+                            Log {item.meal.toLowerCase()}
+                          </Link>
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          complete(
+                            item,
+                            item.type === "supplement" ? "taken" : "done",
+                          )
+                        }
+                      >
+                        {item.type === "supplement" ? "Taken" : "Done"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => complete(item, "snoozed", 10)}
+                      >
+                        Snooze 10 min
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => complete(item, "snoozed", 30)}
+                      >
+                        Snooze 30 min
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => complete(item, "skipped")}
+                      >
+                        Skip today
+                      </Button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
       {!configure && occurrences.length > 0 && (
         <p className="text-sm text-muted-foreground">
           {pending.length} pending today
@@ -232,183 +256,256 @@ export default function RoutineReminders({
       )}
       {configure && (
         <>
-          <PushPreferences />
-          <div className="space-y-4">
-            <h3 className="font-semibold">Reminder schedules</h3>
-            {items
-              .filter((item) => !item.deleted)
-              .map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-lg border border-border p-3 space-y-2"
-                >
-                  <label className="flex min-h-11 items-center gap-2 font-medium">
-                    <input
-                      type="checkbox"
-                      checked={item.enabled}
-                      onChange={(e) =>
-                        update(item, { enabled: e.target.checked })
-                      }
-                    />
-                    {item.label}
-                  </label>
-                  {item.linkedTo ? (
-                    <p className="text-sm text-muted-foreground">
-                      Follows Lunch time; its Taken state is separate.
-                    </p>
-                  ) : (
-                    <>
-                      <label htmlFor={`time-${item.id}`} className="text-sm">
-                        Time
-                      </label>
-                      <Input
-                        id={`time-${item.id}`}
-                        type="time"
-                        value={item.time}
-                        onChange={(e) => update(item, { time: e.target.value })}
-                      />
-                      <label htmlFor={`zone-${item.id}`} className="text-sm">
-                        Timezone
-                      </label>
-                      <Input
-                        id={`zone-${item.id}`}
-                        defaultValue={item.timezone}
-                        onBlur={(e) =>
-                          update(item, { timezone: e.target.value })
+          <div hidden={view !== "notifications"}>
+            <PushPreferences />
+          </div>
+          <details hidden={view !== "schedule"}>
+            <summary>Edit reminder schedules</summary>
+            <div className="space-y-4">
+              <h3 className="font-semibold">Reminder schedules</h3>
+              {items
+                .map((item) => drafts[item.id] ?? item)
+                .filter((item) => !item.deleted)
+                .map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-lg border border-border p-3 space-y-2"
+                  >
+                    <label className="flex min-h-11 items-center gap-2 font-medium">
+                      <input
+                        type="checkbox"
+                        checked={item.enabled}
+                        onChange={(e) =>
+                          update(item, { enabled: e.target.checked })
                         }
                       />
-                    </>
-                  )}
-                  <div
-                    className="flex flex-wrap gap-1"
-                    aria-label={`${item.label} repeat days`}
-                  >
-                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                      (day, index) => (
-                        <Button
-                          key={day}
-                          variant="outline"
-                          aria-pressed={item.days.includes(index)}
-                          onClick={() =>
-                            update(item, {
-                              days: item.days.includes(index)
-                                ? item.days.filter((value) => value !== index)
-                                : [...item.days, index],
-                            })
+                      {item.label}
+                    </label>
+                    {item.linkedTo ? (
+                      <p className="text-sm text-muted-foreground">
+                        Follows Lunch time; its Taken state is separate.
+                      </p>
+                    ) : (
+                      <>
+                        <label htmlFor={`time-${item.id}`} className="text-sm">
+                          Time
+                        </label>
+                        <Input
+                          id={`time-${item.id}`}
+                          type="time"
+                          value={item.time}
+                          onChange={(e) =>
+                            update(item, { time: e.target.value })
                           }
-                        >
-                          {day}
-                        </Button>
-                      ),
+                        />
+                        <label htmlFor={`zone-${item.id}`} className="text-sm">
+                          Timezone
+                        </label>
+                        <Input
+                          id={`zone-${item.id}`}
+                          defaultValue={item.timezone}
+                          onBlur={(e) =>
+                            update(item, { timezone: e.target.value })
+                          }
+                        />
+                      </>
                     )}
+                    <div
+                      className="flex flex-wrap gap-1"
+                      aria-label={`${item.label} repeat days`}
+                    >
+                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                        (day, index) => (
+                          <Button
+                            key={day}
+                            variant="outline"
+                            aria-pressed={item.days.includes(index)}
+                            onClick={() =>
+                              update(item, {
+                                days: item.days.includes(index)
+                                  ? item.days.filter((value) => value !== index)
+                                  : [...item.days, index],
+                              })
+                            }
+                          >
+                            {day}
+                          </Button>
+                        ),
+                      )}
+                    </div>
+                    <label htmlFor={`note-${item.id}`} className="text-sm">
+                      Product / dose note (optional)
+                    </label>
+                    <Input
+                      id={`note-${item.id}`}
+                      maxLength={300}
+                      value={item.note ?? ""}
+                      onChange={(e) => update(item, { note: e.target.value })}
+                    />
+                    {drafts[item.id] && (
+                      <Button
+                        onClick={() => {
+                          if (!validSchedule(item)) {
+                            setError(
+                              "Choose a valid time, timezone and repeat days.",
+                            );
+                            return;
+                          }
+                          setPreview(item);
+                        }}
+                      >
+                        Preview changes to {item.label}
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        const next = { ...item, deleted: true };
+                        setDrafts((p) => ({ ...p, [item.id]: next }));
+                        setPreview(next);
+                      }}
+                    >
+                      Remove schedule
+                    </Button>
                   </div>
-                  <label htmlFor={`note-${item.id}`} className="text-sm">
-                    Product / dose note (optional)
-                  </label>
-                  <Input
-                    id={`note-${item.id}`}
-                    maxLength={300}
-                    value={item.note ?? ""}
-                    onChange={(e) => update(item, { note: e.target.value })}
-                  />
-                  <Button
-                    variant="ghost"
-                    onClick={() => update(item, { deleted: true })}
-                  >
-                    Remove schedule
-                  </Button>
-                </div>
-              ))}
-            <div className="space-y-2">
-              <label htmlFor="routine-name">New reminder name</label>
-              <Input
-                id="routine-name"
-                value={newName}
-                maxLength={200}
-                onChange={(e) => setNewName(e.target.value)}
-              />
-              <label htmlFor="routine-time">Time (IST)</label>
-              <Input
-                id="routine-time"
-                type="time"
-                value={newTime}
-                onChange={(e) => setNewTime(e.target.value)}
-              />
-              <select
-                aria-label="Reminder kind"
-                className="min-h-11 rounded-lg border border-border bg-background p-2"
-                value={newType}
-                onChange={(e) =>
-                  setNewType(e.target.value as "meal" | "supplement")
-                }
-              >
-                <option value="supplement">Supplement</option>
-                <option value="meal">Meal</option>
-              </select>
-              <Button onClick={add} disabled={!newName.trim()}>
-                Add reminder
-              </Button>
-            </div>
-          </div>
-          <details>
-            <summary
-              id="missed"
-              className="flex min-h-11 cursor-pointer items-center font-medium"
-            >
-              Missed reminders from the last seven days ({missed.length})
-            </summary>
-            <p className="text-xs text-muted-foreground">
-              These are dated missed items, not new doses. Log only what you
-              actually did.
-            </p>
-            <ul>
-              {missed.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
+                ))}
+              <div className="space-y-2">
+                <label htmlFor="routine-name">New reminder name</label>
+                <Input
+                  id="routine-name"
+                  value={newName}
+                  maxLength={200}
+                  onChange={(e) => setNewName(e.target.value)}
+                />
+                <label htmlFor="routine-time">Time (IST)</label>
+                <Input
+                  id="routine-time"
+                  type="time"
+                  value={newTime}
+                  onChange={(e) => setNewTime(e.target.value)}
+                />
+                <select
+                  aria-label="Reminder kind"
+                  className="min-h-11 rounded-lg border border-border bg-background p-2"
+                  value={newType}
+                  onChange={(e) =>
+                    setNewType(e.target.value as "meal" | "supplement")
+                  }
                 >
-                  <span>
-                    {item.date} · {item.label}
-                  </span>
-                  <div>
-                    <Button
-                      variant="ghost"
-                      onClick={() =>
-                        complete(item, item.type === "meal" ? "done" : "taken")
-                      }
-                    >
-                      Record completion
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => complete(item, "skipped")}
-                    >
-                      Skip missed item
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  <option value="supplement">Supplement</option>
+                  <option value="meal">Meal</option>
+                </select>
+                <Button onClick={add} disabled={!newName.trim()}>
+                  Add reminder
+                </Button>
+              </div>
+            </div>
           </details>
-          <details>
-            <summary className="flex min-h-11 items-center cursor-pointer font-medium">
-              Completion history
-            </summary>
-            <ul className="space-y-2">
-              {Object.values(history.value ?? {})
-                .filter((item) => !item.deleted)
-                .sort((a, b) => b.updatedAt - a.updatedAt)
-                .slice(0, 50)
-                .map((item) => (
-                  <li key={item.id} className="text-sm">
-                    {item.date} · {item.label} · {item.status}
-                    {item.completedAt
-                      ? ` at ${new Intl.DateTimeFormat("en", { timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit" }).format(item.completedAt)}`
-                      : ""}
+          <div hidden={view !== "history"}>
+            <details open>
+              <summary
+                id="missed"
+                className="flex min-h-11 cursor-pointer items-center font-medium"
+              >
+                Missed reminders from the last seven days ({missed.length})
+              </summary>
+              <p className="text-xs text-muted-foreground">
+                These are dated missed items, not new doses. Log only what you
+                actually did.
+              </p>
+              <ul>
+                {missed.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
+                  >
+                    <span>
+                      {item.date} · {item.label}
+                    </span>
+                    <div>
+                      <Button
+                        variant="ghost"
+                        onClick={() =>
+                          complete(
+                            item,
+                            item.type === "meal" ? "done" : "taken",
+                          )
+                        }
+                      >
+                        Record completion
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => complete(item, "skipped")}
+                      >
+                        Skip missed item
+                      </Button>
+                    </div>
                   </li>
                 ))}
-            </ul>
-          </details>
+              </ul>
+            </details>
+            <details open>
+              <summary className="flex min-h-11 items-center cursor-pointer font-medium">
+                Completion history
+              </summary>
+              <ul className="space-y-2">
+                {Object.values(history.value ?? {})
+                  .filter((item) => !item.deleted)
+                  .sort((a, b) => b.updatedAt - a.updatedAt)
+                  .slice(0, 50)
+                  .map((item) => (
+                    <li key={item.id} className="text-sm">
+                      {item.date} · {item.label} · {item.status}
+                      {item.completedAt
+                        ? ` at ${new Intl.DateTimeFormat("en", { timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit" }).format(item.completedAt)}`
+                        : ""}
+                    </li>
+                  ))}
+              </ul>
+            </details>
+          </div>
+          <Modal
+            open={!!preview}
+            onClose={() => setPreview(null)}
+            title="Review reminder change"
+          >
+            {preview && (
+              <>
+                <p>
+                  {preview.deleted ? "Remove" : "Save"} {preview.label} ·{" "}
+                  {preview.time} · {preview.timezone} · {preview.days.length}{" "}
+                  repeat days
+                </p>
+                <p>
+                  Past completion records are retained. No dose or food entry
+                  will be added.
+                </p>
+                <Button
+                  onClick={() => {
+                    schedules.setValue((p) => ({
+                      ...p,
+                      [preview.id]: {
+                        ...preview,
+                        updatedAt: Math.max(
+                          Date.now(),
+                          (p[preview.id]?.updatedAt ?? 0) + 1,
+                        ),
+                      },
+                    }));
+                    setDrafts((p) => {
+                      const next = { ...p };
+                      delete next[preview.id];
+                      return next;
+                    });
+                    setPreview(null);
+                  }}
+                >
+                  Confirm reminder change
+                </Button>
+              </>
+            )}
+          </Modal>
         </>
       )}
       {error && (

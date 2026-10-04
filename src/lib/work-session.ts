@@ -28,7 +28,11 @@ export function validWorkState(value: unknown): value is WorkState | null {
   )
     return false;
   return current.kind === "focus"
-    ? typeof current.session.label === "string"
+    ? typeof current.session.label === "string" &&
+        (current.session.taskId === undefined ||
+          typeof current.session.taskId === "string") &&
+        (current.session.returnTo === undefined ||
+          typeof current.session.returnTo === "string")
     : typeof current.session.chapterId === "string" &&
         typeof current.session.chapterTitle === "string" &&
         typeof current.session.date === "string" &&

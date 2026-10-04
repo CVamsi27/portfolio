@@ -1,9 +1,8 @@
 "use client";
+import { Suspense } from "react";
 import RequireAuth from "@/components/auth/RequireAuth";
 import PersonalShell from "@/components/trackers/PersonalShell";
-import SectionLinks from "@/components/personal/SectionLinks";
-import RoutineReminders from "@/components/personal/RoutineReminders";
-import RecoveryTracker from "@/components/personal/RecoveryTracker";
+import HealthWorkspace from "@/components/daily/HealthWorkspace";
 export default function HealthPage() {
   return (
     <RequireAuth>
@@ -11,35 +10,11 @@ export default function HealthPage() {
         showBack={false}
         title="Health"
         icon="scale"
-        subtitle="Food, movement and recovery in one place."
+        subtitle="Record what happened, inspect your history and adjust your routine."
       >
-        <SectionLinks
-          items={[
-            {
-              href: "/food",
-              label: "Food and nutrients",
-              description:
-                "Log meals, calories, macros and available micronutrients.",
-            },
-            {
-              href: "/workout-tracking",
-              label: "Movement",
-              description: "Record workouts and exercise history.",
-            },
-            {
-              href: "/weight-loss",
-              label: "Body",
-              description: "Your weight and body measurements over time.",
-            },
-            {
-              href: "/intermittent-fasting",
-              label: "Water and fasting",
-              description: "Hydration and your optional eating window.",
-            },
-          ]}
-        />
-        <RecoveryTracker />
-        <RoutineReminders />
+        <Suspense fallback={<p>Loading health records…</p>}>
+          <HealthWorkspace />
+        </Suspense>
       </PersonalShell>
     </RequireAuth>
   );

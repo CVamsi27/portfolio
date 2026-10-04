@@ -61,7 +61,7 @@ test.describe("Personal lockdown", () => {
     await seed(page, {
       "vk:lockdown:preferences": { bedtimeEnabled: false, bedtimeStart: "22:30", bedtimeEnd: "07:00", bedtimeDays: [] },
     });
-    await page.goto("/settings");
+    await page.goto("/settings#bedtime");
 
     const enable = page.getByLabel("Enable bedtime lock");
     await expect(enable).not.toBeChecked();

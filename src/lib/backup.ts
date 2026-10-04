@@ -7,12 +7,15 @@
  * every payload before anything is written.
  */
 
+import { validPlanBlock, validPlanDay } from "./day-plan";
 import { validWorkState } from "./work-session";
 import { currentAuthUserId } from "./auth-store";
 import { isSupabaseConfigured } from "./supabase/client";
 import { validEntry, validFood, validNutrients, NUTRIENTS } from "./nutrition";
 import { validSchedule } from "./routine-reminders";
 const SCOPED_KEYS = [
+  "plan:blocks",
+  "plan:days",
   "nutrition:entries",
   "nutrition:foods",
   "nutrition:recipes",
@@ -63,6 +66,8 @@ const KEYS = [
   "career_execution_state",
   "night_curfew_config",
   "distraction_shield_state",
+  "plan:blocks",
+  "plan:days",
   "nutrition:entries",
   "nutrition:foods",
   "nutrition:recipes",
@@ -357,7 +362,7 @@ export function applyBackup(backup: unknown): ImportReport {
         keysRestored: [],
         keysSkipped: [],
       };
-    for (const record of Object.values(value)) {
+    for (const [recordKey, record] of Object.entries(value)) {
       if (key === "personal:modules") {
         if (typeof record !== "boolean")
           return {
@@ -381,44 +386,48 @@ export function applyBackup(backup: unknown): ImportReport {
         };
       const r = record as Record<string, unknown>;
       const valid =
-        key === "nutrition:entries"
-          ? validEntry(record)
-          : key === "nutrition:foods"
-            ? validFood(record)
-            : key === "nutrition:recipes"
-              ? validFood(record) &&
-                Array.isArray(r.ingredients) &&
-                r.ingredients.every(
-                  (i: Record<string, unknown>) =>
-                    validNutrients(i.nutrients) &&
-                    typeof i.quantity === "number" &&
-                    i.quantity > 0,
-                )
-              : key === "nutrition:targets"
-                ? typeof r.id === "string" &&
-                  r.id in NUTRIENTS &&
-                  typeof r.amount === "number" &&
-                  Number.isFinite(r.amount) &&
-                  r.amount >= 0 &&
-                  ["reference", "limit"].includes(String(r.kind))
-                : key === "routine:schedules"
-                  ? validSchedule(record)
-                  : key === "routine:history"
+        key === "plan:blocks"
+          ? validPlanBlock(record) && r.id === recordKey
+          : key === "plan:days"
+            ? validPlanDay(record) && r.date === recordKey
+            : key === "nutrition:entries"
+              ? validEntry(record)
+              : key === "nutrition:foods"
+                ? validFood(record)
+                : key === "nutrition:recipes"
+                  ? validFood(record) &&
+                    Array.isArray(r.ingredients) &&
+                    r.ingredients.every(
+                      (i: Record<string, unknown>) =>
+                        validNutrients(i.nutrients) &&
+                        typeof i.quantity === "number" &&
+                        i.quantity > 0,
+                    )
+                  : key === "nutrition:targets"
                     ? typeof r.id === "string" &&
-                      typeof r.date === "string" &&
-                      ["done", "taken", "skipped", "snoozed"].includes(
-                        String(r.status),
-                      )
-                    : key === "recovery:entries"
-                      ? typeof r.date === "string" &&
-                        (r.sleepHours === null ||
-                          (typeof r.sleepHours === "number" &&
-                            r.sleepHours >= 0 &&
-                            r.sleepHours <= 24))
-                      : key === "habits:items"
-                        ? typeof r.name === "string"
-                        : typeof r.done === "boolean" &&
-                          typeof r.date === "string";
+                      r.id in NUTRIENTS &&
+                      typeof r.amount === "number" &&
+                      Number.isFinite(r.amount) &&
+                      r.amount >= 0 &&
+                      ["reference", "limit"].includes(String(r.kind))
+                    : key === "routine:schedules"
+                      ? validSchedule(record)
+                      : key === "routine:history"
+                        ? typeof r.id === "string" &&
+                          typeof r.date === "string" &&
+                          ["done", "taken", "skipped", "snoozed"].includes(
+                            String(r.status),
+                          )
+                        : key === "recovery:entries"
+                          ? typeof r.date === "string" &&
+                            (r.sleepHours === null ||
+                              (typeof r.sleepHours === "number" &&
+                                r.sleepHours >= 0 &&
+                                r.sleepHours <= 24))
+                          : key === "habits:items"
+                            ? typeof r.name === "string"
+                            : typeof r.done === "boolean" &&
+                              typeof r.date === "string";
       if (!valid)
         return {
           ok: false,

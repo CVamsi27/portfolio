@@ -40,10 +40,14 @@ function formatClock(milliseconds: number): string {
 
 export default function FocusSprint({
   label,
+  taskId,
+  returnTo,
   compact = false,
   onCompleted,
 }: {
   label: string;
+  taskId?: string;
+  returnTo?: string;
   compact?: boolean;
   onCompleted?: (session: FocusSession) => void;
 }) {
@@ -127,6 +131,8 @@ export default function FocusSprint({
     setActive({
       id: `focus_${Date.now().toString(36)}`,
       label: label.trim() || "Focused work",
+      taskId,
+      returnTo,
       mode,
       plannedMinutes: mode === "timed" ? plannedMinutes : undefined,
       startedAt: Date.now(),

@@ -4,7 +4,7 @@ The consolidation covers the entire personal workspace, beyond food logging. The
 
 | Scope | Implemented behavior | Main code/evidence |
 | --- | --- | --- |
-| Navigation, search and capture | Today / Plan / Health / Progress / More on phone and desktop; aliases and shortcuts retained; shell quick capture | personal-nav.ts, Navbar, CommandPalette; navigation/layout tests |
+| Navigation, search and capture | Today / Plan / Health / Progress plus separate Add/Tools on phone and desktop; aliases and shortcuts retained; shell quick capture | personal-nav.ts, Navbar, CommandPalette; navigation/layout tests |
 | Today and planning | One next action, top three tasks, collapsed study detail, optional modules; selected task carried into focus | trackers/page.tsx, plan/page.tsx; full-tracking-completion tests |
 | Tasks and goals | Priority/tag/filtering, editable task name/date, undo single deletion and completed cleanup; milestones/weekly commitment, direct Motivation access | todo/page.tsx, goal/page.tsx; task and goal suites |
 | Roadmap and Bible | Current curriculum, evidence flow, timetable/source integration, protected owner schedule | roadmap/page.tsx, personal-timetable.ts; Bible/career/timetable suites |
@@ -15,7 +15,7 @@ The consolidation covers the entire personal workspace, beyond food logging. The
 | Food and nutrition | Daily portions, known-aware calorie/macro/micronutrient coverage, date/meal edits, saved/recent/favorite foods, recipes, immutable snapshots, duplicate/delete/undo and optional targets | nutrition domain/store/components; nutrition and personal-tracking suites |
 | Food database | Authenticated server adapter, identity/unit validation, retrieval provenance, bounded cache/timeout, honest unavailable state | nutrition-provider.ts, API routes; normalization tests; credentials gate below |
 | Health | Shared food/water/body/movement records; optional sleep/energy/mood/note capture | health/page.tsx, existing health trackers, RecoveryTracker; record/layout tests |
-| Meal/supplement routine | Owner-only Monday B12, daily Zinc/Lunch/Omega-3/Snacks/Dinner/Magnesium at requested IST times; compact next-item checklist, dated missed/history records, edit recurrence/timezone, independent completion, snooze/skip/undo | routine domain/store/UI; recurrence and reminder tests |
+| Meal/supplement routine | Owner-only Monday B12, daily Zinc/Lunch/Omega-3/Snacks/Dinner/Magnesium at requested IST times; chronological Today occurrences, dated missed/history records, edit recurrence/timezone, independent completion, snooze/skip/undo | routine domain/store/UI; recurrence and reminder tests |
 | Notification infrastructure | Explicit permission/subscription controls, generic lock-screen default, grouped Lunch/Omega-3, authenticated dispatch, durable delivery leases, service-worker destination | push API routes, sw.js, migration 0008; operational delivery gate below |
 | Review, habits and journal | Daily/weekly actual task/milestone/focus/study and health records; reflection/history links; optional maximum-five dated habits | review/page.tsx, HabitChecklist, LogCapture; completion/review/habit tests |
 | Library and sharing | Library naming with stable /archive URL; private notes/links/images/search/undo; explicit audience/expiry/copy/revoke preserved | archive/page.tsx, share routes; archive/share suites |
@@ -25,7 +25,7 @@ The consolidation covers the entire personal workspace, beyond food logging. The
 
 ## Production gates
 
-Code implementation and a pushed branch do not activate provider services or prove deployed delivery. Apply migrations 0007/0008 without resetting tables; configure USDA FoodData Central, VAPID and the authenticated minute scheduler; then verify real signed-in account isolation, concurrent/offline cloud edits and a closed-site notification on a real device. No credentials or provider signup were invented. These checks remain pending; follow [setup and rollback](NUTRITION_AND_REMINDER_SETUP.md).
+Code implementation and a pushed branch do not activate provider services or prove deployed delivery. Apply migrations 0007/0008/0009 without resetting tables; configure USDA FoodData Central, VAPID and the authenticated minute scheduler; then verify real signed-in account isolation, concurrent/offline cloud edits and a closed-site notification on a real device. No credentials or provider signup were invented. These checks remain pending; follow [setup and rollback](NUTRITION_AND_REMINDER_SETUP.md).
 
 Final local verification and pushed commit evidence are recorded in the change sheet and implementation plan.
 
@@ -62,3 +62,11 @@ Goals replaces the repeated story and score panels with the next saved milestone
 Local QA captures: artifacts/ui-ux/completion-{todo,goal,dashboard}-{390-light,1440-dark}.png. Reviewed populated mobile Tasks and Goals after fixing squeezed row names. Production authentication, provider/migration configuration and real-device notification checks retain their existing separate release gates.
 
 Verification: **231 Chromium regression tests passed (2.6 minutes)** and **25 domain/storage tests passed**. Final production rebuild, TypeScript and ESLint passed; **12 focused browser tests passed** after the journal copy/filter styling cleanup. Regression scenarios cover combined filters without record mutation, today's completion timestamps, contextual back links, journal and zero/missing goal readings, mobile text widths, persisted goal logging and milestone CRUD. Auth-open local checks do not establish live deployment or external service readiness.
+
+## Daily-life restructure audit
+
+The approved [daily-life design](superpowers/specs/2026-10-04-daily-life-ux-restructure-design.md) supersedes the earlier shell and Review structures. Today/Plan use `DailyWorkspace` and the pure `day-plan` projection; Health and shared Capture are focused record workspaces. Progress shows compact summaries and one selected metric; Reflection and Journal use the same editable records. Data-preservation tests cover weight/recovery notes, planning backup rejection before writes, task identity, remove/undo and independent food/routine actions. Routine schedule changes now use drafts and explicit preview.
+
+The server RPC restricts collection names, so migration 0009 is required. Signed-in planning stays feature-gated until authenticated persistence is verified. Existing USDA, VAPID, minute-scheduler, migration and real-device delivery gates remain pending. No remote activation or deployment success is inferred from local tests.
+
+Latest local daily-life evidence: 244 browser regression checks, 52 library/domain tests, 7 generator tests and 11 sync/seed tests passed. Final focused planning/capture/task/goal/progress checks passed after the rollout and calendar safeguards; TypeScript, ESLint, production build and Bible inventory validation passed. Source fixtures and populated phone/light plus desktop/dark captures were reviewed. Cross-timezone overlaps compare instants even when source dates differ; water undo cannot act on another selected date. Production gates above remain pending.

@@ -9,15 +9,16 @@ test("secondary destinations keep navigation context and Tasks is discoverable",
   await expect(page.getByRole("link", { name: /Tasks/ }).last()).toHaveAttribute("href", "/todo");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/shared-with-me");
-  await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "More" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("link",{name:"Account and tools"})).toBeVisible();await expect(page.getByTestId("mobile-command-dock").getByRole("link",{name:"More"})).toHaveCount(0);
 });
 
 test("workspace has one main landmark and accessible quick capture", async ({ page }) => {
   await seed(page);
   await page.goto("/hub");
   await expect(page.getByRole("main")).toHaveCount(1);
+  await page.getByRole("button",{name:"Quick capture"}).click();await page.getByRole("dialog").getByRole("button",{name:"Task",exact:true}).click();
   await page.getByRole("textbox", { name: "Task name", exact: true }).fill("Prepare interview notes");
-  await page.getByRole("button", { name: "Add task", exact: true }).click();
+  await page.getByRole("button", { name: "Save task", exact: true }).click();
   await page.goto("/todo");
   await expect(page.getByText("Prepare interview notes", { exact: true })).toBeVisible();
 });
@@ -41,7 +42,7 @@ test("modal traps focus from its container and restores the opener after editing
 test("form navigation does not promise a save and motivation leads with the saved goal", async ({ page }) => {
   await seed(page);
   await page.goto("/intermittent-fasting");
-  await expect(page.getByTestId("tracker-action-bar").getByRole("link", { name: "Open meal window" })).toBeVisible();
+  await expect(page.getByLabel("First meal time")).toBeVisible();await expect(page.getByTestId("tracker-action-bar")).toHaveCount(0);
   await page.goto("/motivation");
   await expect(page.getByRole("heading", { level: 1, name: "Relocate to Canada", exact: true })).toBeVisible();
 });

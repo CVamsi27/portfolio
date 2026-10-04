@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { seed, daysAgoKey } from "./helpers";
 
 test.describe("goal tracker", () => {
-  test("logs the daily metric and reflects it in chart + streak", async ({
+  test("logs the daily metric and reflects dated readings", async ({
     page,
   }) => {
     await seed(page, {
@@ -12,6 +12,7 @@ test.describe("goal tracker", () => {
       },
     });
     await page.goto("/goal");
+    await page.getByText("Log goal metric", { exact: true }).click();
 
     // Metric label resolves from the relocation default.
     await expect(
@@ -40,6 +41,7 @@ test.describe("goal tracker", () => {
   }) => {
     await seed(page);
     await page.goto("/goal");
+    await page.getByText("Log goal metric", { exact: true }).click();
 
     // Defaults for relocation exist.
     await expect(
@@ -85,7 +87,9 @@ test.describe("goal tracker", () => {
   }) => {
     await seed(page);
     await page.goto("/goal");
+    await page.getByText("Log goal metric", { exact: true }).click();
 
+    await page.getByText("Edit goal and category", { exact: true }).click();
     // Switch to Learning.
     await page.getByText("Learning").first().click();
     await expect(page.getByText("Deep Study").first()).toBeVisible();
@@ -108,13 +112,17 @@ test.describe("goal tracker", () => {
   }) => {
     await seed(page);
     await page.goto("/goal");
+    await page.getByText("Log goal metric", { exact: true }).click();
+    await page.getByText("Edit goal and category", { exact: true }).click();
     await page.getByLabel("Destination country").selectOption("Canada");
     await expect(
       page.getByRole("heading", { name: "Relocate to Canada" }),
     ).toBeVisible();
   });
 
-  test("run-rate ETA appears after enough metric history", async ({ page }) => {
+  test("dated goal readings remain visible without inferring a completion ETA", async ({
+    page,
+  }) => {
     const d = (n: number) => daysAgoKey(n);
     await seed(page, {
       "vk:goal": {
@@ -138,7 +146,9 @@ test.describe("goal tracker", () => {
       },
     });
     await page.goto("/goal");
+    await page.getByText("Log goal metric", { exact: true }).click();
     // 12 logged vs 30 total at 3/day → on-track ETA line present.
-    await expect(page.getByText(/on track in about/i)).toBeVisible();
+    await expect(page.getByText(/on track in about/i)).toHaveCount(0);
+    await expect(page.locator("#daily-metric svg[role=img]")).toBeVisible();
   });
 });

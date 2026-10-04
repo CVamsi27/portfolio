@@ -1,7 +1,7 @@
 # NOVA daily-life UX restructure
 
 Date: 4 October 2026
-Status: proposed design, awaiting review. This document authorizes no application or database changes by itself.
+Status: approved by the user on 4 October 2026; implemented in the daily-life restructuring release. Signed-in planning and operational delivery remain gated as documented in the setup guide.
 
 ## Product decision
 

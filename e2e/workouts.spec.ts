@@ -119,6 +119,7 @@ test.describe("workout tracker", () => {
       "vk:workouts": { [daysAgoKey(1)]: { squats: workoutCell(10, 100) } }, // 1000 kg this week
     });
     await page.goto("/workout-tracking");
+    await page.getByText("Workout history and records",{exact:true}).click();
     await expect(page.getByText(/this week/)).toBeVisible();
     await expect(page.getByText("Personal records")).toBeVisible();
     // PR card shows the seeded squat PR.

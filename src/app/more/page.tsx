@@ -7,18 +7,13 @@ export default function MorePage() {
     <RequireAuth>
       <PersonalShell
         showBack={false}
-        title="More"
+        title="Tools"
         icon="settings"
-        subtitle="Supporting tools, when you need them."
+        subtitle="Your account, saved material and sharing."
       >
         <div data-testid="more-links">
           <SectionLinks
             items={[
-              {
-                href: "/motivation",
-                label: "Motivation",
-                description: "A reminder of your goal and next milestone.",
-              },
               {
                 href: "/archive",
                 label: "Library",
@@ -28,11 +23,6 @@ export default function MorePage() {
                 href: "/share",
                 label: "Sharing",
                 description: "Manage explicit sharing and its audience.",
-              },
-              {
-                href: "/shared-with-me",
-                label: "Shared with me",
-                description: "Open material others have shared with you.",
               },
               {
                 href: "/settings",

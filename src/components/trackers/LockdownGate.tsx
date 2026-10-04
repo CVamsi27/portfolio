@@ -1,6 +1,7 @@
 "use client";
 import { useWorkSession } from "@/lib/work-session-store";
 
+import ActiveSessionBar from "@/components/daily/ActiveSessionBar";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useDialogFocus } from "@/components/common/useDialogFocus";
@@ -154,32 +155,7 @@ export default function LockdownGate({
           </div>
         </section>
       )}
-      {focusLocked ? (
-        <div
-          data-testid="focus-lock-status"
-          role="status"
-          className="relative mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/40 bg-card px-3 py-2 text-xs text-foreground"
-        >
-          <span className="flex items-center gap-2">
-            <ShieldAlert className="h-3.5 w-3.5 text-primary" /> Focus is
-            active. You can keep navigating.
-          </span>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="shrink-0 font-mono text-primary">
-              {activeFocus?.interruptions ?? 0} interruption
-              {activeFocus?.interruptions === 1 ? "" : "s"}
-            </span>
-            <button
-              type="button"
-              onClick={cancelFocus}
-              aria-label="Cancel focus session"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-3 text-sm font-semibold text-foreground hover:bg-muted"
-            >
-              Cancel focus
-            </button>
-          </div>
-        </div>
-      ) : null}
+      {focusLocked && <ActiveSessionBar />}
       {children}
       {bedtimeLocked && typeof document !== "undefined"
         ? createPortal(

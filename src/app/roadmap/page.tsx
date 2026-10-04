@@ -1099,7 +1099,15 @@ export default function RoadmapPage() {
   const { value: completedChapters, setValue: setCompletedChapters } = useSyncedStorage<ExtendedCompletedChapter[]>("study:completed_chapters", []);
   const [filter, setFilter] = useState<"all" | "today" | "pending" | "done">("today");
   const [search, setSearch] = useState("");
-  const [section, setSection] = useState<"roadmap" | "revision" | "career" | "germany" | "outreach">("roadmap");
+  const [section, setSection] = useState<
+    "roadmap" | "revision" | "career" | "germany" | "outreach"
+  >(() => {
+    if (typeof window === "undefined") return "roadmap";
+    const view = new URLSearchParams(window.location.search).get("view");
+    return view && ["revision", "career", "germany", "outreach"].includes(view)
+      ? (view as "revision" | "career" | "germany" | "outreach")
+      : "roadmap";
+  });
   const [revisionDeckOpen, setRevisionDeckOpen] = useState(false);
   const [revisionGateOpen, setRevisionGateOpen] = useState(false);
   const [breakLoungeOpen, setBreakLoungeOpen] = useState(false);
@@ -1202,7 +1210,7 @@ export default function RoadmapPage() {
   }
 
   const NAV = [
-    { id: "roadmap" as const,  label: "Roadmap",        icon: <CalendarDays className="h-4 w-4" /> },
+    { id: "roadmap" as const,  label: "Current study",        icon: <CalendarDays className="h-4 w-4" /> },
     { id: "revision" as const, label: `Revision & Recall${dueRevisionList.length > 0 ? ` (${dueRevisionList.length})` : ""}`, icon: <RotateCcw className="h-4 w-4" /> },
     { id: "career" as const,   label: "Resume & roles",  icon: <Target className="h-4 w-4" /> },
     { id: "outreach" as const, label: "Outreach",        icon: <Mail className="h-4 w-4" /> },
@@ -1212,6 +1220,7 @@ export default function RoadmapPage() {
   return (
     <RequireAuth>
       <PersonalShell icon="book" title="Career roadmap" subtitle="Your daily study plan, evidence, and next career steps." eyebrow="NOVA // Execution">
+        <details className="workspace-panel"><summary>Curriculum source and study priorities</summary>
         {/* Study Bible banner */}
         <a href="https://study.buildora.work" target="_blank" rel="noopener noreferrer"
           className="flex items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary/10 px-5 py-3.5 hover:bg-primary/15 transition-colors">
@@ -1232,6 +1241,7 @@ export default function RoadmapPage() {
           <p className="mt-1 font-mono text-xs text-muted-foreground">Bible snapshot: {curriculum.sourceDigest.slice(0, 12)}</p>
         </div>
 
+        </details>
         <details className="rounded-2xl border border-border p-4">
           <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress and weekly overview</summary>
         <MotivationHero
@@ -1245,14 +1255,42 @@ export default function RoadmapPage() {
 
         {/* Section nav */}
         <div className="flex gap-2 flex-wrap">
-          {NAV.map(n => (
-            <button key={n.id} type="button" aria-pressed={section === n.id} onClick={() => setSection(n.id)}
+          {NAV.filter(n=>["roadmap","revision"].includes(n.id)).map(n => (
+            <button key={n.id} type="button" aria-pressed={section === n.id} onClick={() => {setSection(n.id);window.history.replaceState(null,"",`/roadmap?view=${n.id}`);}}
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${section === n.id ? "border-primary bg-primary text-primary-foreground" : "border-border/60 text-muted-foreground hover:border-primary/50"}`}>
               {n.icon}{n.label}
             </button>
           ))}
         </div>
 
+        <details className="workspace-panel">
+          <summary>Optional career resources</summary>
+          <div className="workspace-views">
+            {NAV.filter((n) => !["roadmap", "revision"].includes(n.id)).map(
+              (n) => (
+                <button
+                  key={n.id}
+                  aria-pressed={section === n.id}
+                  onClick={() => {
+                    setSection(n.id);
+                    window.history.replaceState(
+                      null,
+                      "",
+                      `/roadmap?view=${n.id}`,
+                    );
+                  }}
+                  className="inline-action"
+                >
+                  {n.label}
+                </button>
+              ),
+            )}
+          </div>
+          <p>
+            Choose the resources relevant to your goal. Your curriculum and
+            daily study plan stay separate.
+          </p>
+        </details>
         {/* ── ROADMAP SECTION ── */}
         {section === "roadmap" && (
           <>
@@ -1269,21 +1307,7 @@ export default function RoadmapPage() {
                   <span>Audio break</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    window.dispatchEvent(
-                      new CustomEvent("portfolio-trigger-night-curfew", {
-                        detail: { openSettings: true },
-                      })
-                    )
-                  }
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-400/40 bg-indigo-500/10 px-3.5 py-1.5 text-xs font-bold text-indigo-300 hover:bg-indigo-500/20 transition-all cursor-pointer shadow-xs"
-                  title="Configure your in-app bedtime schedule"
-                >
-                  <Moon className="h-3.5 w-3.5 text-indigo-400" />
-                  <span>Bedtime settings</span>
-                </button>
+
               </div>
 
               {dueRevisionList.length > 0 && (

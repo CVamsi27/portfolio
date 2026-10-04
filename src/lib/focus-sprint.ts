@@ -7,6 +7,8 @@ export type FocusSessionStatus = "completed" | "cancelled";
 export type FocusActiveState = {
   id: string;
   label: string;
+  taskId?: string;
+  returnTo?: string;
   mode?: FocusSessionMode;
   plannedMinutes?: FocusMinutes;
   startedAt: number;
@@ -19,6 +21,8 @@ export type FocusActiveState = {
 export type FocusSession = {
   id: string;
   label: string;
+  taskId?: string;
+  returnTo?: string;
   mode?: FocusSessionMode;
   plannedMinutes?: FocusMinutes;
   startedAt: number;
@@ -72,6 +76,8 @@ export function completeFocusSession(
   return {
     id: active.id,
     label: active.label,
+    taskId: active.taskId,
+    returnTo: active.returnTo,
     mode: active.mode ?? "timed",
     plannedMinutes: active.plannedMinutes,
     startedAt: active.startedAt,

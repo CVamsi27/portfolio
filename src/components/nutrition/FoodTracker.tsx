@@ -34,6 +34,7 @@ const blank = {
 };
 export default function FoodTracker() {
   const store = useNutrition();
+  const [foodView, setFoodView] = useState("diary");
   const saving = useRef(false);
   const [copyDate, setCopyDate] = useState(() => foodDateKey());
   const [recipeEditing, setRecipeEditing] = useState<Recipe | null>(null);
@@ -65,7 +66,16 @@ export default function FoodTracker() {
   const [ingredientId, setIngredientId] = useState("");
   const [ingredientQuantity, setIngredientQuantity] = useState("100");
   useEffect(() => {
-    const selected = new URLSearchParams(window.location.search).get("meal");
+    const params = new URLSearchParams(window.location.search);
+    const selected = params.get("meal");
+    const view = params.get("view");
+    if (view && ["diary", "saved", "nutrients"].includes(view))
+      setFoodView(view);
+    const day = params.get("date");
+    if (day && /^\d{4}-\d{2}-\d{2}$/.test(day)) {
+      setDate(day);
+      setEntryDate(day);
+    }
     if (selected) {
       setMeal(selected === "Snacks" ? "Snack" : selected);
       setOpen(true);
@@ -342,6 +352,27 @@ export default function FoodTracker() {
   };
   return (
     <div className="space-y-5">
+      <nav className="workspace-views" aria-label="Food views">
+        {[
+          ["diary", "Diary"],
+          ["saved", "Saved foods & recipes"],
+          ["nutrients", "Nutrients"],
+        ].map(([id, label]) => (
+          <Button
+            key={id}
+            variant={foodView === id ? "default" : "ghost"}
+            onClick={() => {
+              setFoodView(id);
+              const q = new URLSearchParams(window.location.search);
+              q.set("view", id);
+              q.set("date", date);
+              window.history.replaceState(null, "", `/food?${q}`);
+            }}
+          >
+            {label}
+          </Button>
+        ))}
+      </nav>
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <label htmlFor="food-date" className="text-sm font-medium">
@@ -379,18 +410,20 @@ export default function FoodTracker() {
           →
         </Button>
         <Button onClick={start}>Log food</Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setRecipeEditing(null);
-            setRecipeName("");
-            setIngredients([]);
-            setError("");
-            setRecipeOpen(true);
-          }}
-        >
-          Create recipe
-        </Button>
+        {foodView === "saved" && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              setRecipeEditing(null);
+              setRecipeName("");
+              setIngredients([]);
+              setError("");
+              setRecipeOpen(true);
+            }}
+          >
+            Create recipe
+          </Button>
+        )}
       </div>
       <p className="text-xs text-muted-foreground">
         {store.entries.status === "synced"
@@ -411,18 +444,27 @@ export default function FoodTracker() {
           )}
         </p>
       )}
-      {entries.length > 0 && (
-        <label className="block text-sm">
-          Duplicate entries to date
-          <Input
-            type="date"
-            value={copyDate}
-            onChange={(e) => setCopyDate(e.target.value)}
-          />
-        </label>
+      {foodView === "diary" && entries.length > 0 && (
+        <details>
+          <summary>Repeat a meal on another date</summary>
+          <label className="block text-sm">
+            Duplicate entries to date
+            <Input
+              type="date"
+              value={copyDate}
+              onChange={(e) => setCopyDate(e.target.value)}
+            />
+          </label>
+        </details>
       )}
-      <NutritionSummary entries={entries} targets={store.targets.value} />
-      <div className="space-y-4">
+      {foodView !== "saved" && (
+        <NutritionSummary
+          entries={entries}
+          targets={store.targets.value}
+          details={foodView === "nutrients"}
+        />
+      )}
+      <div hidden={foodView !== "diary"} className="space-y-4">
         {Array.from(new Set([...MEALS, ...entries.map((entry) => entry.meal)]))
           .filter((group) => entries.some((entry) => entry.meal === group))
           .map((group) => {
@@ -485,22 +527,17 @@ export default function FoodTracker() {
                             <Button
                               variant="ghost"
                               onClick={() => {
-                                const id = crypto.randomUUID();
-                                const copy = {
-                                  ...entry,
-                                  id,
-                                  date: copyDate,
-                                  updatedAt: Date.now(),
-                                };
-                                if (!validEntry(copy)) {
-                                  setMessage("Choose a valid copy date.");
-                                  return;
-                                }
-                                store.entries.setValue((previous) => ({
-                                  ...previous,
-                                  [id]: copy,
+                                load({ ...entry, id: entry.foodId });
+                                setEditing(null);
+                                setMeal(entry.meal);
+                                setDraft((p) => ({
+                                  ...p,
+                                  quantity: String(entry.quantity),
                                 }));
-                                setMessage(`Food entry copied to ${copyDate}.`);
+                                setEntryDate(copyDate);
+                                setMessage(
+                                  "Review the date and portion before saving the repeated food.",
+                                );
                               }}
                             >
                               Duplicate
@@ -521,179 +558,183 @@ export default function FoodTracker() {
             );
           })}
       </div>
-      {Object.values(store.foods.value).some((item) => !item.deleted) && (
-        <details className="rounded-xl border border-border bg-card p-4">
-          <summary className="flex min-h-11 cursor-pointer items-center font-medium">
-            Saved foods
-          </summary>
-          {Object.values(store.foods.value)
-            .filter((item) => !item.deleted)
-            .map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-wrap items-center justify-between gap-2 py-2"
-              >
-                <span className="text-sm">{item.name}</span>
-                <div>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      load(item);
-                      setEditingFood(item);
-                    }}
-                  >
-                    Edit saved food
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    aria-pressed={item.favorite ?? false}
-                    onClick={() =>
-                      store.foods.setValue((previous) => ({
-                        ...previous,
-                        [item.id]: {
-                          ...item,
-                          favorite: !item.favorite,
-                          updatedAt: Math.max(Date.now(), item.updatedAt + 1),
-                        },
-                      }))
-                    }
-                  >
-                    {item.favorite ? "Unfavorite" : "Favorite"}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() =>
-                      store.foods.setValue((previous) => ({
-                        ...previous,
-                        [item.id]: {
-                          ...item,
-                          deleted: true,
-                          updatedAt: Math.max(Date.now(), item.updatedAt + 1),
-                        },
-                      }))
-                    }
-                  >
-                    Remove saved food
-                  </Button>
-                </div>
-              </div>
-            ))}
-        </details>
-      )}
-      {Object.values(store.recipes.value).some((item) => !item.deleted) && (
-        <details className="rounded-xl border border-border bg-card p-4">
-          <summary className="flex min-h-11 cursor-pointer items-center font-medium">
-            Saved recipes
-          </summary>
-          {Object.values(store.recipes.value)
-            .filter((item) => !item.deleted)
-            .map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-wrap items-center justify-between gap-2 py-2"
-              >
-                <span className="text-sm">{item.name}</span>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setRecipeEditing(item);
-                      setRecipeName(item.name);
-                      setYieldAmount(String(item.basisAmount));
-                      setYieldUnit(item.basisUnit);
-                      setIngredients(item.ingredients);
-                      setError("");
-                      setRecipeOpen(true);
-                    }}
-                  >
-                    Edit recipe
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() =>
-                      store.recipes.setValue((previous) => ({
-                        ...previous,
-                        [item.id]: {
-                          ...item,
-                          deleted: true,
-                          updatedAt: Math.max(Date.now(), item.updatedAt + 1),
-                        },
-                      }))
-                    }
-                  >
-                    Remove recipe
-                  </Button>
-                </div>
-              </div>
-            ))}
-        </details>
-      )}
-      <details className="rounded-xl border border-border bg-card p-4">
-        <summary className="flex min-h-11 items-center cursor-pointer font-medium">
-          Nutrition targets (optional)
-        </summary>
-        <p className="text-sm text-muted-foreground mb-3">
-          Use your own reference values or limits. Tracking works without
-          targets.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(Object.keys(NUTRIENTS) as NutrientKey[]).map((key) => (
-            <div key={key}>
-              <label htmlFor={`target-${key}`} className="text-sm">
-                {NUTRIENTS[key].label} ({NUTRIENTS[key].unit})
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  id={`target-${key}`}
-                  type="number"
-                  min="0"
-                  step="any"
-                  placeholder="No target"
-                  value={
-                    store.targets.value?.[key]?.deleted
-                      ? ""
-                      : (store.targets.value?.[key]?.amount ?? "")
-                  }
-                  onChange={(e) => {
-                    const amount = Number(e.target.value);
-                    if (!Number.isFinite(amount) || amount < 0) return;
-                    store.targets.setValue((previous) => ({
-                      ...previous,
-                      [key]: {
-                        id: key,
-                        amount,
-                        kind: previous[key]?.kind ?? "reference",
-                        deleted: e.target.value === "",
-                        updatedAt: Date.now(),
-                      },
-                    }));
-                  }}
-                />
-                <select
-                  aria-label={`${NUTRIENTS[key].label} target type`}
-                  className="rounded-lg border border-border bg-background p-2 min-h-11"
-                  value={store.targets.value?.[key]?.kind ?? "reference"}
-                  onChange={(e) =>
-                    store.targets.setValue((previous) => ({
-                      ...previous,
-                      [key]: {
-                        id: key,
-                        amount: previous[key]?.amount ?? 0,
-                        deleted: previous[key]?.deleted ?? true,
-                        kind: e.target.value as "reference" | "limit",
-                        updatedAt: Date.now(),
-                      },
-                    }))
-                  }
+      {foodView === "saved" &&
+        Object.values(store.foods.value).some((item) => !item.deleted) && (
+          <details className="rounded-xl border border-border bg-card p-4">
+            <summary className="flex min-h-11 cursor-pointer items-center font-medium">
+              Saved foods
+            </summary>
+            {Object.values(store.foods.value)
+              .filter((item) => !item.deleted)
+              .map((item) => (
+                <div
+                  key={item.id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-2"
                 >
-                  <option value="reference">Reference</option>
-                  <option value="limit">Limit</option>
-                </select>
+                  <span className="text-sm">{item.name}</span>
+                  <div>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        load(item);
+                        setEditingFood(item);
+                      }}
+                    >
+                      Edit saved food
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      aria-pressed={item.favorite ?? false}
+                      onClick={() =>
+                        store.foods.setValue((previous) => ({
+                          ...previous,
+                          [item.id]: {
+                            ...item,
+                            favorite: !item.favorite,
+                            updatedAt: Math.max(Date.now(), item.updatedAt + 1),
+                          },
+                        }))
+                      }
+                    >
+                      {item.favorite ? "Unfavorite" : "Favorite"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() =>
+                        store.foods.setValue((previous) => ({
+                          ...previous,
+                          [item.id]: {
+                            ...item,
+                            deleted: true,
+                            updatedAt: Math.max(Date.now(), item.updatedAt + 1),
+                          },
+                        }))
+                      }
+                    >
+                      Remove saved food
+                    </Button>
+                  </div>
+                </div>
+              ))}
+          </details>
+        )}
+      {foodView === "saved" &&
+        Object.values(store.recipes.value).some((item) => !item.deleted) && (
+          <details className="rounded-xl border border-border bg-card p-4">
+            <summary className="flex min-h-11 cursor-pointer items-center font-medium">
+              Saved recipes
+            </summary>
+            {Object.values(store.recipes.value)
+              .filter((item) => !item.deleted)
+              .map((item) => (
+                <div
+                  key={item.id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-2"
+                >
+                  <span className="text-sm">{item.name}</span>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setRecipeEditing(item);
+                        setRecipeName(item.name);
+                        setYieldAmount(String(item.basisAmount));
+                        setYieldUnit(item.basisUnit);
+                        setIngredients(item.ingredients);
+                        setError("");
+                        setRecipeOpen(true);
+                      }}
+                    >
+                      Edit recipe
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() =>
+                        store.recipes.setValue((previous) => ({
+                          ...previous,
+                          [item.id]: {
+                            ...item,
+                            deleted: true,
+                            updatedAt: Math.max(Date.now(), item.updatedAt + 1),
+                          },
+                        }))
+                      }
+                    >
+                      Remove recipe
+                    </Button>
+                  </div>
+                </div>
+              ))}
+          </details>
+        )}
+      <div hidden={foodView !== "nutrients"}>
+        <details className="rounded-xl border border-border bg-card p-4">
+          <summary className="flex min-h-11 items-center cursor-pointer font-medium">
+            Nutrition targets (optional)
+          </summary>
+          <p className="text-sm text-muted-foreground mb-3">
+            Use your own reference values or limits. Tracking works without
+            targets.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(Object.keys(NUTRIENTS) as NutrientKey[]).map((key) => (
+              <div key={key}>
+                <label htmlFor={`target-${key}`} className="text-sm">
+                  {NUTRIENTS[key].label} ({NUTRIENTS[key].unit})
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    id={`target-${key}`}
+                    type="number"
+                    min="0"
+                    step="any"
+                    placeholder="No target"
+                    value={
+                      store.targets.value?.[key]?.deleted
+                        ? ""
+                        : (store.targets.value?.[key]?.amount ?? "")
+                    }
+                    onChange={(e) => {
+                      const amount = Number(e.target.value);
+                      if (!Number.isFinite(amount) || amount < 0) return;
+                      store.targets.setValue((previous) => ({
+                        ...previous,
+                        [key]: {
+                          id: key,
+                          amount,
+                          kind: previous[key]?.kind ?? "reference",
+                          deleted: e.target.value === "",
+                          updatedAt: Date.now(),
+                        },
+                      }));
+                    }}
+                  />
+                  <select
+                    aria-label={`${NUTRIENTS[key].label} target type`}
+                    className="rounded-lg border border-border bg-background p-2 min-h-11"
+                    value={store.targets.value?.[key]?.kind ?? "reference"}
+                    onChange={(e) =>
+                      store.targets.setValue((previous) => ({
+                        ...previous,
+                        [key]: {
+                          id: key,
+                          amount: previous[key]?.amount ?? 0,
+                          deleted: previous[key]?.deleted ?? true,
+                          kind: e.target.value as "reference" | "limit",
+                          updatedAt: Date.now(),
+                        },
+                      }))
+                    }
+                  >
+                    <option value="reference">Reference</option>
+                    <option value="limit">Limit</option>
+                  </select>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </details>
+            ))}
+          </div>
+        </details>
+      </div>
       <Modal
         open={open}
         onClose={() => setOpen(false)}

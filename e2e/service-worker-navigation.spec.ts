@@ -36,8 +36,7 @@ test("service worker never replays cached router payloads across deployments", a
   expect(response.status).toBe(200);
   expect(response.text).not.toBe("stale-router-payload");
   await page
-    .getByTestId("tracker-primary-nav")
-    .getByRole("link", { name: "More", exact: true })
+    .getByRole("link", { name: "Account and tools", exact: true })
     .click();
   await expect(page).toHaveURL(/\/more$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

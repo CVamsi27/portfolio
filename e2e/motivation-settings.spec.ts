@@ -158,7 +158,7 @@ test.describe("settings: backup, restore, wipe", () => {
         },
       ],
     });
-    await page.goto("/settings");
+    await page.goto("/settings#data");
 
     // Capture the download and its content.
     const downloadP = page.waitForEvent("download");
@@ -188,7 +188,7 @@ test.describe("settings: backup, restore, wipe", () => {
 
   test("import rejects foreign JSON", async ({ page }) => {
     await seed(page);
-    await page.goto("/settings");
+    await page.goto("/settings#data");
     const chooserP = page.waitForEvent("filechooser");
     await page.getByRole("button", { name: /Import backup/ }).click();
     const chooser = await chooserP;
@@ -218,7 +218,7 @@ test.describe("settings: backup, restore, wipe", () => {
         },
       ],
     });
-    await page.goto("/settings");
+    await page.goto("/settings#data");
 
     const wipeBtn = page.getByRole("button", { name: "Clear local data" });
     await expect(wipeBtn).toBeDisabled();
