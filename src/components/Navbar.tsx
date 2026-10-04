@@ -10,7 +10,13 @@ import {
 } from "@/lib/personal-nav";
 import { ModeToggle } from "./common/ModeToggle";
 import HeaderMenu from "./HeaderMenu";
-import AuthButton from "./auth/AuthButton";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import NovaMark from "@/components/brand/NovaMark";
 import VamsiMark from "@/components/brand/VamsiMark";
@@ -18,14 +24,13 @@ import CommandPalette from "@/components/trackers/CommandPalette";
 import KeyboardShortcutsModal from "@/components/trackers/KeyboardShortcutsModal";
 import { isTrackerHost, isTrackerPath } from "@/lib/brand";
 import {
-  ArrowUpRight,
-  BookOpen,
   Download,
   FileText,
   Plus,
   Keyboard,
   Search,
   Terminal,
+  MoreHorizontal,
 } from "lucide-react";
 import Modal from "./trackers/Modal";
 import CaptureWorkspace from "./daily/CaptureWorkspace";
@@ -408,19 +413,6 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             )}
           </div>
           {isTracker ? (
-            <a
-              data-testid="personal-study-link"
-              href="https://study.buildora.work/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-sm text-primary transition-colors hover:border-primary/60 hover:bg-primary/10"
-            >
-              <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Study Bible</span>
-              <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
-            </a>
-          ) : null}
-          {isTracker ? (
             <>
               <button
                 aria-label="Quick capture"
@@ -439,43 +431,51 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                 <Plus className="h-4 w-4" aria-hidden />
                 <span className="hidden sm:inline">Add</span>
               </button>
-              <Link
-                href="/more"
-                aria-label="Account and tools"
-                className="inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-sm"
-              >
-                Tools
-              </Link>
-              <button
-                type="button"
-                onClick={() => setPaletteOpen(true)}
-                aria-label="Search or run command"
-                title="Command Palette (⌘K)"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border/60 bg-muted/30 px-2.5 text-xs text-muted-foreground transition-all hover:border-primary/60 hover:bg-accent hover:text-foreground"
-              >
-                <Search className="h-3.5 w-3.5" />
-                <span className="hidden lg:inline font-mono text-[10px] uppercase tracking-wider">
-                  ⌘K
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShortcutsOpen(true)}
-                aria-label="Keyboard Shortcuts (?)"
-                title="Keyboard Shortcuts (?)"
-                className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-muted/30 text-xs text-muted-foreground transition-all hover:border-primary/60 hover:bg-accent hover:text-foreground"
-              >
-                <Keyboard className="h-3.5 w-3.5" />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="More options"
+                    className="inline-flex h-11 items-center gap-1.5 rounded-xl px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                  >
+                    <span>More</span>
+                    <MoreHorizontal className="h-4 w-4" aria-hidden />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="z-[90] w-60 p-2">
+                  <DropdownMenuItem asChild className="min-h-11">
+                    <Link href="/more">Tools</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="min-h-11">
+                    <Link href="/settings">Account &amp; settings</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="min-h-11">
+                    <a
+                      data-testid="personal-study-link"
+                      href="https://study.buildora.work/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Study Bible ↗
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="min-h-11" onSelect={() => setPaletteOpen(true)}>
+                    Search or run command
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="min-h-11" onSelect={() => setShortcutsOpen(true)}>
+                    Keyboard shortcuts
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="min-h-11"
+                    onSelect={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                  >
+                    Switch to {resolvedTheme === "dark" ? "light" : "dark"} mode
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : null}
-          <div
-            className={
-              isTracker ? "hidden sm:inline-flex items-center" : "hidden"
-            }
-          >
-            <AuthButton />
-          </div>
           {!isTracker ? (
             <button
               type="button"
@@ -523,7 +523,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
               <Keyboard className="h-4 w-4" />
             </button>
           ) : null}
-          <ModeToggle />
+          {!isTracker ? <ModeToggle /> : null}
           {!isTracker ? (
             <HeaderMenu
               items={[

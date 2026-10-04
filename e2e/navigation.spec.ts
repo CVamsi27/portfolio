@@ -75,14 +75,13 @@ test.describe("navigation & shell", () => {
     await expect(page.locator('a[href="/study"]')).toHaveCount(0);
   });
 
-  test("links to the Study Bible from the desktop header and More on mobile", async ({
+  test("links to the Study Bible from More options and the Tools page", async ({
     page,
   }) => {
     await seed(page);
     await page.goto("/hub");
-    const desktopLink = page
-      .getByTestId("command-rail")
-      .getByTestId("personal-study-link");
+    await page.getByRole("button", { name: "More options", exact: true }).click();
+    const desktopLink = page.getByTestId("personal-study-link");
     await expect(desktopLink).toBeVisible();
     await expect(desktopLink).toHaveAttribute(
       "href",
@@ -91,6 +90,7 @@ test.describe("navigation & shell", () => {
     await expect(desktopLink).toHaveAttribute("target", "_blank");
     await expect(desktopLink).toHaveAttribute("rel", "noopener noreferrer");
 
+    await page.keyboard.press("Escape");
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
@@ -122,7 +122,7 @@ test.describe("navigation & shell", () => {
     );
   });
 
-  test("personal navbar keeps Today, Focus, Log, Sharing, and More visible", async ({
+  test("personal navbar keeps the four daily destinations and two actions visible", async ({
     page,
   }) => {
     await seed(page);
@@ -154,7 +154,7 @@ test.describe("navigation & shell", () => {
         .getByRole("link", { name: "Health" }),
     ).toHaveAttribute("href", "/health");
     await expect(
-      rail.getByRole("link", { name: "Account and tools" }),
+      rail.getByRole("button", { name: "More options", exact: true }),
     ).toBeVisible();
     await expect(
       rail.getByRole("button", { name: "Quick capture" }),

@@ -314,3 +314,9 @@ These are local, auth-open checks. No production SQL, provider credential, authe
 ### Mobile capture follow-up — 2026-10-04
 
 The mobile Add action now carries the selected calendar date and originating page/query into capture. Saving a record from a historical Plan day keeps that date, and Return restores the original day/week view. A browser regression reproduced the wrong-date save before the fix and passes after it. All 14 daily-life browser journeys, ESLint and the production build passed for this follow-up. Production/cloud activation gates above remain outstanding.
+
+### Navbar simplification — 2026-10-04
+
+The personal header now shows the four primary destinations, Add and More. Study Bible, Tools, account/settings, search, keyboard shortcuts and theme switching are grouped inside the More menu. Account sign-in/sign-out remain in Settings; keyboard shortcuts and the public portfolio header retain their existing behavior. The menu uses the existing accessible dropdown primitive, 44px touch targets and keyboard dismissal with focus restoration.
+
+Validation: production build and ESLint passed. The focused navigation/search/service-worker/daily-life run passed 57 checks; its new theme test initially assumed the wrong default theme. With an explicit light starting state, all four new navbar checks passed, covering 320/768/1440px, menu-to-search navigation, theme changes and Escape focus restoration. Desktop and 320px header/menu screenshots were reviewed. Cloud activation gates remain unchanged.

@@ -9,7 +9,7 @@ test("secondary destinations keep navigation context and Tasks is discoverable",
   await expect(page.getByRole("link", { name: /Tasks/ }).last()).toHaveAttribute("href", "/todo");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/shared-with-me");
-  await expect(page.getByRole("link",{name:"Account and tools"})).toBeVisible();await expect(page.getByTestId("mobile-command-dock").getByRole("link",{name:"More"})).toHaveCount(0);
+  await expect(page.getByRole("button",{name:"More options", exact:true})).toBeVisible();await expect(page.getByTestId("mobile-command-dock").getByRole("link",{name:"More"})).toHaveCount(0);
 });
 
 test("workspace has one main landmark and accessible quick capture", async ({ page }) => {

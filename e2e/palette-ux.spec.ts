@@ -3,12 +3,12 @@ import { seed } from "./helpers";
 
 async function open(page: import("@playwright/test").Page, route: string) {
   await page.goto(route);
-  await page
-    .getByRole("button", {
-      name: route === "/" ? "Command Palette (⌘K)" : "Search or run command",
-      exact: true,
-    })
-    .click();
+  if (route === "/") {
+    await page.getByRole("button", { name: "Command Palette (⌘K)", exact: true }).click();
+  } else {
+    await page.getByRole("button", { name: "More options", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Search or run command" }).click();
+  }
   return page.getByRole("dialog", { name: "Command Palette", exact: true });
 }
 
