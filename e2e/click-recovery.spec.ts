@@ -16,9 +16,9 @@ test("tracker backdrop dismisses the modal and restores navigation clicks", asyn
   expect(await page.locator("[inert]").count()).toBe(0);
   await page
     .getByTestId("tracker-primary-nav")
-    .getByRole("link", { name: "Review", exact: true })
+    .getByRole("link", { name: "Progress", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/review$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 });
 
 test("focus lock offers immediate cancellation from every tracker route", async ({
@@ -41,9 +41,9 @@ test("focus lock offers immediate cancellation from every tracker route", async 
   await expect(lock).toBeHidden();
   await page
     .getByTestId("mobile-command-dock")
-    .getByRole("link", { name: "Review", exact: true })
+    .getByRole("link", { name: "Progress", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/review$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
   expect(
     await page.evaluate(() =>
       JSON.parse(localStorage.getItem("vk:focus:active")!),
@@ -68,9 +68,9 @@ test("expired focus cannot trap navigation on a page without a sprint widget", a
   await expect(page.getByTestId("focus-lock-status")).toBeHidden();
   await page
     .getByTestId("tracker-primary-nav")
-    .getByRole("link", { name: "Review", exact: true })
+    .getByRole("link", { name: "Progress", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/review$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
   const sessions = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("vk:focus:sessions")!),
   );

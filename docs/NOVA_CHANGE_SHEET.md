@@ -16,14 +16,14 @@ The product supports the whole person, not just the career timetable. Health rec
 
 ### Primary navigation
 
-**Today → Plan → Health → Review → More** on desktop and mobile.
+**Today → Plan → Health → Progress → More** on desktop and mobile.
 
 | Destination | What belongs here | Main action |
 | --- | --- | --- |
 | Today | Next useful action, top three tasks, current/next schedule block, compact enabled-module summary | Start/resume or capture the next useful action |
 | Plan | Tasks, Goals, Roadmap, Timetable; focus/study workspace reached from a planned block | Plan or begin work |
 | Health | Food, Movement, Body, Recovery; hydration and fasting are contextual tools | Log food or the selected health record |
-| Review | Daily/weekly progress, reflection, history and due study recall | Review or record progress |
+| Progress | All-domain 7/30/90-day dashboard, trends, logging coverage and saved targets; detailed reflection remains at /review | Inspect a trend or edit its source records |
 | More | Motivation, Library, Sharing, Settings, optional tools and help | Open a secondary tool |
 
 Quick capture is always reachable from the shell and Today. `/log` remains the direct capture route; it is not removed. `/motivation` stays entirely goal-oriented, rather than becoming a timer dashboard. Existing routes and bookmarks remain usable; aliases must preserve their destination and selected view. Desktop and mobile use the same names and active-state rules. A compact Motivation link is available from the goal summary, without reproducing its content on Today.
@@ -42,7 +42,7 @@ This supersedes the earlier Today/Plan/Focus/Review/More proposal: Focus becomes
 | Implemented locally | Food portions, recipes, macro/micronutrient coverage, saved/favorite foods, optional targets and typed backup/restore | Manual logging works without provider credentials; live database search needs its server key |
 | Implemented locally | Owner-only IST meal/supplement schedule, occurrence history, snooze/undo, notification opt-in and private push infrastructure | In-app checklist available; closed-site delivery requires migrations, server credentials, scheduler and a real signed-in device |
 
-Local work currently lives on `fix/click-interactions`. “Implemented locally” is not a claim that personal.buildora.work has changed. Release verification must distinguish local mode from a real authenticated cloud session.
+The earlier consolidation was merged into main at `f58d68a`. The new progress workspace lives on `fix/progress-dashboard`. “Implemented locally” is not a claim that personal.buildora.work has changed. Release verification must distinguish local mode from a real authenticated cloud session.
 
 ## 3. Full feature change matrix
 
@@ -276,3 +276,9 @@ Final production-build Chromium suite: **204 passed**. Domain/storage tests: **1
 The additional audit completed task deletion/cleanup undo, task date editing, selected-task focus, one authoritative work-session controller, cross-page study controls, study completion deduplication, Review's learning/water/movement/body records, compact routine summaries, Library naming, a direct goal-to-Motivation link, calendar-boundary consistency, provider retrieval provenance and phone editor layout recovery. Latest main's Bible curriculum and resume changes were retained.
 
 Final verification against the integrated production build: **215 Chromium tests passed** (2.3 minutes), **17 nutrition/storage/session tests passed**, and **18 curriculum/sync tests passed**. TypeScript, ESLint, production build, Bible snapshot validation (100 days / 556 chapters) and staged diff whitespace checks passed. No production credentials were added; authenticated migration, cloud/offline and real-device push gates remain pending. The scope-to-code map is in [NOVA_IMPLEMENTATION_AUDIT.md](NOVA_IMPLEMENTATION_AUDIT.md). Commit/push history on `fix/click-interactions` is the source of submission evidence.
+
+## Progress workspace extension — 4 October 2026
+
+The latest request expands the overview into a main Progress destination at /dashboard. Include weight and saved target; daily calories/macros and full micronutrient coverage; exercise days/sets/repetitions/known load/duration; water, sleep and completed fasting; separate focus and study; tasks, current-goal milestones, routine and habit completion records. Support 7/30/90-day ranges, ending-date and period navigation, accessible charts and daily readings, and direct entry/edit actions. Missing values remain unknown; partial nutrient totals must be labeled. Existing /review remains the detailed reflection route. No new inferred targets, readiness scores, exercise calories or supplement nutrient estimates.
+
+Connect detail pages through section navigation and scoped seven-day summaries. Plan must let the person choose a task and begin focus before secondary navigation. Body and weight must support dated corrections, removal/undo, independent target editing and calendar-spaced charts; preserve previous recovery observations without calculated readiness claims.

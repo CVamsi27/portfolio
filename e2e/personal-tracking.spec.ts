@@ -58,7 +58,7 @@ test("primary navigation stays clickable during an active focus session", async 
     "Today",
     "Plan",
     "Health",
-    "Review",
+    "Progress",
     "More",
   ]);
   await nav.getByRole("link", { name: "Health", exact: true }).click();

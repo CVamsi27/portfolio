@@ -49,7 +49,7 @@ test.describe("personal roadmap", () => {
 
     await page.goto("/weight-loss");
     await expect(
-      page.getByRole("heading", { name: /weight loss/i }),
+      page.getByRole("heading", { name: /body and weight/i }),
     ).toBeVisible();
     await page.getByLabel(/today'?s weight/i).fill("82.4");
     await page.getByRole("button", { name: /save weigh-in/i }).click();

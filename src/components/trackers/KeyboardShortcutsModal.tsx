@@ -27,7 +27,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ["G", "H"], description: "Go to Today Cockpit" },
       { keys: ["G", "P"], description: "Go to Plan" },
       { keys: ["G", "E"], description: "Go to Health" },
-      { keys: ["G", "V"], description: "Go to Review" },
+      { keys: ["G", "V"], description: "Go to Progress dashboard" },
       { keys: ["G", "N"], description: "Go to Food" },
       { keys: ["G", "M"], description: "Go to More" },
       { keys: ["G", "F"], description: "Go to Motivation" },

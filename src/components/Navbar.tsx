@@ -118,7 +118,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
           router.push("/health");
           e.preventDefault();
         } else if (k === "v") {
-          router.push("/review");
+          router.push("/dashboard");
           e.preventDefault();
         } else if (k === "n") {
           router.push("/food");

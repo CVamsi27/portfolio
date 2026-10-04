@@ -38,9 +38,9 @@ export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
   },
   {
     id: "review",
-    href: "/review",
-    label: "Review",
-    short: "Review",
+    href: "/dashboard",
+    label: "Progress",
+    short: "Progress",
     icon: "log",
   },
   { id: "more", href: "/more", label: "More", short: "More", icon: "settings" },
@@ -105,7 +105,7 @@ export function isPersonalPrimaryPath(pathname: string, href: string): boolean {
       "/workout-tracking",
       "/intermittent-fasting",
     ],
-    "/review": ["/log"],
+    "/dashboard": ["/review", "/log"],
     "/more": [
       "/motivation",
       "/archive",

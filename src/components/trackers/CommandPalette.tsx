@@ -63,7 +63,8 @@ export default function CommandPalette({
       ...[
         { title: "Plan", href: "/plan" },
         { title: "Health", href: "/health" },
-        { title: "Review", href: "/review" },
+        { title: "Progress dashboard", href: "/dashboard" },
+        { title: "Detailed review", href: "/review" },
         { title: "Food", href: "/food" },
         { title: "Reminders", href: "/routine" },
       ].map((item) => ({

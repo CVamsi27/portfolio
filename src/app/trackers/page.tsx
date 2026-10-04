@@ -148,6 +148,7 @@ export default function TrackersHub() {
         {modules.value.study && <RoadmapTodayCard />}
         <SectionLinks
           items={[
+            { href: "/dashboard", label: "Progress dashboard", description: "Weight, food, exercise and learning trends." },
             {
               href: "/log",
               label: "Quick capture",

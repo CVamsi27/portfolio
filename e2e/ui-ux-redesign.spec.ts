@@ -110,7 +110,7 @@ for (const theme of ["light", "dark"]) {
       await page.setViewportSize({ width, height: 900 });
       const runtimeErrors: string[] = [];
       page.on("pageerror", error => runtimeErrors.push(error.message));
-      for (const route of ["/", "/hub", "/todo", "/roadmap", "/motivation", "/log", "/more", "/settings", "/weight-loss", "/intermittent-fasting", "/workout-tracking", "/goal", "/archive", "/share", "/login", "/trackers/landing"]) {
+      for (const route of ["/", "/hub", "/dashboard", "/health", "/plan", "/review", "/food", "/todo", "/roadmap", "/motivation", "/log", "/more", "/settings", "/weight-loss", "/intermittent-fasting", "/workout-tracking", "/goal", "/archive", "/share", "/login", "/trackers/landing"]) {
         await page.goto(route);
         await expect(page.getByRole("main"), route).toHaveCount(1);
         await expect(page.getByRole("heading", { level: 1 }).first(), route).toBeVisible();

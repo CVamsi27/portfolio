@@ -16,8 +16,8 @@ test.describe("personal today cockpit", () => {
     await expect(page.getByTestId("today-details")).toHaveCount(0);
   });
 
-  test("secondary detail lives in Review instead of another Today dashboard", async ({page})=>{
-    await seed(page);await page.goto("/hub");await expect(page.getByTestId("week-pulse")).toHaveCount(0);await page.getByTestId("tracker-primary-nav").getByRole("link",{name:"Review"}).click();await expect(page.getByRole("heading",{name:"Focus",exact:true})).toBeVisible();
+  test("secondary detail lives in Progress instead of another Today dashboard", async ({page})=>{
+    await seed(page);await page.goto("/hub");await expect(page.getByTestId("week-pulse")).toHaveCount(0);await page.getByTestId("tracker-primary-nav").getByRole("link",{name:"Progress"}).click();await expect(page.getByRole("heading",{name:"Focus",exact:true})).toBeVisible();
   });
 
   test("exposes five execution destinations on desktop and mobile", async ({ page }) => {
@@ -25,13 +25,13 @@ test.describe("personal today cockpit", () => {
     await page.goto("/hub");
     const primary = page.getByTestId("tracker-primary-nav");
     await expect(primary.getByRole("link")).toHaveCount(5);
-    for (const [label, href] of [["Today", "/hub"], ["Plan", "/plan"], ["Health", "/health"], ["Review", "/review"], ["More", "/more"]] as const) {
+    for (const [label, href] of [["Today", "/hub"], ["Plan", "/plan"], ["Health", "/health"], ["Progress", "/dashboard"], ["More", "/more"]] as const) {
       await expect(primary.getByRole("link", { name: label })).toHaveAttribute("href", href);
     }
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(5);
-    await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "Review" })).toHaveAttribute("href", "/review");
+    await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/dashboard");
   });
 
   test("captures a task and note from Log", async ({ page }) => {

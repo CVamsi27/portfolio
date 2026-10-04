@@ -9,6 +9,8 @@ import TrackerActionBar from "./TrackerActionBar";
 import WorldClockStrip from "./WorldClockStrip";
 import { cn } from "@/lib/utils";
 import RoutineNotifier from "@/components/personal/RoutineNotifier";
+import PersonalSectionNavigation from "@/components/progress/PersonalSectionNavigation";
+import DomainProgressOverview from "@/components/progress/DomainProgressOverview";
 import LockdownGate from "./LockdownGate";
 
 const DEFAULT_EYEBROWS: Partial<Record<TrackerIconName, string>> = {
@@ -82,10 +84,14 @@ export default function PersonalShell({
             utility={<WorldClockStrip badge={badge} />}
           />
         )}
+        <PersonalSectionNavigation />
         {actions ? <TrackerActionBar {...actions} /> : null}
         <LockdownGate>
           <RoutineNotifier />
-          <div className="personal-content mt-5 space-y-5">{children}</div>
+          <div className="personal-content mt-5 space-y-5">
+            <DomainProgressOverview />
+            {children}
+          </div>
           <TrackerNavDock showDock={showDock} />
         </LockdownGate>
       </div>

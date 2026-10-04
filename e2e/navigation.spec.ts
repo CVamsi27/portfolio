@@ -96,7 +96,7 @@ test.describe("navigation & shell", () => {
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link")).toHaveCount(5);
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Today" })).toBeVisible();
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Plan" })).toBeVisible();
-    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Review" })).toBeVisible();
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Progress" })).toBeVisible();
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Health" })).toHaveAttribute("href", "/health");
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "More" })).toBeVisible();
   });

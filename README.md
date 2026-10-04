@@ -59,9 +59,11 @@ The approved scope and current evidence are in [NOVA change sheet](docs/NOVA_CHA
 
 ### Highlights
 
-- **Today** (`/hub`, with `/trackers` retained for compatibility) — one next action, top three tasks, contextual clocks, optional modules, and a collapsed study timetable/checklist. Primary navigation is Today → Plan → Health → Review → More.
+- **Today** (`/hub`, with `/trackers` retained for compatibility) — one next action, top three tasks, contextual clocks, optional modules, and a collapsed study timetable/checklist. Primary navigation is Today → Plan → Health → Progress → More.
 - **Health and Food** — dated meal logging, calories/macros/micronutrients with unknown-aware coverage, declared portions, saved/recent/favorite foods, recipes, optional targets, water, body records and movement. Manual logging works without external credentials.
 - **Routine** — owner-only IST meal/supplement defaults, separate completion history, snooze/skip/undo and explicit Web Push opt-in. Closed-site notifications require configured migrations, server keys and a scheduler; they are not activated by committing code.
+- **Progress dashboard** (`/dashboard`) — selectable 7/30/90-day weight, food, macro/micronutrient, exercise, water, sleep, focus/study, task/goal and routine views. Charts preserve missing days and expose daily reading tables; summaries link directly to editable source records.
+- **Body and weight** — dated weigh-ins, corrections, removal/undo, independent optional target and 30/90-day trends. Plan supports selecting the task to focus on before starting. Section navigation connects detail pages.
 - **Review and capture** — daily/weekly task, milestone, focus, study, food, sleep, movement, water and body records; quick capture and optional recovery/five-item habits.
 - **Workouts** — split-aware day tabs (PPL / Upper-Lower / Full Body / custom day builder), exercise library CRUD with reorder, structured `weight × reps` set rows, last-session prefill, kg⇄lbs display toggle (stored canonically in kg), rest timer with WebAudio chime, PRs and weekly volume.
 - **Fasting** — timestamp-derived elapsed time (immune to tab suspension drift), fasting/eating dual mode, manual past-fast entry, editable history, streak/avg/longest stats.

@@ -4,7 +4,7 @@ The consolidation covers the entire personal workspace, beyond food logging. The
 
 | Scope | Implemented behavior | Main code/evidence |
 | --- | --- | --- |
-| Navigation, search and capture | Today / Plan / Health / Review / More on phone and desktop; aliases and shortcuts retained; shell quick capture | personal-nav.ts, Navbar, CommandPalette; navigation/layout tests |
+| Navigation, search and capture | Today / Plan / Health / Progress / More on phone and desktop; aliases and shortcuts retained; shell quick capture | personal-nav.ts, Navbar, CommandPalette; navigation/layout tests |
 | Today and planning | One next action, top three tasks, collapsed study detail, optional modules; selected task carried into focus | trackers/page.tsx, plan/page.tsx; full-tracking-completion tests |
 | Tasks and goals | Priority/tag/filtering, editable task name/date, undo single deletion and completed cleanup; milestones/weekly commitment, direct Motivation access | todo/page.tsx, goal/page.tsx; task and goal suites |
 | Roadmap and Bible | Current curriculum, evidence flow, timetable/source integration, protected owner schedule | roadmap/page.tsx, personal-timetable.ts; Bible/career/timetable suites |
@@ -40,3 +40,15 @@ The shared personal shell now leads with page purpose rather than clock utilitie
 Scope: presentation and navigation hierarchy, with no changes to saved record formats, owner timetable hours, meal/supplement schedules, cloud authorization or provider configuration. Visual captures are local QA under `artifacts/ui-ux/refined-*`, not authenticated production evidence. Production setup gates in NUTRITION_AND_REMINDER_SETUP.md remain separate.
 
 Verification: final production-build Chromium regression **215 passed**; TypeScript, ESLint and build passed. The rest timer regression now pauses its clock during setup to avoid elapsed setup time invalidating an exact halfway assertion. Public portfolio behavior and personal persistence checks remain in the full suite.
+
+## Progress workspace extension — 4 October 2026
+
+- /dashboard: all-domain progress with 7/30/90-day ranges, calendar ending-date navigation, portion-aware nutrient averages/coverage/saved targets, sparse weight measurements, exercise sets/repetitions/known load/duration, water/sleep/fasting, separate focus/study and task/goal/routine/habit records.
+- personal-progress.ts: pure projection excludes tombstones, invalid readings and out-of-range records, distinguishes zero from unknown and preserves calorie/nutrient coverage. Domain tests cover calendar boundaries, portions, missing readings, exercise/session calculations and recorded zeros.
+- TrendChart: dated axes, units, gaps, screen-reader descriptions and expandable daily data tables.
+- PersonalSectionNavigation + DomainProgressOverview: detail pages connect directly to their siblings and source-backed seven-day summaries, while section roots avoid duplicated navigation.
+- Plan: task selection and focus first; pending queue and planning destinations afterward.
+- Body and weight: dated entries, corrections, removal/undo, independently editable target, 30/90-day dated chart, full history on request and retained self-reported recovery history without synthetic readiness scores.
+- Legacy /review and stored record shapes remain; Progress is the primary navigation/palette/shortcut destination. No production schema, credentials or owner timetable changes.
+
+Verification for this extension: **224 Chromium tests** and **24 domain/storage tests** passed; typecheck, lint and production build passed. Visual evidence is local QA under `artifacts/ui-ux/progress-*`. Existing authenticated/cloud/push release gates remain separate. The source-backed dashboard and connected page workflows are covered in the updated change sheet and progress workspace design.

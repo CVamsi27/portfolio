@@ -39,7 +39,7 @@ export function isTrackerPath(pathname: string): boolean {
     pathname.startsWith("/share") ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/more") ||
-    ["/plan", "/health", "/review", "/food", "/routine"].some(
+    ["/roadmap", "/plan", "/health", "/dashboard", "/review", "/food", "/routine"].some(
       (path) => pathname === path || pathname.startsWith(`${path}/`),
     )
   );
