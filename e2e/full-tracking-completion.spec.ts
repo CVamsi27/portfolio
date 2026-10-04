@@ -181,6 +181,7 @@ test("Today keeps the routine compact while all schedule items remain reachable"
   const routine = page.getByTestId("day-agenda");
   await expect(routine).toContainText("Omega-3 with lunch");
   await expect(routine.getByRole("listitem")).toHaveCount(7);
+  await page.getByText("Time zones & reminders", { exact: true }).click();
   await page
     .getByRole("link", { name: "Manage reminders", exact: true })
     .click();

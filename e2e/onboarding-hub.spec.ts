@@ -169,7 +169,7 @@ test.describe("hub command center", () => {
 
     await expect(page.getByTestId("today-header")).toContainText("Test User");
     await expect(
-      page.getByRole("heading", { name: "No time assigned" }),
+      page.getByRole("heading", { name: "Tasks to do" }),
     ).toBeVisible();
     await expect(page.getByTestId("next-move-card")).toContainText(
       "Seed open task",

@@ -499,7 +499,6 @@ export default function DailyWorkspace({
         )}
         <DaySelector date={date} today={today} onChange={setDate} />
       </div>
-      {!planning && <WorldClockStrip />}
       {planning && (
         <nav className="workspace-views" aria-label="Planning views">
           {[
@@ -607,172 +606,180 @@ export default function DailyWorkspace({
           )}
         </section>
       )}
-      {planning && view === "week" ? (
-        <section className="workspace-panel">
-          <h2>Seven-day outline</h2>
-          <div className="week-outline">
-            {Array.from({ length: 7 }, (_, i) => shiftDay(date, i)).map(
-              (day) => {
-                const blocks = Object.values(plan.blocks.value).filter(
-                  (b) => validPlanBlock(b) && !b.deleted && b.date === day,
-                );
-                const fixed = personalSchedule(user?.email, day);
-                return (
-                  <button
-                    key={day}
-                    onClick={() => {
-                      const q = new URLSearchParams({ date: day, view: "day" });
-                      router.replace(`/plan?${q}`);
-                    }}
-                  >
-                    <strong>{day}</strong>
-                    <span>{blocks.length} time blocks</span>
-                    {fixed && (
-                      <small>
-                        {Object.values(fixed).reduce(
-                          (sum, b) => sum + b.minutes,
-                          0,
-                        ) / 60}
-                        h Bible timetable
-                      </small>
-                    )}
-                    {blocks.slice(0, 3).map((b) => (
-                      <small key={b.id}>
-                        {b.startLocal} · {b.title}
-                      </small>
-                    ))}
-                  </button>
-                );
-              },
-            )}
-          </div>
-        </section>
-      ) : (
-        <section className="workspace-panel" data-testid="day-agenda">
-          <div className="workspace-heading">
-            <h2>Your day</h2>
-            {!planning && (
-              <Link href={`/plan?date=${date}`}>Edit in Plan →</Link>
-            )}
-          </div>
-          {incomplete.length ? (
-            <ol className="agenda-list">{incomplete.map(renderRow)}</ol>
-          ) : (
-            <p className="workspace-empty">
-              No timed commitments for this day. Schedule an activity in Plan or
-              add a record.
-            </p>
-          )}
-          {completed.length > 0 && (
-            <details>
-              <summary>{completed.length} completed or skipped</summary>
-              <ol className="agenda-list">{completed.map(renderRow)}</ol>
-            </details>
-          )}
-        </section>
-      )}
-      <section className="workspace-panel">
-        <div className="workspace-heading">
-          <h2>No time assigned</h2>
-          <Link href="/todo">All tasks →</Link>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Pending tasks due by this date. Pin up to three priorities.
-        </p>
-        {pending.length ? (
-          <ul className="unscheduled-list">
-            {pending.slice(0, planning ? 20 : 5).map((task) => (
-              <li key={task.id}>
-                <span>
-                  <strong>{task.text}</strong>
-                  <small>
-                    Due {task.date} · {task.priority}
-                    {priorities.includes(task.id) ? " · Priority" : ""}
-                  </small>
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {date === today && (
-                    <Link
-                      className="inline-action"
-                      href={`/plan?view=focus&task=${encodeURIComponent(task.id)}`}
-                    >
-                      Start
-                    </Link>
-                  )}
-                  {plan.enabled && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-pressed={priorities.includes(task.id)}
-                      onClick={() => togglePriority(task.id)}
-                    >
-                      {priorities.includes(task.id) ? "Unpin" : "Pin"}
-                    </Button>
-                  )}
-                  {planning && plan.enabled && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        begin();
-                        setTaskId(task.id);
-                      }}
-                    >
-                      Schedule
-                    </Button>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="workspace-empty">
-            No unscheduled tasks. Add one when you need it.
-          </p>
-        )}
-        <Link className="inline-action" href={addUrl("task")}>
-          Add task
-        </Link>
-      </section>
       {!planning && (
-        <>
-          <div
-            className="daily-quick-actions"
-            aria-label="Daily recording actions"
+        <div
+          className="daily-quick-actions"
+          role="group"
+          aria-label="Daily recording actions"
+        >
+          {modules.value.food && <Link href={addUrl("food")}>Food</Link>}
+          <Button
+            variant="outline"
+            onClick={() => {
+              water.setValue((p) => ({ ...p, [date]: (p[date] ?? 0) + 1 }));
+              setWaterUndo(date);
+              setMessage("Added one glass of water.");
+            }}
           >
-            {modules.value.food && <Link href={addUrl("food")}>Food</Link>}
+            Water +1
+          </Button>
+          {waterUndo === date && (
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => {
-                water.setValue((p) => ({ ...p, [date]: (p[date] ?? 0) + 1 }));
-                setWaterUndo(date);
-                setMessage("Added one glass of water.");
+                water.setValue((p) => ({
+                  ...p,
+                  [date]: Math.max(0, (p[date] ?? 0) - 1),
+                }));
+                setWaterUndo(null);
               }}
             >
-              Water +1
+              Undo water
             </Button>
-            {waterUndo === date && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  water.setValue((p) => ({
-                    ...p,
-                    [date]: Math.max(0, (p[date] ?? 0) - 1),
-                  }));
-                  setWaterUndo(null);
-                }}
-              >
-                Undo water
-              </Button>
+          )}
+          <Link href={addUrl("weight")}>Weight</Link>
+          {modules.value.movement && (
+            <Link href={addUrl("exercise")}>Exercise</Link>
+          )}
+          {modules.value.recovery && <Link href={addUrl("sleep")}>Sleep</Link>}
+        </div>
+      )}
+      <div className={`daily-agenda-layout${planning ? " is-planning" : ""}`}>
+        {planning && view === "week" ? (
+          <section className="workspace-panel">
+            <h2>Seven-day outline</h2>
+            <div className="week-outline">
+              {Array.from({ length: 7 }, (_, i) => shiftDay(date, i)).map(
+                (day) => {
+                  const blocks = Object.values(plan.blocks.value).filter(
+                    (b) => validPlanBlock(b) && !b.deleted && b.date === day,
+                  );
+                  const fixed = personalSchedule(user?.email, day);
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => {
+                        const q = new URLSearchParams({
+                          date: day,
+                          view: "day",
+                        });
+                        router.replace(`/plan?${q}`);
+                      }}
+                    >
+                      <strong>{day}</strong>
+                      <span>{blocks.length} time blocks</span>
+                      {fixed && (
+                        <small>
+                          {Object.values(fixed).reduce(
+                            (sum, b) => sum + b.minutes,
+                            0,
+                          ) / 60}
+                          h Bible timetable
+                        </small>
+                      )}
+                      {blocks.slice(0, 3).map((b) => (
+                        <small key={b.id}>
+                          {b.startLocal} · {b.title}
+                        </small>
+                      ))}
+                    </button>
+                  );
+                },
+              )}
+            </div>
+          </section>
+        ) : (
+          <section className="workspace-panel" data-testid="day-agenda">
+            <div className="workspace-heading">
+              <h2>Your day</h2>
+              {!planning && (
+                <Link href={`/plan?date=${date}`}>Edit in Plan →</Link>
+              )}
+            </div>
+            {incomplete.length ? (
+              <ol className="agenda-list">{incomplete.map(renderRow)}</ol>
+            ) : (
+              <p className="workspace-empty">
+                No timed commitments for this day. Schedule an activity in Plan
+                or add a record.
+              </p>
             )}
-            <Link href={addUrl("weight")}>Weight</Link>
-            {modules.value.movement && (
-              <Link href={addUrl("exercise")}>Exercise</Link>
+            {completed.length > 0 && (
+              <details>
+                <summary>{completed.length} completed or skipped</summary>
+                <ol className="agenda-list">{completed.map(renderRow)}</ol>
+              </details>
             )}
-            {modules.value.recovery && (
-              <Link href={addUrl("sleep")}>Sleep</Link>
+          </section>
+        )}
+        {(planning || pending.length > 0) && (
+          <section className="workspace-panel task-queue-panel">
+            <div className="workspace-heading">
+              <h2>Tasks to do</h2>
+              <Link href="/todo">All tasks →</Link>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pending tasks due by this date. Pin up to three priorities.
+            </p>
+            {pending.length ? (
+              <ul className="unscheduled-list">
+                {pending.slice(0, planning ? 20 : 5).map((task) => (
+                  <li key={task.id}>
+                    <span>
+                      <strong>{task.text}</strong>
+                      <small>
+                        Due {task.date} · {task.priority}
+                        {priorities.includes(task.id) ? " · Priority" : ""}
+                      </small>
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {date === today && (
+                        <Link
+                          className="inline-action"
+                          href={`/plan?view=focus&task=${encodeURIComponent(task.id)}`}
+                        >
+                          Start
+                        </Link>
+                      )}
+                      {plan.enabled && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-pressed={priorities.includes(task.id)}
+                          onClick={() => togglePriority(task.id)}
+                        >
+                          {priorities.includes(task.id) ? "Unpin" : "Pin"}
+                        </Button>
+                      )}
+                      {planning && plan.enabled && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            begin();
+                            setTaskId(task.id);
+                          }}
+                        >
+                          Schedule
+                        </Button>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="workspace-empty">
+                No unscheduled tasks. Add one when you need it.
+              </p>
             )}
-          </div>
+            <Link className="inline-action" href={addUrl("task")}>
+              Add task
+            </Link>
+          </section>
+        )}
+      </div>
+      {!planning && (
+        <>
           <section
             data-editorial-telemetry
             className="recorded-strip"
@@ -797,9 +804,13 @@ export default function DailyWorkspace({
           >
             Review this day →
           </Link>
-          <Link className="capture-return" href="/settings#reminders">
-            Manage reminders
-          </Link>
+          <details className="daily-utilities">
+            <summary>Time zones &amp; reminders</summary>
+            <WorldClockStrip />
+            <Link className="capture-return" href="/settings#reminders">
+              Manage reminders
+            </Link>
+          </details>
         </>
       )}
       <Modal

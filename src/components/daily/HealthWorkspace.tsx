@@ -136,14 +136,6 @@ export default function HealthWorkspace() {
         </section>
       ) : (
         <>
-          <div className="daily-quick-actions">
-            {modules.value.food && <Link href={add("food")}>Add food</Link>}
-            {modules.value.movement && (
-              <Link href={add("exercise")}>Record exercise</Link>
-            )}
-            <Link href={add("weight")}>Weigh in</Link>
-            <Link href={add("sleep")}>Record sleep</Link>
-          </div>
           <section className="workspace-panel">
             <h2>Health records · {date}</h2>
             <ul className="health-record-list">
@@ -157,7 +149,12 @@ export default function HealthWorkspace() {
                         : "No food logged"}
                     </small>
                   </span>
-                  <Link href={`/food?date=${date}`}>Open diary →</Link>
+                  <div className="health-record-actions">
+                    <Link className="inline-action" href={add("food")}>
+                      Add food
+                    </Link>
+                    <Link href={`/food?date=${date}`}>Open diary →</Link>
+                  </div>
                 </li>
               )}
               {modules.value.movement && (
@@ -170,9 +167,14 @@ export default function HealthWorkspace() {
                         : "No exercise logged"}
                     </small>
                   </span>
-                  <Link href={`/workout-tracking?date=${date}`}>
-                    Open session →
-                  </Link>
+                  <div className="health-record-actions">
+                    <Link className="inline-action" href={add("exercise")}>
+                      Record exercise
+                    </Link>
+                    <Link href={`/workout-tracking?date=${date}`}>
+                      Open session →
+                    </Link>
+                  </div>
                 </li>
               )}
               <li>
@@ -184,7 +186,14 @@ export default function HealthWorkspace() {
                       : "No weigh-in for this date"}
                   </small>
                 </span>
-                <Link href={`/weight-loss?date=${date}`}>Weight history →</Link>
+                <div className="health-record-actions">
+                  <Link className="inline-action" href={add("weight")}>
+                    Weigh in
+                  </Link>
+                  <Link href={`/weight-loss?date=${date}`}>
+                    Weight history →
+                  </Link>
+                </div>
               </li>
               <li>
                 <span>
@@ -195,8 +204,11 @@ export default function HealthWorkspace() {
                       : `${d.sleepAverage} hours recorded`}
                   </small>
                 </span>
-                <Link href={`/health?view=recovery&date=${date}`}>
-                  Edit sleep →
+                <Link
+                  className="inline-action"
+                  href={`/health?view=recovery&date=${date}`}
+                >
+                  {d.sleepAverage === null ? "Record sleep" : "Edit sleep"} →
                 </Link>
               </li>
               <li>

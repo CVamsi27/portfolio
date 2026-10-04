@@ -80,6 +80,7 @@ test.describe("personal roadmap", () => {
     await seed(page);
     await page.goto("/hub");
 
+    await page.getByText("Time zones & reminders", { exact: true }).click();
     await expect(page.getByTestId("world-clock-strip")).toContainText("Munich");
     await expect(page.getByTestId("world-clock-strip")).toContainText(
       "San Francisco",

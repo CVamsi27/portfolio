@@ -20,7 +20,6 @@ export default function TrackersHub() {
         showBack={false}
         title="Today"
         icon="hub"
-        subtitle="Work, meals, movement and reminders — one day at a time."
       >
         <Suspense fallback={<p>Loading your day…</p>}>
           <DailyWorkspace />

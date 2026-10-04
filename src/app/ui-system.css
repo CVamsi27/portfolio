@@ -501,3 +501,24 @@
 
 .workspace-views button[aria-pressed=true] { background:var(--color-primary); color:var(--color-primary-foreground); }
 .progress-panel-grid>.progress-panel:only-child { grid-column:1/-1; }
+
+/* Daily execution: one focal action, compact capture, agenda with a task rail. */
+.daily-agenda-layout { display:grid; grid-template-columns:minmax(0, 1fr); gap:1.25rem; align-items:start; }
+.daily-agenda-layout > .workspace-panel { min-width:0; }
+.daily-agenda-layout > .task-queue-panel { background:transparent; }
+.daily-utilities { border-top:1px solid var(--color-border); padding-top:.5rem; }
+.daily-utilities > summary { color:var(--color-muted-foreground); font-size:.8125rem; }
+.daily-utilities .dossier-world-clock { margin-top:.75rem; }
+.tracker-surface .dossier-chapter-header--compact { padding-bottom:.75rem; }
+.tracker-surface .dossier-chapter-header--compact h1 { font-size:clamp(1.6rem, 3vw, 2rem); }
+.tracker-surface .chapter-heading-layout:not(:has(.dossier-utility)) { grid-template-columns:minmax(0, 1fr); }
+@media(min-width:1024px) {
+  .daily-agenda-layout:has(.task-queue-panel) { grid-template-columns:minmax(0, 1fr) minmax(16rem, 20rem); }
+  .daily-agenda-layout.is-planning { grid-template-columns:minmax(0, 1fr); }
+}
+.health-record-actions { display:flex; align-items:center; flex-wrap:wrap; gap:.75rem; }
+@media(min-width:768px) {
+  .agenda-body { grid-template-columns:minmax(0, 1fr) auto; align-items:center; }
+  .agenda-body > :is(strong, p, small) { grid-column:1; }
+  .agenda-actions { grid-column:2; grid-row:1 / span 3; justify-content:flex-end; margin-top:0; }
+}
