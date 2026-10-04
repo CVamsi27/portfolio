@@ -42,8 +42,9 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     details: [
       "Own end-to-end development across 5 core workflows in a multi-tenant healthcare SaaS: scheduling, patient records, prescriptions, billing and inventory, delivered through a TypeScript monorepo.",
       "Build React/Vite clinical forms and server-state updates with TanStack Query, React Hook Form and shared Zod contracts, handling validation, pending submissions and API errors.",
-      "Develop NestJS, Prisma and PostgreSQL APIs with tenant-scoped authorization, resource-level access policies, migrations and transactional writes; implement Row-Level Security policies, field encryption and sensitive-data audit logging.",
+      "Develop NestJS, Prisma and PostgreSQL APIs with tenant-scoped authorization, resource-level access policies and transactional writes; implement Row-Level Security policies, field encryption and sensitive-data audit logging.",
       "Implement PostgreSQL-backed background jobs and a transactional outbox with bounded retries and dead-letter replay; integrate HMAC-verified payment webhooks and asynchronous document workflows.",
+      "Validated appointment-list indexing on 78,000 generated records across 25 simulated clinics: the existing composite index returned 20 rows without sorting versus a 3,120-row scan and sort in a local PostgreSQL benchmark.",
       "Built an internal operational dashboard for clinic activity, API latency percentiles and error rates; maintain Jest/Vitest/Playwright checks and deliver API, worker and frontend releases with Docker, Fly.io, AWS RDS and Cloudflare."
     ]
   },
