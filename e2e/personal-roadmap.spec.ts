@@ -104,6 +104,7 @@ test.describe("personal roadmap", () => {
     await seed(page);
     await page.goto("/archive");
 
+    await page.getByRole("button", { name: "Add item", exact: true }).click();
     await page
       .getByLabel("Capture", { exact: true })
       .fill("A useful visa checklist from Berlin");
@@ -133,6 +134,7 @@ test.describe("personal roadmap", () => {
     });
     await page.goto("/archive");
 
+    await page.getByRole("button", { name: "Add item", exact: true }).click();
     await page.getByRole("button", { name: /image/i }).click();
     await page
       .getByLabel("Capture", { exact: true })
@@ -268,6 +270,7 @@ test.describe("personal roadmap", () => {
       "href",
       /study\.buildora\.work\/10-frontend\/10\.1-javascript/,
     );
+    await page.getByRole("button", { name: "Curriculum", exact: true }).click();
     await page.getByText("How to complete this task").first().click();
     await expect(
       page.getByText(

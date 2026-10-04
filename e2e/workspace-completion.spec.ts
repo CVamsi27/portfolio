@@ -175,6 +175,7 @@ test("mobile milestone names have room beside touch controls", async ({
   await page.setViewportSize({ width: 320, height: 900 });
   await seed(page);
   await page.goto("/goal");
+  await page.getByRole("button", { name: "Milestones", exact: true }).click();
   const name = page.locator(".milestone-name").first();
   await expect(name).toBeVisible();
   expect((await name.boundingBox())!.width).toBeGreaterThan(150);

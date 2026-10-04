@@ -148,6 +148,7 @@ export default function MotivationPage() {
         eyebrow="Your purpose"
         subtitle="Keep your goal close. Take one meaningful step today."
       >
+        <a className="capture-return" href="/goal">← Goal and milestones</a>
         <FocusScene
           goalTitle={displayGoalTitle(prefs)}
           goalLabel={label}

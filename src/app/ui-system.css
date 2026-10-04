@@ -522,3 +522,35 @@
   .agenda-body > :is(strong, p, small) { grid-column:1; }
   .agenda-actions { grid-column:2; grid-row:1 / span 3; justify-content:flex-end; margin-top:0; }
 }
+
+/* Shared personal workspaces: quiet context, distinct tools, readable records. */
+.workspace-section-stack { display:grid; gap:1.25rem; min-width:0; }
+[hidden] { display:none !important; }
+.tracker-surface .workspace-views { gap:1rem; border-bottom:1px solid var(--color-border); padding-bottom:0; }
+.tracker-surface .workspace-views :is(a,button) { background:transparent; color:var(--color-muted-foreground); border:0; border-bottom:2px solid transparent; border-radius:0; min-height:48px; padding:.65rem .25rem; font-size:.875rem; white-space:nowrap; }
+.tracker-surface .workspace-views :is([aria-current=page],[aria-pressed=true]) { background:transparent; color:var(--color-foreground); border-bottom-color:var(--color-primary); font-weight:650; }
+.tracker-surface .workspace-views :is(a,button):focus-visible { outline:2px solid var(--color-ring); outline-offset:-2px; }
+.tracker-surface .personal-content > :is(.dossier-card,.dossier-panel) { box-shadow:none; }
+.tracker-surface .dossier-chapter-header--compact h1 { margin-top:0; }
+.tracker-surface .chapter-heading-action { margin-top:.5rem; }
+.tracker-surface .progress-summary-button { min-height:105px; padding:1rem; gap:.35rem; }
+.nova-welcome { display:grid; gap:3rem; padding-block:2rem; }
+.nova-welcome-primary { background:var(--color-primary); color:var(--color-primary-foreground); padding:.75rem 1.25rem; }
+.nova-welcome-grid { display:grid; gap:1.5rem; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.nova-welcome-grid section { border-top:1px solid var(--color-border); padding-top:1.25rem; }
+@media(max-width:640px) {
+  .nova-welcome-grid { grid-template-columns:minmax(0,1fr); }
+  .tracker-surface .progress-summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+  .tracker-surface .progress-summary-button { min-height:120px; }
+  .tracker-surface .progress-summary-button span { font-size:1rem; }
+}
+.chapter-context-row { display:flex; align-items:center; flex-wrap:wrap; gap:.25rem 1rem; margin-top:.35rem; }
+.chapter-context-row .dossier-utility { margin-left:auto; }
+.chapter-help { font-size:.8125rem; color:var(--color-muted-foreground); }
+.chapter-help > summary { min-height:44px; display:flex; align-items:center; cursor:pointer; }
+.chapter-help > p { max-width:40rem; padding:.5rem 0; line-height:1.6; }
+@media(max-width:640px) {
+  .chapter-study-row { flex-wrap:wrap; padding:.5rem 0; }
+  .chapter-study-row > div:first-child { flex:1 0 100%; }
+  .chapter-study-row > div:last-child { margin-left:1.25rem; }
+}

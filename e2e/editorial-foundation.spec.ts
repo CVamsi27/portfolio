@@ -5,7 +5,7 @@ test("editorial foundation exposes semantic surfaces and an action hierarchy", a
   await seed(page);
   await page.goto("/trackers");
   await expect(page.locator('section.editorial-frame[data-surface="archive"]')).toBeVisible();
-  await expect(page.locator("[data-editorial-kicker]").first()).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, exact: true, name: "Today" })).toBeVisible();
   await expect(page.locator("[data-editorial-action]").first()).toBeVisible();
   await expect(page.locator("[data-editorial-telemetry]").first()).toBeVisible();
 });
@@ -47,7 +47,7 @@ test("desktop and mobile shells keep the primary action visible", async ({ page 
   for (const route of ["/trackers", "/share", "/shared-with-me", "/settings", "/login", "/motivation"]) {
     await page.goto(route);
     await expect(page.locator("[data-editorial-chapter], [data-testid='today-header']").first()).toBeVisible();
-    await expect(page.locator("[data-editorial-kicker], .dossier-kicker").first()).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   }
   });
 

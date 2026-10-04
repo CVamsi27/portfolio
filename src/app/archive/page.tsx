@@ -14,6 +14,7 @@ import {
   StickyNote,
   Trash2,
 } from "lucide-react";
+import Modal from "@/components/trackers/Modal";
 import RequireAuth from "@/components/auth/RequireAuth";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -69,6 +70,7 @@ function ArchiveImage({ src, alt }: { src: string; alt: string }) {
 }
 
 export default function ArchivePage() {
+  const [captureOpen, setCaptureOpen] = useState(false);
   const { prefs } = useUserPrefs();
   const { value, setValue } = useSyncedStorage<ArchiveItem[]>(
     "archive:items",
@@ -167,6 +169,7 @@ export default function ArchivePage() {
       setGoalFilter("all");
     setQuery("");
     setFeedback({ message: "Saved to library" });
+    setCaptureOpen(false);
     setBody("");
     setTags("");
     setSourceUrl("");
@@ -297,96 +300,120 @@ export default function ArchivePage() {
             ) : null}
           </div>
         ) : null}
-        <Card variant="dossier">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2">
-              <Archive className="h-4 w-4 text-primary" />
-              <h2 className="font-display font-bold">Quick capture</h2>
-            </div>
-            <div className="mt-4">
-              <Segmented
-                label="Library item type"
-                options={KINDS.map(({ value, label }) => ({ value, label }))}
-                value={kind}
-                onChange={(next) => {
-                  setKind(next);
-                  setUrlError(null);
-                }}
-              />
-            </div>
-            <label
-              htmlFor="archive-capture"
-              className="mt-3 block text-sm font-medium"
-            >
-              Capture
-            </label>
-            <Textarea
-              id="archive-capture"
-              aria-label="Capture"
-              className="mt-3 min-h-24"
-              value={body}
-              onChange={(event) => setBody(event.target.value)}
-              placeholder={
-                kind === "quote"
-                  ? "Save the exact words worth returning to…"
-                  : "Write the useful thing before it disappears…"
-              }
-            />
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <label className="space-y-1.5 text-sm font-medium">
-                Tags
-                <Input
-                  aria-label="Tags"
-                  value={tags}
-                  onChange={(event) => setTags(event.target.value)}
-                  placeholder="Tags, comma separated"
+        <div className="workspace-heading">
+          <p className="text-sm text-muted-foreground">
+            Find saved notes, links and references.
+          </p>
+          <Button onClick={() => setCaptureOpen(true)}>Add item</Button>
+        </div>
+        <Modal
+          title="Add library item"
+          open={captureOpen}
+          onClose={() => {
+            if (
+              (body.trim() || sourceUrl.trim() || tags.trim()) &&
+              !window.confirm("Discard the unsaved library item?")
+            )
+              return;
+            setBody("");
+            setTags("");
+            setSourceUrl("");
+            setCaptureOpen(false);
+          }}
+        >
+          <Card variant="dossier">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2">
+                <Archive className="h-4 w-4 text-primary" />
+                <h2 className="font-display font-bold">Quick capture</h2>
+              </div>
+              <div className="mt-4">
+                <Segmented
+                  label="Library item type"
+                  options={KINDS.map(({ value, label }) => ({ value, label }))}
+                  value={kind}
+                  onChange={(next) => {
+                    setKind(next);
+                    setUrlError(null);
+                  }}
                 />
-              </label>
-              <label className="space-y-1.5 text-sm font-medium">
-                Source URL
-                <Input
-                  aria-label="Source URL"
-                  aria-invalid={Boolean(urlError)}
-                  aria-describedby={urlError ? "archive-url-error" : undefined}
-                  value={sourceUrl}
-                  onChange={(event) => setSourceUrl(event.target.value)}
-                  placeholder={
-                    kind === "image"
-                      ? "HTTPS image URL"
-                      : kind === "link"
-                        ? "Source URL (required)"
-                        : "Source URL (optional)"
-                  }
-                />
-              </label>
-            </div>
-            {urlError ? (
-              <p
-                id="archive-url-error"
-                role="alert"
-                className="mt-2 text-sm text-destructive"
+              </div>
+              <label
+                htmlFor="archive-capture"
+                className="mt-3 block text-sm font-medium"
               >
-                {urlError}
-              </p>
-            ) : null}
-            <div className="mt-3">
-              <Segmented
-                label="Link to goal"
-                options={[
-                  { value: prefs.goalCategory, label: currentGoalLabel },
-                  { value: "none", label: "No goal" },
-                ]}
-                value={linkGoal}
-                onChange={setLinkGoalOverride}
+                Capture
+              </label>
+              <Textarea
+                id="archive-capture"
+                aria-label="Capture"
+                className="mt-3 min-h-24"
+                value={body}
+                onChange={(event) => setBody(event.target.value)}
+                placeholder={
+                  kind === "quote"
+                    ? "Save the exact words worth returning to…"
+                    : "Write the useful thing before it disappears…"
+                }
               />
-            </div>
-            <div className="mt-3 flex justify-end">
-              <Button onClick={save} disabled={!body.trim()}>
-                Save to library
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="space-y-1.5 text-sm font-medium">
+                  Tags
+                  <Input
+                    aria-label="Tags"
+                    value={tags}
+                    onChange={(event) => setTags(event.target.value)}
+                    placeholder="Tags, comma separated"
+                  />
+                </label>
+                <label className="space-y-1.5 text-sm font-medium">
+                  Source URL
+                  <Input
+                    aria-label="Source URL"
+                    aria-invalid={Boolean(urlError)}
+                    aria-describedby={
+                      urlError ? "archive-url-error" : undefined
+                    }
+                    value={sourceUrl}
+                    onChange={(event) => setSourceUrl(event.target.value)}
+                    placeholder={
+                      kind === "image"
+                        ? "HTTPS image URL"
+                        : kind === "link"
+                          ? "Source URL (required)"
+                          : "Source URL (optional)"
+                    }
+                  />
+                </label>
+              </div>
+              {urlError ? (
+                <p
+                  id="archive-url-error"
+                  role="alert"
+                  className="mt-2 text-sm text-destructive"
+                >
+                  {urlError}
+                </p>
+              ) : null}
+              <div className="mt-3">
+                <Segmented
+                  label="Link to goal"
+                  options={[
+                    { value: prefs.goalCategory, label: currentGoalLabel },
+                    { value: "none", label: "No goal" },
+                  ]}
+                  value={linkGoal}
+                  onChange={setLinkGoalOverride}
+                />
+              </div>
+              <div className="mt-3 flex justify-end">
+                <Button onClick={save} disabled={!body.trim()}>
+                  Save to library
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </Modal>
         <Card variant="dossier">
           <CardContent className="p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -1,4 +1,9 @@
 "use client";
+import Link from "next/link";
+import DaySelector from "@/components/daily/DaySelector";
+import WorkspaceViews from "@/components/daily/WorkspaceViews";
+import { useWorkspaceView } from "@/lib/use-workspace-view";
+import { safeReturn } from "@/components/daily/CaptureWorkspace";
 
 import { useEffect, useMemo, useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
@@ -39,8 +44,6 @@ import {
   useWorkouts,
 } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
-import SignalPanel from "@/components/trackers/SignalPanel";
-import StoryPanel from "@/components/trackers/StoryPanel";
 import PlateCalculator from "@/components/trackers/PlateCalculator";
 import {
   ArrowDown,
@@ -62,6 +65,10 @@ import {
 type DayLog = Record<string, ExerciseLog>;
 
 export default function WorkoutPage() {
+  const [view, setView] = useWorkspaceView(
+    ["session", "history", "plan"],
+    "session",
+  );
   useMigrateWorkouts();
   const { prefs, setPrefs } = useUserPrefs();
   const { value: logs, setValue: setLogs, status } = useWorkouts();
@@ -89,11 +96,24 @@ export default function WorkoutPage() {
   );
 
   const [weekOffset, setWeekOffset] = useState(0);
-  const [selected, setSelected] = useState(() => {
+  const [selected, updateSelected] = useState(() => {
     if (typeof window === "undefined") return dateKey();
     const day = new URLSearchParams(window.location.search).get("date");
     return day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : dateKey();
   });
+  const setSelected = (day: string) => {
+    updateSelected(day);
+    const query = new URLSearchParams(window.location.search);
+    query.set("date", day);
+    window.history.replaceState(null, "", `/workout-tracking?${query}`);
+  };
+  const requestedReturn =
+    typeof window === "undefined"
+      ? null
+      : new URLSearchParams(window.location.search).get("returnTo");
+  const returnTo = requestedReturn
+    ? safeReturn(requestedReturn)
+    : `/health?date=${selected}`;
   const [sessionReview, setSessionReview] = useState(false);
   const [restTimer, setRestTimer] = useState<{ seconds: number } | null>(null);
   const [plateCalcOpen, setPlateCalcOpen] = useState(false);
@@ -312,8 +332,33 @@ export default function WorkoutPage() {
           ),
         }}
       >
-        <details className="workspace-panel">
-          <summary>Workout plan and split settings</summary>
+        <WorkspaceViews
+          label="Workout views"
+          value={view}
+          onChange={setView}
+          views={[
+            { id: "session", label: "Session" },
+            { id: "history", label: "History" },
+            { id: "plan", label: "Plan" },
+          ]}
+        />
+        <section className="workspace-panel" hidden={view !== "plan"}>
+          <h2>Workout plan</h2>
+          <p className="workspace-empty">
+            Choose your split in Settings. Session lets you choose a training
+            day and record sets.
+          </p>
+          <Link className="inline-action" href="/settings#profile">
+            Change workout split
+          </Link>
+          {prefs.workoutSplit === "custom" && (
+            <Button variant="outline" onClick={() => setDayBuilderOpen(true)}>
+              Manage training days
+            </Button>
+          )}
+        </section>
+        <div className="workspace-section-stack" hidden={view !== "session"}>
+          <DaySelector date={selected} today={today} onChange={setSelected} />
           {/* ── Header controls: split day tabs + unit toggle ── */}
           <Card variant="dossier" id="exercise-logger">
             <CardContent className="space-y-3 p-4">
@@ -386,194 +431,198 @@ export default function WorkoutPage() {
               </p>
             </CardContent>
           </Card>
-        </details>
 
-        {plateCalcOpen ? (
-          <PlateCalculator
-            unit={unit}
-            onClose={() => setPlateCalcOpen(false)}
-          />
-        ) : null}
+          {plateCalcOpen ? (
+            <PlateCalculator
+              unit={unit}
+              onClose={() => setPlateCalcOpen(false)}
+            />
+          ) : null}
 
-        {/* ── Week strip ── */}
-        <Card variant="dossier">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setWeekOffset((w) => w - 1)}
-              >
-                <ChevronLeft className="mr-1 h-4 w-4" /> Prev
-              </Button>
-              <p className="text-sm font-semibold">
-                {weekOffset === 0
-                  ? "This week"
-                  : weekOffset > 0
-                    ? `+${weekOffset} wk`
-                    : `${weekOffset} wk`}
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={weekOffset >= 0}
-                onClick={() => setWeekOffset((w) => w + 1)}
-              >
-                Next <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
-            <div className="mt-3 grid grid-cols-7 gap-1.5">
-              {weekDaysForStrip.map((d) => {
-                const k = dateKey(d);
-                const isToday = k === today;
-                const logged = sessionDates.has(k);
-                const isSel = k === selected;
-                return (
-                  <button
-                    key={k}
-                    onClick={() => setSelected(k)}
-                    className={cn(
-                      "rounded-xl border px-1 py-2 text-center transition-all",
-                      isSel
-                        ? "border-primary bg-primary/10 font-semibold shadow-sm"
-                        : "border-border/60 hover:bg-accent",
-                      isToday && !isSel && "ring-1 ring-primary/40",
-                    )}
-                  >
-                    <span className="block text-xs uppercase text-muted-foreground">
-                      {d.toLocaleDateString("en-US", { weekday: "narrow" })}
-                    </span>
-                    <span className="block text-sm tabular-nums">
-                      {d.getDate()}
-                    </span>
-                    <span
-                      className={cn(
-                        "mx-auto mt-1 block h-1.5 w-1.5 rounded-full",
-                        logged ? "bg-emerald-500" : "bg-muted",
-                      )}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <Stat
-                label="Done today"
-                value={`${doneCount}/${exercises.length}`}
-              />
-              <Stat label="Sessions wk" value={`${weekSessions}`} />
-              <Stat label="Complete" value={`${dayPct}%`} accent />
-            </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full bg-[var(--color-dossier-lime)] transition-all"
-                style={{ width: `${dayPct}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
+          {/* ── Exercise logger ── */}
+          <Card variant="dossier">
+            <CardContent className="space-y-3 p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display font-bold">Session · {selected}</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExModal({ mode: "add" })}
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" /> Exercise
+                </Button>
+              </div>
 
-        {/* ── Exercise logger ── */}
-        <Card variant="dossier">
-          <CardContent className="space-y-3 p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display font-bold">Session · {selected}</h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setExModal({ mode: "add" })}
-              >
-                <Plus className="mr-1 h-3.5 w-3.5" /> Exercise
-              </Button>
-            </div>
-
-            {exercises.length === 0 ? (
-              <EmptyState
-                icon={Dumbbell}
-                title="No exercises on this day yet"
-                hint="Add your first exercise — name, target sets and reps. It becomes part of this split day."
-                action={
-                  <Button size="sm" onClick={() => setExModal({ mode: "add" })}>
-                    <Plus className="mr-1.5 h-4 w-4" /> Add exercise
-                  </Button>
-                }
-              />
-            ) : (
-              exercises.map((ex, idx) => (
-                <ExerciseCard
-                  key={ex.id}
-                  ex={ex}
-                  index={idx}
-                  log={dayLog[ex.id]}
-                  unit={unit}
-                  logs={safeLogs}
-                  selected={selected}
-                  onToggle={() => toggleDone(ex.id)}
-                  onSetField={(i, f, v) => setSetField(ex.id, i, f, v)}
-                  onAddSet={() => addSet(ex.id)}
-                  onRemoveSet={(i) => removeSet(ex.id, i)}
-                  onMinutes={(m) => setMinutes(ex.id, m)}
-                  onPrefill={() => prefillLastSession(ex.id)}
-                  onEdit={() => setExModal({ mode: "edit", index: idx })}
-                  onDelete={() => deleteExercise(idx)}
-                  onMove={(dir) => moveExercise(idx, dir)}
-                  onRest={(s) => setRestTimer({ seconds: s })}
+              {exercises.length === 0 ? (
+                <EmptyState
+                  icon={Dumbbell}
+                  title="No exercises on this day yet"
+                  hint="Add your first exercise — name, target sets and reps. It becomes part of this split day."
+                  action={
+                    <Button
+                      size="sm"
+                      onClick={() => setExModal({ mode: "add" })}
+                    >
+                      <Plus className="mr-1.5 h-4 w-4" /> Add exercise
+                    </Button>
+                  }
                 />
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                exercises.map((ex, idx) => (
+                  <ExerciseCard
+                    key={ex.id}
+                    ex={ex}
+                    index={idx}
+                    log={dayLog[ex.id]}
+                    unit={unit}
+                    logs={safeLogs}
+                    selected={selected}
+                    onToggle={() => toggleDone(ex.id)}
+                    onSetField={(i, f, v) => setSetField(ex.id, i, f, v)}
+                    onAddSet={() => addSet(ex.id)}
+                    onRemoveSet={(i) => removeSet(ex.id, i)}
+                    onMinutes={(m) => setMinutes(ex.id, m)}
+                    onPrefill={() => prefillLastSession(ex.id)}
+                    onEdit={() => setExModal({ mode: "edit", index: idx })}
+                    onDelete={() => deleteExercise(idx)}
+                    onMove={(dir) => moveExercise(idx, dir)}
+                    onRest={(s) => setRestTimer({ seconds: s })}
+                  />
+                ))
+              )}
+            </CardContent>
+          </Card>
 
-        {/* ── Post-session summary ── */}
-        {dayPct === 100 && exercises.length > 0 && (
-          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-4">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-500">
-              Session complete
-            </p>
-            <p className="mt-1 font-display text-lg font-bold">
-              Full session logged. Outstanding effort.
-            </p>
-            <div className="mt-3 grid grid-cols-3 gap-3 text-center text-xs">
-              <div>
-                <p className="font-mono text-xl font-bold tabular-nums text-emerald-400">
-                  {exercises.reduce(
-                    (acc, ex) => acc + (dayLog[ex.id]?.sets?.length ?? 0),
-                    0,
-                  )}
-                </p>
-                <p className="text-muted-foreground">Sets logged</p>
-              </div>
-              <div>
-                <p className="font-mono text-xl font-bold tabular-nums text-emerald-400">
-                  {Math.round(
-                    exercises.reduce((acc, ex) => {
-                      const sets = dayLog[ex.id]?.sets ?? [];
-                      return (
-                        acc +
-                        sets.reduce(
-                          (s, set) => s + (set.weightKg ?? 0) * (set.reps ?? 0),
-                          0,
-                        )
-                      );
-                    }, 0),
-                  )}{" "}
-                  kg
-                </p>
-                <p className="text-muted-foreground">Volume</p>
-              </div>
-              <div>
-                <p className="font-mono text-lg font-bold tabular-nums text-emerald-400 truncate">
-                  {prs[0]?.ex?.name?.split(" ")[0] ?? "—"}
-                </p>
-                <p className="text-muted-foreground">Top PR</p>
+          {/* ── Post-session summary ── */}
+          {dayPct === 100 && exercises.length > 0 && (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-4">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-500">
+                Session complete
+              </p>
+              <p className="mt-1 font-display text-lg font-bold">
+                Full session logged. Outstanding effort.
+              </p>
+              <div className="mt-3 grid grid-cols-3 gap-3 text-center text-xs">
+                <div>
+                  <p className="font-mono text-xl font-bold tabular-nums text-emerald-400">
+                    {exercises.reduce(
+                      (acc, ex) => acc + (dayLog[ex.id]?.sets?.length ?? 0),
+                      0,
+                    )}
+                  </p>
+                  <p className="text-muted-foreground">Sets logged</p>
+                </div>
+                <div>
+                  <p className="font-mono text-xl font-bold tabular-nums text-emerald-400">
+                    {Math.round(
+                      exercises.reduce((acc, ex) => {
+                        const sets = dayLog[ex.id]?.sets ?? [];
+                        return (
+                          acc +
+                          sets.reduce(
+                            (s, set) =>
+                              s + (set.weightKg ?? 0) * (set.reps ?? 0),
+                            0,
+                          )
+                        );
+                      }, 0),
+                    )}{" "}
+                    kg
+                  </p>
+                  <p className="text-muted-foreground">Volume</p>
+                </div>
+                <div>
+                  <p className="font-mono text-lg font-bold tabular-nums text-emerald-400 truncate">
+                    {prs[0]?.ex?.name?.split(" ")[0] ?? "—"}
+                  </p>
+                  <p className="text-muted-foreground">Top PR</p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+        <section
+          hidden={view !== "history"}
+          className="workspace-section-stack"
+        >
+          {/* ── Week strip ── */}
+          <Card variant="dossier">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setWeekOffset((w) => w - 1)}
+                >
+                  <ChevronLeft className="mr-1 h-4 w-4" /> Prev
+                </Button>
+                <p className="text-sm font-semibold">
+                  {weekOffset === 0
+                    ? "This week"
+                    : weekOffset > 0
+                      ? `+${weekOffset} wk`
+                      : `${weekOffset} wk`}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={weekOffset >= 0}
+                  onClick={() => setWeekOffset((w) => w + 1)}
+                >
+                  Next <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+              <div className="mt-3 grid grid-cols-7 gap-1.5">
+                {weekDaysForStrip.map((d) => {
+                  const k = dateKey(d);
+                  const isToday = k === today;
+                  const logged = sessionDates.has(k);
+                  const isSel = k === selected;
+                  return (
+                    <button
+                      key={k}
+                      onClick={() => setSelected(k)}
+                      className={cn(
+                        "rounded-xl border px-1 py-2 text-center transition-all",
+                        isSel
+                          ? "border-primary bg-primary/10 font-semibold shadow-sm"
+                          : "border-border/60 hover:bg-accent",
+                        isToday && !isSel && "ring-1 ring-primary/40",
+                      )}
+                    >
+                      <span className="block text-xs uppercase text-muted-foreground">
+                        {d.toLocaleDateString("en-US", { weekday: "narrow" })}
+                      </span>
+                      <span className="block text-sm tabular-nums">
+                        {d.getDate()}
+                      </span>
+                      <span
+                        className={cn(
+                          "mx-auto mt-1 block h-1.5 w-1.5 rounded-full",
+                          logged ? "bg-emerald-500" : "bg-muted",
+                        )}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <Stat
+                  label="Done today"
+                  value={`${doneCount}/${exercises.length}`}
+                />
+                <Stat label="Sessions wk" value={`${weekSessions}`} />
+                <Stat label="Complete" value={`${dayPct}%`} accent />
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-[var(--color-dossier-lime)] transition-all"
+                  style={{ width: `${dayPct}%` }}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* ── PRs + volume ── */}
-        <details className="workspace-panel">
-          <summary>Workout history and records</summary>
           <div className="grid gap-3 sm:grid-cols-2">
             <Card variant="dossier">
               <CardContent className="p-5">
@@ -632,29 +681,28 @@ export default function WorkoutPage() {
               </CardContent>
             </Card>
           </div>
+        </section>
+        {/* ── Exercise add/edit modal ── */}
+        {exModal && (
+          <ExerciseModal
+            mode={exModal.mode}
+            initial={
+              exModal.mode === "edit" ? exercises[exModal.index] : undefined
+            }
+            unit={unit}
+            onClose={() => setExModal(null)}
+            onSave={(ex) => {
+              saveExercise(
+                ex,
+                exModal.mode,
+                exModal.mode === "edit" ? exModal.index : undefined,
+              );
+              setExModal(null);
+            }}
+          />
+        )}
 
-          {/* ── Exercise add/edit modal ── */}
-          {exModal && (
-            <ExerciseModal
-              mode={exModal.mode}
-              initial={
-                exModal.mode === "edit" ? exercises[exModal.index] : undefined
-              }
-              unit={unit}
-              onClose={() => setExModal(null)}
-              onSave={(ex) => {
-                saveExercise(
-                  ex,
-                  exModal.mode,
-                  exModal.mode === "edit" ? exModal.index : undefined,
-                );
-                setExModal(null);
-              }}
-            />
-          )}
-
-          {/* ── Custom split day builder ── */}
-        </details>
+        {/* ── Custom split day builder ── */}
         <Modal
           open={dayBuilderOpen}
           onClose={() => setDayBuilderOpen(false)}
@@ -700,7 +748,10 @@ export default function WorkoutPage() {
           </p>
         </Modal>
 
-        <Button onClick={() => setSessionReview(true)}>
+        <Button
+          hidden={view !== "session"}
+          onClick={() => setSessionReview(true)}
+        >
           Review and finish workout
         </Button>
         <Modal
@@ -722,9 +773,9 @@ export default function WorkoutPage() {
           <Button onClick={() => setSessionReview(false)}>
             Continue editing
           </Button>
-          <a className="inline-action" href={`/health?date=${selected}`}>
-            Done · return to Health
-          </a>
+          <Link className="inline-action" href={returnTo}>
+            Done · return to previous page
+          </Link>
         </Modal>
         {/* ── Rest timer ── */}
         {restTimer && (
@@ -733,35 +784,6 @@ export default function WorkoutPage() {
             onClose={() => setRestTimer(null)}
           />
         )}
-        <details className="rounded-2xl border border-border p-4">
-          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">
-            Progress summary
-          </summary>
-          <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-            <StoryPanel
-              eyebrow="Current chapter"
-              title={
-                tabs.find((t) => t.id === dayId)?.label ?? "Training session"
-              }
-              action={
-                <a href="#exercise-logger" className="dossier-back-link">
-                  Log sets
-                </a>
-              }
-            >
-              {dayPct === 100
-                ? "Session complete. Record the win, then let recovery set up the next progression."
-                : `${doneCount} of ${exercises.length} exercises complete. Follow the suggested day and build the next rep.`}
-            </StoryPanel>
-            <SignalPanel
-              label="Session signal"
-              value={`${dayPct}%`}
-              detail={`${weekSessions} session${weekSessions === 1 ? "" : "s"} logged`}
-              progress={dayPct}
-              tone="lime"
-            />
-          </div>
-        </details>
       </TrackerShell>
     </RequireAuth>
   );

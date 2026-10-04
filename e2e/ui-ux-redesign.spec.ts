@@ -41,7 +41,7 @@ test("modal traps focus from its container and restores the opener after editing
 
 test("form navigation does not promise a save and motivation leads with the saved goal", async ({ page }) => {
   await seed(page);
-  await page.goto("/intermittent-fasting");
+  await page.goto("/intermittent-fasting?view=window");
   await expect(page.getByLabel("First meal time")).toBeVisible();await expect(page.getByTestId("tracker-action-bar")).toHaveCount(0);
   await page.goto("/motivation");
   await expect(page.getByRole("heading", { level: 1, name: "Relocate to Canada", exact: true })).toBeVisible();

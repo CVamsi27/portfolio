@@ -1,6 +1,6 @@
 import PersonalBackLink from "./PersonalBackLink";
 import type { ReactNode } from "react";
-import { TrackerIcon, type TrackerIconName } from "./icons";
+import { type TrackerIconName } from "./icons";
 import TrackerNavDock from "./TrackerNavDock";
 import ChapterHeader from "./ChapterHeader";
 import EditorialFrame from "@/components/editorial/EditorialFrame";
@@ -56,14 +56,6 @@ export default function PersonalShell({
             eyebrow={effectiveEyebrow}
             title={
               <span className="inline-flex items-center gap-3">
-                {icon ? (
-                  <span
-                    aria-hidden
-                    className="dossier-icon-mark hidden sm:inline-flex"
-                  >
-                    <TrackerIcon name={icon} className="h-5 w-5" />
-                  </span>
-                ) : null}
                 <span>{title}</span>
               </span>
             }

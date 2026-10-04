@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceView } from "@/lib/use-workspace-view";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -64,7 +65,7 @@ export default function TodoPage() {
   const [priority, setPriority] = useState<TodoPriority>("P2");
   const [tag, setTag] = useState<TodoTag>("Personal");
   const [dateDraft, setDateDraft] = useState<"today" | "tomorrow">("today");
-  const [view, setView] = useState<View>("today");
+  const [view, setView] = useWorkspaceView<View>(["today", "tomorrow", "upcoming", "done"], "today");
   const [tagFilter, setTagFilter] = useState<TodoTag | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TodoPriority | "all">(
     "all",

@@ -12,7 +12,7 @@ test.describe("goal tracker", () => {
       },
     });
     await page.goto("/goal");
-    await page.getByText("Log goal metric", { exact: true }).click();
+    await page.getByRole("button", { name: "Metric", exact: true }).click();
 
     // Metric label resolves from the relocation default.
     await expect(
@@ -41,7 +41,7 @@ test.describe("goal tracker", () => {
   }) => {
     await seed(page);
     await page.goto("/goal");
-    await page.getByText("Log goal metric", { exact: true }).click();
+    await page.getByRole("button", { name: "Milestones", exact: true }).click();
 
     // Defaults for relocation exist.
     await expect(
@@ -49,6 +49,7 @@ test.describe("goal tracker", () => {
     ).toBeVisible();
 
     // Add via the milestone modal.
+    await page.getByRole("button", { name: "Milestones", exact: true }).click();
     await page.getByRole("button", { name: "Add milestone" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByPlaceholder(/Milestone — e\.g\./).fill("Sign the lease");
@@ -87,11 +88,10 @@ test.describe("goal tracker", () => {
   }) => {
     await seed(page);
     await page.goto("/goal");
-    await page.getByText("Log goal metric", { exact: true }).click();
-
     await page.getByText("Edit goal and category", { exact: true }).click();
     // Switch to Learning.
     await page.getByText("Learning").first().click();
+    await page.getByRole("button", { name: "Metric", exact: true }).click();
     await expect(page.getByText("Deep Study").first()).toBeVisible();
     await expect(page.getByText(/Deep Study/)).toBeVisible(); // metric label
 
@@ -112,7 +112,6 @@ test.describe("goal tracker", () => {
   }) => {
     await seed(page);
     await page.goto("/goal");
-    await page.getByText("Log goal metric", { exact: true }).click();
     await page.getByText("Edit goal and category", { exact: true }).click();
     await page.getByLabel("Destination country").selectOption("Canada");
     await expect(
@@ -146,7 +145,7 @@ test.describe("goal tracker", () => {
       },
     });
     await page.goto("/goal");
-    await page.getByText("Log goal metric", { exact: true }).click();
+    await page.getByRole("button", { name: "Metric", exact: true }).click();
     // 12 logged vs 30 total at 3/day → on-track ETA line present.
     await expect(page.getByText(/on track in about/i)).toHaveCount(0);
     await expect(page.locator("#daily-metric svg[role=img]")).toBeVisible();

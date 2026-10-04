@@ -10,7 +10,7 @@ test.describe("intermittent fasting tracker", () => {
     expect(result).toMatchObject({ fastHours: 16, eatingHours: 8, overnight: true });
 
     await seed(page);
-    await page.goto("/intermittent-fasting");
+    await page.goto("/intermittent-fasting?view=window");
     await expect(page.getByRole("heading", { name: "Set your daily routine" }).first()).toBeVisible();
     await expect(page.getByLabel("First meal time")).toBeVisible();
     await expect(page.getByLabel("Last meal time")).toBeVisible();
@@ -24,6 +24,7 @@ test.describe("intermittent fasting tracker", () => {
 
     const history = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:fasting:history"))) ?? "[]");
     expect(history[0].source).toBe("meal-window");
+    await page.getByRole("button", { name: "History", exact: true }).click();
     await expect(page.getByRole("button", { name: "24 hours" })).toBeVisible();
     await expect(page.getByRole("button", { name: "7 days" })).toBeVisible();
     await expect(page.getByRole("button", { name: "30 days" })).toBeVisible();
@@ -31,9 +32,10 @@ test.describe("intermittent fasting tracker", () => {
 
   test("shows the routine-first meal window form", async ({ page }) => {
     await seed(page);
-    await page.goto("/intermittent-fasting");
+    await page.goto("/intermittent-fasting?view=window");
 
     await expect(page.getByRole("heading", { name: "Set your daily routine" }).first()).toBeVisible();
+    await page.getByRole("button", { name: "History", exact: true }).click();
     await expect(page.getByText("No meal windows logged yet")).toBeVisible();
     await expect(page.getByRole("button", { name: "Start Fast" })).toHaveCount(0);
   });
@@ -43,8 +45,9 @@ test.describe("intermittent fasting tracker", () => {
     await seed(page, {
       "vk:fasting:history": [fastEntry("f_seed", now - 20 * H, now - 4 * H)],
     });
-    await page.goto("/intermittent-fasting");
+    await page.goto("/intermittent-fasting?view=window");
 
+    await page.getByRole("button", { name: "History", exact: true }).click();
     await expect(page.getByText("1 windows logged", { exact: true })).toBeVisible();
     // Longest fast stat — the row itself also shows 16.0h, so anchor via the Stat card.
     await expect(page.getByText("Longest").locator("xpath=..").getByText("16.0 h")).toBeVisible();
@@ -59,7 +62,7 @@ test.describe("intermittent fasting tracker", () => {
 
   test("another-day meal window saves with date + times", async ({ page }) => {
     await seed(page);
-    await page.goto("/intermittent-fasting");
+    await page.goto("/intermittent-fasting?view=window");
 
     await page.getByRole("button", { name: "Log another day" }).click();
     const dialog = page.getByRole("dialog");
@@ -71,6 +74,7 @@ test.describe("intermittent fasting tracker", () => {
     await dialog.getByPlaceholder("Note (optional)").fill("Routine exception");
     await dialog.getByRole("button", { name: "Save window" }).click();
 
+    await page.getByRole("button", { name: "History", exact: true }).click();
     await expect(page.getByText("1 windows logged", { exact: true })).toBeVisible();
     const history = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:fasting:history"))) ?? "[]");
     expect(history).toHaveLength(1);
@@ -81,7 +85,8 @@ test.describe("intermittent fasting tracker", () => {
 
   test("auto-clear selection updates the fasting store", async ({ page }) => {
     await seed(page);
-    await page.goto("/intermittent-fasting");
+    await page.goto("/intermittent-fasting?view=window");
+    await page.getByRole("button", { name: "History", exact: true }).click();
     await page.getByRole("button", { name: "24 hours" }).click();
     const st = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:fasting"))) ?? "{}");
     expect(st.autoClearHours).toBe(24);

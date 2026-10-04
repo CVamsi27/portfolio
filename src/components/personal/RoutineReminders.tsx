@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceView } from "@/lib/use-workspace-view";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ export default function RoutineReminders({
 }: {
   configure?: boolean;
 }) {
-  const [view, setView] = useState("schedule");
+  const [view, setView] = useWorkspaceView(["schedule", "history", "notifications"], "schedule");
   const [drafts, setDrafts] = useState<Record<string, RoutineSchedule>>({});
   const [preview, setPreview] = useState<RoutineSchedule | null>(null);
   const { schedules, history, items } = useRoutine();
@@ -116,7 +117,7 @@ export default function RoutineReminders({
               key={id}
               variant="ghost"
               aria-pressed={view === id}
-              onClick={() => setView(id)}
+              onClick={() => setView(id as typeof view)}
             >
               {label}
             </Button>

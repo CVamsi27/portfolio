@@ -35,6 +35,7 @@ test("invalid archive links keep the draft and valid links announce saving", asy
 }) => {
   await seed(page);
   await page.goto("/archive");
+  await page.getByRole("button", { name: "Add item", exact: true }).click();
   await page.getByRole("button", { name: "Link", exact: true }).click();
   const draft = page.getByRole("textbox", { name: "Capture", exact: true });
   const source = page.getByRole("textbox", { name: "Source URL", exact: true });

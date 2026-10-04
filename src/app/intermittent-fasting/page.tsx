@@ -1,4 +1,6 @@
 "use client";
+import WorkspaceViews from "@/components/daily/WorkspaceViews";
+import { useWorkspaceView } from "@/lib/use-workspace-view";
 
 import { useEffect, useMemo, useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
@@ -18,7 +20,6 @@ import {
   avgFastHours,
   dateKey,
   fastHoursByDay,
-  fastingStreak,
   formatClock,
   formatDateShort,
   longestFastHours,
@@ -44,8 +45,6 @@ import {
   Save,
   Trash2,
 } from "lucide-react";
-import SignalPanel from "@/components/trackers/SignalPanel";
-import StoryPanel from "@/components/trackers/StoryPanel";
 import FastingStages from "@/components/trackers/FastingStages";
 import HydrationTracker from "@/components/trackers/HydrationTracker";
 
@@ -59,6 +58,10 @@ const AUTO_CLEAR_OPTIONS = [
 ];
 
 export default function FastingPage() {
+  const [view, setView] = useWorkspaceView(
+    ["water", "window", "history"],
+    "water",
+  );
   useMigrateFasting();
   const now = useNow(10_000);
   const { value: state, setValue: setState, status } = useFasting();
@@ -106,14 +109,11 @@ export default function FastingPage() {
   }, [rawHistory.length, safeHistory, setHistory]);
 
   const weekBars = useMemo(() => fastHoursByDay(safeHistory, 7), [safeHistory]);
-  const streak = fastingStreak(safeHistory);
   const avg7 = avgFastHours(safeHistory, 7);
   const avg30 = avgFastHours(safeHistory, 30);
   const longest = longestFastHours(safeHistory);
   const total = totalFastHours(safeHistory);
-  const progress = todayEntry
-    ? Math.min(100, ((todayEntry.end - todayEntry.start) / 86_400_000) * 100)
-    : 0;
+
   const effectiveDraft =
     draft.firstMealTime || draft.lastMealTime
       ? draft
@@ -203,8 +203,8 @@ export default function FastingPage() {
     <RequireAuth>
       <TrackerShell
         icon="timer"
-        title="Intermittent Fasting"
-        subtitle="Add the time of your first and last meal. NOVA calculates the fasting window from what you actually logged."
+        title="Water & eating window"
+        subtitle="Record water or open your optional meal window."
         badge={<SyncBadge status={status} />}
         actions={{
           primary: (
@@ -225,204 +225,227 @@ export default function FastingPage() {
           ),
         }}
       >
-        <Card variant="dossier" id="meal-window" className="overflow-hidden">
-          <CardContent className="p-5 sm:p-6">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="font-utility text-xs font-bold uppercase tracking-[0.18em] text-primary">
-                  {safeState.mealRoutine ? "Daily routine" : "First setup"}
-                </p>
-                <h2 className="mt-2 font-display text-3xl font-black tracking-[-0.04em]">
-                  {todayEntry
-                    ? "Edit today’s meal window"
-                    : safeState.mealRoutine
-                      ? "What time do you usually eat?"
-                      : "Set your daily routine"}
-                </h2>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                  {safeState.mealRoutine
-                    ? "The routine fills the form; save a different time for today whenever you need to."
-                    : "Start with your usual rhythm. Your first save also creates today’s log."}
-                </p>
-              </div>
-              <div className="grid w-full gap-3 sm:grid-cols-2 lg:max-w-md">
-                <div>
-                  <label
-                    htmlFor="first-meal-time"
-                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                  >
-                    First meal
-                  </label>
-                  <Input
-                    id="first-meal-time"
-                    aria-label="First meal time"
-                    className="mt-1.5 h-11"
-                    type="time"
-                    value={effectiveDraft.firstMealTime}
-                    onChange={(event) =>
-                      setDraft({
-                        ...effectiveDraft,
-                        firstMealTime: event.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="last-meal-time"
-                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                  >
-                    Last meal
-                  </label>
-                  <Input
-                    id="last-meal-time"
-                    aria-label="Last meal time"
-                    className="mt-1.5 h-11"
-                    type="time"
-                    value={effectiveDraft.lastMealTime}
-                    onChange={(event) =>
-                      setDraft({
-                        ...effectiveDraft,
-                        lastMealTime: event.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-            {calculated ? (
-              <div className="mt-5 grid gap-2 border-y border-border/60 py-4 sm:grid-cols-3">
-                <Stat
-                  label="Fasting"
-                  value={`${calculated.fastHours.toFixed(1)} hours`}
-                  accent
-                />
-                <Stat
-                  label="Eating window"
-                  value={`${calculated.eatingHours.toFixed(1)} hours`}
-                />
-                <Stat
-                  label="Pattern"
-                  value={calculated.overnight ? "Overnight" : "Same day"}
-                />
-              </div>
-            ) : null}
-            {error ? (
-              <p role="alert" className="mt-4 text-sm font-medium text-red-500">
-                {error}
-              </p>
-            ) : null}
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Button onClick={() => saveWindow(today)} className="min-h-11">
-                {saved ? (
-                  <Check className="mr-2 h-4 w-4" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                {saved
-                  ? "Saved"
-                  : safeState.mealRoutine
-                    ? "Save today’s window"
-                    : "Save routine and use for today"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setPastOpen(true)}
-                className="min-h-11"
-              >
-                <CalendarClock className="mr-2 h-4 w-4" /> Log another day
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-3 lg:grid-cols-2">
-          <FastingStages elapsedHours={elapsedHours} />
+        <WorkspaceViews
+          label="Water and meal views"
+          value={view}
+          onChange={setView}
+          views={[
+            { id: "water", label: "Water" },
+            { id: "window", label: "Eating window" },
+            { id: "history", label: "History" },
+          ]}
+        />
+        <div hidden={view !== "water"}>
           <HydrationTracker />
         </div>
-
-        <Card variant="dossier" id="fasting-history">
-          <CardContent className="p-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="font-display font-bold">
-                  Auto-clear saved windows
-                </h2>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Choose how long meal-window records stay in local history.
-                </p>
+        <div className="workspace-section-stack" hidden={view !== "window"}>
+          <Card variant="dossier" id="meal-window" className="overflow-hidden">
+            <CardContent className="p-5 sm:p-6">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <p className="font-utility text-xs font-bold uppercase tracking-[0.18em] text-primary">
+                    {safeState.mealRoutine ? "Daily routine" : "First setup"}
+                  </p>
+                  <h2 className="mt-2 font-display text-3xl font-black tracking-[-0.04em]">
+                    {todayEntry
+                      ? "Edit today’s meal window"
+                      : safeState.mealRoutine
+                        ? "What time do you usually eat?"
+                        : "Set your daily routine"}
+                  </h2>
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                    {safeState.mealRoutine
+                      ? "The routine fills the form; save a different time for today whenever you need to."
+                      : "Start with your usual rhythm. Your first save also creates today’s log."}
+                  </p>
+                </div>
+                <div className="grid w-full gap-3 sm:grid-cols-2 lg:max-w-md">
+                  <div>
+                    <label
+                      htmlFor="first-meal-time"
+                      className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                    >
+                      First meal
+                    </label>
+                    <Input
+                      id="first-meal-time"
+                      aria-label="First meal time"
+                      className="mt-1.5 h-11"
+                      type="time"
+                      value={effectiveDraft.firstMealTime}
+                      onChange={(event) =>
+                        setDraft({
+                          ...effectiveDraft,
+                          firstMealTime: event.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="last-meal-time"
+                      className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Last meal
+                    </label>
+                    <Input
+                      id="last-meal-time"
+                      aria-label="Last meal time"
+                      className="mt-1.5 h-11"
+                      type="time"
+                      value={effectiveDraft.lastMealTime}
+                      onChange={(event) =>
+                        setDraft({
+                          ...effectiveDraft,
+                          lastMealTime: event.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
               </div>
-              <Segmented
-                label="Auto-clear saved windows"
-                options={AUTO_CLEAR_OPTIONS}
-                value={String(safeState.autoClearHours) as "24" | "168" | "720"}
-                onChange={updateAutoClear}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Card variant="dossier">
-            <CardContent className="p-5">
-              <h2 className="font-display font-bold">
-                Today&apos;s meal window
-              </h2>
-              <MealWindowTimeline entry={todayEntry} now={now} />
-              <h3 className="mt-4 font-display text-sm font-bold text-muted-foreground">
-                Fasting hours · 7 days
-              </h3>
-              <MiniBars className="mt-2" data={weekBars} unit="h" />
+              {calculated ? (
+                <div className="mt-5 grid gap-2 border-y border-border/60 py-4 sm:grid-cols-3">
+                  <Stat
+                    label="Fasting"
+                    value={`${calculated.fastHours.toFixed(1)} hours`}
+                    accent
+                  />
+                  <Stat
+                    label="Eating window"
+                    value={`${calculated.eatingHours.toFixed(1)} hours`}
+                  />
+                  <Stat
+                    label="Pattern"
+                    value={calculated.overnight ? "Overnight" : "Same day"}
+                  />
+                </div>
+              ) : null}
+              {error ? (
+                <p
+                  role="alert"
+                  className="mt-4 text-sm font-medium text-red-500"
+                >
+                  {error}
+                </p>
+              ) : null}
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <Button onClick={() => saveWindow(today)} className="min-h-11">
+                  {saved ? (
+                    <Check className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  {saved
+                    ? "Saved"
+                    : safeState.mealRoutine
+                      ? "Save today’s window"
+                      : "Save routine and use for today"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setPastOpen(true)}
+                  className="min-h-11"
+                >
+                  <CalendarClock className="mr-2 h-4 w-4" /> Log another day
+                </Button>
+              </div>
             </CardContent>
           </Card>
+
+          <details className="workspace-panel">
+            <summary>About fasting stages</summary>
+            <FastingStages elapsedHours={elapsedHours} />
+          </details>
+        </div>
+        <div className="workspace-section-stack" hidden={view !== "history"}>
+          <Card variant="dossier" id="fasting-history">
+            <CardContent className="p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-display font-bold">
+                    Auto-clear saved windows
+                  </h2>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    Choose how long meal-window records stay in local history.
+                  </p>
+                </div>
+                <Segmented
+                  label="Auto-clear saved windows"
+                  options={AUTO_CLEAR_OPTIONS}
+                  value={
+                    String(safeState.autoClearHours) as "24" | "168" | "720"
+                  }
+                  onChange={updateAutoClear}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Card variant="dossier">
+              <CardContent className="p-5">
+                <h2 className="font-display font-bold">
+                  Today&apos;s meal window
+                </h2>
+                <MealWindowTimeline entry={todayEntry} now={now} />
+                <h3 className="mt-4 font-display text-sm font-bold text-muted-foreground">
+                  Fasting hours · 7 days
+                </h3>
+                <MiniBars className="mt-2" data={weekBars} unit="h" />
+              </CardContent>
+            </Card>
+            <Card variant="dossier">
+              <CardContent className="grid grid-cols-2 gap-2 p-5">
+                <Stat label="Avg window (7d)" value={`${avg7.toFixed(1)} h`} />
+                <Stat
+                  label="Avg window (30d)"
+                  value={`${avg30.toFixed(1)} h`}
+                />
+                <Stat label="Longest" value={`${longest.toFixed(1)} h`} />
+                <Stat
+                  label="Total fasting"
+                  value={`${Math.round(total)} h`}
+                  accent
+                />
+              </CardContent>
+            </Card>
+          </div>
+
           <Card variant="dossier">
-            <CardContent className="grid grid-cols-2 gap-2 p-5">
-              <Stat label="Avg window (7d)" value={`${avg7.toFixed(1)} h`} />
-              <Stat label="Avg window (30d)" value={`${avg30.toFixed(1)} h`} />
-              <Stat label="Longest" value={`${longest.toFixed(1)} h`} />
-              <Stat
-                label="Total fasting"
-                value={`${Math.round(total)} h`}
-                accent
-              />
+            <CardContent className="p-5">
+              <div className="flex items-baseline justify-between">
+                <h2 className="font-display font-bold">History</h2>
+                <span className="text-xs text-muted-foreground">
+                  {safeHistory.length} windows logged
+                </span>
+              </div>
+              {safeHistory.length === 0 ? (
+                <div className="mt-3">
+                  <EmptyState
+                    icon={Clock3}
+                    title="No meal windows logged yet"
+                    hint="Save today’s first and last meal times to start the history."
+                  />
+                </div>
+              ) : (
+                <ul className="mt-3 space-y-2">
+                  {[...safeHistory]
+                    .reverse()
+                    .slice(0, 14)
+                    .map((entry) => (
+                      <HistoryRow
+                        key={entry.id}
+                        entry={entry}
+                        onDelete={deleteEntry}
+                        onUpdate={updateEntry}
+                      />
+                    ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </div>
-
-        <Card variant="dossier">
-          <CardContent className="p-5">
-            <div className="flex items-baseline justify-between">
-              <h2 className="font-display font-bold">History</h2>
-              <span className="text-xs text-muted-foreground">
-                {safeHistory.length} windows logged
-              </span>
-            </div>
-            {safeHistory.length === 0 ? (
-              <div className="mt-3">
-                <EmptyState
-                  icon={Clock3}
-                  title="No meal windows logged yet"
-                  hint="Save today’s first and last meal times to start the history."
-                />
-              </div>
-            ) : (
-              <ul className="mt-3 space-y-2">
-                {[...safeHistory]
-                  .reverse()
-                  .slice(0, 14)
-                  .map((entry) => (
-                    <HistoryRow
-                      key={entry.id}
-                      entry={entry}
-                      onDelete={deleteEntry}
-                      onUpdate={updateEntry}
-                    />
-                  ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
         <Modal
           open={pastOpen}
           onClose={() => setPastOpen(false)}
@@ -466,45 +489,6 @@ export default function FastingPage() {
             </p>
           </div>
         </Modal>
-        <details className="rounded-2xl border border-border p-4">
-          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">
-            Progress summary
-          </summary>
-          <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-            <StoryPanel
-              eyebrow="Meal window chapter"
-              title={
-                todayEntry
-                  ? "Today’s window is on record"
-                  : safeState.mealRoutine
-                    ? "Log today’s window"
-                    : "Set your daily routine"
-              }
-              action={
-                <a href="#meal-window" className="dossier-back-link">
-                  Open meal window
-                </a>
-              }
-            >
-              {todayEntry
-                ? `${((todayEntry.end - todayEntry.start) / 3_600_000).toFixed(1)} hours fasting from ${todayEntry.firstMealTime} to ${todayEntry.lastMealTime}.`
-                : safeState.mealRoutine
-                  ? "Your routine is ready as a starting point. Adjust today’s times whenever the day changes."
-                  : "Add your usual first and last meal times once. We will use them to prefill each new day until you change them."}
-            </StoryPanel>
-            <SignalPanel
-              label="Today’s signal"
-              value={
-                todayEntry
-                  ? `${((todayEntry.end - todayEntry.start) / 3_600_000).toFixed(1)}h`
-                  : "Ready"
-              }
-              detail={`${streak}-day fasting streak · ${safeHistory.length} windows logged`}
-              progress={progress}
-              tone="violet"
-            />
-          </div>
-        </details>
       </TrackerShell>
     </RequireAuth>
   );

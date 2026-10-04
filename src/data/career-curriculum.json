@@ -6,13 +6,13 @@
   "chapterCount": 556,
   "totalStudyMinutes": 8185,
   "inventorySummary": {
-    "markdownFilesScanned": 1007,
+    "markdownFilesScanned": 1008,
     "includedChapterCount": 556,
     "excludedByReason": {
       "index": 154,
       "personal": 60,
       "nonNumbered": 110,
-      "outsideStudyStacks": 127
+      "outsideStudyStacks": 128
     },
     "stackCounts": {
       "10-frontend": 122,

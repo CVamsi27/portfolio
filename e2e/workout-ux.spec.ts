@@ -37,7 +37,6 @@ test("rest preset updates the progress duration and completed timer cannot pause
 test("plate calculator rejects loads below the bar and labels selected presets", async ({ page }) => {
   await seed(page);
   await page.goto("/workout-tracking");
-  await page.getByText("Workout plan and split settings",{exact:true}).click();
   await page.getByRole("button", { name: "Plates", exact: true }).click();
   const weight = page.getByRole("spinbutton", { name: "Target weight (kg):" });
   await weight.fill("10");

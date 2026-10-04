@@ -1,4 +1,6 @@
 "use client";
+import WorkspaceViews from "@/components/daily/WorkspaceViews";
+import { useWorkspaceView } from "@/lib/use-workspace-view";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -76,6 +78,10 @@ const DEFAULT_TARGETS: Record<GoalCategory, number> = {
 };
 
 export default function GoalPage() {
+  const [view, setView] = useWorkspaceView(
+    ["purpose", "milestones", "metrics"],
+    "purpose",
+  );
   useMigrateGoal();
   const { prefs, setPrefs } = useUserPrefs();
   const { value: g, setValue: setG, status } = useGoalState();
@@ -347,189 +353,205 @@ export default function GoalPage() {
           ),
         }}
       >
-        <Link
-          href="/motivation"
-          className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline"
-        >
-          Motivation
-        </Link>
-        <Card variant="dossier">
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">
-              Next milestone · {doneCount}/{milestones.length} complete
-            </p>
-            <a
-              href="#milestones"
-              className="inline-flex min-h-11 items-center font-semibold text-primary"
-            >
-              {milestones.find((m) => !m.done)?.title ??
-                (milestones.length
-                  ? "All milestones complete"
-                  : "Add your first milestone")}{" "}
-              →
-            </a>
-          </CardContent>
-        </Card>
-        {previousPending ? (
-          <div data-testid="weekly-review">
-            <Card variant="dossier">
-              <CardContent className="p-5">
-                <p className="dossier-kicker">Weekly review / recovery</p>
-                <h2 className="mt-1 font-display text-xl font-bold">
-                  Last week needs a reset
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  “{previousPending.text}” was left open. Choose what the next
-                  week should carry.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button onClick={carryForward}>Carry forward</Button>
-                  <Button variant="outline" onClick={closePreviousCommitment}>
-                    Close without completion
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : null}
-        {weeklyReviewNotice ? (
-          <p className="px-1 text-sm font-medium text-primary">
-            {weeklyReviewNotice}
-          </p>
-        ) : null}
-        <Card variant="dossier" id="weekly-commitment">
-          <CardContent className="p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="dossier-kicker">This week / one commitment</p>
-                <h2 className="mt-1 font-display text-xl font-bold">
-                  {weeklyCommitment?.text ??
-                    "Choose the one outcome worth protecting"}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  A weekly commitment gives today&apos;s next action a useful
-                  direction.
-                </p>
-              </div>
-              {weeklyCommitment ? (
-                <Button
-                  variant={
-                    weeklyCommitment.status === "completed"
-                      ? "secondary"
-                      : "outline"
-                  }
-                  size="sm"
-                  onClick={toggleWeeklyCommitment}
-                >
-                  {weeklyCommitment.status === "completed"
-                    ? "Completed this week"
-                    : "Mark complete"}
-                </Button>
-              ) : null}
-            </div>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <Input
-                aria-label="Weekly commitment"
-                value={commitmentText}
-                onChange={(event) => setCommitmentInput(event.target.value)}
-                placeholder="e.g. Contact three hiring managers"
-                onKeyDown={(event) =>
-                  event.key === "Enter" && saveWeeklyCommitment()
-                }
-              />
-              <Button
-                onClick={saveWeeklyCommitment}
-                disabled={!commitmentText.trim()}
+        <WorkspaceViews
+          label="Goal views"
+          value={view}
+          onChange={setView}
+          views={[
+            { id: "purpose", label: "Purpose" },
+            { id: "milestones", label: "Milestones" },
+            { id: "metrics", label: "Metric" },
+          ]}
+        />
+        <div className="workspace-section-stack" hidden={view !== "purpose"}>
+          <Link
+            href="/motivation"
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline"
+          >
+            Motivation
+          </Link>
+          <Card variant="dossier">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">
+                Next milestone · {doneCount}/{milestones.length} complete
+              </p>
+              <a
+                href="#milestones"
+                onClick={() => setView("milestones")}
+                className="inline-flex min-h-11 items-center font-semibold text-primary"
               >
-                Save weekly commitment
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        <details className="workspace-panel">
-          <summary>Edit goal and category</summary>
-          {/* ── Category selector ── */}
-          <Card variant="dossier" id="milestones">
-            <CardContent className="p-5">
-              <p className="text-sm font-medium">Goal Category</p>
-              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
-                {GOAL_CATEGORIES.map((gc) => (
-                  <button
-                    key={gc.id}
-                    onClick={() => changeCategory(gc.id)}
-                    className={cn(
-                      "rounded-xl border p-2 text-center text-xs transition-all",
-                      goalCat === gc.id
-                        ? "border-primary bg-primary/10 font-semibold shadow-sm"
-                        : "border-border/60 hover:bg-accent",
-                    )}
-                  >
-                    <TrackerIcon
-                      name={gc.iconName}
-                      className="mx-auto h-5 w-5 text-primary"
-                    />
-                    <p className="mt-0.5 font-medium">{gc.label}</p>
-                  </button>
-                ))}
-              </div>
-              {relocationMode && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label
-                      htmlFor="destination-country"
-                      className="text-xs font-medium text-muted-foreground"
-                    >
-                      Destination country
-                    </label>
-                    <div className="mt-1.5">
-                      <select
-                        id="destination-country"
-                        className="flex h-10 w-full rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        value={prefs.goalCountry ?? ""}
-                        onChange={(event) =>
-                          setPrefs({
-                            ...prefs,
-                            goalCountry: event.target.value || undefined,
-                          })
-                        }
-                      >
-                        <option value="">Choose a destination</option>
-                        {RELOCATION_COUNTRIES.map((country) => (
-                          <option key={country} value={country}>
-                            {country}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Visa Pathway
-                    </p>
-                    <div className="mt-1.5">
-                      <Segmented
-                        label="Visa pathway"
-                        variant="soft"
-                        options={[
-                          { value: "EU Blue Card", label: "EU Blue Card" },
-                          {
-                            value: "IT Specialist Fast-Track",
-                            label: "IT Specialist",
-                          },
-                        ]}
-                        value={safe.visa ?? "EU Blue Card"}
-                        onChange={(visa) => setG({ ...safe, visa })}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+                {milestones.find((m) => !m.done)?.title ??
+                  (milestones.length
+                    ? "All milestones complete"
+                    : "Add your first milestone")}{" "}
+                →
+              </a>
             </CardContent>
           </Card>
-        </details>
+          {previousPending ? (
+            <div data-testid="weekly-review">
+              <Card variant="dossier">
+                <CardContent className="p-5">
+                  <p className="dossier-kicker">Weekly review / recovery</p>
+                  <h2 className="mt-1 font-display text-xl font-bold">
+                    Last week needs a reset
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    “{previousPending.text}” was left open. Choose what the next
+                    week should carry.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button onClick={carryForward}>Carry forward</Button>
+                    <Button variant="outline" onClick={closePreviousCommitment}>
+                      Close without completion
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : null}
+          {weeklyReviewNotice ? (
+            <p className="px-1 text-sm font-medium text-primary">
+              {weeklyReviewNotice}
+            </p>
+          ) : null}
+          <Card variant="dossier" id="weekly-commitment">
+            <CardContent className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="dossier-kicker">This week / one commitment</p>
+                  <h2 className="mt-1 font-display text-xl font-bold">
+                    {weeklyCommitment?.text ??
+                      "Choose the one outcome worth protecting"}
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    A weekly commitment gives today&apos;s next action a useful
+                    direction.
+                  </p>
+                </div>
+                {weeklyCommitment ? (
+                  <Button
+                    variant={
+                      weeklyCommitment.status === "completed"
+                        ? "secondary"
+                        : "outline"
+                    }
+                    size="sm"
+                    onClick={toggleWeeklyCommitment}
+                  >
+                    {weeklyCommitment.status === "completed"
+                      ? "Completed this week"
+                      : "Mark complete"}
+                  </Button>
+                ) : null}
+              </div>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <Input
+                  aria-label="Weekly commitment"
+                  value={commitmentText}
+                  onChange={(event) => setCommitmentInput(event.target.value)}
+                  placeholder="e.g. Contact three hiring managers"
+                  onKeyDown={(event) =>
+                    event.key === "Enter" && saveWeeklyCommitment()
+                  }
+                />
+                <Button
+                  onClick={saveWeeklyCommitment}
+                  disabled={!commitmentText.trim()}
+                >
+                  Save weekly commitment
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          <details className="workspace-panel">
+            <summary>Edit goal and category</summary>
+            {/* ── Category selector ── */}
+            <Card variant="dossier" id="milestones">
+              <CardContent className="p-5">
+                <p className="text-sm font-medium">Goal Category</p>
+                <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                  {GOAL_CATEGORIES.map((gc) => (
+                    <button
+                      key={gc.id}
+                      onClick={() => changeCategory(gc.id)}
+                      className={cn(
+                        "rounded-xl border p-2 text-center text-xs transition-all",
+                        goalCat === gc.id
+                          ? "border-primary bg-primary/10 font-semibold shadow-sm"
+                          : "border-border/60 hover:bg-accent",
+                      )}
+                    >
+                      <TrackerIcon
+                        name={gc.iconName}
+                        className="mx-auto h-5 w-5 text-primary"
+                      />
+                      <p className="mt-0.5 font-medium">{gc.label}</p>
+                    </button>
+                  ))}
+                </div>
+                {relocationMode && (
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="destination-country"
+                        className="text-xs font-medium text-muted-foreground"
+                      >
+                        Destination country
+                      </label>
+                      <div className="mt-1.5">
+                        <select
+                          id="destination-country"
+                          className="flex h-10 w-full rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          value={prefs.goalCountry ?? ""}
+                          onChange={(event) =>
+                            setPrefs({
+                              ...prefs,
+                              goalCountry: event.target.value || undefined,
+                            })
+                          }
+                        >
+                          <option value="">Choose a destination</option>
+                          {RELOCATION_COUNTRIES.map((country) => (
+                            <option key={country} value={country}>
+                              {country}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Visa Pathway
+                      </p>
+                      <div className="mt-1.5">
+                        <Segmented
+                          label="Visa pathway"
+                          variant="soft"
+                          options={[
+                            { value: "EU Blue Card", label: "EU Blue Card" },
+                            {
+                              value: "IT Specialist Fast-Track",
+                              label: "IT Specialist",
+                            },
+                          ]}
+                          value={safe.visa ?? "EU Blue Card"}
+                          onChange={(visa) => setG({ ...safe, visa })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </details>
+        </div>
         {/* ── Daily metric ── */}
-        <details className="workspace-panel">
-          <summary>Log goal metric</summary>
+        <section
+          hidden={view !== "metrics"}
+          className="workspace-section-stack"
+        >
+          <h2 className="font-semibold">Log goal metric</h2>
           <Card variant="dossier" id="daily-metric">
             <CardContent className="p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -668,182 +690,184 @@ export default function GoalPage() {
               </div>
             </CardContent>
           </Card>
-        </details>
+        </section>
         <Link
           href="/dashboard?view=work&metric=goals"
           className="capture-return"
         >
           Goal progress and dated trends →
         </Link>
-        {/* Weekly commitment progress */}
-        {weeklyCommitment && (
-          <div className="rounded-xl border border-border/70 bg-card/50 px-4 py-3">
-            <div className="flex items-center justify-between gap-3 text-xs">
-              <span className="font-semibold text-muted-foreground uppercase tracking-[0.1em]">
-                Weekly Commitment Progress
-              </span>
-              <span
-                className={`font-mono font-bold tabular-nums ${weeklyCommitment.status === "completed" ? "text-emerald-500" : "text-primary"}`}
-              >
-                {weeklyCommitment.status === "completed"
-                  ? "Target Achieved"
-                  : "In Progress"}
-              </span>
-            </div>
-            {(() => {
-              // Count days this week where the metric was logged at or above target
-              const mon = new Date(now);
-              mon.setHours(0, 0, 0, 0);
-              mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
-              let hitDays = 0;
-              for (let i = 0; i < 7; i++) {
-                const d = new Date(mon);
-                d.setDate(mon.getDate() + i);
-                const k = d.toISOString().slice(0, 10);
-                if ((metricByDay[k] ?? 0) >= metric.target) hitDays++;
-              }
-              const pct = Math.round((hitDays / 7) * 100);
-              return (
-                <div className="mt-2">
-                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                    <span>{hitDays}/7 days on target</span>
-                    <span>{pct}%</span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full bg-[var(--color-dossier-lime)] transition-all"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* ── Milestones with CRUD ── */}
-        <Card variant="dossier">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                <h2 className="font-display font-bold">Milestones</h2>
-              </div>
-              <span className="text-sm font-semibold tabular-nums text-primary">
-                {doneCount}/{milestones.length} · {goalPct}%
-              </span>
-            </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full bg-[var(--color-dossier-lime)] transition-all"
-                style={{ width: `${goalPct}%` }}
-              />
-            </div>
-
-            <ul className="mt-4 space-y-2">
-              {milestones.map((m, i) => (
-                <li
-                  key={m.id}
-                  className={cn(
-                    "milestone-row group flex flex-wrap items-start gap-3 rounded-xl border px-3 py-2.5 text-sm transition-all",
-                    m.done
-                      ? "border-emerald-500/40 bg-emerald-500/10"
-                      : "border-border/60 hover:bg-accent",
-                  )}
+        <div hidden={view !== "purpose"}>
+          {/* Weekly commitment progress */}
+          {weeklyCommitment && (
+            <div className="rounded-xl border border-border/70 bg-card/50 px-4 py-3">
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className="font-semibold text-muted-foreground uppercase tracking-[0.1em]">
+                  Weekly Commitment Progress
+                </span>
+                <span
+                  className={`font-mono font-bold tabular-nums ${weeklyCommitment.status === "completed" ? "text-emerald-500" : "text-primary"}`}
                 >
-                  <button
-                    onClick={() => toggleMilestone(m.id)}
-                    aria-label={
-                      m.done
-                        ? `Mark ${m.title} incomplete`
-                        : `Mark ${m.title} complete`
-                    }
+                  {weeklyCommitment.status === "completed"
+                    ? "Target Achieved"
+                    : "In Progress"}
+                </span>
+              </div>
+              {(() => {
+                // Count days this week where the metric was logged at or above target
+                const mon = new Date(now);
+                mon.setHours(0, 0, 0, 0);
+                mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+                let hitDays = 0;
+                for (let i = 0; i < 7; i++) {
+                  const d = new Date(mon);
+                  d.setDate(mon.getDate() + i);
+                  const k = d.toISOString().slice(0, 10);
+                  if ((metricByDay[k] ?? 0) >= metric.target) hitDays++;
+                }
+                const pct = Math.round((hitDays / 7) * 100);
+                return (
+                  <div className="mt-2">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                      <span>{hitDays}/7 days on target</span>
+                      <span>{pct}%</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full bg-[var(--color-dossier-lime)] transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+        <div hidden={view !== "milestones"}>
+          {/* ── Milestones with CRUD ── */}
+          <Card variant="dossier">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  <h2 className="font-display font-bold">Milestones</h2>
+                </div>
+                <span className="text-sm font-semibold tabular-nums text-primary">
+                  {doneCount}/{milestones.length} · {goalPct}%
+                </span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-[var(--color-dossier-lime)] transition-all"
+                  style={{ width: `${goalPct}%` }}
+                />
+              </div>
+
+              <ul className="mt-4 space-y-2">
+                {milestones.map((m, i) => (
+                  <li
+                    key={m.id}
                     className={cn(
-                      "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-xs transition-all active:scale-90",
+                      "milestone-row group flex flex-wrap items-start gap-3 rounded-xl border px-3 py-2.5 text-sm transition-all",
                       m.done
-                        ? "border-emerald-500 bg-emerald-500 text-white"
-                        : "border-muted-foreground",
+                        ? "border-emerald-500/40 bg-emerald-500/10"
+                        : "border-border/60 hover:bg-accent",
                     )}
                   >
-                    {m.done ? <Check className="h-3 w-3" /> : ""}
-                  </button>
-                  <div className="milestone-name min-w-0 flex-1">
-                    <p className={cn(m.done && "line-through opacity-70")}>
-                      {m.title}
-                    </p>
-                    {m.done && m.doneAt && (
-                      <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                        Completed{" "}
-                        {new Date(m.doneAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
+                    <button
+                      onClick={() => toggleMilestone(m.id)}
+                      aria-label={
+                        m.done
+                          ? `Mark ${m.title} incomplete`
+                          : `Mark ${m.title} complete`
+                      }
+                      className={cn(
+                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-xs transition-all active:scale-90",
+                        m.done
+                          ? "border-emerald-500 bg-emerald-500 text-white"
+                          : "border-muted-foreground",
+                      )}
+                    >
+                      {m.done ? <Check className="h-3 w-3" /> : ""}
+                    </button>
+                    <div className="milestone-name min-w-0 flex-1">
+                      <p className={cn(m.done && "line-through opacity-70")}>
+                        {m.title}
                       </p>
-                    )}
-                  </div>
-                  <div className="milestone-actions flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                    {!m.done && (
-                      <Link
-                        href={`/focus?task=${encodeURIComponent(m.title)}`}
-                        title={`Launch focus sprint for ${m.title}`}
-                        aria-label={`Focus sprint for ${m.title}`}
-                        className="rounded-lg p-1 text-primary/80 transition-colors hover:text-primary"
+                      {m.done && m.doneAt && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                          Completed{" "}
+                          {new Date(m.doneAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      )}
+                    </div>
+                    <div className="milestone-actions flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                      {!m.done && (
+                        <Link
+                          href={`/focus?task=${encodeURIComponent(m.title)}`}
+                          title={`Launch focus sprint for ${m.title}`}
+                          aria-label={`Focus sprint for ${m.title}`}
+                          className="rounded-lg p-1 text-primary/80 transition-colors hover:text-primary"
+                        >
+                          <Timer className="h-3.5 w-3.5" />
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => moveMilestone(m.id, -1)}
+                        disabled={i === 0}
+                        aria-label="Move up"
+                        className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
                       >
-                        <Timer className="h-3.5 w-3.5" />
-                      </Link>
-                    )}
-                    <button
-                      onClick={() => moveMilestone(m.id, -1)}
-                      disabled={i === 0}
-                      aria-label="Move up"
-                      className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
-                    >
-                      <ChevronUp className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => moveMilestone(m.id, 1)}
-                      disabled={i === milestones.length - 1}
-                      aria-label="Move down"
-                      className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
-                    >
-                      <ChevronDown className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setMsDraft({ title: m.title });
-                        setMsModal({ mode: "edit", id: m.id });
-                      }}
-                      aria-label="Edit milestone"
-                      className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => deleteMilestone(m.id)}
-                      aria-label="Delete milestone"
-                      className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-red-500"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                        <ChevronUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => moveMilestone(m.id, 1)}
+                        disabled={i === milestones.length - 1}
+                        aria-label="Move down"
+                        className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
+                      >
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMsDraft({ title: m.title });
+                          setMsModal({ mode: "edit", id: m.id });
+                        }}
+                        aria-label="Edit milestone"
+                        className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => deleteMilestone(m.id)}
+                        aria-label="Delete milestone"
+                        className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-red-500"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={() => {
-                setMsDraft({ title: "" });
-                setMsModal({ mode: "add" });
-              }}
-            >
-              <Plus className="mr-1.5 h-4 w-4" /> Add milestone
-            </Button>
-          </CardContent>
-        </Card>
-
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => {
+                  setMsDraft({ title: "" });
+                  setMsModal({ mode: "add" });
+                }}
+              >
+                <Plus className="mr-1.5 h-4 w-4" /> Add milestone
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
         <details className="workspace-panel">
           <summary>
             {relocationMode

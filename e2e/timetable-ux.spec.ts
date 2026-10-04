@@ -137,6 +137,7 @@ test("roadmap summary and expanded schedule share totals and full outputs", asyn
   await expect(
     page.getByRole("region", { name: "Today's timetable" }),
   ).toContainText("1h 40m planned focus");
+  await page.getByRole("button", { name: "Curriculum", exact: true }).click();
   await page.getByRole("button", { name: "Schedule", exact: true }).click();
   const schedule = page.getByRole("region", { name: "Day schedule" });
   await expect(schedule).toContainText("1h 40m planned focus");

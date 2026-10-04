@@ -17,7 +17,6 @@ import { SyncBadge } from "@/components/auth/AuthButton";
 import { useToast } from "@/components/ui/use-toast";
 import { Users, Plus, Check, X, Search, Pin, PinOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import ChapterLabel from "@/components/editorial/ChapterLabel";
 import TelemetryLine from "@/components/editorial/TelemetryLine";
 import {
   accessMode,
@@ -470,7 +469,7 @@ export default function SharePage() {
     <TrackerShell
       icon="share"
       title="Sharing"
-      subtitle={showInbox ? "Review your shared items and the drops allowlisted to you." : "Create timed drops with explicit access controls, private media, and automatic cleanup."}
+      subtitle={showInbox ? "Items shared with your account." : "Choose what to share, who can open it and when it expires."}
       badge={<SyncBadge status={status} />}
       actions={showInbox ? {
         primary: <a href="#shared-inbox" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Review incoming items</a>,
@@ -502,8 +501,8 @@ export default function SharePage() {
       <Card variant="dossier" id="share-editor" data-editorial-action className="editorial-dispatch-composer">
         <CardContent className="space-y-3 p-5">
           <div className="flex items-end justify-between gap-4">
-            <ChapterLabel eyebrow="Dispatch studio // compose" status={signedIn ? "sync ready" : "local mode"} />
-            <span className="font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground">01 / 03</span>
+            <h2 className="font-semibold">New share</h2>
+            <span className="text-xs text-muted-foreground">{signedIn ? "Signed in" : "Local mode"}</span>
           </div>
           <TelemetryLine
             items={[

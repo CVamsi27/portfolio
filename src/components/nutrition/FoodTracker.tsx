@@ -38,7 +38,14 @@ export default function FoodTracker() {
   const saving = useRef(false);
   const [copyDate, setCopyDate] = useState(() => foodDateKey());
   const [recipeEditing, setRecipeEditing] = useState<Recipe | null>(null);
-  const [date, setDate] = useState(() => foodDateKey());
+  const [date, updateDate] = useState(() => foodDateKey());
+  const setDate = (day: string) => {
+    updateDate(day);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+    const query = new URLSearchParams(window.location.search);
+    query.set("date", day);
+    window.history.replaceState(null, "", `/food?${query}`);
+  };
   const [entryDate, setEntryDate] = useState(() => foodDateKey());
   const [meal, setMeal] = useState<string>("Lunch");
   const [open, setOpen] = useState(false);
@@ -361,6 +368,7 @@ export default function FoodTracker() {
           <Button
             key={id}
             variant={foodView === id ? "default" : "ghost"}
+            aria-pressed={foodView === id}
             onClick={() => {
               setFoodView(id);
               const q = new URLSearchParams(window.location.search);
