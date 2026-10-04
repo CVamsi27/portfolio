@@ -6,7 +6,8 @@ import TrackerShell from "@/components/trackers/TrackerShell";
 import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
-import MiniBars from "@/components/trackers/MiniBars";
+import TrendChart from "@/components/progress/TrendChart";
+import { progressDates } from "@/lib/personal-progress";
 import ConsistencyGrid from "@/components/trackers/ConsistencyGrid";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,8 +37,6 @@ import {
 } from "@/lib/trackers";
 import { useGoalState, useMigrateGoal, useNow } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
-import SignalPanel from "@/components/trackers/SignalPanel";
-import StoryPanel from "@/components/trackers/StoryPanel";
 import {
   Check,
   ChevronDown,
@@ -355,31 +354,23 @@ export default function GoalPage() {
         >
           Motivation
         </Link>
-        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-          <StoryPanel
-            eyebrow="Roadmap chapter"
-            title={
-              milestones.find((m) => !m.done)?.title ??
-              "All milestones complete"
-            }
-            action={
-              <a href="#milestones" className="dossier-back-link">
-                Open roadmap
-              </a>
-            }
-          >
-            {goalPct === 100
-              ? "The roadmap is complete. Capture the next chapter or keep the daily metric alive."
-              : `Keep the next milestone visible and log ${metric.label.toLowerCase()} to move the trajectory.`}
-          </StoryPanel>
-          <SignalPanel
-            label="Roadmap signal"
-            value={`${goalPct}%`}
-            detail={`${doneCount} of ${milestones.length} milestones complete`}
-            progress={goalPct}
-            tone="red"
-          />
-        </div>
+        <Card variant="dossier">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">
+              Next milestone · {doneCount}/{milestones.length} complete
+            </p>
+            <a
+              href="#milestones"
+              className="inline-flex min-h-11 items-center font-semibold text-primary"
+            >
+              {milestones.find((m) => !m.done)?.title ??
+                (milestones.length
+                  ? "All milestones complete"
+                  : "Add your first milestone")}{" "}
+              →
+            </a>
+          </CardContent>
+        </Card>
         {previousPending ? (
           <div data-testid="weekly-review">
             <Card variant="dossier">
@@ -657,9 +648,21 @@ export default function GoalPage() {
 
             <div className="mt-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Last 14 days
+                Last 30 days
               </p>
-              <MiniBars className="mt-2" data={last14} height={56} />
+              <TrendChart
+                label={metric.label}
+                unit={metric.label.toLowerCase()}
+                points={progressDates(today, 30).map((date) => ({
+                  date,
+                  value:
+                    typeof metricByDay[date] === "number" &&
+                    Number.isFinite(metricByDay[date]) &&
+                    metricByDay[date] >= 0
+                      ? metricByDay[date]
+                      : null,
+                }))}
+              />
             </div>
           </CardContent>
         </Card>
@@ -766,7 +769,7 @@ export default function GoalPage() {
                 <li
                   key={m.id}
                   className={cn(
-                    "group flex items-start gap-3 rounded-xl border px-3 py-2.5 text-sm transition-all",
+                    "milestone-row group flex flex-wrap items-start gap-3 rounded-xl border px-3 py-2.5 text-sm transition-all",
                     m.done
                       ? "border-emerald-500/40 bg-emerald-500/10"
                       : "border-border/60 hover:bg-accent",
@@ -788,7 +791,7 @@ export default function GoalPage() {
                   >
                     {m.done ? <Check className="h-3 w-3" /> : ""}
                   </button>
-                  <div className="min-w-0 flex-1">
+                  <div className="milestone-name min-w-0 flex-1">
                     <p className={cn(m.done && "line-through opacity-70")}>
                       {m.title}
                     </p>
@@ -802,7 +805,7 @@ export default function GoalPage() {
                       </p>
                     )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                  <div className="milestone-actions flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                     {!m.done && (
                       <Link
                         href={`/focus?task=${encodeURIComponent(m.title)}`}

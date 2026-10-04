@@ -4,6 +4,7 @@ import { useNutrition } from "./nutrition-store";
 import { useSyncedStorage } from "./use-synced-storage";
 import {
   useWorkouts,
+  useJournal,
   useTodos,
   useGoalState,
   useNow,
@@ -25,6 +26,7 @@ export function usePersonalProgress(days = 30, endDate?: string) {
   const workouts = useWorkouts();
   const tasks = useTodos();
   const goals = useGoalState();
+  const journal = useJournal();
   const { prefs } = useUserPrefs();
   const weights = useSyncedStorage<WeightLossState>(
     "weight-loss",
@@ -57,6 +59,8 @@ export function usePersonalProgress(days = 30, endDate?: string) {
       buildProgress({
         end,
         days,
+        goalMetric: goals.value.metricByDay,
+        journal: journal.value,
         weights: weights.value.entries,
         food: nutrition.entries.value,
         workouts: workouts.value,
@@ -72,6 +76,8 @@ export function usePersonalProgress(days = 30, endDate?: string) {
     [
       end,
       days,
+      goals.value,
+      journal.value,
       weights.value,
       nutrition.entries.value,
       workouts.value,
@@ -98,6 +104,7 @@ export function usePersonalProgress(days = 30, endDate?: string) {
     fasting.status,
     tasks.status,
     goals.status,
+    journal.status,
     routine.status,
     habits.status,
     nutrition.targets.status,

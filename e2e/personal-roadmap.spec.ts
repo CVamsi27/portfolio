@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("personal roadmap", () => {
-  test("keeps the hub canonical while tracker pages return to it", async ({
+  test("keeps the hub canonical while tasks return to planning", async ({
     page,
   }) => {
     await seed(page);
@@ -15,8 +15,8 @@ test.describe("personal roadmap", () => {
 
     await page.goto("/todo");
     await expect(
-      page.getByTestId("chapter-header").getByRole("link", { name: "Today" }),
-    ).toHaveAttribute("href", "/hub");
+      page.getByTestId("chapter-header").getByRole("link", { name: "Plan" }),
+    ).toHaveAttribute("href", "/plan");
 
     await page.goto("/trackers");
     await expect(

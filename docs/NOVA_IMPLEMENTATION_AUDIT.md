@@ -52,3 +52,13 @@ Verification: final production-build Chromium regression **215 passed**; TypeScr
 - Legacy /review and stored record shapes remain; Progress is the primary navigation/palette/shortcut destination. No production schema, credentials or owner timetable changes.
 
 Verification for this extension: **224 Chromium tests** and **24 domain/storage tests** passed; typecheck, lint and production build passed. Visual evidence is local QA under `artifacts/ui-ux/progress-*`. Existing authenticated/cloud/push release gates remain separate. The source-backed dashboard and connected page workflows are covered in the updated change sheet and progress workspace design.
+
+## Workspace workflow completion — 4 October 2026
+
+Tasks now offers name search, combined priority/tag filters and a single clear action; optional new-task metadata stays behind Task options. Today completion counts actual completion timestamps for today plus pending tasks due by today, excluding previous-day completions. Filtered empty states distinguish no matches from an empty day. Task and milestone names retain readable space on phones while their touch controls wrap beneath them.
+
+Goals replaces the repeated story and score panels with the next saved milestone and completion count. Its 30-day metric chart uses dated readings with gaps for missing days. Progress includes dated goal-metric readings (including explicitly recorded zero) and nonempty journal-day coverage in the selected range, with direct journal access. Secondary pages return to Plan, Health, Progress or More according to the existing navigation route map; stored record formats and reminders remain unchanged.
+
+Local QA captures: artifacts/ui-ux/completion-{todo,goal,dashboard}-{390-light,1440-dark}.png. Reviewed populated mobile Tasks and Goals after fixing squeezed row names. Production authentication, provider/migration configuration and real-device notification checks retain their existing separate release gates.
+
+Verification: **231 Chromium regression tests passed (2.6 minutes)** and **25 domain/storage tests passed**. Final production rebuild, TypeScript and ESLint passed; **12 focused browser tests passed** after the journal copy/filter styling cleanup. Regression scenarios cover combined filters without record mutation, today's completion timestamps, contextual back links, journal and zero/missing goal readings, mobile text widths, persisted goal logging and milestone CRUD. Auth-open local checks do not establish live deployment or external service readiness.

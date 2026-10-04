@@ -1,6 +1,5 @@
-import Link from "next/link";
+import PersonalBackLink from "./PersonalBackLink";
 import type { ReactNode } from "react";
-import { ArrowLeft } from "lucide-react";
 import { TrackerIcon, type TrackerIconName } from "./icons";
 import TrackerNavDock from "./TrackerNavDock";
 import ChapterHeader from "./ChapterHeader";
@@ -74,13 +73,7 @@ export default function PersonalShell({
               </span>
             }
             subtitle={subtitle}
-            action={
-              showBack ? (
-                <Link href="/hub" className="dossier-back-link">
-                  <ArrowLeft className="h-3.5 w-3.5" /> Today
-                </Link>
-              ) : undefined
-            }
+            action={showBack ? <PersonalBackLink /> : undefined}
             utility={<WorldClockStrip badge={badge} />}
           />
         )}

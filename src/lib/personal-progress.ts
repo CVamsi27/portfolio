@@ -7,7 +7,12 @@ import {
   type NutrientKey,
 } from "./nutrition.ts";
 import type { WeightEntry } from "./health";
-import type { WorkoutLog, Todo, FastHistoryEntry } from "./trackers";
+import type {
+  WorkoutLog,
+  Todo,
+  FastHistoryEntry,
+  JournalMap,
+} from "./trackers";
 import type { FocusSession } from "./focus-sprint";
 import type { RecoveryEntry } from "@/components/personal/RecoveryTracker";
 import type { RoutineHistory } from "./routine-reminders";
@@ -50,6 +55,8 @@ export type ProgressInput = {
   routine?: Record<string, RoutineHistory>;
   habits?: Record<string, HabitCompletion>;
   fasting?: FastHistoryEntry[];
+  goalMetric?: Record<string, number>;
+  journal?: JournalMap;
 };
 export function buildProgress(input: ProgressInput) {
   const dates = progressDates(input.end, input.days);
@@ -121,6 +128,14 @@ export function buildProgress(input: ProgressInput) {
     );
     return {
       date,
+      goalMetric: known(input.goalMetric?.[date])
+        ? input.goalMetric![date]
+        : null,
+      journal: [
+        input.journal?.[date]?.win,
+        input.journal?.[date]?.learned,
+        input.journal?.[date]?.focus,
+      ].some((value) => Boolean(value?.trim())),
       weight:
         known(input.weights?.[date]?.weightKg) &&
         input.weights![date].weightKg > 0
@@ -225,6 +240,11 @@ export function buildProgress(input: ProgressInput) {
     focusSessions: focus.length,
     studyMinutes: study.reduce((sum, item) => sum + item.durationMinutes, 0),
     studySessions: study.length,
+    goalMetricDays: days.filter((day) => day.goalMetric !== null).length,
+    goalMetricTotal: days.some((day) => day.goalMetric !== null)
+      ? days.reduce((sum, day) => sum + (day.goalMetric ?? 0), 0)
+      : null,
+    journalDays: days.filter((day) => day.journal).length,
     completedTasks: tasks.length,
     routineCompleted: routine.length,
     habitsCompleted: habits.length,

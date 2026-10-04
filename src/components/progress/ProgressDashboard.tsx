@@ -57,7 +57,6 @@ export default function ProgressDashboard() {
     targets,
     weightTarget,
     milestones,
-    goal,
     tasks,
     syncing,
     syncError,
@@ -70,10 +69,6 @@ export default function ProgressDashboard() {
   const points = (
     key: "energy" | "exercise" | "water" | "sleep" | "focus" | "study",
   ) => d.days.map((day) => ({ date: day.date, value: day[key] }));
-  const metricDays = Object.entries(goal.metricByDay ?? {}).filter(
-    ([date, value]) =>
-      date >= d.first && date <= d.end && Number.isFinite(value) && value >= 0,
-  );
   return (
     <div data-testid="progress-dashboard" className="progress-workspace">
       <div className="progress-range-toolbar">
@@ -465,14 +460,28 @@ export default function ProgressDashboard() {
             {prefs.dailyMetricLabel && (
               <li>
                 <span>{prefs.dailyMetricLabel} · recorded total</span>
-                <strong>
-                  {number(
-                    metricDays.reduce((sum, [, value]) => sum + value, 0),
-                  )}
-                </strong>
+                <strong>{number(d.goalMetricTotal)}</strong>
               </li>
             )}
           </ul>
+          <p className="progress-note">
+            Journal days recorded in this range: {d.journalDays}.
+          </p>
+          {(prefs.dailyMetricLabel || d.goalMetricDays > 0) && (
+            <details className="progress-details">
+              <summary>
+                Goal metric trend · {d.goalMetricDays} recorded days
+              </summary>
+              <TrendChart
+                label={prefs.dailyMetricLabel || "Goal metric"}
+                unit={prefs.dailyMetricLabel || "units"}
+                points={d.days.map((day) => ({
+                  date: day.date,
+                  value: day.goalMetric,
+                }))}
+              />
+            </details>
+          )}
           <p className="progress-note">
             Milestones and pending tasks are current snapshots. Completion
             records use the selected date range.
@@ -481,6 +490,7 @@ export default function ProgressDashboard() {
             <Link href="/todo">Manage tasks</Link>
             <Link href="/routine">Routine history</Link>
             <Link href="/review">Detailed review</Link>
+            <Link href="/log">Journal</Link>
           </div>
         </Panel>
       </div>

@@ -189,3 +189,24 @@ test("exercise load totals preserve unknown weights and fasting counts only comp
   assert.equal(p.fastCount, 1);
   assert.equal(p.fastHours, 16);
 });
+test("goal readings keep zero and unknown distinct, and journal counts actual nonempty days", () => {
+  const p = buildProgress({
+    end: "2026-10-04",
+    days: 7,
+    goalMetric: { "2026-10-03": 0, "2026-10-04": 5, "2026-10-05": 100 },
+    journal: {
+      "2026-10-03": { win: "", learned: "", focus: " ", updatedAt: 1 },
+      "2026-10-04": {
+        win: "Delivered the API",
+        learned: "",
+        focus: "",
+        updatedAt: 1,
+      },
+    },
+  });
+  assert.equal(p.goalMetricTotal, 5);
+  assert.equal(p.goalMetricDays, 2);
+  assert.equal(p.days.at(-2)?.goalMetric, 0);
+  assert.equal(p.days[0].goalMetric, null);
+  assert.equal(p.journalDays, 1);
+});

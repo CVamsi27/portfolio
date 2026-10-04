@@ -49,6 +49,7 @@ export default function TodoPage() {
   const safe = useMemo(() => todos ?? [], [todos]);
 
   const [text, setText] = useState("");
+  const [search, setSearch] = useState("");
   const [removedTasks, setRemovedTasks] = useState<Todo[]>([]);
   const [priority, setPriority] = useState<TodoPriority>("P2");
   const [tag, setTag] = useState<TodoTag>("Personal");
@@ -57,6 +58,9 @@ export default function TodoPage() {
   const [tagFilter, setTagFilter] = useState<TodoTag | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TodoPriority | "all">(
     "all",
+  );
+  const filtered = Boolean(
+    search.trim() || tagFilter !== "all" || priorityFilter !== "all",
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
@@ -83,6 +87,10 @@ export default function TodoPage() {
     if (tagFilter !== "all") list = list.filter((t) => t.tag === tagFilter);
     if (priorityFilter !== "all")
       list = list.filter((t) => t.priority === priorityFilter);
+    if (search.trim())
+      list = list.filter((t) =>
+        t.text.toLowerCase().includes(search.trim().toLowerCase()),
+      );
     // P1 first, overdue floats up within same priority, then by date
     const prioRank: Record<TodoPriority, number> = { P1: 0, P2: 1, P3: 2 };
     return [...list].sort((a, b) => {
@@ -94,11 +102,13 @@ export default function TodoPage() {
         a.date.localeCompare(b.date)
       );
     });
-  }, [safe, view, tagFilter, priorityFilter, today, tomorrow]);
+  }, [safe, view, tagFilter, priorityFilter, search, today, tomorrow]);
 
-  // Include ALL overdue tasks (done or pending) so completed overdue tasks
-  // count toward today's progress instead of being silently excluded.
-  const todayList = safe.filter((t) => t.date === today || t.date < today);
+  const todayList = safe.filter((t) =>
+    t.done
+      ? Boolean(t.completedAt && dateKey(new Date(t.completedAt)) === today)
+      : t.date <= today,
+  );
   const doneToday = todayList.filter((t) => t.done).length;
   const openToday = todayList.filter((t) => !t.done).length;
   const pct = todayList.length
@@ -230,35 +240,40 @@ export default function TodoPage() {
                 <Plus className="mr-1 h-4 w-4" /> Add
               </Button>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <Segmented
-                label="Task date"
-                variant="soft"
-                options={[
-                  { value: "today", label: "Today" },
-                  { value: "tomorrow", label: "Tomorrow" },
-                ]}
-                value={dateDraft}
-                onChange={setDateDraft}
-              />
-              <Segmented
-                label="Priority"
-                variant="soft"
-                options={TODO_PRIORITIES.map((p) => ({
-                  value: p.id,
-                  label: p.id,
-                }))}
-                value={priority}
-                onChange={setPriority}
-              />
-              <Segmented
-                label="Tag"
-                variant="soft"
-                options={TODO_TAGS.map((t) => ({ value: t, label: t }))}
-                value={tag}
-                onChange={setTag}
-              />
-            </div>
+            <details className="task-options">
+              <summary>
+                Task options · {dateDraft} · {priority} · {tag}
+              </summary>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <Segmented
+                  label="Task date"
+                  variant="soft"
+                  options={[
+                    { value: "today", label: "Today" },
+                    { value: "tomorrow", label: "Tomorrow" },
+                  ]}
+                  value={dateDraft}
+                  onChange={setDateDraft}
+                />
+                <Segmented
+                  label="Priority"
+                  variant="soft"
+                  options={TODO_PRIORITIES.map((p) => ({
+                    value: p.id,
+                    label: p.id,
+                  }))}
+                  value={priority}
+                  onChange={setPriority}
+                />
+                <Segmented
+                  label="Tag"
+                  variant="soft"
+                  options={TODO_TAGS.map((t) => ({ value: t, label: t }))}
+                  value={tag}
+                  onChange={setTag}
+                />
+              </div>
+            </details>
           </CardContent>
         </Card>
 
@@ -298,30 +313,61 @@ export default function TodoPage() {
             value={view}
             onChange={setView}
           />
-          <div className="flex flex-wrap items-center gap-2">
-            <Segmented
-              label="Priority filter"
-              variant="soft"
-              options={[
-                { value: "all" as const, label: "All P" },
-                { value: "P1" as const, label: "P1" },
-                { value: "P2" as const, label: "P2" },
-                { value: "P3" as const, label: "P3" },
-              ]}
+        </div>
+        <div className="task-filter-grid">
+          <label>
+            Search tasks
+            <Input
+              aria-label="Search tasks"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search this view"
+            />
+          </label>
+          <label>
+            Priority
+            <select
+              aria-label="Filter by priority"
               value={priorityFilter}
-              onChange={setPriorityFilter}
-            />
-            <Segmented
-              label="Tag filter"
-              variant="soft"
-              options={[
-                { value: "all" as const, label: "All" },
-                ...TODO_TAGS.map((t) => ({ value: t, label: t })),
-              ]}
+              onChange={(e) =>
+                setPriorityFilter(e.target.value as TodoPriority | "all")
+              }
+            >
+              <option value="all">All priorities</option>
+              {TODO_PRIORITIES.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.id}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Tag
+            <select
+              aria-label="Filter by tag"
               value={tagFilter}
-              onChange={setTagFilter}
-            />
-          </div>
+              onChange={(e) => setTagFilter(e.target.value as TodoTag | "all")}
+            >
+              <option value="all">All tags</option>
+              {TODO_TAGS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+          {filtered && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearch("");
+                setTagFilter("all");
+                setPriorityFilter("all");
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
         </div>
 
         {/* ── Overdue rescue banner ── */}
@@ -347,15 +393,21 @@ export default function TodoPage() {
               <EmptyState
                 icon={view === "done" ? Check : ListChecks}
                 title={
-                  view === "done"
-                    ? "Nothing completed yet"
-                    : view === "today"
-                      ? "Today is clear"
-                      : view === "tomorrow"
-                        ? "Nothing planned for tomorrow"
-                        : "No upcoming tasks"
+                  filtered
+                    ? "No matching tasks"
+                    : view === "done"
+                      ? "Nothing completed yet"
+                      : view === "today"
+                        ? "Today is clear"
+                        : view === "tomorrow"
+                          ? "Nothing planned for tomorrow"
+                          : "No upcoming tasks"
                 }
-                hint="Add tasks above — set a priority, a tag, and schedule for today or tomorrow."
+                hint={
+                  filtered
+                    ? "Clear filters or change the search to see more tasks."
+                    : "Add a task above. Open Task options to choose its date, priority and tag."
+                }
               />
             ) : (
               <ul className="space-y-2">
@@ -363,7 +415,7 @@ export default function TodoPage() {
                   <li
                     key={t.id}
                     className={cn(
-                      "group flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
+                      "task-row group flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
                       t.done
                         ? "border-emerald-500/30 bg-emerald-500/5"
                         : t.date < today
@@ -430,7 +482,7 @@ export default function TodoPage() {
                           setEditDraft(t.text);
                         }}
                         className={cn(
-                          "min-w-0 min-h-11 flex-1 break-words text-left",
+                          "task-name min-w-0 min-h-11 flex-1 break-words text-left",
                           t.done && "line-through opacity-60",
                         )}
                         title="Click to edit"

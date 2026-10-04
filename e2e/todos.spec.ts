@@ -10,6 +10,7 @@ test.describe("todo manager", () => {
 
     const input = page.getByRole("textbox", { name: "New task", exact: true });
     await input.fill("Write E2E tests");
+    await page.getByText(/^Task options/).click();
     // Pick P1 and Work tag before adding. "Work" collides with "Deep Work"
     // and the tag-filter group — pin both dimensions.
     await page
@@ -126,10 +127,7 @@ test.describe("todo manager", () => {
     await expect(page.getByText("Work item")).toBeVisible();
     await expect(page.getByText("Health item")).toBeVisible();
 
-    await page
-      .getByRole("group", { name: "Tag filter" })
-      .getByRole("button", { name: "Work", exact: true })
-      .click();
+    await page.getByLabel("Filter by tag").selectOption("Work");
     await expect(page.getByText("Work item")).toBeVisible();
     await expect(page.getByText("Health item")).toHaveCount(0);
   });

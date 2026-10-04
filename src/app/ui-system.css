@@ -397,3 +397,52 @@
  .weight-history-list li:last-child { border-bottom:0; }
  @media(max-width:767px) { .body-workspace-grid { grid-template-columns:minmax(0,1fr); } }
 }
+
+.task-options summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--color-muted-foreground);
+}
+.task-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+.task-filter-grid label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 0;
+}
+.task-filter-grid select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+@media (max-width: 640px) {
+  .task-filter-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .task-filter-grid label:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .task-row .task-name { flex: 1 0 calc(100% - 56px); }
+  .task-row > span:empty { display: none; }
+}
+
+@media (max-width: 640px) {
+  .milestone-row .milestone-name { flex: 1 0 calc(100% - 56px); }
+  .milestone-row .milestone-actions { width: 100%; flex-wrap: wrap; opacity: 1; }
+}
