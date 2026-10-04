@@ -4,12 +4,12 @@ import { seed } from "./helpers";
 test("secondary destinations keep navigation context and Tasks is discoverable", async ({ page }) => {
   await seed(page);
   await page.goto("/todo");
-  await expect(page.getByTestId("tracker-primary-nav").getByRole("link", { name: "More" })).toHaveAttribute("aria-current", "page");
-  await page.goto("/more");
-  await expect(page.getByTestId("more-links").getByRole("link", { name: /Tasks/ })).toHaveAttribute("href", "/todo");
+  await expect(page.getByTestId("tracker-primary-nav").getByRole("link", { name: "Plan" })).toHaveAttribute("aria-current", "page");
+  await page.goto("/plan");
+  await expect(page.getByRole("link", { name: /Tasks/ }).last()).toHaveAttribute("href", "/todo");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/shared-with-me");
-  await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "Sharing" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "More" })).toHaveAttribute("aria-current", "page");
 });
 
 test("workspace has one main landmark and accessible quick capture", async ({ page }) => {
@@ -25,9 +25,9 @@ test("workspace has one main landmark and accessible quick capture", async ({ pa
 test("modal traps focus from its container and restores the opener after editing", async ({ page }) => {
   await seed(page);
   await page.goto("/motivation");
-  const opener = page.getByRole("button", { name: "Write one", exact: true });
+  const opener = page.getByRole("button", { name: "Personal reminders", exact: true });
   await opener.click();
-  const dialog = page.getByRole("dialog", { name: "New affirmation" });
+  const dialog = page.getByRole("dialog", { name: "Personal reminders" });
   await expect(dialog).toBeVisible();
   await dialog.focus();
   await page.keyboard.press("Shift+Tab");
@@ -38,12 +38,12 @@ test("modal traps focus from its container and restores the opener after editing
   await expect(opener).toBeFocused();
 });
 
-test("form navigation does not promise a save and Focus uses its navigation name", async ({ page }) => {
+test("form navigation does not promise a save and motivation leads with the saved goal", async ({ page }) => {
   await seed(page);
   await page.goto("/intermittent-fasting");
   await expect(page.getByTestId("tracker-action-bar").getByRole("link", { name: "Open meal window" })).toBeVisible();
   await page.goto("/motivation");
-  await expect(page.getByRole("heading", { level: 1, name: "Focus", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Relocate to Canada", exact: true })).toBeVisible();
 });
 
 test("mobile controls are readable and primary navigation works through tablet widths", async ({ page }) => {

@@ -1,0 +1,34 @@
+# Approved NOVA implementation audit
+
+The consolidation covers the entire personal workspace, beyond food logging. The approved contract is [NOVA_CHANGE_SHEET.md](NOVA_CHANGE_SHEET.md). Deferred features in that contract remain deferred. Existing routes, records, private sharing rules and the owner-specific 10h weekday / 4h weekend timetable are preserved. The branch incorporates main's current Bible curriculum and resume updates.
+
+| Scope | Implemented behavior | Main code/evidence |
+| --- | --- | --- |
+| Navigation, search and capture | Today / Plan / Health / Review / More on phone and desktop; aliases and shortcuts retained; shell quick capture | personal-nav.ts, Navbar, CommandPalette; navigation/layout tests |
+| Today and planning | One next action, top three tasks, collapsed study detail, optional modules; selected task carried into focus | trackers/page.tsx, plan/page.tsx; full-tracking-completion tests |
+| Tasks and goals | Priority/tag/filtering, editable task name/date, undo single deletion and completed cleanup; milestones/weekly commitment, direct Motivation access | todo/page.tsx, goal/page.tsx; task and goal suites |
+| Roadmap and Bible | Current curriculum, evidence flow, timetable/source integration, protected owner schedule | roadmap/page.tsx, personal-timetable.ts; Bible/career/timetable suites |
+| Focus and study | One authoritative work:active record/controller; legacy mirrors retained; pause/resume/finish/cancel, visible status across routes, normal navigation, opt-in fullscreen/strict protection; completion deduplication and actual minutes | work-session-store.ts, FocusSprint, DeepStudyCockpitModal, LockdownGate; focus/lockdown/session tests |
+| Recall | One accessible reveal/rating/skip/exit flow with preserved learning history | RevisionDeckModal; FullPageRevisionGate compatibility adapter |
+| Motivation and audio | Goal-oriented encouragement and personal reminders; native YouTube Music podcast discovery ordered by study topic; optional deadline-based break timer | motivation/page.tsx, StudyBreakLoungeModal, study-audio.ts; motivation/audio tests |
+| Rest and distraction guard | Opt-in, immediate exit, no default mobile/night interception or false OS control; 22:00 routine remains reachable | ProtectionPreferences, LockdownGate, DistractionInterceptor; bedtime/reminder tests |
+| Food and nutrition | Daily portions, known-aware calorie/macro/micronutrient coverage, date/meal edits, saved/recent/favorite foods, recipes, immutable snapshots, duplicate/delete/undo and optional targets | nutrition domain/store/components; nutrition and personal-tracking suites |
+| Food database | Authenticated server adapter, identity/unit validation, retrieval provenance, bounded cache/timeout, honest unavailable state | nutrition-provider.ts, API routes; normalization tests; credentials gate below |
+| Health | Shared food/water/body/movement records; optional sleep/energy/mood/note capture | health/page.tsx, existing health trackers, RecoveryTracker; record/layout tests |
+| Meal/supplement routine | Owner-only Monday B12, daily Zinc/Lunch/Omega-3/Snacks/Dinner/Magnesium at requested IST times; compact next-item checklist, dated missed/history records, edit recurrence/timezone, independent completion, snooze/skip/undo | routine domain/store/UI; recurrence and reminder tests |
+| Notification infrastructure | Explicit permission/subscription controls, generic lock-screen default, grouped Lunch/Omega-3, authenticated dispatch, durable delivery leases, service-worker destination | push API routes, sw.js, migration 0008; operational delivery gate below |
+| Review, habits and journal | Daily/weekly actual task/milestone/focus/study and health records; reflection/history links; optional maximum-five dated habits | review/page.tsx, HabitChecklist, LogCapture; completion/review/habit tests |
+| Library and sharing | Library naming with stable /archive URL; private notes/links/images/search/undo; explicit audience/expiry/copy/revoke preserved | archive/page.tsx, share routes; archive/share suites |
+| Clock, setup and settings | Calendar-aware dates, compact contextual clock, optional device setup, modules/reminders/rest/guard/backup controls; removed blank duplicate summaries | clock/date/settings components; midnight/DST/layout tests |
+| Persistence and backups | Account scope, timestamped per-record merges/tombstones, pending-write retries, typed restore validation and pre-restore rollback snapshot; all new keys included | use-synced-storage.ts, record-merge.ts, backup.ts, migration 0007; domain/backup tests |
+| Public portfolio | Existing improvements plus current main's resume preserved; shared controls remain covered | portfolio/resume suites |
+
+## Production gates
+
+Code implementation and a pushed branch do not activate provider services or prove deployed delivery. Apply migrations 0007/0008 without resetting tables; configure USDA FoodData Central, VAPID and the authenticated minute scheduler; then verify real signed-in account isolation, concurrent/offline cloud edits and a closed-site notification on a real device. No credentials or provider signup were invented. These checks remain pending; follow [setup and rollback](NUTRITION_AND_REMINDER_SETUP.md).
+
+Final local verification and pushed commit evidence are recorded in the change sheet and implementation plan.
+
+## Final local verification
+
+215 browser tests passed against the final production build; 17 nutrition/storage/session tests and 18 curriculum/sync tests passed. TypeScript, ESLint, build, Bible snapshot validation and staged whitespace checks passed. Phone/light and desktop/dark views were reviewed, including the corrected phone task editor. These results are local auth-open evidence; they do not replace the production gates above.

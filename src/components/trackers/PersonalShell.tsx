@@ -8,6 +8,7 @@ import EditorialFrame from "@/components/editorial/EditorialFrame";
 import TrackerActionBar from "./TrackerActionBar";
 import WorldClockStrip from "./WorldClockStrip";
 import { cn } from "@/lib/utils";
+import RoutineNotifier from "@/components/personal/RoutineNotifier";
 import LockdownGate from "./LockdownGate";
 
 const DEFAULT_EYEBROWS: Partial<Record<TrackerIconName, string>> = {
@@ -42,11 +43,17 @@ export default function PersonalShell({
   showDock?: boolean;
   children: ReactNode;
 }) {
-  const effectiveEyebrow = eyebrow ?? (icon ? DEFAULT_EYEBROWS[icon] : undefined) ?? "Planning";
+  const effectiveEyebrow =
+    eyebrow ?? (icon ? DEFAULT_EYEBROWS[icon] : undefined) ?? "Planning";
 
   return (
     <EditorialFrame surface="archive" className="dossier-frame personal-shell">
-      <div className={cn("mx-auto w-full max-w-6xl", showDock ? "pb-28 lg:pb-8" : "pb-8")}>
+      <div
+        className={cn(
+          "mx-auto w-full max-w-6xl",
+          showDock ? "pb-28 lg:pb-8" : "pb-8",
+        )}
+      >
         {title == null ? null : (
           <ChapterHeader
             compact
@@ -54,7 +61,10 @@ export default function PersonalShell({
             title={
               <span className="inline-flex items-center gap-3">
                 {icon ? (
-                  <span aria-hidden className="dossier-icon-mark hidden sm:inline-flex">
+                  <span
+                    aria-hidden
+                    className="dossier-icon-mark hidden sm:inline-flex"
+                  >
                     <TrackerIcon name={icon} className="h-5 w-5" />
                   </span>
                 ) : null}
@@ -62,16 +72,19 @@ export default function PersonalShell({
               </span>
             }
             subtitle={subtitle ?? "One clear move, then the next."}
-            action={showBack ? (
-              <Link href="/hub" className="dossier-back-link">
-                <ArrowLeft className="h-3.5 w-3.5" /> Today
-              </Link>
-            ) : undefined}
+            action={
+              showBack ? (
+                <Link href="/hub" className="dossier-back-link">
+                  <ArrowLeft className="h-3.5 w-3.5" /> Today
+                </Link>
+              ) : undefined
+            }
             utility={<WorldClockStrip badge={badge} />}
           />
         )}
         {actions ? <TrackerActionBar {...actions} /> : null}
         <LockdownGate>
+          <RoutineNotifier />
           <div className="personal-content mt-5 space-y-5">{children}</div>
           <TrackerNavDock showDock={showDock} />
         </LockdownGate>

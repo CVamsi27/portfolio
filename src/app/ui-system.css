@@ -199,7 +199,6 @@
   }
 }
 @media screen and (max-width: 639px) {
-  .tracker-surface .personal-shell #focus-scene { width: calc(100% + 2rem); margin-inline: -1rem; }
 }
 
 /* Clock disclosure: explicit device zone, stable time width, and city dates. */
@@ -223,4 +222,26 @@
   .tracker-surface .dossier-clock-disclosure[open] .clock-chevron { transform: rotate(180deg); }
   .tracker-surface .dossier-clock-details .dossier-world-status { padding-block: 0.75rem; border-top: 1px solid var(--color-border); }
   @media (max-width: 639px) { .tracker-surface .dossier-utility:has(.dossier-world-clock) { width: 100%; } }
+}
+
+
+/* Goal motivation: one readable story and one stable visual. */
+.goal-inspiration { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); overflow: hidden; border: 1px solid var(--color-border); border-radius: 1.5rem; background: var(--color-card); }
+.goal-inspiration__story { min-width: 0; padding: clamp(1.25rem, 4vw, 3rem); }
+.goal-inspiration__eyebrow { font-size: .75rem; font-weight: 600; letter-spacing: .04em; color: var(--color-muted-foreground); }
+.goal-inspiration h1 { margin-top: 1rem; font-family: var(--font-display); font-size: clamp(2rem, 4.5vw, 3.5rem); font-weight: 700; line-height: 1.1; letter-spacing: -.035em; overflow-wrap: anywhere; text-wrap: balance; }
+.goal-inspiration__why { margin-top: 1.25rem; max-width: 38rem; font-size: 1rem; line-height: 1.7; color: var(--color-muted-foreground); }
+.goal-inspiration__reminder { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); }
+.goal-inspiration blockquote { margin-top: .75rem; font-family: var(--font-display); font-size: clamp(1.25rem, 2.3vw, 1.65rem); font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.goal-inspiration__next { margin-top: 1.5rem; padding: 1.25rem; border-radius: 1rem; background: color-mix(in srgb, var(--color-primary) 6%, var(--color-card)); }
+.goal-inspiration__visual { position: relative; min-height: 24rem; min-width: 0; background: #17343a; overflow: hidden; }
+.goal-inspiration__visual img, .goal-inspiration__horizon { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; }
+.goal-inspiration__horizon { background: radial-gradient(ellipse at 70% 30%, #a8c2ab 0, transparent 45%), linear-gradient(155deg,#517f78,#183c40 60%,#10262c); }
+.goal-inspiration__visual figcaption { position: absolute; inset-inline: 0; bottom: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; padding: 2rem 1.25rem 1.25rem; color: white; background: linear-gradient(transparent,rgba(0,0,0,.85)); font-size: .75rem; }
+.goal-inspiration__visual figcaption a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: .2em; }
+@media (max-width: 767px) {
+  .goal-inspiration { grid-template-columns: minmax(0,1fr); }
+  .goal-inspiration__visual { min-height: 10rem; }
+  .goal-inspiration__story { padding: 1.25rem; }
+  .goal-inspiration__reminder { margin-top: 1.5rem; }
 }

@@ -1,7 +1,17 @@
 "use client";
+import { useWorkSession } from "@/lib/work-session-store";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Pause, Play, RotateCcw, Square, Timer, X, ShieldCheck } from "lucide-react";
+import {
+  Check,
+  Pause,
+  Play,
+  RotateCcw,
+  Square,
+  Timer,
+  X,
+  ShieldCheck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SignalRule from "@/components/editorial/SignalRule";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
@@ -37,10 +47,20 @@ export default function FocusSprint({
   compact?: boolean;
   onCompleted?: (session: FocusSession) => void;
 }) {
-  const { value: active, setValue: setActive, status: activeStatus } = useSyncedStorage<FocusActiveState | null>("focus:active", null);
-  const { value: sessions, setValue: setSessions, status: sessionStatus } = useSyncedStorage<FocusSession[]>("focus:sessions", []);
+  const {
+    focus: active,
+    setFocus: setActive,
+    status: activeStatus,
+    study: studySession,
+  } = useWorkSession();
+  const {
+    value: sessions,
+    setValue: setSessions,
+    status: sessionStatus,
+  } = useSyncedStorage<FocusSession[]>("focus:sessions", []);
   const [plannedMinutes, setPlannedMinutes] = useState<FocusMinutes>(25);
   const [mode, setMode] = useState<FocusSessionMode>("timed");
+  const [fullscreenRequested, setFullscreenRequested] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const now = useNow(1_000);
   const safeSessions = sessions ?? [];
@@ -48,7 +68,11 @@ export default function FocusSprint({
   const finish = useCallback(() => {
     if (!active) return;
     const session = completeFocusSession(active, Date.now());
-    setSessions((previous) => [session, ...(previous ?? [])].slice(0, MAX_SESSIONS));
+    setSessions((previous) =>
+      (previous ?? []).some((item) => item.id === session.id)
+        ? previous
+        : [session, ...(previous ?? [])].slice(0, MAX_SESSIONS),
+    );
     setActive(null);
     void exitFullscreen();
     document.documentElement.removeAttribute("data-focus-session");
@@ -58,7 +82,8 @@ export default function FocusSprint({
   }, [active, onCompleted, setActive, setSessions]);
 
   useEffect(() => {
-    if (!active || active.mode === "open" || active.pausedAt !== undefined) return;
+    if (!active || active.mode === "open" || active.pausedAt !== undefined)
+      return;
     const remaining = getFocusRemainingMs(active, now);
     const timeout = window.setTimeout(finish, Math.max(0, remaining));
     return () => window.clearTimeout(timeout);
@@ -67,7 +92,12 @@ export default function FocusSprint({
   useEffect(() => {
     if (!active) return;
     document.documentElement.dataset.focusSession = "active";
-    const interrupt = () => setActive((previous) => previous ? { ...previous, interruptions: (previous.interruptions ?? 0) + 1 } : previous);
+    const interrupt = () =>
+      setActive((previous) =>
+        previous
+          ? { ...previous, interruptions: (previous.interruptions ?? 0) + 1 }
+          : previous,
+      );
     const onVisibility = () => {
       if (document.visibilityState === "hidden") interrupt();
     };
@@ -85,7 +115,15 @@ export default function FocusSprint({
 
   const start = async () => {
     setMessage(null);
-    const fullscreen = await enterFullscreen(document.documentElement);
+    if (studySession) {
+      setMessage(
+        "A study session is already active. Resume or finish it from Roadmap first.",
+      );
+      return;
+    }
+    const fullscreen = fullscreenRequested
+      ? await enterFullscreen(document.documentElement)
+      : false;
     setActive({
       id: `focus_${Date.now().toString(36)}`,
       label: label.trim() || "Focused work",
@@ -123,15 +161,23 @@ export default function FocusSprint({
   const isRunning = Boolean(active);
   const isPaused = active?.pausedAt !== undefined;
   const elapsed = active ? getFocusElapsedMs(active, now) : 0;
-  const total = active?.mode === "open" ? 0 : (active?.plannedMinutes ?? plannedMinutes) * 60_000;
+  const total =
+    active?.mode === "open"
+      ? 0
+      : (active?.plannedMinutes ?? plannedMinutes) * 60_000;
   const progress = total ? (elapsed / total) * 100 : 0;
   const storageError = activeStatus === "error" || sessionStatus === "error";
 
   return (
     <section
+      id="focus-sprint"
       data-testid="focus-sprint"
       data-focus-lock={isRunning ? "active" : "inactive"}
-      className={compact ? "dossier-panel dossier-focus-sprint" : "dossier-panel dossier-focus-sprint"}
+      className={
+        compact
+          ? "dossier-panel dossier-focus-sprint"
+          : "dossier-panel dossier-focus-sprint"
+      }
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
@@ -141,7 +187,13 @@ export default function FocusSprint({
             {active?.label ?? "Make room for the next move"}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            {isRunning ? active?.mode === "open" ? "Stay with this move until you explicitly finish it." : "Stay with this move until the timer ends." : label.trim() ? `For: ${label}` : "A short, contained block of attention."}
+            {isRunning
+              ? active?.mode === "open"
+                ? "Stay with this move until you explicitly finish it."
+                : "Stay with this move until the timer ends."
+              : label.trim()
+                ? `For: ${label}`
+                : "A short, contained block of attention."}
           </p>
         </div>
         {isRunning ? (
@@ -153,13 +205,32 @@ export default function FocusSprint({
 
       {isRunning ? (
         <div className="mt-5">
-          <p className="font-display text-5xl font-black tabular-nums tracking-tight" aria-live="polite">
-            {active?.mode === "open" ? formatClock(elapsed) : formatClock(active ? getFocusRemainingMs(active, now) : 0)}
+          <p
+            className="font-display text-5xl font-black tabular-nums tracking-tight"
+            aria-live="polite"
+          >
+            {active?.mode === "open"
+              ? formatClock(elapsed)
+              : formatClock(active ? getFocusRemainingMs(active, now) : 0)}
           </p>
-          {active?.mode === "timed" ? <SignalRule className="mt-3" value={progress} label="Focus sprint progress" /> : <p className="mt-3 text-xs text-muted-foreground">Open session · your time is being recorded.</p>}
+          {active?.mode === "timed" ? (
+            <SignalRule
+              className="mt-3"
+              value={progress}
+              label="Focus sprint progress"
+            />
+          ) : (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Open session · your time is being recorded.
+            </p>
+          )}
           <div className="mt-4 flex flex-wrap gap-2">
             <Button size="sm" onClick={isPaused ? resume : pause}>
-              {isPaused ? <Play className="mr-1.5 h-3.5 w-3.5" /> : <Pause className="mr-1.5 h-3.5 w-3.5" />}
+              {isPaused ? (
+                <Play className="mr-1.5 h-3.5 w-3.5" />
+              ) : (
+                <Pause className="mr-1.5 h-3.5 w-3.5" />
+              )}
               {isPaused ? "Resume sprint" : "Pause sprint"}
             </Button>
             <Button size="sm" variant="outline" onClick={finish}>
@@ -169,59 +240,121 @@ export default function FocusSprint({
               <X className="mr-1.5 h-3.5 w-3.5" /> Cancel
             </Button>
           </div>
-          <p data-testid="focus-interruptions" className="mt-3 text-xs text-muted-foreground">
-            {active?.interruptions ?? 0} interruption{active?.interruptions === 1 ? "" : "s"} recorded
+          <p
+            data-testid="focus-interruptions"
+            className="mt-3 text-xs text-muted-foreground"
+          >
+            {active?.interruptions ?? 0} interruption
+            {active?.interruptions === 1 ? "" : "s"} recorded
           </p>
         </div>
       ) : (
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <div className="flex rounded-md border border-border/60 p-1" role="group" aria-label="Focus session mode">
-            <button type="button" aria-pressed={mode === "timed"} onClick={() => setMode("timed")} className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${mode === "timed" ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Timed</button>
-            <button type="button" aria-pressed={mode === "open"} onClick={() => setMode("open")} className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${mode === "open" ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Open-ended</button>
+          <div
+            className="flex rounded-md border border-border/60 p-1"
+            role="group"
+            aria-label="Focus session mode"
+          >
+            <button
+              type="button"
+              aria-pressed={mode === "timed"}
+              onClick={() => setMode("timed")}
+              className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${mode === "timed" ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Timed
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === "open"}
+              onClick={() => setMode("open")}
+              className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${mode === "open" ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Open-ended
+            </button>
           </div>
           {mode === "timed" ? (
-          <div className="flex rounded-md border border-border/60 p-1" role="group" aria-label="Focus sprint length">
-            {FOCUS_PRESETS.map((preset) => (
-              <button
-                key={preset.minutes}
-                type="button"
-                aria-pressed={plannedMinutes === preset.minutes}
-                onClick={() => setPlannedMinutes(preset.minutes)}
-                className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${
-                  plannedMinutes === preset.minutes ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
+            <div
+              className="flex rounded-md border border-border/60 p-1"
+              role="group"
+              aria-label="Focus sprint length"
+            >
+              {FOCUS_PRESETS.map((preset) => (
+                <button
+                  key={preset.minutes}
+                  type="button"
+                  aria-pressed={plannedMinutes === preset.minutes}
+                  onClick={() => setPlannedMinutes(preset.minutes)}
+                  className={`rounded px-2.5 py-1.5 font-mono text-xs transition-colors ${
+                    plannedMinutes === preset.minutes
+                      ? "bg-primary font-bold text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
           ) : null}
+          <label className="flex min-h-11 items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={fullscreenRequested}
+              onChange={(e) => setFullscreenRequested(e.target.checked)}
+            />
+            Use fullscreen
+          </label>
           <Button size="sm" onClick={start}>
             <Play className="mr-1.5 h-3.5 w-3.5" /> Start focus sprint
           </Button>
         </div>
       )}
 
-      {!isRunning ? <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />Focus hides in-app navigation and warns if you leave the tab. Turn on Do Not Disturb and app limits from your device before starting.</p> : null}
+      {!isRunning ? (
+        <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+          <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+          Navigation stays available. Fullscreen is optional; device Focus and
+          app limits are controlled by your device.
+        </p>
+      ) : null}
 
       {!isRunning ? (
         <details className="mt-4 border-t border-border/60 pt-3">
-          <summary className="cursor-pointer list-none text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground">Prepare your device</summary>
-          <div className="mt-3"><DevicePreparation compact /></div>
+          <summary className="cursor-pointer list-none text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground">
+            Prepare your device
+          </summary>
+          <div className="mt-3">
+            <DevicePreparation compact />
+          </div>
         </details>
       ) : null}
 
       {message ? (
-        <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-emerald-500" role="status">
-          {message.includes("complete") ? <Check className="h-3.5 w-3.5" /> : <RotateCcw className="h-3.5 w-3.5" />}
+        <p
+          className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-emerald-500"
+          role="status"
+        >
+          {message.includes("complete") ? (
+            <Check className="h-3.5 w-3.5" />
+          ) : (
+            <RotateCcw className="h-3.5 w-3.5" />
+          )}
           {message}
         </p>
       ) : null}
-      {storageError ? <p className="mt-3 text-xs text-amber-500">Not saved yet — keep this tab open and retry after sync returns.</p> : null}
-      {!isRunning && safeSessions.length > 0 ? (
-        <p className="mt-3 text-xs text-muted-foreground">{safeSessions.length} focus block{safeSessions.length === 1 ? "" : "s"} recorded</p>
+      {storageError ? (
+        <p className="mt-3 text-xs text-amber-500">
+          Not saved yet — keep this tab open and retry after sync returns.
+        </p>
       ) : null}
-      <span className="sr-only"><Square aria-hidden /> Focus sprint controls</span>
+      {!isRunning && safeSessions.length > 0 ? (
+        <p className="mt-3 text-xs text-muted-foreground">
+          {safeSessions.length} focus block
+          {safeSessions.length === 1 ? "" : "s"} recorded
+        </p>
+      ) : null}
+      <span className="sr-only">
+        <Square aria-hidden /> Focus sprint controls
+      </span>
     </section>
   );
 }
@@ -229,7 +362,10 @@ export default function FocusSprint({
 function beep() {
   if (typeof window === "undefined") return;
   try {
-    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const Ctx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
     if (!Ctx) return;
     const ctx = new Ctx();
     const play = (freq: number, at: number, dur: number) => {
@@ -239,7 +375,10 @@ function beep() {
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(0.0001, ctx.currentTime + at);
       gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + at + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + dur);
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        ctx.currentTime + at + dur,
+      );
       osc.connect(gain).connect(ctx.destination);
       osc.start(ctx.currentTime + at);
       osc.stop(ctx.currentTime + at + dur + 0.05);

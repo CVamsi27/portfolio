@@ -28,6 +28,7 @@ export interface ActiveStudySession {
 }
 
 export interface CompletedChapterRecord {
+  sessionId?: string;
   chapterId: string;
   chapterTitle: string;
   stack: string;
@@ -44,8 +45,12 @@ export const MINUTE_MS = 60_000;
 /**
  * Calculates current active elapsed study time in milliseconds.
  */
-export function getStudyElapsedMs(session: ActiveStudySession, now: number): number {
-  const currentPause = session.pausedAt === undefined ? 0 : Math.max(0, now - session.pausedAt);
+export function getStudyElapsedMs(
+  session: ActiveStudySession,
+  now: number,
+): number {
+  const currentPause =
+    session.pausedAt === undefined ? 0 : Math.max(0, now - session.pausedAt);
   const elapsed = now - session.startedAt - session.pausedMs - currentPause;
   return Math.max(0, elapsed);
 }
@@ -53,7 +58,10 @@ export function getStudyElapsedMs(session: ActiveStudySession, now: number): num
 /**
  * Calculates remaining study time for a timed session in milliseconds.
  */
-export function getStudyRemainingMs(session: ActiveStudySession, now: number): number {
+export function getStudyRemainingMs(
+  session: ActiveStudySession,
+  now: number,
+): number {
   const targetMs = session.targetMinutes * MINUTE_MS;
   const elapsed = getStudyElapsedMs(session, now);
   return Math.max(0, targetMs - elapsed);
@@ -99,7 +107,7 @@ export function getNextStudyGoal(
     date: string;
     chapters: Array<StudyChapterRef>;
   }>,
-  completedIds: Set<string>
+  completedIds: Set<string>,
 ): NextStudyGoal | null {
   // 1. Flatten all chapters with day context
   const allFlattened: Array<{
@@ -115,13 +123,16 @@ export function getNextStudyGoal(
   }
 
   // 2. Locate current chapter index
-  const currentIndex = allFlattened.findIndex((item) => item.chapter.id === currentChapterId);
+  const currentIndex = allFlattened.findIndex(
+    (item) => item.chapter.id === currentChapterId,
+  );
   const startIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
 
   // 3. Find first subsequent uncompleted chapter
   for (let i = startIndex; i < allFlattened.length; i++) {
     if (!completedIds.has(allFlattened[i].chapter.id)) {
-      const currentDay = currentIndex >= 0 ? allFlattened[currentIndex].day : days[0]?.day;
+      const currentDay =
+        currentIndex >= 0 ? allFlattened[currentIndex].day : days[0]?.day;
       return {
         ...allFlattened[i],
         isToday: allFlattened[i].day === currentDay,
@@ -131,7 +142,10 @@ export function getNextStudyGoal(
 
   // 4. Fallback: check any remaining uncompleted chapter from the beginning
   for (let i = 0; i < allFlattened.length; i++) {
-    if (!completedIds.has(allFlattened[i].chapter.id) && allFlattened[i].chapter.id !== currentChapterId) {
+    if (
+      !completedIds.has(allFlattened[i].chapter.id) &&
+      allFlattened[i].chapter.id !== currentChapterId
+    ) {
       return {
         ...allFlattened[i],
         isToday: false,
@@ -150,7 +164,9 @@ export interface StudyAnalytics {
   completedByStack: Record<string, number>;
 }
 
-export function computeStudyAnalytics(records: CompletedChapterRecord[]): StudyAnalytics {
+export function computeStudyAnalytics(
+  records: CompletedChapterRecord[],
+): StudyAnalytics {
   const totalCompleted = (records || []).length;
   let totalMinutes = 0;
   let totalDistractions = 0;
@@ -168,7 +184,9 @@ export function computeStudyAnalytics(records: CompletedChapterRecord[]): StudyA
   }
 
   const distractionFreePercentage =
-    totalCompleted > 0 ? Math.round((distractionFreeCount / totalCompleted) * 100) : 100;
+    totalCompleted > 0
+      ? Math.round((distractionFreeCount / totalCompleted) * 100)
+      : 100;
 
   return {
     totalCompleted,
@@ -185,9 +203,11 @@ export function computeStudyAnalytics(records: CompletedChapterRecord[]): StudyA
 export function isMobilePhoneDevice(): boolean {
   if (typeof window === "undefined") return false;
   const ua = navigator.userAgent || "";
-  const isMobileUA = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const isMobileUA =
+    /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
   const isNarrowTouch =
-    window.innerWidth <= 768 && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+    window.innerWidth <= 768 &&
+    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
   return isMobileUA || isNarrowTouch;
 }
 
@@ -199,7 +219,11 @@ export function getClientDeviceId(): string {
   try {
     let id = window.localStorage.getItem("study:client_device_id");
     if (!id) {
-      id = "dev_" + Math.random().toString(36).slice(2, 10) + "_" + Date.now().toString(36);
+      id =
+        "dev_" +
+        Math.random().toString(36).slice(2, 10) +
+        "_" +
+        Date.now().toString(36);
       window.localStorage.setItem("study:client_device_id", id);
     }
     return id;
@@ -223,3 +247,13 @@ export function getDeviceDisplayName(): string {
   return isMobilePhoneDevice() ? "Mobile Device" : "Workstation";
 }
 
+/** Repeated completion clicks or retries never create another record for a session. */
+export function appendStudyCompletion<T extends CompletedChapterRecord>(
+  records: T[],
+  record: T,
+): T[] {
+  return record.sessionId &&
+    records.some((item) => item.sessionId === record.sessionId)
+    ? records
+    : [record, ...records];
+}

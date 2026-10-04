@@ -166,7 +166,7 @@ export default function ArchivePage() {
     )
       setGoalFilter("all");
     setQuery("");
-    setFeedback({ message: "Saved to archive" });
+    setFeedback({ message: "Saved to library" });
     setBody("");
     setTags("");
     setSourceUrl("");
@@ -184,7 +184,7 @@ export default function ArchivePage() {
     if (!item) return;
     setDeletedItem(item);
     setValue((previous) => (previous ?? []).filter((item) => item.id !== id));
-    setFeedback({ message: "Archive item deleted" });
+    setFeedback({ message: "Library item deleted" });
   };
   const undoDelete = () => {
     if (!deletedItem) return;
@@ -194,14 +194,14 @@ export default function ArchivePage() {
         : [deletedItem, ...(previous ?? [])],
     );
     setDeletedItem(null);
-    setFeedback({ message: "Archive item restored" });
+    setFeedback({ message: "Library item restored" });
   };
 
   const copyItem = async (id: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedId(id);
-      setFeedback({ message: "Archive text copied" });
+      setFeedback({ message: "Library text copied" });
       setTimeout(() => setCopiedId(null), 2000);
     } catch {
       setFeedback({
@@ -214,7 +214,7 @@ export default function ArchivePage() {
   const exportToMarkdown = () => {
     if (items.length === 0) return;
     const lines: string[] = [
-      "# Personal Archive Export",
+      "# Library Export",
       `Exported: ${new Date().toISOString()}`,
       `Total items: ${items.length}`,
       "",
@@ -272,7 +272,7 @@ export default function ArchivePage() {
     <RequireAuth>
       <TrackerShell
         icon="archive"
-        title="Personal Archive"
+        title="Library"
         subtitle="Capture what matters now. Retrieve it when it matters again."
       >
         {feedback ? (
@@ -305,7 +305,7 @@ export default function ArchivePage() {
             </div>
             <div className="mt-4">
               <Segmented
-                label="Archive item type"
+                label="Library item type"
                 options={KINDS.map(({ value, label }) => ({ value, label }))}
                 value={kind}
                 onChange={(next) => {
@@ -382,7 +382,7 @@ export default function ArchivePage() {
             </div>
             <div className="mt-3 flex justify-end">
               <Button onClick={save} disabled={!body.trim()}>
-                Save to archive
+                Save to library
               </Button>
             </div>
           </CardContent>
@@ -393,7 +393,7 @@ export default function ArchivePage() {
               <label className="relative flex-1 block">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  aria-label="Search archive"
+                  aria-label="Search library"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   className="pl-9"
@@ -413,7 +413,7 @@ export default function ArchivePage() {
             </div>
             <div className="mt-3">
               <Segmented
-                label="Archive scope"
+                label="Library scope"
                 options={[
                   { value: "current", label: currentGoalLabel },
                   { value: "all", label: "All items" },

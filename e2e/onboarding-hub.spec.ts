@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { seed, daysAgoKey, workoutCell } from "./helpers";
 
 test.describe("onboarding questionnaire", () => {
-  test("relocation asks for a neutral destination and motivation source", async ({ page }) => {
+  test("relocation asks for a neutral destination and confirms the chosen goal", async ({ page }) => {
     await page.addInitScript(() => {
       if (window.sessionStorage.getItem("__vkOnboardDestination")) return;
       window.sessionStorage.setItem("__vkOnboardDestination", "1");
@@ -21,8 +21,8 @@ test.describe("onboarding questionnaire", () => {
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await page.getByRole("button", { name: "Next", exact: true }).click();
-    await expect(page.getByRole("button", { name: "Goal-aware" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "General inspiration" })).toBeVisible();
+    await expect(page.getByText("Your goal is the starting point")).toBeVisible();
+    await expect(page.getByRole("button", { name: "General inspiration" })).toHaveCount(0);
   });
 
   test("walks goal → workout → fasting → motivation and persists prefs", async ({ page }) => {
@@ -58,8 +58,8 @@ test.describe("onboarding questionnaire", () => {
     await expect(page.getByText("Preferred protocol")).not.toBeVisible();
     await page.getByRole("button", { name: "Next", exact: true }).click();
 
-    // Step 4: motivation — Stoic, then finish.
-    await page.getByText("Calm, focused, unstoppable").click();
+    // Final step confirms the chosen goal, then finishes.
+    await expect(page.getByText("Your goal is the starting point")).toBeVisible();
     await page.getByRole("button", { name: /Get started/ }).click();
 
     // Prefs persisted + onboarding dismissed.
@@ -72,7 +72,7 @@ test.describe("onboarding questionnaire", () => {
     expect(prefs.goalCategory).toBe("financial");
     expect(prefs.workoutSplit).toBe("push-pull-legs");
     expect(prefs.fastingEnabled).toBe(false);
-    expect(prefs.motivationStyle).toBe("stoic");
+    expect(prefs.motivationStyle).toBe("discipline");
     expect(prefs.dailyMetricTarget).toBe(25);
   });
 
@@ -120,14 +120,8 @@ test.describe("hub command center", () => {
     await page.goto("/trackers");
 
     await expect(page.getByTestId("today-header")).toContainText("Test User");
-    await expect(page.getByTestId("progress-rail")).toBeVisible();
-    await page.getByTestId("today-details").locator("summary").click();
-
-    // Streak cards are seeded correctly.
-    await expect(page.getByText("1d", { exact: true }).first()).toBeVisible();
-
-    // Week-in-review digest present.
-    await expect(page.getByTestId("week-pulse")).toBeVisible();
+    await expect(page.getByRole("heading",{name:"Top three tasks"})).toBeVisible();
+    await expect(page.getByTestId("next-move-card")).toContainText("Seed open task");
 
     // Quick action: add a task from the hub → lands in todo store.
     await page.getByPlaceholder("Add a task…").fill("From the hub");
@@ -135,17 +129,15 @@ test.describe("hub command center", () => {
     const todos = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ?? "[]");
     expect(todos.some((t: { text: string }) => t.text === "From the hub")).toBe(true);
 
-    // Quick action: log goal metric.
-    await page.getByPlaceholder(/Log/).fill("2");
-    await page.keyboard.press("Enter");
-    const goal = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:goal"))) ?? "{}");
-    expect(goal.metricByDay[today]).toBe(5);
+    // Existing metrics remain reachable through quick capture.
+    await page.goto("/log");await expect(page.getByTestId("log-capture")).toBeVisible();
+    expect(JSON.parse((await page.evaluate(()=>localStorage.getItem("vk:goal")))??"{}").metricByDay[today]).toBe(3);
   });
 
   test("all clear state: fresh seed shows 0% momentum and empty activity", async ({ page }) => {
     await seed(page);
     await page.goto("/trackers");
-    await expect(page.getByTestId("progress-rail")).toContainText("0%");
-    await expect(page.getByRole("heading", { name: "Open today's roadmap" })).toBeVisible();
+    await expect(page.getByTestId("progress-rail")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Choose one useful action for today" })).toBeVisible();
   });
 });

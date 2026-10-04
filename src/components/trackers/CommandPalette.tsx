@@ -60,6 +60,21 @@ export default function CommandPalette({
   const items = useMemo<CommandItem[]>(
     () => [
       // Navigation
+      ...[
+        { title: "Plan", href: "/plan" },
+        { title: "Health", href: "/health" },
+        { title: "Review", href: "/review" },
+        { title: "Food", href: "/food" },
+        { title: "Reminders", href: "/routine" },
+      ].map((item) => ({
+        id: `nav-${item.title.toLowerCase()}`,
+        category: "Navigation" as const,
+        title: item.title,
+        subtitle: "Open your personal tracker",
+        icon: Compass,
+        keywords: [item.title.toLowerCase()],
+        run: () => router.push(item.href),
+      })),
       {
         id: "nav-tasks",
         category: "Navigation",
@@ -90,10 +105,10 @@ export default function CommandPalette({
       {
         id: "nav-focus",
         category: "Navigation",
-        title: "Focus",
-        subtitle: "Focus sprints & affirmations",
+        title: "Motivation",
+        subtitle: "Encouragement for your goal and your next step",
         icon: Flame,
-        keywords: ["focus", "sprint", "motivation", "timer", "scene"],
+        keywords: ["focus", "motivation", "goal", "inspiration", "reminder"],
         run: () => router.push("/motivation"),
       },
       {
@@ -151,10 +166,17 @@ export default function CommandPalette({
       {
         id: "nav-archive",
         category: "Navigation",
-        title: "Personal Archive",
+        title: "Library",
         subtitle: "Notes, links, quotes and references",
         icon: Archive,
-        keywords: ["archive", "notes", "links", "quotes", "bookmarks"],
+        keywords: [
+          "library",
+          "archive",
+          "notes",
+          "links",
+          "quotes",
+          "bookmarks",
+        ],
         run: () => router.push("/archive"),
       },
       {
@@ -306,7 +328,7 @@ export default function CommandPalette({
         subtitle: "Choose a session and start when ready",
         icon: Zap,
         keywords: ["focus", "sprint", "pomodoro", "timer", "deep work"],
-        run: () => router.push("/motivation"),
+        run: () => router.push("/plan#focus-sprint"),
       },
       {
         id: "action-log-weight",

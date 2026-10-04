@@ -30,18 +30,20 @@ export default function Modal({
   if (!open || typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-4">
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      tabIndex={-1}
+      className="fixed inset-0 z-[90] flex items-end justify-center p-0 outline-none sm:items-center sm:p-4"
+    >
       <div
         aria-hidden
         className="animate-fade-in absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
       />
       <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        tabIndex={-1}
         className={cn(
           "animate-slide-up relative flex max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-border/60 bg-card shadow-2xl shadow-primary/10 outline-none sm:rounded-2xl",
           className,
@@ -57,8 +59,14 @@ export default function Modal({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
-        {footer ? <div className="shrink-0 border-t border-border/40 px-5 py-3.5">{footer}</div> : null}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+          {children}
+        </div>
+        {footer ? (
+          <div className="shrink-0 border-t border-border/40 px-5 py-3.5">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,

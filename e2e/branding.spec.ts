@@ -79,7 +79,7 @@ test.describe("product branding", () => {
     const source = await sw.text();
     expect(source).toContain("NOVA service worker");
     expect(source).not.toContain("NOVA//OS");
-    expect(source).toContain('CACHE_VERSION = "nova-os-v3"');
+    expect(source).toContain('CACHE_VERSION = "nova-os-v4"');
     expect(source).not.toContain(["VK", "Personal", "Suite"].join(" "));
   });
 });

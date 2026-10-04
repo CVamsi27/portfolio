@@ -40,7 +40,7 @@ test("invalid archive links keep the draft and valid links announce saving", asy
   const source = page.getByRole("textbox", { name: "Source URL", exact: true });
   await draft.fill("Study reference");
   await source.fill("http://");
-  await page.getByRole("button", { name: "Save to archive" }).click();
+  await page.getByRole("button", { name: "Save to library" }).click();
   await expect(source).toHaveAttribute("aria-invalid", "true");
   await expect(page.locator("#archive-url-error")).toContainText(
     "Enter a valid",
@@ -52,9 +52,9 @@ test("invalid archive links keep the draft and valid links announce saving", asy
     ),
   ).toHaveLength(0);
   await source.fill("example.com/reference");
-  await page.getByRole("button", { name: "Save to archive" }).click();
+  await page.getByRole("button", { name: "Save to library" }).click();
   await expect(
-    page.getByRole("status").filter({ hasText: "Saved to archive" }),
+    page.getByRole("status").filter({ hasText: "Saved to library" }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", {

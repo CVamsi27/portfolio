@@ -61,7 +61,7 @@ export interface DistractionShieldState {
 }
 
 export const DEFAULT_SHIELD_STATE: DistractionShieldState = {
-  enabled: true,
+  enabled: false,
   allowlist: DEFAULT_ALLOWLIST,
   blocklist: DEFAULT_BLOCKLIST,
   activeLeash: null,
@@ -129,6 +129,9 @@ export function shouldInterceptUrl(
   if (!state.enabled) return false;
   const domain = extractDomain(urlOrDomain);
   if (!domain) return false;
+
+  // Approved audio destination, including older saved YouTube blocklists.
+  if (domain === "music.youtube.com") return false;
 
   // Never intercept allowed domains
   if (isDomainAllowed(domain, state.allowlist)) {

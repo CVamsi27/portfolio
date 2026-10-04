@@ -21,7 +21,7 @@ test("portfolio uses the personal paper editorial surface", async ({ page }) => 
 
 test("personal tracker cards opt into the dossier treatment", async ({ page }) => {
   await seed(page);
-  await page.goto("/motivation");
+  await page.goto("/todo");
   await expect.poll(() => page.locator('[data-card-variant="dossier"]').count()).toBeGreaterThan(0);
 });
 

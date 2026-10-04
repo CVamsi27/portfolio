@@ -1,9 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "./supabase/client.ts";
-import { useAuth } from "./auth-store.ts";
+import { mergeRecords, scopedLocalKey } from "./record-merge.ts";
+import { useAuth, currentAuthUserId } from "./auth-store.ts";
 
 export type SyncStatus =
   | "local-only" // no Supabase env configured, or signed out
@@ -90,9 +97,13 @@ function subscribeLocal(localKey: string, cb: () => void) {
  * for display-only consumers (e.g. hub summaries). No cloud, no effect.
  */
 export function useLocalValue<T>(key: string, initial: T) {
-  const localKey = `vk:${key}`;
+  const { user, configured } = useAuth();
+  const localKey = scopedLocalKey(key, user?.id ?? null, configured, true);
   const [initialState] = useState(() => initial);
-  const subscribe = useCallback((cb: () => void) => subscribeLocal(localKey, cb), [localKey]);
+  const subscribe = useCallback(
+    (cb: () => void) => subscribeLocal(localKey, cb),
+    [localKey],
+  );
   const getSnapshot = useCallback(
     () => (mounted ? readLocal(localKey, initialState) : initialState),
     [localKey, initialState],
@@ -191,7 +202,9 @@ export function subscribeRealtimeKey(
       const channelName = `rt_tracker_data_${userId.slice(0, 8)}`;
 
       // Clean up any stale channel from Supabase's internal registry with this topic
-      const existing = sb.getChannels().find((c) => c.topic === `realtime:${channelName}`);
+      const existing = sb
+        .getChannels()
+        .find((c) => c.topic === `realtime:${channelName}`);
       if (existing) {
         try {
           void sb.removeChannel(existing);
@@ -200,32 +213,30 @@ export function subscribeRealtimeKey(
         }
       }
 
-      const channel = sb
-        .channel(channelName)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "tracker_data",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload: { new?: RealtimeItem }) => {
-            const item = payload?.new;
-            if (!item || !item.key) return;
-            const currentHub = realtimeHubs.get(userId);
-            const keyCbs = currentHub?.keyListeners.get(item.key);
-            if (keyCbs) {
-              keyCbs.forEach((cb) => {
-                try {
-                  cb(item);
-                } catch (e) {
-                  console.error("Error in realtime listener callback:", e);
-                }
-              });
-            }
-          },
-        );
+      const channel = sb.channel(channelName).on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tracker_data",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload: { new?: RealtimeItem }) => {
+          const item = payload?.new;
+          if (!item || !item.key) return;
+          const currentHub = realtimeHubs.get(userId);
+          const keyCbs = currentHub?.keyListeners.get(item.key);
+          if (keyCbs) {
+            keyCbs.forEach((cb) => {
+              try {
+                cb(item);
+              } catch (e) {
+                console.error("Error in realtime listener callback:", e);
+              }
+            });
+          }
+        },
+      );
 
       hub.channel = channel;
       channel.subscribe((status) => {
@@ -273,14 +284,23 @@ export function subscribeRealtimeKey(
   };
 }
 
-export function useSyncedStorage<T>(key: string, initialValue: T) {
-  const localKey = `vk:${key}`;
-  const metaKey = `vk:meta:${key}`;
+export function useSyncedStorage<T>(
+  key: string,
+  initialValue: T,
+  options?: { accountScoped?: boolean; records?: boolean },
+) {
+  const { user, configured } = useAuth();
+  const scoped = options?.accountScoped !== false;
+  const records = options?.records === true;
+  const localKey = scopedLocalKey(key, user?.id ?? null, configured, scoped);
+  const metaKey = scoped && configured ? `${localKey}:meta` : `vk:meta:${key}`;
   // Stable identity for the empty-state snapshot (inline literals differ per render).
   const [initial] = useState(() => initialValue);
   const [status, setStatus] = useState<SyncStatus>("local-only");
-  const { user } = useAuth();
-  const subscribe = useCallback((cb: () => void) => subscribeLocal(localKey, cb), [localKey]);
+  const subscribe = useCallback(
+    (cb: () => void) => subscribeLocal(localKey, cb),
+    [localKey],
+  );
   const getSnapshot = useCallback(
     () => (mounted ? readLocal(localKey, initial) : initial),
     [localKey, initial],
@@ -317,8 +337,16 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
             if (data) {
               const cloudAt = new Date(data.updated_at).getTime();
               const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-              if (cloudAt > localAt) {
-                writeLocal(localKey, data.value);
+              if (records || cloudAt > localAt) {
+                writeLocal(
+                  localKey,
+                  records
+                    ? mergeRecords(
+                        readLocal(localKey, initial) as never,
+                        data.value as never,
+                      )
+                    : data.value,
+                );
                 try {
                   window.localStorage.setItem(metaKey, String(cloudAt));
                 } catch {
@@ -339,7 +367,10 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
 
     // Pull immediately when device wakes up or user focuses tab (e.g. phone screen turned on)
     const onVisible = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "visible"
+      ) {
         pullCloud();
       }
     };
@@ -353,8 +384,16 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
         if (cancelled) return;
         const cloudAt = new Date(item.updated_at || "").getTime();
         const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-        if (cloudAt > localAt) {
-          writeLocal(localKey, item.value);
+        if (records || cloudAt > localAt) {
+          writeLocal(
+            localKey,
+            records
+              ? mergeRecords(
+                  readLocal(localKey, initial) as never,
+                  item.value as never,
+                )
+              : item.value,
+          );
           try {
             window.localStorage.setItem(metaKey, String(cloudAt));
           } catch {
@@ -380,10 +419,16 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, user?.id]);
+  }, [key, user?.id, localKey, metaKey, records]);
 
   // Push — debounced or immediate, in the write path
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (pushTimer.current) clearTimeout(pushTimer.current);
+    },
+    [localKey],
+  );
   const push = useCallback(
     (next: T, immediate = false) => {
       if (!isSupabaseConfigured()) return;
@@ -396,16 +441,44 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
           try {
             const { data } = await sb.auth.getSession();
             const uid = data.session?.user?.id;
-            if (!uid) {
+            if (
+              !uid ||
+              (scoped && (uid !== user?.id || uid !== currentAuthUserId()))
+            ) {
               setStatus("local-only");
               return;
             }
             setStatus("syncing");
             const now = Date.now();
-            const { error } = await sb.from("tracker_data").upsert(
-              { user_id: uid, key, value: next as unknown as object, updated_at: new Date(now).toISOString() },
-              { onConflict: "user_id,key" },
-            );
+            const { error, data: merged } = records
+              ? await sb.rpc("merge_tracker_records", {
+                  p_owner: uid,
+                  p_key: key,
+                  p_records: next,
+                })
+              : await sb.from("tracker_data").upsert(
+                  {
+                    user_id: uid,
+                    key,
+                    value: next as unknown as object,
+                    updated_at: new Date(now).toISOString(),
+                  },
+                  { onConflict: "user_id,key" },
+                );
+            if (
+              !error &&
+              records &&
+              merged &&
+              (!scoped || uid === currentAuthUserId())
+            ) {
+              writeLocal(
+                localKey,
+                mergeRecords(
+                  readLocal(localKey, initial) as never,
+                  merged as never,
+                ),
+              );
+            }
             if (error) {
               setStatus("error");
               return;
@@ -415,6 +488,11 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
             } catch {
               // ignore
             }
+            if (
+              JSON.stringify(readLocal(localKey, initial)) ===
+              JSON.stringify(records ? merged : next)
+            )
+              window.localStorage.removeItem(`${localKey}:pending`);
             setStatus("synced");
           } catch {
             setStatus("error");
@@ -428,17 +506,50 @@ export function useSyncedStorage<T>(key: string, initialValue: T) {
         pushTimer.current = setTimeout(doPush, debounceMs);
       }
     },
-    [key, metaKey],
+    [key, metaKey, localKey, records, scoped, user?.id, initial],
   );
+
+  useEffect(() => {
+    if (!user) return;
+    const retry = () => {
+      if (currentAuthUserId() !== user.id) return;
+      if (window.localStorage.getItem(`${localKey}:pending`) === "true")
+        push(readLocal(localKey, initial), true);
+    };
+    const visible = () => {
+      if (document.visibilityState === "visible") retry();
+    };
+    window.addEventListener("online", retry);
+    window.addEventListener("focus", retry);
+    document.addEventListener("visibilitychange", visible);
+    retry();
+    return () => {
+      window.removeEventListener("online", retry);
+      window.removeEventListener("focus", retry);
+      document.removeEventListener("visibilitychange", visible);
+    };
+  }, [records, user, localKey, initial, push]);
 
   const setValue = useCallback(
     (next: T | ((prev: T) => T), options?: { immediate?: boolean }) => {
+      if (scoped && configured && !user) return;
       const prev = mounted ? readLocal(localKey, initial) : initial;
-      const resolved = typeof next === "function" ? (next as (p: T) => T)(prev) : next;
+      const resolved =
+        typeof next === "function" ? (next as (p: T) => T)(prev) : next;
+      try {
+        window.localStorage.setItem(localKey, JSON.stringify(resolved));
+      } catch {
+        setStatus("error");
+        throw new Error(
+          "Device storage is full or unavailable. Your change was not saved.",
+        );
+      }
       writeLocal(localKey, resolved);
+      window.localStorage.setItem(`${localKey}:pending`, "true");
+      window.localStorage.setItem(metaKey, String(Date.now()));
       push(resolved, options?.immediate);
     },
-    [localKey, initial, push],
+    [localKey, metaKey, initial, push, scoped, configured, user],
   );
 
   return { value, setValue, status, user } as const;

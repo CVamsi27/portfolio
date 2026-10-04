@@ -1263,10 +1263,10 @@ export default function RoadmapPage() {
                   type="button"
                   onClick={() => setBreakLoungeOpen(true)}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer shadow-xs"
-                  title="Mindful Audio Break: YouTube Music & Top 10 Tech Podcasts"
+                  title="Find a developer podcast on YouTube Music"
                 >
                   <Headphones className="h-3.5 w-3.5 text-cyan-400" />
-                  <span>Mindful Audio Break</span>
+                  <span>Audio break</span>
                 </button>
 
                 <button
@@ -1527,10 +1527,10 @@ export default function RoadmapPage() {
                   type="button"
                   onClick={() => setBreakLoungeOpen(true)}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-3.5 py-2.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer"
-                  title="Mindful Break Lounge: YouTube Music & Top 10 Tech Podcasts"
+                  title="Find a developer podcast on YouTube Music"
                 >
                   <Headphones className="h-3.5 w-3.5 text-cyan-400" />
-                  <span>Audio Break Lounge</span>
+                  <span>Audio break</span>
                 </button>
               </div>
             </div>

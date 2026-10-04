@@ -84,3 +84,37 @@ Local screenshots are saved under `artifacts/ui-ux/` and excluded from Git. Repr
 ## Boundaries
 
 Saved-data shapes, storage keys, share access defaults, evidence-gated completion and host routing remain intact. No deployment or commit was requested. Build and browser checks run with optional Supabase configuration blanked. Live OAuth, cross-device Supabase synchronization, signed media and external contact delivery are not verified by the local browser suite. Automated responsive checks and visual inspection cover the listed routes/viewports; they do not establish compatibility with every browser or assistive technology.
+
+## 2026-10-03 — Audio break redesign
+
+Replaced the shared lounge's hidden iframe/full-screen playback simulation with three native YouTube Music podcast discovery links. Kept the component interface for all callers. Added optional timestamp-based 5/10/15-minute break timing with pause, resume, reset and finish, independent of study focus storage. The timer survives closing the chooser while its component remains mounted; it does not persist across page reloads. Updated entry labels and allowed exactly music.youtube.com through older saved distraction blocklists.
+
+Verified accessible Escape dismissal/focus restoration, native new-tab destination, no embedded player, saved blocklist compatibility, paused/background timing, unchanged focus storage, and 320px overflow. Captured artifacts/ui-ux/audio-break-mobile.png and audio-break-desktop-dark.png after animations settled. Production build, lint and TypeScript checks pass. Authenticated production behavior is not verified locally.
+
+Product redesign remains phased: shell/navigation, Today/Plan, Focus/Review, then secondary tools. No tracker records or cloud settings were changed by this phase.
+
+Regression evidence: full suite 194 passed / 1 assertion failure (raw localStorage string `"null"` versus parsed null). Corrected that assertion to check the parsed domain value; all 3 Audio break checks then passed. No implementation change followed the full run. Thus all 195 cases passed across the full run and corrected targeted rerun; a single fully green 195-case run has not been claimed.
+
+## 2026-10-03 — Goal-driven motivation, without dashboard clutter
+
+Rebuilt /motivation as one goal story: the saved goal is the main heading, original category-specific encouragement explains its purpose, an original reminder offers encouragement, and the next unfinished milestone leads to the relevant plan. Completed milestones receive a completion message and reflection action. The displayed count is completed milestones, not visits or assumed work.
+
+Removed the focus timer, daily journal form, visit/deck/saved-count tiles, general-inspiration switch, fullscreen takeover, automatic image rotation, refresh transmission controls, duplicate milestone summaries and standalone affirmation/favorites cards. Existing journal, visit, quote and preference storage is retained. Journaling remains in Log; focus sessions remain on Today. Personal/saved reminders remain accessible through one compact dialog.
+
+Navigation now calls this route Motivation (Inspire on the mobile dock). Search's focus-sprint action opens Today rather than a route without a timer. Removed obsolete source/style controls from setup and Settings; setup confirms the chosen goal and preserves preferences outside its local fields. Removed 300 lines of obsolete scene CSS. Image attribution matches the displayed visual, while original encouragement is never labeled with a remotely fetched author's name.
+
+Verified goal-aware requests even with old general preferences, no raw custom goal/name in media requests, exact saved goal display, milestone counts/completion, unchanged removed-section records, saved/custom reminder persistence, clipboard failure feedback, modal dismissal/focus restoration, static imagery, missing-image/service fallback, and phone/tablet overflow. Captures: artifacts/ui-ux/motivation-goal-mobile.png, motivation-goal-desktop.png and motivation-complete-fallback.png. These use seeded QA records, not the authenticated owner's cloud data. Build/lint/typecheck passed. Authenticated production deployment is not verified.
+
+Final stable production-build regression run: **190 passed (1.4m)**. This includes the new goal motivation and clipboard-failure checks, navigation/palette changes, onboarding, modal recovery, Audio break, clocks, health tools, sharing and responsive route checks. The earlier interrupted build/test overlap was superseded by this clean server restart and full run. Visual review confirmed the goal precedes the image on mobile, the long goal wraps, and completed/missing-image states remain usable.
+
+## Integrated personal tracking — 4 October 2026
+
+The approved consolidation now uses Today, Plan, Health, Review and More, with native quick capture and preserved legacy destinations. Today shows one next action, top three tasks, optional modules and a collapsed study schedule/checklist. Removed study streak clutter and blank Food meal/saved-data sections. Food supports portions, known-aware macro/micronutrient totals, saved/recent/favorite foods, recipes, dated edits, duplicate/delete/undo and optional targets. Owner-only meal/supplement schedules use IST, with separate completion, dated missed occurrences, snooze and undo. Focus permits navigation; optional rest permits immediate exit and reminder access.
+
+Final local production-build verification: 204 browser tests and 15 domain/storage tests passed; TypeScript, lint, build and diff checks passed. Reviewed phone/light and desktop/dark screenshots in artifacts/ui-ux/tracking-*. Local auth-open validation does not prove the deployed authenticated flow. Database migrations, food-provider credentials, push credentials/scheduler and real-device delivery remain pending; see NUTRITION_AND_REMINDER_SETUP.md. Changes are uncommitted on fix/click-interactions.
+
+## Final scope audit — 4 October 2026
+
+The additional audit completed task deletion/cleanup undo, task date editing, selected-task focus, one authoritative work-session controller, cross-page study controls, study completion deduplication, Review's learning/water/movement/body records, compact routine summaries, Library naming, a direct goal-to-Motivation link, calendar-boundary consistency, provider retrieval provenance and phone editor layout recovery. Latest main's Bible curriculum and resume changes were retained.
+
+Final verification against the integrated production build: **215 Chromium tests passed** (2.3 minutes), **17 nutrition/storage/session tests passed**, and **18 curriculum/sync tests passed**. TypeScript, ESLint, production build, Bible snapshot validation (100 days / 556 chapters) and staged diff whitespace checks passed. No production credentials were added; authenticated migration, cloud/offline and real-device push gates remain pending. The scope-to-code map is in [NOVA_IMPLEMENTATION_AUDIT.md](NOVA_IMPLEMENTATION_AUDIT.md). Commit/push history on `fix/click-interactions` is the source of submission evidence.

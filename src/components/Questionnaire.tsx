@@ -9,7 +9,7 @@ import {
   useUserPrefs,
   GOAL_CATEGORIES,
   WORKOUT_SPLITS,
-  MOTIVATION_STYLES,
+  displayGoalTitle,
   DEFAULT_GOAL_METRICS,
   RELOCATION_COUNTRIES,
   type GoalCategory,
@@ -47,7 +47,7 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
   const prev = () => setStep((s) => Math.max(s - 1, 0));
 
   const finish = () => {
-    setPrefs({ ...local, questionnaireDone: true } as any);
+    setPrefs({ ...prefs, ...local, questionnaireDone: true });
     onComplete();
   };
 
@@ -285,44 +285,12 @@ export default function Questionnaire({ onComplete }: { onComplete: () => void }
             </div>
           )}
 
-          {/* step 4: Motivation */}
+          {/* Final confirmation keeps setup focused on the chosen goal. */}
           {step === 4 && (
-            <div className="space-y-4">
-              <div className="text-center">
-                <h2 className="font-display text-xl font-bold">What drives you?</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Choose whether inspiration follows your goal or stays broad.</p>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { value: "goal" as const, label: "Goal-aware", desc: "Reflect your chosen direction" },
-                  { value: "general" as const, label: "General inspiration", desc: "Keep the signal open-ended" },
-                ].map((source) => (
-                  <button
-                    key={source.value}
-                    onClick={() => setLocal({ ...local, motivationPersonalization: source.value })}
-                    className={`rounded-xl border p-3 text-left text-sm transition-all ${local.motivationPersonalization === source.value ? "border-primary bg-primary/10 font-semibold shadow-sm" : "border-border/60 hover:bg-accent"}`}
-                  >
-                    <p className="font-medium">{source.label}</p>
-                    <p className="text-xs text-muted-foreground">{source.desc}</p>
-                  </button>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {MOTIVATION_STYLES.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => setLocal({ ...local, motivationStyle: m.id })}
-                    className={`rounded-xl border p-3 text-left text-sm transition-all ${
-                      local.motivationStyle === m.id
-                        ? "border-primary bg-primary/10 font-semibold shadow-sm"
-                        : "border-border/60 hover:bg-accent"
-                    }`}
-                  >
-                    <p className="font-medium">{m.label}</p>
-                    <p className="text-xs text-muted-foreground">{m.desc}</p>
-                  </button>
-                ))}
-              </div>
+            <div className="space-y-4 text-center">
+              <h2 className="font-display text-xl font-bold">Your goal is the starting point</h2>
+              <p className="text-lg font-semibold">{displayGoalTitle(local)}</p>
+              <p className="text-sm text-muted-foreground">Your motivation page will keep this goal and your next step in view. You can update your goal whenever your plans change.</p>
             </div>
           )}
 

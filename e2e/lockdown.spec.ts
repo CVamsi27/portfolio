@@ -27,7 +27,7 @@ test.describe("Personal lockdown", () => {
     await expect(page.getByTestId("today-header")).toBeVisible();
   });
 
-  test("blocks Personal navigation while focus is active", async ({ page }) => {
+  test("keeps Personal navigation available while focus is active", async ({ page }) => {
     await seed(page, {
       "vk:focus:active": {
         id: "focus_lock",
@@ -40,10 +40,10 @@ test.describe("Personal lockdown", () => {
       },
     });
     await page.goto("/trackers");
-    await page.getByTestId("tracker-primary-nav").getByRole("link", { name: "Focus" }).click();
-    await expect(page).toHaveURL(/\/trackers$/);
+    await page.getByTestId("tracker-primary-nav").getByRole("link", { name: "Plan" }).click();
+    await expect(page).toHaveURL(/\/plan$/);
     await expect(page.getByTestId("focus-lock-status")).toContainText(/focus is active/i);
-    await expect(page.getByTestId("focus-lock-status").getByText(/1 interruption/i)).toBeVisible();
+    await expect(page.getByTestId("focus-lock-status").getByText(/0 interruptions/i)).toBeVisible();
   });
 
   test("keeps the gate within supported mobile widths", async ({ page }) => {
@@ -86,9 +86,8 @@ test.describe("Personal lockdown", () => {
     await seed(page);
     await page.goto("/trackers");
 
-    await page.getByTestId("today-details").locator("summary").click();
-    await expect(page.getByTestId("bedtime-routine-card")).toBeVisible();
-    await page.getByRole("button", { name: /engage bedtime lock now/i }).click();
+    await page.goto("/settings#bedtime");
+    await page.getByRole("button", { name: /start bedtime/i }).click();
 
     await expect(page.getByTestId("bedtime-lock-screen")).toBeVisible();
     await expect(page.getByText("Evening Wind-Down Checklist")).toBeVisible();
@@ -99,7 +98,7 @@ test.describe("Personal lockdown", () => {
 
     await page.getByRole("button", { name: /exit bedtime lock/i }).click();
     await expect(page.getByTestId("bedtime-lock-screen")).toHaveCount(0);
-    await expect(page.getByTestId("today-header")).toBeVisible();
+    await expect(page.getByTestId("chapter-header")).toBeVisible();
   });
 });
 

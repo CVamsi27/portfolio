@@ -1,8 +1,13 @@
 "use client";
+import ProtectionPreferences from "@/components/personal/ProtectionPreferences";
+import ModulePreferences from "@/components/personal/ModulePreferences";
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { useNotificationPermission, refreshNotificationPermission } from "@/lib/use-notification-permission";
+import {
+  useNotificationPermission,
+  refreshNotificationPermission,
+} from "@/lib/use-notification-permission";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,10 +25,25 @@ import {
   type ImportReport,
 } from "@/lib/backup";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import { DEFAULT_REMINDERS, REMINDER_LABELS, type ReminderKey, type ReminderPreferences, type ReminderSlot } from "@/lib/reminders";
-import { formatLockEnd, nextBedtimeWindow, type LockdownPreferences } from "@/lib/lockdown";
+import {
+  DEFAULT_REMINDERS,
+  REMINDER_LABELS,
+  type ReminderKey,
+  type ReminderPreferences,
+  type ReminderSlot,
+} from "@/lib/reminders";
+import {
+  formatLockEnd,
+  nextBedtimeWindow,
+  type LockdownPreferences,
+} from "@/lib/lockdown";
 import { useLockdownPreferences } from "@/lib/lockdown-store";
-import { useUserPrefs, DEFAULT_USER_PREFS, WORKOUT_SPLITS, MOTIVATION_STYLES, type UserPrefs } from "@/lib/user-prefs";
+import {
+  useUserPrefs,
+  DEFAULT_USER_PREFS,
+  WORKOUT_SPLITS,
+  type UserPrefs,
+} from "@/lib/user-prefs";
 import {
   useMigrateWorkouts,
   useMigrateFasting,
@@ -54,12 +74,23 @@ export default function SettingsPage() {
   useMigrateTodos();
   useMigrateGoal();
   const { prefs, setPrefs, isSetup } = useUserPrefs();
-  const { status, user } = useSyncedStorage<UserPrefs>("prefs", DEFAULT_USER_PREFS);
+  const { status, user } = useSyncedStorage<UserPrefs>(
+    "prefs",
+    DEFAULT_USER_PREFS,
+  );
   const { toast } = useToast();
-  const { value: reminderValue, setValue: setReminders } = useSyncedStorage<ReminderPreferences>("reminders", DEFAULT_REMINDERS);
+  const { value: reminderValue, setValue: setReminders } =
+    useSyncedStorage<ReminderPreferences>("reminders", DEFAULT_REMINDERS);
   const reminders = reminderValue ?? DEFAULT_REMINDERS;
-  const { value: lockdown, setValue: setLockdown, status: lockdownStatus } = useLockdownPreferences();
-  const { setValue: setManualBedtime } = useSyncedStorage<boolean>("bedtime:manual", false);
+  const {
+    value: lockdown,
+    setValue: setLockdown,
+    status: lockdownStatus,
+  } = useLockdownPreferences();
+  const { setValue: setManualBedtime } = useSyncedStorage<boolean>(
+    "bedtime:manual",
+    false,
+  );
 
   const browserPermission = useNotificationPermission();
   const stats = useStorageStats();
@@ -77,6 +108,8 @@ export default function SettingsPage() {
     });
   };
 
+  const exportLegacy = () => downloadBackup(collectBackup({ legacy: true }));
+
   const doImport = async (file: File | undefined) => {
     if (!file) return;
     try {
@@ -93,7 +126,10 @@ export default function SettingsPage() {
         toast({ title: "Import failed", description: result.error });
       }
     } catch {
-      toast({ title: "Could not read file", description: "Is it a valid tracker-suite JSON backup?" });
+      toast({
+        title: "Could not read file",
+        description: "Is it a valid tracker-suite JSON backup?",
+      });
     }
     if (fileRef.current) fileRef.current.value = "";
   };
@@ -103,10 +139,20 @@ export default function SettingsPage() {
       const doomed: string[] = [];
       for (let i = 0; i < window.localStorage.length; i++) {
         const k = window.localStorage.key(i);
-        if (k && k.startsWith("vk:")) doomed.push(k);
+        if (
+          k &&
+          k.startsWith("vk:") &&
+          (user
+            ? k.startsWith(`vk:account:${user.id}:`)
+            : !k.startsWith("vk:account:"))
+        )
+          doomed.push(k);
       }
       doomed.forEach((k) => window.localStorage.removeItem(k));
-      toast({ title: "Local data cleared", description: "Sign in + reload to re-pull your cloud copy." });
+      toast({
+        title: "Local data cleared",
+        description: "Sign in + reload to re-pull your cloud copy.",
+      });
       notifyStorageChanged();
     } catch {
       toast({ title: "Could not clear storage" });
@@ -117,18 +163,52 @@ export default function SettingsPage() {
   const backupKb = stats ? (totalBackupBytes(stats) / 1024).toFixed(1) : "—";
   const activeKeys = stats ? stats.filter((s) => s.exists).length : 0;
   const updateReminder = (key: ReminderKey, patch: Partial<ReminderSlot>) => {
-    if (["weighIn", "focus", "evening"].includes(key)) setReminders({ ...reminders, [key]: { ...reminders[key as "weighIn" | "focus" | "evening"], ...patch } });
-    else setReminders({ ...reminders, career: { ...DEFAULT_REMINDERS.career, ...reminders.career, [key]: { ...reminders.career?.[key as keyof ReminderPreferences["career"]], ...patch } } });
+    if (["weighIn", "focus", "evening"].includes(key))
+      setReminders({
+        ...reminders,
+        [key]: {
+          ...reminders[key as "weighIn" | "focus" | "evening"],
+          ...patch,
+        },
+      });
+    else
+      setReminders({
+        ...reminders,
+        career: {
+          ...DEFAULT_REMINDERS.career,
+          ...reminders.career,
+          [key]: {
+            ...reminders.career?.[key as keyof ReminderPreferences["career"]],
+            ...patch,
+          },
+        },
+      });
   };
-  const saveReminders = () => toast({ title: "Reminders saved", description: "In-app prompts are active when NOVA is open." });
+  const saveReminders = () =>
+    toast({
+      title: "Reminders saved",
+      description: "In-app prompts are active when NOVA is open.",
+    });
   const enableBrowserReminders = async () => {
-    if (!("Notification" in window)) { setReminders({ ...reminders, browserPermission: "unsupported" }); return; }
+    if (!("Notification" in window)) {
+      setReminders({ ...reminders, browserPermission: "unsupported" });
+      return;
+    }
     const permission = await Notification.requestPermission();
     refreshNotificationPermission();
     setReminders({ ...reminders, browserPermission: permission });
-    toast({ title: permission === "granted" ? "Browser reminders enabled" : "Browser permission not granted", description: "Background push delivery will be available after production scheduling is configured." });
+    toast({
+      title:
+        permission === "granted"
+          ? "Browser reminders enabled"
+          : "Browser permission not granted",
+      description:
+        "Background push delivery will be available after production scheduling is configured.",
+    });
   };
-  const bedtimeTimesValid = /^\d{2}:\d{2}$/.test(lockdown.bedtimeStart) && /^\d{2}:\d{2}$/.test(lockdown.bedtimeEnd);
+  const bedtimeTimesValid =
+    /^\d{2}:\d{2}$/.test(lockdown.bedtimeStart) &&
+    /^\d{2}:\d{2}$/.test(lockdown.bedtimeEnd);
   const bedtimeCanEnable = bedtimeTimesValid && lockdown.bedtimeDays.length > 0;
   const updateLockdown = (patch: Partial<LockdownPreferences>) => {
     setLockdown({ ...lockdown, ...patch });
@@ -137,7 +217,12 @@ export default function SettingsPage() {
   const bedtimeWindow = nextBedtimeWindow(lockdown, new Date());
   const saveBedtime = () => {
     setBedtimeSaved(true);
-    toast({ title: "Bedtime schedule saved", description: lockdown.bedtimeEnabled ? "The Personal app will protect the selected window." : "Bedtime protection remains disabled until you enable it." });
+    toast({
+      title: "Bedtime schedule saved",
+      description: lockdown.bedtimeEnabled
+        ? "The Personal app will protect the selected window."
+        : "Bedtime protection remains disabled until you enable it.",
+    });
   };
 
   return (
@@ -148,12 +233,56 @@ export default function SettingsPage() {
         subtitle="Manage your account, appearance, reminders, and saved data."
         badge={<SyncBadge status={status} />}
         actions={{
-          primary: <a href="#backup-restore" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Open backup controls</a>,
-          secondary: <a href="#preferences" className="text-xs font-semibold text-primary hover:underline">Manage preferences →</a>,
+          primary: (
+            <a
+              href="#backup-restore"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Open backup controls
+            </a>
+          ),
+          secondary: (
+            <a
+              href="#preferences"
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              Manage preferences →
+            </a>
+          ),
         }}
       >
+        {user && (
+          <section className="rounded-xl border border-border p-4 text-sm">
+            <p>
+              Older unassigned local records stay on this device. They are not
+              automatically attached to your account. Export them separately if
+              they belong to you, then import into the correct account.
+            </p>
+            <Button variant="outline" onClick={exportLegacy} className="mt-2">
+              Export older local data
+            </Button>
+          </section>
+        )}
+        <ModulePreferences />
+        <ProtectionPreferences />
+
         <nav aria-label="Settings sections" className="flex flex-wrap gap-2">
-          {[['Account', '#account-sync'], ['Reminders', '#reminder-settings'], ['Bedtime', '#bedtime'], ['Backup', '#backup-restore'], ['Preferences', '#preferences'], ['Data management', '#data-management']].map(([label, href]) => <a key={href} href={href} className="inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-sm hover:border-primary">{label}</a>)}
+          {[
+            ["Account", "#account-sync"],
+            ["Reminders", "#reminder-settings"],
+            ["Bedtime", "#bedtime"],
+            ["Backup", "#backup-restore"],
+            ["Preferences", "#preferences"],
+            ["Data management", "#data-management"],
+          ].map(([label, href]) => (
+            <a
+              key={href}
+              href={href}
+              className="inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-sm hover:border-primary"
+            >
+              {label}
+            </a>
+          ))}
         </nav>
 
         {/* ── Account ── */}
@@ -166,7 +295,9 @@ export default function SettingsPage() {
               <div>
                 <p className="text-sm font-semibold">Account & sync</p>
                 <p className="text-xs text-muted-foreground">
-                  {user ? user.email : "Local mode — data lives only in this browser"}
+                  {user
+                    ? user.email
+                    : "Local mode — data lives only in this browser"}
                 </p>
               </div>
             </div>
@@ -176,26 +307,86 @@ export default function SettingsPage() {
 
         <Card variant="dossier" id="reminders">
           <CardContent className="space-y-4 p-5">
-            <div className="flex items-center gap-2"><BellRing className="h-5 w-5 text-primary" /><h2 id="reminder-settings" className="font-display font-bold">Reminders</h2></div>
-            <p className="text-sm text-muted-foreground">Choose reminders in India Standard Time. In-app alerts appear while NOVA is open. Browser alerts require your explicit opt-in; background push is not configured.</p>
-            <div className="space-y-3">{(["weighIn", "focus", "evening", "morning", "study", "roleResearch", "interview", "eveningReview", "windDown"] as const).map((key) => {
-              const slot = (["weighIn", "focus", "evening"] as const).includes(key as "weighIn" | "focus" | "evening")
-                ? reminders[key as "weighIn" | "focus" | "evening"]
-                : (reminders.career?.[key as keyof ReminderPreferences["career"]] ?? DEFAULT_REMINDERS.career[key as keyof ReminderPreferences["career"]] ?? { enabled: false, time: "00:00" });
-              const safeSlot = slot ?? { enabled: false, time: "00:00" };
-              const timeLabel = key === "weighIn" ? "Weigh-in time" : `${REMINDER_LABELS[key]} time`;
-              return (
-                <div key={key} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3">
-                  <label className="flex items-center gap-2 text-sm font-medium">
-                    <input aria-label={REMINDER_LABELS[key]} type="checkbox" checked={Boolean(safeSlot.enabled)} onChange={(event) => updateReminder(key, { enabled: event.target.checked })} />
-                    {REMINDER_LABELS[key]}
-                  </label>
-                  <Input aria-label={timeLabel} className="h-11 w-40 max-w-full tabular-nums" type="time" value={safeSlot.time} onChange={(event) => updateReminder(key, { time: event.target.value })} />
-                </div>
-              );
-            })}</div>
-            <p className="text-xs text-muted-foreground">Browser permission: {reminders.browserPermission ?? browserPermission} · permission is never requested automatically.</p>
-            <div className="flex flex-wrap gap-2"><Button onClick={saveReminders}>Save reminders</Button><Button variant="outline" onClick={enableBrowserReminders}>Enable browser reminders</Button></div>
+            <div className="flex items-center gap-2">
+              <BellRing className="h-5 w-5 text-primary" />
+              <h2 id="reminder-settings" className="font-display font-bold">
+                Reminders
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Choose reminders in India Standard Time. In-app alerts appear
+              while NOVA is open. Browser alerts require your explicit opt-in;
+              background push is not configured.
+            </p>
+            <div className="space-y-3">
+              {(
+                [
+                  "weighIn",
+                  "focus",
+                  "evening",
+                  "morning",
+                  "study",
+                  "roleResearch",
+                  "interview",
+                  "eveningReview",
+                  "windDown",
+                ] as const
+              ).map((key) => {
+                const slot = (
+                  ["weighIn", "focus", "evening"] as const
+                ).includes(key as "weighIn" | "focus" | "evening")
+                  ? reminders[key as "weighIn" | "focus" | "evening"]
+                  : (reminders.career?.[
+                      key as keyof ReminderPreferences["career"]
+                    ] ??
+                    DEFAULT_REMINDERS.career[
+                      key as keyof ReminderPreferences["career"]
+                    ] ?? { enabled: false, time: "00:00" });
+                const safeSlot = slot ?? { enabled: false, time: "00:00" };
+                const timeLabel =
+                  key === "weighIn"
+                    ? "Weigh-in time"
+                    : `${REMINDER_LABELS[key]} time`;
+                return (
+                  <div
+                    key={key}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3"
+                  >
+                    <label className="flex items-center gap-2 text-sm font-medium">
+                      <input
+                        aria-label={REMINDER_LABELS[key]}
+                        type="checkbox"
+                        checked={Boolean(safeSlot.enabled)}
+                        onChange={(event) =>
+                          updateReminder(key, { enabled: event.target.checked })
+                        }
+                      />
+                      {REMINDER_LABELS[key]}
+                    </label>
+                    <Input
+                      aria-label={timeLabel}
+                      className="h-11 w-40 max-w-full tabular-nums"
+                      type="time"
+                      value={safeSlot.time}
+                      onChange={(event) =>
+                        updateReminder(key, { time: event.target.value })
+                      }
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Browser permission:{" "}
+              {reminders.browserPermission ?? browserPermission} · permission is
+              never requested automatically.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={saveReminders}>Save reminders</Button>
+              <Button variant="outline" onClick={enableBrowserReminders}>
+                Enable browser reminders
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -204,31 +395,98 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="dossier-kicker">Bedtime boundary</p>
-                <h2 className="mt-1 font-display font-bold">Protect the hours you chose.</h2>
+                <h2 className="mt-1 font-display font-bold">
+                  Protect the hours you chose.
+                </h2>
               </div>
-              <span className="text-xs text-muted-foreground">{lockdownStatus === "synced" ? "synced" : "local"}</span>
+              <span className="text-xs text-muted-foreground">
+                {lockdownStatus === "synced" ? "synced" : "local"}
+              </span>
             </div>
-            <p className="text-sm text-muted-foreground">There is no active default. Choose a local-time window and days before enabling the in-app lock.</p>
+            <p className="text-sm text-muted-foreground">
+              There is no active default. Choose a local-time window and days
+              before enabling the in-app lock.
+            </p>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm font-medium">Bedtime start<Input aria-label="Bedtime start" className="mt-1.5 h-10" type="time" value={lockdown.bedtimeStart} onChange={(event) => updateLockdown({ bedtimeStart: event.target.value })} /></label>
-              <label className="text-sm font-medium">Bedtime end<Input aria-label="Bedtime end" className="mt-1.5 h-10" type="time" value={lockdown.bedtimeEnd} onChange={(event) => updateLockdown({ bedtimeEnd: event.target.value })} /></label>
+              <label className="text-sm font-medium">
+                Bedtime start
+                <Input
+                  aria-label="Bedtime start"
+                  className="mt-1.5 h-10"
+                  type="time"
+                  value={lockdown.bedtimeStart}
+                  onChange={(event) =>
+                    updateLockdown({ bedtimeStart: event.target.value })
+                  }
+                />
+              </label>
+              <label className="text-sm font-medium">
+                Bedtime end
+                <Input
+                  aria-label="Bedtime end"
+                  className="mt-1.5 h-10"
+                  type="time"
+                  value={lockdown.bedtimeEnd}
+                  onChange={(event) =>
+                    updateLockdown({ bedtimeEnd: event.target.value })
+                  }
+                />
+              </label>
             </div>
             <div>
               <p className="text-sm font-medium">Active days</p>
               <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
-                {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day, index) => (
-                  <label key={day} className="flex min-h-11 items-center justify-center gap-1.5 border border-border/60 px-2 text-xs font-semibold">
-                    <input aria-label={`Bedtime ${day}`} type="checkbox" checked={lockdown.bedtimeDays.includes(index)} onChange={() => updateLockdown({ bedtimeDays: lockdown.bedtimeDays.includes(index) ? lockdown.bedtimeDays.filter((value) => value !== index) : [...lockdown.bedtimeDays, index].sort((a, b) => a - b) })} />
+                {[
+                  "Sunday",
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                ].map((day, index) => (
+                  <label
+                    key={day}
+                    className="flex min-h-11 items-center justify-center gap-1.5 border border-border/60 px-2 text-xs font-semibold"
+                  >
+                    <input
+                      aria-label={`Bedtime ${day}`}
+                      type="checkbox"
+                      checked={lockdown.bedtimeDays.includes(index)}
+                      onChange={() =>
+                        updateLockdown({
+                          bedtimeDays: lockdown.bedtimeDays.includes(index)
+                            ? lockdown.bedtimeDays.filter(
+                                (value) => value !== index,
+                              )
+                            : [...lockdown.bedtimeDays, index].sort(
+                                (a, b) => a - b,
+                              ),
+                        })
+                      }
+                    />
                     {day.slice(0, 3)}
                   </label>
                 ))}
               </div>
             </div>
             <label className="flex min-h-11 items-center gap-3 border border-primary/30 bg-primary/5 px-3 text-sm font-semibold">
-              <input aria-label="Enable bedtime lock" type="checkbox" checked={lockdown.bedtimeEnabled} disabled={!bedtimeCanEnable && !lockdown.bedtimeEnabled} onChange={(event) => updateLockdown({ bedtimeEnabled: event.target.checked })} />
+              <input
+                aria-label="Enable bedtime lock"
+                type="checkbox"
+                checked={lockdown.bedtimeEnabled}
+                disabled={!bedtimeCanEnable && !lockdown.bedtimeEnabled}
+                onChange={(event) =>
+                  updateLockdown({ bedtimeEnabled: event.target.checked })
+                }
+              />
               Enable bedtime lock inside NOVA
             </label>
-            <p className="text-xs text-muted-foreground">{bedtimeWindow ? `Next protected window ends at ${formatLockEnd(bedtimeWindow.end)} local time.` : "Choose a valid time and at least one day to preview the next window."}</p>
+            <p className="text-xs text-muted-foreground">
+              {bedtimeWindow
+                ? `Next protected window ends at ${formatLockEnd(bedtimeWindow.end)} local time.`
+                : "Choose a valid time and at least one day to preview the next window."}
+            </p>
             <div className="flex flex-wrap items-center gap-2">
               <Button onClick={saveBedtime}>Save bedtime schedule</Button>
               <Button
@@ -238,9 +496,16 @@ export default function SettingsPage() {
                 className="border-indigo-500/40 text-indigo-400 hover:bg-indigo-500/10"
               >
                 <Moon className="mr-1.5 h-3.5 w-3.5" />
-                Test / Engage Bedtime Lock Now
+                Start bedtime mode
               </Button>
-              {bedtimeSaved ? <span role="status" className="text-xs font-semibold text-emerald-500">Bedtime schedule saved</span> : null}
+              {bedtimeSaved ? (
+                <span
+                  role="status"
+                  className="text-xs font-semibold text-emerald-500"
+                >
+                  Bedtime schedule saved
+                </span>
+              ) : null}
             </div>
             <DevicePreparation compact />
           </CardContent>
@@ -254,15 +519,19 @@ export default function SettingsPage() {
               <h2 className="font-display font-bold">Backup & restore</h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              One JSON file covers every tracker — workouts, fasting history, goal roadmaps, todos,
-              journal, affirmations, share drops, and even the v1 migration snapshots. Import
-              validates everything before writing and snapshots the current state first.
+              One JSON file covers every tracker — workouts, fasting history,
+              goal roadmaps, todos, journal, affirmations, share drops, and even
+              the v1 migration snapshots. Import validates everything before
+              writing and snapshots the current state first.
             </p>
             <div className="flex flex-wrap gap-2">
               <Button onClick={doExport}>
                 <Download className="mr-1.5 h-4 w-4" /> Export full backup
               </Button>
-              <Button variant="outline" onClick={() => fileRef.current?.click()}>
+              <Button
+                variant="outline"
+                onClick={() => fileRef.current?.click()}
+              >
                 <Upload className="mr-1.5 h-4 w-4" /> Import backup
               </Button>
               <input
@@ -274,25 +543,33 @@ export default function SettingsPage() {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Tracker data: ~{backupKb} KB across {activeKeys} active {activeKeys === 1 ? "key" : "keys"}.
+              Tracker data: ~{backupKb} KB across {activeKeys} active{" "}
+              {activeKeys === 1 ? "key" : "keys"}.
             </p>
 
             {report && (
               <div
                 className={cn(
                   "rounded-xl border p-3 text-sm",
-                  report.ok ? "border-emerald-500/40 bg-emerald-500/5" : "border-red-500/40 bg-red-500/5",
+                  report.ok
+                    ? "border-emerald-500/40 bg-emerald-500/5"
+                    : "border-red-500/40 bg-red-500/5",
                 )}
               >
                 {report.ok ? (
                   <>
                     <p className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2 className="h-4 w-4" /> Restored {report.keysRestored.length} keys
+                      <CheckCircle2 className="h-4 w-4" /> Restored{" "}
+                      {report.keysRestored.length} keys
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {report.keysRestored.join(", ")}
-                      {report.keysSkipped.length ? ` · skipped: ${report.keysSkipped.join(", ")}` : ""}
-                      {report.exportedAt ? ` · exported ${report.exportedAt.slice(0, 10)}` : ""}
+                      {report.keysSkipped.length
+                        ? ` · skipped: ${report.keysSkipped.join(", ")}`
+                        : ""}
+                      {report.exportedAt
+                        ? ` · exported ${report.exportedAt.slice(0, 10)}`
+                        : ""}
                     </p>
                   </>
                 ) : (
@@ -314,7 +591,10 @@ export default function SettingsPage() {
             ) : (
               <ul className="mt-3 space-y-1.5">
                 {stats.map((s) => (
-                  <li key={s.key} className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                  <li
+                    key={s.key}
+                    className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm"
+                  >
                     <span className="font-mono text-xs">{s.key}</span>
                     <span className="tabular-nums text-muted-foreground">
                       {!s.exists
@@ -334,9 +614,13 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <h2 id="preferences" className="font-display font-bold">Preferences</h2>
+                <h2 id="preferences" className="font-display font-bold">
+                  Preferences
+                </h2>
               </div>
-              <span className="text-xs text-muted-foreground">{isSetup ? "setup complete" : "setup pending"}</span>
+              <span className="text-xs text-muted-foreground">
+                {isSetup ? "setup complete" : "setup pending"}
+              </span>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -359,30 +643,12 @@ export default function SettingsPage() {
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium">Motivation style</label>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {MOTIVATION_STYLES.map((m) => (
-                    <button
-                      key={m.id}
-                      onClick={() => setPrefs({ ...prefs, motivationStyle: m.id })}
-                      className={cn(
-                        "rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all",
-                        prefs.motivationStyle === m.id
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border/60 text-muted-foreground hover:border-primary/40",
-                      )}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Weight unit, goal category, metric label/target and fasting protocol are edited on
-              their tracker pages where they&apos;re used. Re-run the full questionnaire from the hub.
+              Weight unit, goal category, metric label/target and fasting
+              protocol are edited on their tracker pages where they&apos;re
+              used. Re-run the full questionnaire from the hub.
             </p>
           </CardContent>
         </Card>
@@ -392,12 +658,15 @@ export default function SettingsPage() {
           <CardContent className="space-y-3 p-5">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-500" />
-              <h2 id="data-management" className="font-display font-bold">Data management</h2>
+              <h2 id="data-management" className="font-display font-bold">
+                Data management
+              </h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              Clearing local data removes everything stored in this browser under the tracker
-              namespace (data, backups, sync markers). If you&apos;re signed in, cloud copies remain
-              and re-pull on reload — otherwise this is permanent. Type{" "}
+              Clearing local data removes everything stored in this browser
+              under the tracker namespace (data, backups, sync markers). If
+              you&apos;re signed in, cloud copies remain and re-pull on reload —
+              otherwise this is permanent. Type{" "}
               <span className="font-mono font-semibold">CLEAR</span> to confirm.
             </p>
             <div className="flex gap-2">
@@ -407,35 +676,57 @@ export default function SettingsPage() {
                 value={confirmWipe}
                 onChange={(e) => setConfirmWipe(e.target.value)}
               />
-              <Button variant="destructive" onClick={wipeLocal} disabled={confirmWipe !== "CLEAR"}>
+              <Button
+                variant="destructive"
+                onClick={wipeLocal}
+                disabled={confirmWipe !== "CLEAR"}
+              >
                 Clear local data
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Want a safety net first? <button onClick={doExport} className="text-primary hover:underline">Export a backup</button> —{" "}
-              or visit <Link href="/share" className="text-primary hover:underline">Sharing</Link> for per-drop exports.
+              Want a safety net first?{" "}
+              <button
+                onClick={doExport}
+                className="text-primary hover:underline"
+              >
+                Export a backup
+              </button>{" "}
+              — or visit{" "}
+              <Link href="/share" className="text-primary hover:underline">
+                Sharing
+              </Link>{" "}
+              for per-drop exports.
             </p>
           </CardContent>
         </Card>
-        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
-
-        </details>
-        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
-        <div data-editorial-action className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-          <StoryPanel
-            eyebrow="Archive controls"
-            title="Keep the dossier portable"
-            action={<a href="#backup-restore" className="dossier-back-link">Open backup</a>}
+        <details className="rounded-2xl border border-border p-4">
+          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">
+            Progress summary
+          </summary>
+          <div
+            data-editorial-action
+            className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]"
           >
-            Export before making broad changes, restore a known-good snapshot, and clear local data only after the explicit confirmation step.
-          </StoryPanel>
-          <SignalPanel
-            label="Storage signal"
-            value={stats ? `${activeKeys} keys` : "Measuring"}
-            detail={user ? "Cloud sync available" : "Local browser storage"}
-            tone={status === "error" ? "red" : "lime"}
-          />
-        </div>
+            <StoryPanel
+              eyebrow="Archive controls"
+              title="Keep the dossier portable"
+              action={
+                <a href="#backup-restore" className="dossier-back-link">
+                  Open backup
+                </a>
+              }
+            >
+              Export before making broad changes, restore a known-good snapshot,
+              and clear local data only after the explicit confirmation step.
+            </StoryPanel>
+            <SignalPanel
+              label="Storage signal"
+              value={stats ? `${activeKeys} keys` : "Measuring"}
+              detail={user ? "Cloud sync available" : "Local browser storage"}
+              tone={status === "error" ? "red" : "lime"}
+            />
+          </div>
         </details>
       </TrackerShell>
     </RequireAuth>

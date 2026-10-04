@@ -29,6 +29,22 @@ function attach() {
     emit();
   });
   sb.auth.onAuthStateChange((_e, session) => {
+    const previousId = current?.user.id;
+    if (
+      previousId &&
+      previousId !== session?.user.id &&
+      typeof navigator !== "undefined" &&
+      "serviceWorker" in navigator
+    ) {
+      void navigator.serviceWorker
+        .getRegistration()
+        .then(async (registration) => {
+          const subscription =
+            await registration?.pushManager?.getSubscription();
+          await subscription?.unsubscribe();
+        })
+        .catch(() => undefined);
+    }
     current = session;
     resolved = true;
     emit();
@@ -57,4 +73,8 @@ export function useAuth() {
     loading: configured && !ready,
     configured,
   };
+}
+
+export function currentAuthUserId() {
+  return current?.user.id ?? null;
 }

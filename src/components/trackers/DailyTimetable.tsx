@@ -26,14 +26,16 @@ export default function DailyTimetable({
   timeZone,
   date,
   title = "Today's timetable",
+  initiallyExpanded = true,
 }: {
   schedule: DailySchedule;
   timeZone?: string;
   date: string;
   title?: string;
+  initiallyExpanded?: boolean;
 }) {
   const [now, setNow] = useState<number | null>(null);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   const id = useId();
   useEffect(() => {
     const refresh = () => setNow(Math.floor(Date.now() / 60_000) * 60_000);

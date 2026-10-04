@@ -8,21 +8,16 @@ test.describe("personal today cockpit", () => {
 
     await expect(page.getByTestId("today-header")).toBeVisible();
     await expect(page.getByTestId("next-move-card")).toBeVisible();
-    await expect(page.getByTestId("progress-rail")).toBeVisible();
+    await expect(page.getByTestId("progress-rail")).toHaveCount(0);
     await expect(page.getByTestId("up-next-lane")).toHaveCount(0);
     await expect(page.getByTestId("next-move-card")).not.toContainText(/meal window|concrete job offer|about 10 min/i);
     await expect(page.getByTestId("action-queue")).toBeHidden();
     await expect(page.getByTestId("daily-momentum-ring")).toHaveCount(0);
-    await expect(page.getByTestId("today-details")).toBeVisible();
+    await expect(page.getByTestId("today-details")).toHaveCount(0);
   });
 
-  test("keeps secondary tracker detail behind an accessible disclosure", async ({ page }) => {
-    await seed(page);
-    await page.goto("/hub");
-    await expect(page.getByTestId("action-queue")).toBeHidden();
-    await page.getByTestId("today-details").locator("summary").click();
-    await expect(page.getByTestId("action-queue")).toBeVisible();
-    await expect(page.getByTestId("week-pulse")).toBeVisible();
+  test("secondary detail lives in Review instead of another Today dashboard", async ({page})=>{
+    await seed(page);await page.goto("/hub");await expect(page.getByTestId("week-pulse")).toHaveCount(0);await page.getByTestId("tracker-primary-nav").getByRole("link",{name:"Review"}).click();await expect(page.getByRole("heading",{name:"Focus",exact:true})).toBeVisible();
   });
 
   test("exposes five execution destinations on desktop and mobile", async ({ page }) => {
@@ -30,13 +25,13 @@ test.describe("personal today cockpit", () => {
     await page.goto("/hub");
     const primary = page.getByTestId("tracker-primary-nav");
     await expect(primary.getByRole("link")).toHaveCount(5);
-    for (const [label, href] of [["Today", "/hub"], ["Focus", "/motivation"], ["Log", "/log"], ["Sharing", "/share"], ["More", "/more"]] as const) {
+    for (const [label, href] of [["Today", "/hub"], ["Plan", "/plan"], ["Health", "/health"], ["Review", "/review"], ["More", "/more"]] as const) {
       await expect(primary.getByRole("link", { name: label })).toHaveAttribute("href", href);
     }
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(5);
-    await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "Log" })).toHaveAttribute("href", "/log");
+    await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "Review" })).toHaveAttribute("href", "/review");
   });
 
   test("captures a task and note from Log", async ({ page }) => {
@@ -55,8 +50,8 @@ test.describe("personal today cockpit", () => {
     await seed(page);
     await page.goto("/more");
     await expect(page.getByTestId("more-links")).toBeVisible();
-    await expect(page.getByRole("link", { name: /Goals/ })).toHaveAttribute("href", "/goal");
-    await expect(page.getByRole("link", { name: /Health \/ Weight loss/ })).toHaveAttribute("href", "/weight-loss");
+    await expect(page.getByRole("link", { name: /Motivation/ })).toHaveAttribute("href", "/motivation");
+    await expect(page.getByRole("link", { name: /Library/ })).toHaveAttribute("href", "/archive");
     await expect(page.getByRole("link", { name: /Settings/ })).toHaveAttribute("href", "/settings");
   });
 

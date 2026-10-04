@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   type DistractionShieldState,
@@ -9,16 +9,18 @@ import {
 } from "@/lib/distraction-shield";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import DistractionShieldModal from "@/components/study/DistractionShieldModal";
-import DistractionShieldBanner from "@/components/study/DistractionShieldBanner";
-import MobileStudyLockdownBarrier from "@/components/study/MobileStudyLockdownBarrier";
-import NightCurfewLockdownBarrier from "@/components/study/NightCurfewLockdownBarrier";
 
 export default function DistractionInterceptor() {
   const { value: shieldState } = useSyncedStorage<DistractionShieldState>(
     "distraction_shield_state",
-    DEFAULT_SHIELD_STATE
+    DEFAULT_SHIELD_STATE,
   );
 
+  const { value: guardOptIn } = useSyncedStorage<boolean>(
+    "personal:guard-opt-in",
+    false,
+    { accountScoped: true },
+  );
   const [shieldOpen, setShieldOpen] = useState(false);
   const [shieldTarget, setShieldTarget] = useState("");
 
@@ -32,7 +34,9 @@ export default function DistractionInterceptor() {
     if (!target && !block) return;
 
     const timeout = setTimeout(() => {
-      setShieldTarget(target ? decodeURIComponent(target) : "https://instagram.com");
+      setShieldTarget(
+        target ? decodeURIComponent(target) : "https://instagram.com",
+      );
       setShieldOpen(true);
     }, 0);
 
@@ -41,7 +45,11 @@ export default function DistractionInterceptor() {
       const url = new URL(window.location.href);
       url.searchParams.delete("shield_target");
       url.searchParams.delete("shield_block");
-      window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+      window.history.replaceState(
+        {},
+        "",
+        url.pathname + (url.search ? url.search : ""),
+      );
     }
 
     return () => clearTimeout(timeout);
@@ -49,7 +57,7 @@ export default function DistractionInterceptor() {
 
   // Intercept in-app clicks to blocked domains
   useEffect(() => {
-    if (!shieldState.enabled) return;
+    if (!guardOptIn || !shieldState.enabled) return;
 
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
@@ -61,7 +69,11 @@ export default function DistractionInterceptor() {
       const href = link.href;
 
       // Don't intercept internal links
-      if (href.startsWith(window.location.origin) || href.startsWith("/") || href.startsWith("#")) {
+      if (
+        href.startsWith(window.location.origin) ||
+        href.startsWith("/") ||
+        href.startsWith("#")
+      ) {
         return;
       }
 
@@ -77,7 +89,7 @@ export default function DistractionInterceptor() {
     return () => {
       document.removeEventListener("click", handleClick, true);
     };
-  }, [shieldState]);
+  }, [shieldState, guardOptIn]);
 
   // Support custom event triggering across the entire portfolio
   useEffect(() => {
@@ -88,15 +100,16 @@ export default function DistractionInterceptor() {
       setShieldOpen(true);
     };
 
-    window.addEventListener("portfolio-trigger-distraction-shield", handleCustomTrigger);
+    window.addEventListener(
+      "portfolio-trigger-distraction-shield",
+      handleCustomTrigger,
+    );
     return () => {
-      window.removeEventListener("portfolio-trigger-distraction-shield", handleCustomTrigger);
+      window.removeEventListener(
+        "portfolio-trigger-distraction-shield",
+        handleCustomTrigger,
+      );
     };
-  }, []);
-
-  const handleOpenDirect = useCallback((url?: string) => {
-    setShieldTarget(url || "https://x.com");
-    setShieldOpen(true);
   }, []);
 
   return (
@@ -106,9 +119,6 @@ export default function DistractionInterceptor() {
         targetUrl={shieldTarget}
         onClose={() => setShieldOpen(false)}
       />
-      <DistractionShieldBanner onOpenShield={handleOpenDirect} />
-      <MobileStudyLockdownBarrier />
-      <NightCurfewLockdownBarrier />
     </>
   );
 }

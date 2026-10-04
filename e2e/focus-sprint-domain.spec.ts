@@ -13,14 +13,26 @@ test.describe("focus sprint domain", () => {
   });
 
   test("clamps elapsed and remaining time to the planned duration", () => {
-    const active = { id: "focus_1", label: "Visa checklist", plannedMinutes: 25 as const, startedAt: 1_000, pausedMs: 0 };
+    const active = {
+      id: "focus_1",
+      label: "Visa checklist",
+      plannedMinutes: 25 as const,
+      startedAt: 1_000,
+      pausedMs: 0,
+    };
     expect(getFocusElapsedMs(active, 1_000 + 30 * 60_000)).toBe(25 * 60_000);
     expect(getFocusRemainingMs(active, 1_000 - 1)).toBe(25 * 60_000);
   });
 
   test("creates a completed record without changing task or goal data", () => {
     const session = completeFocusSession(
-      { id: "focus_1", label: "Visa checklist", plannedMinutes: 25, startedAt: 1_000, pausedMs: 0 },
+      {
+        id: "focus_1",
+        label: "Visa checklist",
+        plannedMinutes: 25,
+        startedAt: 1_000,
+        pausedMs: 0,
+      },
       1_000 + 20 * 60_000,
     );
     expect(session).toMatchObject({
@@ -79,4 +91,13 @@ test.describe("focus sprint domain", () => {
       ),
     ).toBe(0);
   });
+});
+
+test("ending a short focus session does not invent a minute", () => {
+  expect(
+    completeFocusSession(
+      { id: "short", label: "Short", startedAt: 1000, pausedMs: 0 },
+      31000,
+    ).durationMinutes,
+  ).toBe(0);
 });

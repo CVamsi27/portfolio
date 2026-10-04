@@ -10,7 +10,6 @@ test.describe("tracker action bar", () => {
       ["/workout-tracking", /open session/i],
       ["/goal", /log today/i],
       ["/todo", /add task/i],
-      ["/motivation", /open focus/i],
       ["/share", /create share/i],
       ["/share?view=incoming", /review|retry/i],
       ["/settings", /open backup controls/i],

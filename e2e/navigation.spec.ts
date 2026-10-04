@@ -95,9 +95,9 @@ test.describe("navigation & shell", () => {
     await expect(rail.getByTestId("tracker-primary-nav")).toBeVisible();
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link")).toHaveCount(5);
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Today" })).toBeVisible();
-    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Focus" })).toBeVisible();
-    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Log" })).toBeVisible();
-    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Sharing" })).toHaveAttribute("href", "/share");
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Plan" })).toBeVisible();
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Review" })).toBeVisible();
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Health" })).toHaveAttribute("href", "/health");
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "More" })).toBeVisible();
   });
 
@@ -109,16 +109,16 @@ test.describe("navigation & shell", () => {
     await expect(page.getByTestId("tracker-primary-nav")).toBeHidden();
     await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
     await expect(page.getByTestId("mobile-command-dock").getByRole("link")).toHaveCount(5);
-    await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "Sharing" })).toHaveAttribute("href", "/share");
+    await expect(page.getByTestId("mobile-command-dock").getByRole("link", { name: "Health" })).toHaveAttribute("href", "/health");
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   });
 
-  test("More does not duplicate the primary Sharing destination", async ({ page }) => {
+  test("More keeps Sharing accessible as a secondary destination", async ({ page }) => {
     await seed(page);
     await page.goto("/more");
 
-    await expect(page.getByTestId("more-links").locator('a[href="/share"]')).toHaveCount(0);
-    await expect(page.getByTestId("more-links").locator('a[href="/shared-with-me"]')).toHaveCount(0);
+    await expect(page.getByTestId("more-links").locator('a[href="/share"]')).toHaveCount(1);
+    await expect(page.getByTestId("more-links").locator('a[href="/shared-with-me"]')).toHaveCount(1);
   });
 
   test("settings keeps account controls outside the navbar", async ({ page }) => {

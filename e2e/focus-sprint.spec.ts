@@ -4,7 +4,7 @@ import { seed, todayKey } from "./helpers";
 test.describe("focus sprint", () => {
   test("starts, pauses, resumes, and completes a focus sprint", async ({ page }) => {
     await seed(page);
-    await page.goto("/trackers");
+    await page.goto("/plan");
 
     await page.getByRole("button", { name: /start focus sprint/i }).click();
     await expect(page.getByTestId("focus-sprint")).toHaveAttribute("data-focus-lock", "active");
@@ -25,7 +25,7 @@ test.describe("focus sprint", () => {
       "vk:todos": [{ id: "task_1", text: "Visa checklist", done: false, date: today, priority: "P1", tag: "Goal", createdAt: 1 }],
       "vk:goal": { metricByDay: { [today]: 2 }, milestonesByCategory: {} },
     });
-    await page.goto("/trackers");
+    await page.goto("/plan");
 
     await page.getByRole("button", { name: /start focus sprint/i }).click();
     await page.getByRole("button", { name: /finish sprint/i }).click();

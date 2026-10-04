@@ -72,7 +72,11 @@ export default function WorkoutPage() {
   const unit: WeightUnit = prefs.weightUnit === "lbs" ? "lbs" : "kg";
 
   const tabs = useMemo(
-    () => splitDayTabs(prefs.workoutSplit, prefs.customSplitDays as CustomSplitDay[]),
+    () =>
+      splitDayTabs(
+        prefs.workoutSplit,
+        prefs.customSplitDays as CustomSplitDay[],
+      ),
     [prefs.workoutSplit, prefs.customSplitDays],
   );
   const suggested = useMemo(() => suggestedDayId(tabs), [tabs]);
@@ -88,7 +92,9 @@ export default function WorkoutPage() {
   const [selected, setSelected] = useState(() => dateKey());
   const [restTimer, setRestTimer] = useState<{ seconds: number } | null>(null);
   const [plateCalcOpen, setPlateCalcOpen] = useState(false);
-  const [exModal, setExModal] = useState<{ mode: "add" } | { mode: "edit"; index: number } | null>(null);
+  const [exModal, setExModal] = useState<
+    { mode: "add" } | { mode: "edit"; index: number } | null
+  >(null);
 
   // Custom split day builder state
   const [dayBuilderOpen, setDayBuilderOpen] = useState(false);
@@ -97,12 +103,17 @@ export default function WorkoutPage() {
   const today = dateKey();
   const dayLog: DayLog = safeLogs[selected] ?? {};
   const doneCount = exercises.filter((e) => dayLog[e.id]?.done).length;
-  const dayPct = exercises.length ? Math.round((doneCount / exercises.length) * 100) : 0;
+  const dayPct = exercises.length
+    ? Math.round((doneCount / exercises.length) * 100)
+    : 0;
 
   // ── log mutation helpers ──
   const updateCell = (exId: string, patch: Partial<ExerciseLog>) => {
     const prev = dayLog[exId] ?? { done: false, sets: [] };
-    setLogs({ ...safeLogs, [selected]: { ...dayLog, [exId]: { ...prev, ...patch } } });
+    setLogs({
+      ...safeLogs,
+      [selected]: { ...dayLog, [exId]: { ...prev, ...patch } },
+    });
   };
 
   const toggleDone = (exId: string) => {
@@ -127,10 +138,17 @@ export default function WorkoutPage() {
     if (!wasDone) setRestTimer({ seconds: 90 });
   };
 
-  const setSetField = (exId: string, idx: number, field: "reps" | "weightKg", value: number | null) => {
+  const setSetField = (
+    exId: string,
+    idx: number,
+    field: "reps" | "weightKg",
+    value: number | null,
+  ) => {
     const cell = dayLog[exId];
     if (!cell) return;
-    const sets = cell.sets.map((s, i) => (i === idx ? { ...s, [field]: value } : s));
+    const sets = cell.sets.map((s, i) =>
+      i === idx ? { ...s, [field]: value } : s,
+    );
     updateCell(exId, { sets });
   };
 
@@ -138,7 +156,10 @@ export default function WorkoutPage() {
     const cell = dayLog[exId];
     const ex = exercises.find((e) => e.id === exId);
     const last = cell?.sets[cell.sets.length - 1];
-    const seed = last ?? { reps: ex?.targetReps ?? 10, weightKg: ex?.suggestedWeightKg ?? null };
+    const seed = last ?? {
+      reps: ex?.targetReps ?? 10,
+      weightKg: ex?.suggestedWeightKg ?? null,
+    };
     updateCell(exId, { sets: [...(cell?.sets ?? []), { ...seed }] });
   };
 
@@ -148,7 +169,8 @@ export default function WorkoutPage() {
     updateCell(exId, { sets: cell.sets.filter((_, i) => i !== idx) });
   };
 
-  const setMinutes = (exId: string, minutes: number) => updateCell(exId, { minutes, done: true });
+  const setMinutes = (exId: string, minutes: number) =>
+    updateCell(exId, { minutes, done: true });
 
   const prefillLastSession = (exId: string) => {
     const last = lastSessionFor(safeLogs, exId, selected);
@@ -157,7 +179,11 @@ export default function WorkoutPage() {
   };
 
   // ── exercise library CRUD ──
-  const saveExercise = (ex: Exercise, mode: "add" | "edit", editIndex?: number) => {
+  const saveExercise = (
+    ex: Exercise,
+    mode: "add" | "edit",
+    editIndex?: number,
+  ) => {
     const current = exercisesForDay(prefs.workoutSplit, dayId, safeLibrary);
     let next: Exercise[];
     if (mode === "add") {
@@ -170,7 +196,10 @@ export default function WorkoutPage() {
 
   const deleteExercise = (index: number) => {
     const current = exercisesForDay(prefs.workoutSplit, dayId, safeLibrary);
-    setLibrary({ ...safeLibrary, [dayId]: current.filter((_, i) => i !== index) });
+    setLibrary({
+      ...safeLibrary,
+      [dayId]: current.filter((_, i) => i !== index),
+    });
   };
 
   const moveExercise = (index: number, dir: -1 | 1) => {
@@ -184,9 +213,13 @@ export default function WorkoutPage() {
 
   // ── custom split day builder ──
   const addCustomDay = () => {
-    const label = newDayLabel.trim() || `Day ${prefs.customSplitDays.length + 1}`;
+    const label =
+      newDayLabel.trim() || `Day ${prefs.customSplitDays.length + 1}`;
     const id = `day-${Date.now().toString(36)}`;
-    setPrefs({ ...prefs, customSplitDays: [...prefs.customSplitDays, { id, label }] });
+    setPrefs({
+      ...prefs,
+      customSplitDays: [...prefs.customSplitDays, { id, label }],
+    });
     setNewDayLabel("");
     setActiveDay(id);
   };
@@ -194,7 +227,9 @@ export default function WorkoutPage() {
   const renameCustomDay = (id: string, label: string) => {
     setPrefs({
       ...prefs,
-      customSplitDays: prefs.customSplitDays.map((d) => (d.id === id ? { ...d, label } : d)),
+      customSplitDays: prefs.customSplitDays.map((d) =>
+        d.id === id ? { ...d, label } : d,
+      ),
     });
   };
 
@@ -209,12 +244,22 @@ export default function WorkoutPage() {
   };
 
   // ── stats ──
-  const weekSessions = useMemo(() => weeklyWorkoutStats(safeLogs, 1)[0]?.sessions ?? 0, [safeLogs]);
-  const volumeBars = useMemo(
-    () => weeklyWorkoutStats(safeLogs, 4).map((w) => ({ label: w.label, value: w.volumeKg })),
+  const weekSessions = useMemo(
+    () => weeklyWorkoutStats(safeLogs, 1)[0]?.sessions ?? 0,
     [safeLogs],
   );
-  const sessionDates = useMemo(() => new Set(workoutSessionDates(safeLogs)), [safeLogs]);
+  const volumeBars = useMemo(
+    () =>
+      weeklyWorkoutStats(safeLogs, 4).map((w) => ({
+        label: w.label,
+        value: w.volumeKg,
+      })),
+    [safeLogs],
+  );
+  const sessionDates = useMemo(
+    () => new Set(workoutSessionDates(safeLogs)),
+    [safeLogs],
+  );
   const weekDaysForStrip = useMemo(() => {
     const out: Date[] = [];
     const now = new Date();
@@ -244,11 +289,24 @@ export default function WorkoutPage() {
         subtitle="Record your sets, review previous lifts, and track your training."
         badge={<SyncBadge status={status} />}
         actions={{
-          primary: <a href="#exercise-logger" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Open session</a>,
-          secondary: <a href="#exercise-logger" className="text-xs font-semibold text-primary hover:underline">Open exercise logger →</a>,
+          primary: (
+            <a
+              href="#exercise-logger"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Open session
+            </a>
+          ),
+          secondary: (
+            <a
+              href="#exercise-logger"
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              Open exercise logger →
+            </a>
+          ),
         }}
       >
-
         {/* ── Header controls: split day tabs + unit toggle ── */}
         <Card variant="dossier" id="exercise-logger">
           <CardContent className="space-y-3 p-4">
@@ -264,7 +322,11 @@ export default function WorkoutPage() {
               </p>
               <div className="flex items-center gap-2">
                 {prefs.workoutSplit === "custom" && (
-                  <Button variant="outline" size="sm" onClick={() => setDayBuilderOpen(true)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDayBuilderOpen(true)}
+                  >
                     <Dumbbell className="mr-1 h-3.5 w-3.5" /> Days
                   </Button>
                 )}
@@ -285,7 +347,9 @@ export default function WorkoutPage() {
                     { value: "lbs", label: "lbs" },
                   ]}
                   value={unit}
-                  onChange={(u) => setPrefs({ ...prefs, weightUnit: u as WeightUnit })}
+                  onChange={(u) =>
+                    setPrefs({ ...prefs, weightUnit: u as WeightUnit })
+                  }
                 />
               </div>
             </div>
@@ -299,7 +363,9 @@ export default function WorkoutPage() {
                     dayId === t.id
                       ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25"
                       : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                    t.id === suggested && dayId !== t.id && "ring-1 ring-primary/40",
+                    t.id === suggested &&
+                      dayId !== t.id &&
+                      "ring-1 ring-primary/40",
                   )}
                   title={t.label}
                 >
@@ -308,26 +374,43 @@ export default function WorkoutPage() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              {tabs.find((t) => t.id === dayId)?.label} · ring marks today&apos;s suggestion
+              {tabs.find((t) => t.id === dayId)?.label} · ring marks
+              today&apos;s suggestion
             </p>
           </CardContent>
         </Card>
 
         {plateCalcOpen ? (
-          <PlateCalculator unit={unit} onClose={() => setPlateCalcOpen(false)} />
+          <PlateCalculator
+            unit={unit}
+            onClose={() => setPlateCalcOpen(false)}
+          />
         ) : null}
 
         {/* ── Week strip ── */}
         <Card variant="dossier">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <Button variant="outline" size="sm" onClick={() => setWeekOffset((w) => w - 1)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setWeekOffset((w) => w - 1)}
+              >
                 <ChevronLeft className="mr-1 h-4 w-4" /> Prev
               </Button>
               <p className="text-sm font-semibold">
-                {weekOffset === 0 ? "This week" : weekOffset > 0 ? `+${weekOffset} wk` : `${weekOffset} wk`}
+                {weekOffset === 0
+                  ? "This week"
+                  : weekOffset > 0
+                    ? `+${weekOffset} wk`
+                    : `${weekOffset} wk`}
               </p>
-              <Button variant="outline" size="sm" disabled={weekOffset >= 0} onClick={() => setWeekOffset((w) => w + 1)}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={weekOffset >= 0}
+                onClick={() => setWeekOffset((w) => w + 1)}
+              >
                 Next <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
@@ -343,26 +426,41 @@ export default function WorkoutPage() {
                     onClick={() => setSelected(k)}
                     className={cn(
                       "rounded-xl border px-1 py-2 text-center transition-all",
-                      isSel ? "border-primary bg-primary/10 font-semibold shadow-sm" : "border-border/60 hover:bg-accent",
+                      isSel
+                        ? "border-primary bg-primary/10 font-semibold shadow-sm"
+                        : "border-border/60 hover:bg-accent",
                       isToday && !isSel && "ring-1 ring-primary/40",
                     )}
                   >
                     <span className="block text-xs uppercase text-muted-foreground">
                       {d.toLocaleDateString("en-US", { weekday: "narrow" })}
                     </span>
-                    <span className="block text-sm tabular-nums">{d.getDate()}</span>
-                    <span className={cn("mx-auto mt-1 block h-1.5 w-1.5 rounded-full", logged ? "bg-emerald-500" : "bg-muted")} />
+                    <span className="block text-sm tabular-nums">
+                      {d.getDate()}
+                    </span>
+                    <span
+                      className={cn(
+                        "mx-auto mt-1 block h-1.5 w-1.5 rounded-full",
+                        logged ? "bg-emerald-500" : "bg-muted",
+                      )}
+                    />
                   </button>
                 );
               })}
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
-              <Stat label="Done today" value={`${doneCount}/${exercises.length}`} />
+              <Stat
+                label="Done today"
+                value={`${doneCount}/${exercises.length}`}
+              />
               <Stat label="Sessions wk" value={`${weekSessions}`} />
               <Stat label="Complete" value={`${dayPct}%`} accent />
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full bg-[var(--color-dossier-lime)] transition-all" style={{ width: `${dayPct}%` }} />
+              <div
+                className="h-full bg-[var(--color-dossier-lime)] transition-all"
+                style={{ width: `${dayPct}%` }}
+              />
             </div>
           </CardContent>
         </Card>
@@ -372,7 +470,11 @@ export default function WorkoutPage() {
           <CardContent className="space-y-3 p-5">
             <div className="flex items-center justify-between">
               <h2 className="font-display font-bold">Session · {selected}</h2>
-              <Button variant="outline" size="sm" onClick={() => setExModal({ mode: "add" })}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setExModal({ mode: "add" })}
+              >
                 <Plus className="mr-1 h-3.5 w-3.5" /> Exercise
               </Button>
             </div>
@@ -417,21 +519,37 @@ export default function WorkoutPage() {
         {/* ── Post-session summary ── */}
         {dayPct === 100 && exercises.length > 0 && (
           <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-4">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-500">Session complete</p>
-            <p className="mt-1 font-display text-lg font-bold">Full session logged. Outstanding effort.</p>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-500">
+              Session complete
+            </p>
+            <p className="mt-1 font-display text-lg font-bold">
+              Full session logged. Outstanding effort.
+            </p>
             <div className="mt-3 grid grid-cols-3 gap-3 text-center text-xs">
               <div>
                 <p className="font-mono text-xl font-bold tabular-nums text-emerald-400">
-                  {exercises.reduce((acc, ex) => acc + (dayLog[ex.id]?.sets?.length ?? 0), 0)}
+                  {exercises.reduce(
+                    (acc, ex) => acc + (dayLog[ex.id]?.sets?.length ?? 0),
+                    0,
+                  )}
                 </p>
                 <p className="text-muted-foreground">Sets logged</p>
               </div>
               <div>
                 <p className="font-mono text-xl font-bold tabular-nums text-emerald-400">
-                  {Math.round(exercises.reduce((acc, ex) => {
-                    const sets = dayLog[ex.id]?.sets ?? [];
-                    return acc + sets.reduce((s, set) => s + (set.weightKg ?? 0) * (set.reps ?? 0), 0);
-                  }, 0))} kg
+                  {Math.round(
+                    exercises.reduce((acc, ex) => {
+                      const sets = dayLog[ex.id]?.sets ?? [];
+                      return (
+                        acc +
+                        sets.reduce(
+                          (s, set) => s + (set.weightKg ?? 0) * (set.reps ?? 0),
+                          0,
+                        )
+                      );
+                    }, 0),
+                  )}{" "}
+                  kg
                 </p>
                 <p className="text-muted-foreground">Volume</p>
               </div>
@@ -452,17 +570,29 @@ export default function WorkoutPage() {
               <h2 className="font-display font-bold">Personal records</h2>
               {prs.length === 0 ? (
                 <div className="mt-3">
-                  <EmptyState icon={History} title="No PRs yet" hint="Log weighted sets — your best lift per exercise shows up here." />
+                  <EmptyState
+                    icon={History}
+                    title="No PRs yet"
+                    hint="Log weighted sets — your best lift per exercise shows up here."
+                  />
                 </div>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {prs.slice(0, 6).map(({ ex, pr }) => (
-                    <li key={ex.id} className="flex items-center justify-between rounded-xl border border-border/60 px-3 py-2 text-sm">
-                      <span className="min-w-0 truncate font-medium">{ex.name}</span>
+                    <li
+                      key={ex.id}
+                      className="flex items-center justify-between rounded-xl border border-border/60 px-3 py-2 text-sm"
+                    >
+                      <span className="min-w-0 truncate font-medium">
+                        {ex.name}
+                      </span>
                       <span className="shrink-0 text-right">
-                        <span className="font-display font-bold tabular-nums text-primary">{formatWeight(pr!.weightKg, unit)}</span>
+                        <span className="font-display font-bold tabular-nums text-primary">
+                          {formatWeight(pr!.weightKg, unit)}
+                        </span>
                         <span className="ml-2 text-xs tabular-nums text-muted-foreground">
-                          ×{pr!.reps} · e1RM {Math.round(kgToDisplay(pr!.e1rm, unit))}
+                          ×{pr!.reps} · e1RM{" "}
+                          {Math.round(kgToDisplay(pr!.e1rm, unit))}
                         </span>
                       </span>
                     </li>
@@ -474,10 +604,20 @@ export default function WorkoutPage() {
           <Card variant="dossier">
             <CardContent className="p-5">
               <h2 className="font-display font-bold">Weekly volume</h2>
-              <p className="text-xs text-muted-foreground">Total kg lifted per week (reps count for bodyweight)</p>
-              <MiniBars className="mt-3" data={volumeBars} height={72} highlightLast />
+              <p className="text-xs text-muted-foreground">
+                Total kg lifted per week (reps count for bodyweight)
+              </p>
+              <MiniBars
+                className="mt-3"
+                data={volumeBars}
+                height={72}
+                highlightLast
+              />
               <p className="mt-2 text-xs text-muted-foreground">
-                {formatWeight(volumeBars[3]?.value ?? 0, unit).replace(" kg", " kg total").replace(" lbs", " lbs total")} this week
+                {formatWeight(volumeBars[3]?.value ?? 0, unit)
+                  .replace(" kg", " kg total")
+                  .replace(" lbs", " lbs total")}{" "}
+                this week
               </p>
             </CardContent>
           </Card>
@@ -487,11 +627,17 @@ export default function WorkoutPage() {
         {exModal && (
           <ExerciseModal
             mode={exModal.mode}
-            initial={exModal.mode === "edit" ? exercises[exModal.index] : undefined}
+            initial={
+              exModal.mode === "edit" ? exercises[exModal.index] : undefined
+            }
             unit={unit}
             onClose={() => setExModal(null)}
             onSave={(ex) => {
-              saveExercise(ex, exModal.mode, exModal.mode === "edit" ? exModal.index : undefined);
+              saveExercise(
+                ex,
+                exModal.mode,
+                exModal.mode === "edit" ? exModal.index : undefined,
+              );
               setExModal(null);
             }}
           />
@@ -518,7 +664,10 @@ export default function WorkoutPage() {
         >
           <ul className="space-y-2">
             {prefs.customSplitDays.map((d) => (
-              <li key={d.id} className="flex items-center gap-2 rounded-xl border border-border/60 px-3 py-2">
+              <li
+                key={d.id}
+                className="flex items-center gap-2 rounded-xl border border-border/60 px-3 py-2"
+              >
                 <Input
                   className="h-8 text-sm"
                   value={d.label}
@@ -535,7 +684,8 @@ export default function WorkoutPage() {
             ))}
           </ul>
           <p className="mt-3 text-xs text-muted-foreground">
-            Each day gets its own tab and its own exercise list. Deleting a day removes its exercises too.
+            Each day gets its own tab and its own exercise list. Deleting a day
+            removes its exercises too.
           </p>
         </Modal>
 
@@ -546,25 +696,34 @@ export default function WorkoutPage() {
             onClose={() => setRestTimer(null)}
           />
         )}
-        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
-        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-          <StoryPanel
-            eyebrow="Current chapter"
-            title={tabs.find((t) => t.id === dayId)?.label ?? "Training session"}
-            action={<a href="#exercise-logger" className="dossier-back-link">Log sets</a>}
-          >
-            {dayPct === 100
-              ? "Session complete. Record the win, then let recovery set up the next progression."
-              : `${doneCount} of ${exercises.length} exercises complete. Follow the suggested day and build the next rep.`}
-          </StoryPanel>
-          <SignalPanel
-            label="Session signal"
-            value={`${dayPct}%`}
-            detail={`${weekSessions} session${weekSessions === 1 ? "" : "s"} logged`}
-            progress={dayPct}
-            tone="lime"
-          />
-        </div>
+        <details className="rounded-2xl border border-border p-4">
+          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">
+            Progress summary
+          </summary>
+          <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+            <StoryPanel
+              eyebrow="Current chapter"
+              title={
+                tabs.find((t) => t.id === dayId)?.label ?? "Training session"
+              }
+              action={
+                <a href="#exercise-logger" className="dossier-back-link">
+                  Log sets
+                </a>
+              }
+            >
+              {dayPct === 100
+                ? "Session complete. Record the win, then let recovery set up the next progression."
+                : `${doneCount} of ${exercises.length} exercises complete. Follow the suggested day and build the next rep.`}
+            </StoryPanel>
+            <SignalPanel
+              label="Session signal"
+              value={`${dayPct}%`}
+              detail={`${weekSessions} session${weekSessions === 1 ? "" : "s"} logged`}
+              progress={dayPct}
+              tone="lime"
+            />
+          </div>
         </details>
       </TrackerShell>
     </RequireAuth>
@@ -600,7 +759,11 @@ function ExerciseCard({
   logs: Record<string, DayLog>;
   selected: string;
   onToggle: () => void;
-  onSetField: (idx: number, field: "reps" | "weightKg", value: number | null) => void;
+  onSetField: (
+    idx: number,
+    field: "reps" | "weightKg",
+    value: number | null,
+  ) => void;
   onAddSet: () => void;
   onRemoveSet: (idx: number) => void;
   onMinutes: (m: number) => void;
@@ -611,7 +774,10 @@ function ExerciseCard({
   onRest: (seconds: number) => void;
 }) {
   const [showActions, setShowActions] = useState(false);
-  const last = useMemo(() => lastSessionFor(logs, ex.id, selected), [logs, ex.id, selected]);
+  const last = useMemo(
+    () => lastSessionFor(logs, ex.id, selected),
+    [logs, ex.id, selected],
+  );
   const done = log?.done ?? false;
   const isMinutes = ex.unit === "minutes";
 
@@ -650,7 +816,9 @@ function ExerciseCard({
             aria-label={`Mark ${ex.name} done`}
             className={cn(
               "flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-all active:scale-90",
-              done ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground/40 hover:border-foreground",
+              done
+                ? "border-emerald-500 bg-emerald-500 text-white"
+                : "border-muted-foreground/40 hover:border-foreground",
             )}
           >
             {done ? <Check className="h-4 w-4" /> : ""}
@@ -663,7 +831,10 @@ function ExerciseCard({
         <div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-2.5 py-1.5">
           <p className="min-w-0 truncate text-xs text-muted-foreground">
             <History className="mr-1 inline h-3 w-3" />
-            Last: {last.sets.map((s) => `${formatWeight(s.weightKg, unit)} × ${s.reps}`).join(", ")}{" "}
+            Last:{" "}
+            {last.sets
+              .map((s) => `${formatWeight(s.weightKg, unit)} × ${s.reps}`)
+              .join(", ")}{" "}
             <span className="tabular-nums">({last.date.slice(5)})</span>
           </p>
           <button
@@ -689,7 +860,8 @@ function ExerciseCard({
           <span className="shrink-0 text-xs text-muted-foreground">min</span>
         </div>
       ) : (
-        log?.sets && log.sets.length > 0 && (
+        log?.sets &&
+        log.sets.length > 0 && (
           <div className="mt-2.5 space-y-1.5">
             {log.sets.map((s, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -703,13 +875,20 @@ function ExerciseCard({
                   placeholder="kg"
                   className="h-8 w-24 tabular-nums"
                   aria-label={`Set ${i + 1} weight`}
-                  value={s.weightKg == null ? "" : kgToDisplay(s.weightKg, unit)}
+                  value={
+                    s.weightKg == null ? "" : kgToDisplay(s.weightKg, unit)
+                  }
                   onChange={(e) => {
-                    const v = e.target.value === "" ? null : displayToKg(Number(e.target.value) || 0, unit);
+                    const v =
+                      e.target.value === ""
+                        ? null
+                        : displayToKg(Number(e.target.value) || 0, unit);
                     onSetField(i, "weightKg", v);
                   }}
                 />
-                <span className="shrink-0 text-xs text-muted-foreground">{unit} ×</span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {unit} ×
+                </span>
                 <Input
                   type="number"
                   min={0}
@@ -717,11 +896,15 @@ function ExerciseCard({
                   className="h-8 w-20 tabular-nums"
                   aria-label={`Set ${i + 1} reps`}
                   value={s.reps || ""}
-                  onChange={(e) => onSetField(i, "reps", Number(e.target.value) || 0)}
+                  onChange={(e) =>
+                    onSetField(i, "reps", Number(e.target.value) || 0)
+                  }
                 />
                 {s.weightKg && s.reps ? (
                   <span className="hidden sm:inline-block rounded bg-muted/40 px-1.5 py-0.5 font-mono text-xs text-muted-foreground whitespace-nowrap">
-                    e1RM {Math.round(kgToDisplay(est1RM(s.weightKg, s.reps), unit))} {unit}
+                    e1RM{" "}
+                    {Math.round(kgToDisplay(est1RM(s.weightKg, s.reps), unit))}{" "}
+                    {unit}
                   </span>
                 ) : null}
                 <button
@@ -750,13 +933,23 @@ function ExerciseCard({
           <Button variant="ghost" size="sm" onClick={onEdit}>
             <Pencil className="mr-1 h-3 w-3" /> Edit
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => onMove(-1)} disabled={index === 0}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onMove(-1)}
+            disabled={index === 0}
+          >
             <ArrowUp className="mr-1 h-3 w-3" /> Up
           </Button>
           <Button variant="ghost" size="sm" onClick={() => onMove(1)}>
             <ArrowDown className="mr-1 h-3 w-3" /> Down
           </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete} className="text-red-500 hover:text-red-500">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDelete}
+            className="text-red-500 hover:text-red-500"
+          >
             <Trash2 className="mr-1 h-3 w-3" /> Delete
           </Button>
         </div>
@@ -784,12 +977,22 @@ function ExerciseModal({
 }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [tag, setTag] = useState<Exercise["tag"]>(initial?.tag ?? "compound");
-  const [targetSets, setTargetSets] = useState(String(initial?.targetSets ?? 3));
-  const [targetReps, setTargetReps] = useState(String(initial?.targetReps ?? 10));
-  const [targetMinutes, setTargetMinutes] = useState(String(initial?.targetMinutes ?? 8));
+  const [targetSets, setTargetSets] = useState(
+    String(initial?.targetSets ?? 3),
+  );
+  const [targetReps, setTargetReps] = useState(
+    String(initial?.targetReps ?? 10),
+  );
+  const [targetMinutes, setTargetMinutes] = useState(
+    String(initial?.targetMinutes ?? 8),
+  );
   const [isMinutes, setIsMinutes] = useState(initial?.unit === "minutes");
   const [weight, setWeight] = useState(
-    initial?.suggestedWeightKg != null ? String(Math.round(kgToDisplay(initial.suggestedWeightKg, unit) * 10) / 10) : "",
+    initial?.suggestedWeightKg != null
+      ? String(
+          Math.round(kgToDisplay(initial.suggestedWeightKg, unit) * 10) / 10,
+        )
+      : "",
   );
   const [hint, setHint] = useState(initial?.hint ?? "");
 
@@ -798,13 +1001,18 @@ function ExerciseModal({
   const save = () => {
     if (!valid) return;
     const ex: Exercise = {
-      id: initial?.id ?? `ex_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+      id:
+        initial?.id ??
+        `ex_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
       name: name.trim(),
       unit: isMinutes ? "minutes" : "reps",
       targetSets: Math.max(1, Number(targetSets) || 3),
       targetReps: isMinutes ? undefined : Math.max(1, Number(targetReps) || 10),
-      targetMinutes: isMinutes ? Math.max(1, Number(targetMinutes) || 8) : undefined,
-      suggestedWeightKg: weight === "" ? undefined : displayToKg(Number(weight) || 0, unit),
+      targetMinutes: isMinutes
+        ? Math.max(1, Number(targetMinutes) || 8)
+        : undefined,
+      suggestedWeightKg:
+        weight === "" ? undefined : displayToKg(Number(weight) || 0, unit),
       tag,
       hint: hint.trim(),
     };
@@ -830,7 +1038,13 @@ function ExerciseModal({
       <div className="space-y-3">
         <div>
           <label className="text-sm font-medium">Name</label>
-          <Input className="mt-1.5" placeholder="e.g. Incline Dumbbell Press" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+          <Input
+            className="mt-1.5"
+            placeholder="e.g. Incline Dumbbell Press"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
         </div>
         <div>
           <label className="text-sm font-medium">Type</label>
@@ -851,23 +1065,54 @@ function ExerciseModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Target sets</label>
-              <Input className="mt-1.5 tabular-nums" type="number" min={1} max={10} value={targetSets} onChange={(e) => setTargetSets(e.target.value)} />
+              <Input
+                className="mt-1.5 tabular-nums"
+                type="number"
+                min={1}
+                max={10}
+                value={targetSets}
+                onChange={(e) => setTargetSets(e.target.value)}
+              />
             </div>
             <div>
               <label className="text-sm font-medium">Target reps</label>
-              <Input className="mt-1.5 tabular-nums" type="number" min={1} max={50} value={targetReps} onChange={(e) => setTargetReps(e.target.value)} />
+              <Input
+                className="mt-1.5 tabular-nums"
+                type="number"
+                min={1}
+                max={50}
+                value={targetReps}
+                onChange={(e) => setTargetReps(e.target.value)}
+              />
             </div>
           </div>
         ) : (
           <div>
             <label className="text-sm font-medium">Target minutes</label>
-            <Input className="mt-1.5 tabular-nums" type="number" min={1} max={120} value={targetMinutes} onChange={(e) => setTargetMinutes(e.target.value)} />
+            <Input
+              className="mt-1.5 tabular-nums"
+              type="number"
+              min={1}
+              max={120}
+              value={targetMinutes}
+              onChange={(e) => setTargetMinutes(e.target.value)}
+            />
           </div>
         )}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm font-medium">Suggested weight ({unit})</label>
-            <Input className="mt-1.5 tabular-nums" type="number" min={0} step="0.5" placeholder="optional" value={weight} onChange={(e) => setWeight(e.target.value)} />
+            <label className="text-sm font-medium">
+              Suggested weight ({unit})
+            </label>
+            <Input
+              className="mt-1.5 tabular-nums"
+              type="number"
+              min={0}
+              step="0.5"
+              placeholder="optional"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+            />
           </div>
           <div>
             <label className="text-sm font-medium">Category</label>
@@ -887,7 +1132,12 @@ function ExerciseModal({
         </div>
         <div>
           <label className="text-sm font-medium">Hint</label>
-          <Input className="mt-1.5" placeholder="e.g. Elbows tucked, control the negative" value={hint} onChange={(e) => setHint(e.target.value)} />
+          <Input
+            className="mt-1.5"
+            placeholder="e.g. Elbows tucked, control the negative"
+            value={hint}
+            onChange={(e) => setHint(e.target.value)}
+          />
         </div>
       </div>
     </Modal>

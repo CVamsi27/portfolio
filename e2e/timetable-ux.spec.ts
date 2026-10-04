@@ -77,6 +77,7 @@ test("timetable shows focus budget and full instructions without marking elapsed
   const timetable = await setup(page);
   await expect(timetable).toContainText("1h 40m planned focus");
   await expect(timetable).toContainText("Notes and a correct recall answer");
+  await timetable.getByRole("button", { name: "Show schedule" }).click();
   const label = timetable.locator("ol").getByText(longLabel, { exact: true });
   await expect(label).toBeVisible();
   expect(
@@ -110,9 +111,13 @@ test("schedule disclosure exposes its state and keeps summary available", async 
   page,
 }) => {
   const timetable = await setup(page);
-  const toggle = timetable.getByRole("button", { name: "Hide schedule" });
-  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  const toggle = timetable.getByRole("button", { name: "Show schedule" });
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await toggle.click();
+  await expect(
+    timetable.getByRole("button", { name: "Hide schedule" }),
+  ).toHaveAttribute("aria-expanded", "true");
+  await timetable.getByRole("button", { name: "Hide schedule" }).click();
   await expect(
     timetable.getByText("Earlier research block", { exact: true }),
   ).toBeHidden();

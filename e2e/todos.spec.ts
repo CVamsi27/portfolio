@@ -2,7 +2,9 @@ import { expect, test } from "@playwright/test";
 import { seed, daysAgoKey } from "./helpers";
 
 test.describe("todo manager", () => {
-  test("adds tasks with priority + tag, Enter chains entry", async ({ page }) => {
+  test("adds tasks with priority + tag, Enter chains entry", async ({
+    page,
+  }) => {
     await seed(page);
     await page.goto("/todo");
 
@@ -10,8 +12,14 @@ test.describe("todo manager", () => {
     await input.fill("Write E2E tests");
     // Pick P1 and Work tag before adding. "Work" collides with "Deep Work"
     // and the tag-filter group — pin both dimensions.
-    await page.getByRole("group", { name: "Priority", exact: true }).getByRole("button", { name: "P1", exact: true }).click();
-    await page.getByRole("group", { name: "Tag", exact: true }).getByRole("button", { name: "Work", exact: true }).click();
+    await page
+      .getByRole("group", { name: "Priority", exact: true })
+      .getByRole("button", { name: "P1", exact: true })
+      .click();
+    await page
+      .getByRole("group", { name: "Tag", exact: true })
+      .getByRole("button", { name: "Work", exact: true })
+      .click();
     await input.press("Enter");
     await expect(page.getByText("Write E2E tests")).toBeVisible();
 
@@ -23,8 +31,13 @@ test.describe("todo manager", () => {
     await expect(input).toBeFocused();
 
     // Persisted with the right fields.
-    const todos = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ?? "[]");
-    const first = todos.find((t: { text: string }) => t.text === "Write E2E tests");
+    const todos = JSON.parse(
+      (await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ??
+        "[]",
+    );
+    const first = todos.find(
+      (t: { text: string }) => t.text === "Write E2E tests",
+    );
     expect(first.priority).toBe("P1");
     expect(first.tag).toBe("Work");
     expect(first.date).toBe(daysAgoKey(0));
@@ -33,13 +46,18 @@ test.describe("todo manager", () => {
   test("inline edit renames a task", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
-    await page.getByRole("textbox", { name: "New task", exact: true }).fill("Original name");
+    await page
+      .getByRole("textbox", { name: "New task", exact: true })
+      .fill("Original name");
     await page.keyboard.press("Enter");
 
     const task = page.getByText("Original name");
     await task.click(); // click-to-edit
     const editBox = page.locator("input[value='']");
-    const box = page.locator("li input.h-8");
+    const box = page.getByRole("textbox", {
+      name: "Edit task name",
+      exact: true,
+    });
     await box.fill("Renamed task");
     await box.press("Enter");
     await expect(page.getByText("Renamed task")).toBeVisible();
@@ -50,21 +68,33 @@ test.describe("todo manager", () => {
   test("toggle done moves task between views", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
-    await page.getByRole("textbox", { name: "New task", exact: true }).fill("Finishable task");
+    await page
+      .getByRole("textbox", { name: "New task", exact: true })
+      .fill("Finishable task");
     await page.keyboard.press("Enter");
 
     // Complete it.
-    await page.getByRole("button", { name: /Mark "Finishable task" done/ }).click();
-    await expect(page.getByText("All done for today. Beautiful.")).toBeVisible();
+    await page
+      .getByRole("button", { name: /Mark "Finishable task" done/ })
+      .click();
+    await expect(
+      page.getByText("All done for today. Beautiful."),
+    ).toBeVisible();
 
     // It's in Completed view.
-    await page.getByRole("group", { name: "Task view" }).getByRole("button", { name: /Completed/ }).click();
+    await page
+      .getByRole("group", { name: "Task view" })
+      .getByRole("button", { name: /Completed/ })
+      .click();
     await expect(page.getByText("Finishable task")).toBeVisible();
 
     // Clear completed wipes it.
     await page.getByRole("button", { name: /Clear completed/ }).click();
     await expect(page.getByText("Finishable task")).toHaveCount(0);
-    const todos = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ?? "[]");
+    const todos = JSON.parse(
+      (await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ??
+        "[]",
+    );
     expect(todos).toHaveLength(0);
   });
 
@@ -72,15 +102,34 @@ test.describe("todo manager", () => {
     const today = daysAgoKey(0);
     await seed(page, {
       "vk:todos": [
-        { id: "a", text: "Work item", done: false, date: today, priority: "P2", tag: "Work", createdAt: 1 },
-        { id: "b", text: "Health item", done: false, date: today, priority: "P3", tag: "Health", createdAt: 2 },
+        {
+          id: "a",
+          text: "Work item",
+          done: false,
+          date: today,
+          priority: "P2",
+          tag: "Work",
+          createdAt: 1,
+        },
+        {
+          id: "b",
+          text: "Health item",
+          done: false,
+          date: today,
+          priority: "P3",
+          tag: "Health",
+          createdAt: 2,
+        },
       ],
     });
     await page.goto("/todo");
     await expect(page.getByText("Work item")).toBeVisible();
     await expect(page.getByText("Health item")).toBeVisible();
 
-    await page.getByRole("group", { name: "Tag filter" }).getByRole("button", { name: "Work", exact: true }).click();
+    await page
+      .getByRole("group", { name: "Tag filter" })
+      .getByRole("button", { name: "Work", exact: true })
+      .click();
     await expect(page.getByText("Work item")).toBeVisible();
     await expect(page.getByText("Health item")).toHaveCount(0);
   });
@@ -89,14 +138,28 @@ test.describe("todo manager", () => {
     const tomorrow = daysAgoKey(-1);
     await seed(page, {
       "vk:todos": [
-        { id: "c", text: "Plan tomorrow", done: false, date: tomorrow, priority: "P1", tag: "Goal", createdAt: 1 },
+        {
+          id: "c",
+          text: "Plan tomorrow",
+          done: false,
+          date: tomorrow,
+          priority: "P1",
+          tag: "Goal",
+          createdAt: 1,
+        },
       ],
     });
     await page.goto("/todo");
-    await page.getByRole("group", { name: "Task view" }).getByRole("button", { name: "Tomorrow" }).click();
+    await page
+      .getByRole("group", { name: "Task view" })
+      .getByRole("button", { name: "Tomorrow" })
+      .click();
     await expect(page.getByText("Plan tomorrow")).toBeVisible();
     // Not in Today view.
-    await page.getByRole("group", { name: "Task view" }).getByRole("button", { name: /^Today/ }).click();
+    await page
+      .getByRole("group", { name: "Task view" })
+      .getByRole("button", { name: /^Today/ })
+      .click();
     await expect(page.getByText("Plan tomorrow")).toHaveCount(0);
   });
 
@@ -108,7 +171,16 @@ test.describe("todo manager", () => {
       return d.toISOString().slice(0, 10);
     };
     const todos = [0, 1, 2].flatMap((i) => [
-      { id: `x${i}`, text: `t${i}`, done: true, date: mk(i), priority: "P2", tag: "Work", createdAt: 1, completedAt: now - i * 86_400_000 },
+      {
+        id: `x${i}`,
+        text: `t${i}`,
+        done: true,
+        date: mk(i),
+        priority: "P2",
+        tag: "Work",
+        createdAt: 1,
+        completedAt: now - i * 86_400_000,
+      },
     ]);
     await seed(page, { "vk:todos": todos });
     await page.goto("/todo");

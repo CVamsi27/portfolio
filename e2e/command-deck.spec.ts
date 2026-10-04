@@ -36,19 +36,26 @@ test("command deck leads with the goal and next move", async ({ page }) => {
     ],
   });
   await page.goto("/trackers");
-  await expect(page.getByTestId("next-move-card")).toContainText(/Choose a neighborhood|next move/i);
-  await expect(page.getByTestId("progress-rail")).toBeVisible();
-  await expect(page.getByTestId("today-header")).toContainText("Relocate to Canada");
-  await page.getByTestId("today-details").locator("summary").click();
-  await expect(page.getByTestId("action-queue")).toContainText("Choose a neighborhood");
-  await expect(page.getByTestId("action-queue")).not.toContainText("Log today’s meal window");
-  await expect(page.getByTestId("action-queue")).not.toContainText("Concrete job offer from a target-country entity");
-  await expect(page.locator('a[href="/intermittent-fasting"]').first()).toBeVisible();
-  await expect(page.getByTestId("week-pulse")).toContainText("25m");
-  await expect(page.getByRole("button", { name: /start focus sprint/i })).toBeVisible();
+  await expect(page.getByTestId("next-move-card")).toContainText(
+    /Choose a neighborhood|next move/i,
+  );
+  await expect(page.getByTestId("today-header")).toContainText(
+    "Relocate to Canada",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Top three tasks" }),
+  ).toBeVisible();
+  await page.goto("/review");
+  await expect(page.getByText("25 min", { exact: true })).toBeVisible();
+  await page.goto("/plan");
+  await expect(
+    page.getByRole("button", { name: /start focus sprint/i }),
+  ).toBeVisible();
 });
 
-test("command queue keeps a completed task anchor visible", async ({ page }) => {
+test("command queue keeps a completed task anchor visible", async ({
+  page,
+}) => {
   const today = new Date().toISOString().slice(0, 10);
   await seed(page, {
     "vk:prefs": {
@@ -72,7 +79,13 @@ test("command queue keeps a completed task anchor visible", async ({ page }) => 
     ],
   });
   await page.goto("/trackers");
-  await page.getByTestId("today-details").locator("summary").click();
-  await expect(page.getByTestId("action-queue").getByText("Completed task")).toHaveClass(/line-through/);
-  await expect(page.getByTestId("action-queue").locator('[data-complete="true"]')).toContainText("Completed task");
+  await expect(page.getByText("Completed task", { exact: true })).toHaveCount(
+    0,
+  );
+  await page.goto("/todo");
+  await page
+    .getByRole("group", { name: "Task view" })
+    .getByRole("button", { name: "Completed", exact: true })
+    .click();
+  await expect(page.getByText("Completed task", { exact: true })).toBeVisible();
 });

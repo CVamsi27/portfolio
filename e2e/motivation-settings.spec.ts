@@ -1,48 +1,56 @@
 import { expect, test } from "@playwright/test";
 import { seed, daysAgoKey } from "./helpers";
-import { getMotivationCategoryLabel, getMotivationRationale } from "../src/lib/motivation-media";
+import {
+  getMotivationCategoryLabel,
+  getMotivationRationale,
+} from "../src/lib/motivation-media";
 
 test("motivation media exposes destination-aware context", () => {
-  expect(getMotivationCategoryLabel("relocation", "Germany")).toBe("Germany relocation");
-  expect(getMotivationRationale("goal", "relocation", "Germany")).toContain("Germany");
+  expect(getMotivationCategoryLabel("relocation", "Germany")).toBe(
+    "Germany relocation",
+  );
+  expect(getMotivationRationale("goal", "relocation", "Germany")).toContain(
+    "Germany",
+  );
 });
 
 test.describe("motivation", () => {
-  test("lets the user choose goal-aware or general inspiration", async ({ page }) => {
-    await seed(page);
-    await page.goto("/motivation");
-    await expect(page.getByRole("button", { name: "Goal-aware" })).toBeVisible();
-    await page.getByRole("button", { name: "General inspiration" }).click();
-    const prefs = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:prefs"))) ?? "{}");
-    expect(prefs.motivationPersonalization).toBe("general");
-  });
-
-  test("general inspiration requests the general source without goal text", async ({ page }) => {
+  test("legacy general preference still receives goal-aware inspiration without a preference rewrite", async ({
+    page,
+  }) => {
     const requests: string[] = [];
     page.on("request", (request) => {
-      if (request.url().includes("/api/motivation-media")) requests.push(request.url());
+      if (request.url().includes("/api/motivation-media"))
+        requests.push(request.url());
     });
-    await page.route("**/api/motivation-media**", async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ quote: "Keep moving.", quoteAuthor: "NOVA", fetchedAt: Date.now() }),
-      });
+    await page.route("**/api/motivation-media**", (route) =>
+      route.fulfill({ json: { quote: "Keep moving.", fetchedAt: Date.now() } }),
+    );
+    await seed(page, {
+      "vk:prefs": {
+        goalCategory: "relocation",
+        goalCountry: "Canada",
+        motivationPersonalization: "general",
+        questionnaireDone: true,
+      },
     });
-    await seed(page);
     await page.goto("/motivation");
-    await page.getByRole("button", { name: "General inspiration" }).click();
     await expect.poll(() => requests.length).toBeGreaterThan(0);
-    expect(requests.at(-1)).toContain("source=general");
-    expect(requests.at(-1)).toContain("category=relocation");
-    expect(requests.at(-1)).not.toContain("Canada");
-    expect(requests.at(-1)).not.toContain("Relocate");
+    expect(requests.at(-1)).toContain("source=goal");
+    expect(requests.at(-1)).toContain("country=Canada");
+    expect(
+      JSON.parse((await page.evaluate(() => localStorage.getItem("vk:prefs")))!)
+        .motivationPersonalization,
+    ).toBe("general");
   });
 
-  test("relocation media uses safe destination terms without raw goal text", async ({ page }) => {
+  test("relocation media uses safe destination terms without raw goal text", async ({
+    page,
+  }) => {
     const requests: string[] = [];
     page.on("request", (request) => {
-      if (request.url().includes("/api/motivation-media")) requests.push(request.url());
+      if (request.url().includes("/api/motivation-media"))
+        requests.push(request.url());
     });
     await page.route("**/api/motivation-media**", async (route) => {
       await route.fulfill({
@@ -84,73 +92,70 @@ test.describe("motivation", () => {
     expect(url).not.toContain("Test%20User");
   });
 
-  test("quote deck shuffles + favorites persist", async ({ page }) => {
+  test("saved and personal reminders remain available in a compact dialog", async ({
+    page,
+  }) => {
     await seed(page);
     await page.goto("/motivation");
-
-    // Quote of the day renders with its category badge.
-    await expect(page.getByText(/Quote of the day · /)).toBeVisible();
-
-    // Favorite it → button flips to "Saved" and the fav is stored.
-    await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(page.getByRole("button", { name: "Saved", exact: true })).toBeVisible();
-    const favs = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:motivation:favs"))) ?? "[]");
-    expect(favs.length).toBe(1);
-
-    // Shuffle keeps a quote on screen.
-    await page.getByRole("button", { name: "Shuffle" }).click();
-    await expect(page.locator("blockquote")).toBeVisible();
-
-    // Custom affirmation via the modal.
-    await page.getByRole("button", { name: "Add", exact: true }).click();
-    const dialog = page.getByRole("dialog");
-    await dialog.getByPlaceholder("I show up for the hard things first…").fill("I ship every single day.");
-    await dialog.getByRole("button", { name: "Add to deck" }).click();
-    // Scope to the affirmations list — the text may also surface as the
-    // quote of the day once it joins the deck.
-    await expect(page.locator("li").filter({ hasText: "I ship every single day." })).toBeVisible();
-    const custom = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:motivation:custom"))) ?? "[]");
-    expect(custom.some((q: { text: string }) => q.text === "I ship every single day.")).toBe(true);
-  });
-
-  test("daily micro-journal saves three prompts per date", async ({ page }) => {
-    await seed(page);
-    await page.goto("/motivation");
-
-    // Targets are the placeholder texts (labels aren't programmatically associated).
-    await page.getByPlaceholder(/auth flow/).fill("Shipped the E2E suite");
-    await page.getByPlaceholder(/RSC hydration/).fill("How Playwright seeding works");
-    await page.getByPlaceholder(/set logger/).fill("Fix any flaky tests");
-    await page.getByRole("button", { name: "Save reflection" }).click();
-    await expect(page.locator("#journal").getByText("Saved", { exact: true })).toBeVisible();
-
-    const journal = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:journal"))) ?? "{}");
-    const today = daysAgoKey(0);
-    expect(journal[today]?.win).toContain("Shipped the E2E suite");
-    expect(journal[today]?.focus).toContain("Fix any flaky tests");
-  });
-
-  test("visit streak counts consecutive days", async ({ page }) => {
-    const day = (i: number) => {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      return d.toISOString().slice(0, 10);
-    };
-    await seed(page, {
-      "vk:motivation:visits": { [day(0)]: 1, [day(1)]: 2, [day(2)]: 1, [day(4)]: 1 },
-    });
-    await page.goto("/motivation");
-    // The "Day streak" stat tile shows the consecutive count (3 — day 4 breaks it).
-    const value = page.getByText("Day streak").locator("xpath=following-sibling::p[1]");
-    await expect(value).toHaveText("3");
+    await page
+      .getByRole("button", { name: "Save reminder", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Unsave reminder", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await page
+      .getByRole("button", { name: "Personal reminders", exact: true })
+      .click();
+    const dialog = page.getByRole("dialog", { name: "Personal reminders" });
+    await dialog
+      .getByLabel("Your reminder", { exact: true })
+      .fill("I am building a future I believe in.");
+    await dialog
+      .getByRole("button", { name: "Add reminder", exact: true })
+      .click();
+    await expect(
+      dialog.getByText("I am building a future I believe in.", { exact: true }),
+    ).toBeVisible();
+    const values = await page.evaluate(() => ({
+      favs: JSON.parse(localStorage.getItem("vk:motivation:favs")!),
+      custom: JSON.parse(localStorage.getItem("vk:motivation:custom")!),
+    }));
+    expect(values.favs).toHaveLength(1);
+    expect(values.custom[0].text).toBe("I am building a future I believe in.");
+    await page.reload();
+    await page
+      .getByRole("button", { name: "Personal reminders", exact: true })
+      .click();
+    await expect(
+      dialog.getByText("I am building a future I believe in.", { exact: true }),
+    ).toBeVisible();
+    await dialog
+      .getByRole("button", {
+        name: "Remove personal reminder: I am building a future I believe in.",
+        exact: true,
+      })
+      .click();
+    await expect(
+      dialog.getByText("I am building a future I believe in.", { exact: true }),
+    ).toHaveCount(0);
   });
 });
 
 test.describe("settings: backup, restore, wipe", () => {
-  test("export produces a valid suite backup; import round-trips it", async ({ page }) => {
+  test("export produces a valid suite backup; import round-trips it", async ({
+    page,
+  }) => {
     await seed(page, {
       "vk:todos": [
-        { id: "e1", text: "Back me up", done: false, date: daysAgoKey(0), priority: "P1", tag: "Work", createdAt: 1 },
+        {
+          id: "e1",
+          text: "Back me up",
+          done: false,
+          date: daysAgoKey(0),
+          priority: "P1",
+          tag: "Work",
+          createdAt: 1,
+        },
       ],
     });
     await page.goto("/settings");
@@ -174,7 +179,10 @@ test.describe("settings: backup, restore, wipe", () => {
     await chooser.setFiles(path!);
 
     await expect(page.getByText(/Restored \d+ keys/)).toBeVisible();
-    const todos = JSON.parse((await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ?? "[]");
+    const todos = JSON.parse(
+      (await page.evaluate(() => window.localStorage.getItem("vk:todos"))) ??
+        "[]",
+    );
     expect(todos[0].text).toBe("Back me up");
   });
 
@@ -189,13 +197,25 @@ test.describe("settings: backup, restore, wipe", () => {
       mimeType: "application/json",
       buffer: Buffer.from(JSON.stringify({ hello: "world" })),
     });
-    await expect(page.getByText("Import failed", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Import failed", { exact: true }),
+    ).toBeVisible();
   });
 
-  test("danger zone requires typing CLEAR and wipes the namespace", async ({ page }) => {
+  test("danger zone requires typing CLEAR and wipes the namespace", async ({
+    page,
+  }) => {
     await seed(page, {
       "vk:todos": [
-        { id: "w1", text: "Doomed", done: false, date: daysAgoKey(0), priority: "P2", tag: "Work", createdAt: 1 },
+        {
+          id: "w1",
+          text: "Doomed",
+          done: false,
+          date: daysAgoKey(0),
+          priority: "P2",
+          tag: "Work",
+          createdAt: 1,
+        },
       ],
     });
     await page.goto("/settings");
@@ -205,7 +225,9 @@ test.describe("settings: backup, restore, wipe", () => {
     await page.getByPlaceholder("CLEAR").fill("CLEAR");
     await wipeBtn.click();
 
-    const todos = await page.evaluate(() => window.localStorage.getItem("vk:todos"));
+    const todos = await page.evaluate(() =>
+      window.localStorage.getItem("vk:todos"),
+    );
     expect(todos).toBeNull();
   });
 });

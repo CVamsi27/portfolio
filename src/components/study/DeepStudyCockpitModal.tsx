@@ -1,6 +1,14 @@
 "use client";
+import { useWorkSession } from "@/lib/work-session-store";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -57,6 +65,7 @@ import {
   getStudyRemainingMs,
   isMobilePhoneDevice,
   type ActiveStudySession,
+  appendStudyCompletion,
   type CompletedChapterRecord,
   type NextStudyGoal,
   type StudyAnalytics,
@@ -88,12 +97,22 @@ export default function DeepStudyCockpitModal({
   dayNumber?: number;
   onClose: () => void;
 }) {
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
 
-  const { value: activeSession, setValue: setActiveSession } =
-    useSyncedStorage<ActiveStudySession | null>("study:active_session", null);
+  const {
+    study: activeSession,
+    setStudy: setActiveSession,
+    focus: activeFocus,
+  } = useWorkSession();
   const { value: completedChapters, setValue: setCompletedChapters } =
-    useSyncedStorage<ExtendedCompletedChapter[]>("study:completed_chapters", []);
+    useSyncedStorage<ExtendedCompletedChapter[]>(
+      "study:completed_chapters",
+      [],
+    );
   const { value: careerState, setValue: setCareerState } =
     useSyncedStorage<any>("career_execution_state", {
       version: 1,
@@ -102,24 +121,29 @@ export default function DeepStudyCockpitModal({
     });
 
   // UI state
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [strictLockdown, setStrictLockdown] = useState(true);
+  const [strictLockdown, setStrictLockdown] = useState(false);
   const [showDistractionOverlay, setShowDistractionOverlay] = useState(false);
   const [showAttentionCheck, setShowAttentionCheck] = useState(false);
   const [attentionRecallInput, setAttentionRecallInput] = useState("");
   const [attentionSecondsLeft, setAttentionSecondsLeft] = useState(60);
-  const [justCompletedGoal, setJustCompletedGoal] = useState<NextStudyGoal | null>(null);
+  const [justCompletedGoal, setJustCompletedGoal] =
+    useState<NextStudyGoal | null>(null);
   const [sidePanelOpen, setSidePanelOpen] = useState(true);
   const [ambientPlaying, setAmbientPlaying] = useState(false);
-  const [selectedSprintMinutes, setSelectedSprintMinutes] = useState<number>(25);
-  const [activeTab, setActiveTab] = useState<"focus" | "revision" | "history">("focus");
+  const [selectedSprintMinutes, setSelectedSprintMinutes] =
+    useState<number>(25);
+  const [activeTab, setActiveTab] = useState<"focus" | "revision" | "history">(
+    "focus",
+  );
   const [historySearch, setHistorySearch] = useState("");
   const [revisionIndex, setRevisionIndex] = useState(0);
   const [isRevisionRevealed, setIsRevisionRevealed] = useState(false);
   const [revisionScratchpad, setRevisionScratchpad] = useState("");
   const [distractionRecallInput, setDistractionRecallInput] = useState("");
-  const [isDistractionHintRevealed, setIsDistractionHintRevealed] = useState(false);
+  const [isDistractionHintRevealed, setIsDistractionHintRevealed] =
+    useState(false);
   const [showBreakLounge, setShowBreakLounge] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
   const [copiedChapterUrl, setCopiedChapterUrl] = useState(false);
@@ -132,13 +156,13 @@ export default function DeepStudyCockpitModal({
   // Set of completed chapter IDs
   const completedIds = useMemo(
     () => new Set((completedChapters || []).map((c) => c.chapterId)),
-    [completedChapters]
+    [completedChapters],
   );
 
   // Study analytics across completed chapters
   const analytics: StudyAnalytics = useMemo(
     () => computeStudyAnalytics(completedChapters || []),
-    [completedChapters]
+    [completedChapters],
   );
 
   // Spaced repetition due queue
@@ -146,7 +170,8 @@ export default function DeepStudyCockpitModal({
     return getDueRevisionItems(completedChapters || []);
   }, [completedChapters]);
 
-  const currentRevisionChapter = dueRevisionList[revisionIndex] || dueRevisionList[0] || null;
+  const currentRevisionChapter =
+    dueRevisionList[revisionIndex] || dueRevisionList[0] || null;
   const currentRevisionCard = useMemo(() => {
     if (!currentRevisionChapter) return null;
     return buildFlashcard(currentRevisionChapter);
@@ -158,12 +183,13 @@ export default function DeepStudyCockpitModal({
       completedChapters,
       currentRevisionChapter.chapterId,
       rating,
-      revisionScratchpad.trim() ? revisionScratchpad : undefined
+      revisionScratchpad.trim() ? revisionScratchpad : undefined,
     );
     setCompletedChapters(updated);
     playSuccessChime();
     toast({
-      title: rating === "hard" ? "Reinforcement Scheduled" : "Retention Advanced!",
+      title:
+        rating === "hard" ? "Reinforcement Scheduled" : "Retention Advanced!",
       description:
         rating === "hard"
           ? "Interval reset to 1 day for reinforcement."
@@ -184,10 +210,14 @@ export default function DeepStudyCockpitModal({
   };
 
   const handleUnlockDistractionWithAnswer = () => {
-    if (distractionRecallInput.trim().length < 5 && !isDistractionHintRevealed) {
+    if (
+      distractionRecallInput.trim().length < 5 &&
+      !isDistractionHintRevealed
+    ) {
       toast({
         title: "Active Recall Required to Unlock",
-        description: "Write at least 1 key invariant or click 'Need a hint?' to prove your focus.",
+        description:
+          "Write at least 1 key invariant or click 'Need a hint?' to prove your focus.",
       });
       return;
     }
@@ -201,7 +231,9 @@ export default function DeepStudyCockpitModal({
   // Resolve current active day in curriculum
   const activeDayPlan = useMemo(() => {
     const targetDay = dayNumber || activeSession?.day || 1;
-    return curriculum.days.find((d) => d.day === targetDay) || curriculum.days[0];
+    return (
+      curriculum.days.find((d) => d.day === targetDay) || curriculum.days[0]
+    );
   }, [dayNumber, activeSession?.day]);
 
   // Current chapter being studied
@@ -220,7 +252,8 @@ export default function DeepStudyCockpitModal({
       activeDayPlan.chapters[0] || {
         id: "10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.01-execution-context.md",
         title: "Execution Context",
-        studyUrl: "https://study.buildora.work/10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.01-execution-context.md",
+        studyUrl:
+          "https://study.buildora.work/10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.01-execution-context.md",
         stack: "10-frontend",
         estimatedMinutes: 20,
       }
@@ -229,14 +262,18 @@ export default function DeepStudyCockpitModal({
 
   // Compute Next Goal
   const nextGoal: NextStudyGoal | null = useMemo(() => {
-    return getNextStudyGoal(currentChapter.id, curriculum.days as any, completedIds);
+    return getNextStudyGoal(
+      currentChapter.id,
+      curriculum.days as any,
+      completedIds,
+    );
   }, [currentChapter.id, completedIds]);
 
   // Calculate day completion percentage
   const todayProgress = useMemo(() => {
     const totalToday = activeDayPlan.chapters.length || 1;
     const completedTodayCount = activeDayPlan.chapters.filter((ch) =>
-      completedIds.has(ch.id)
+      completedIds.has(ch.id),
     ).length;
     return {
       completed: completedTodayCount,
@@ -260,7 +297,11 @@ export default function DeepStudyCockpitModal({
   useEffect(() => {
     const handleOpenBreak = () => setShowBreakLounge(true);
     window.addEventListener("portfolio-open-break-lounge", handleOpenBreak);
-    return () => window.removeEventListener("portfolio-open-break-lounge", handleOpenBreak);
+    return () =>
+      window.removeEventListener(
+        "portfolio-open-break-lounge",
+        handleOpenBreak,
+      );
   }, []);
 
   // ─── ACTIONS ────────────────────────────────────────────────────────────────
@@ -313,14 +354,32 @@ export default function DeepStudyCockpitModal({
       setAmbientPlaying(true);
       toast({
         title: "Ambient Focus Sound Active",
-        description: "432Hz Alpha focus tone engaged to drown out environmental distractions.",
+        description:
+          "432Hz Alpha focus tone engaged to drown out environmental distractions.",
       });
     }
   }, [ambientPlaying]);
 
   const startSession = useCallback(
-    (chapter: StudyChapterRef, day: number, date: string, customMinutes?: number) => {
-      const duration = customMinutes || selectedSprintMinutes || chapter.estimatedMinutes || 25;
+    (
+      chapter: StudyChapterRef,
+      day: number,
+      date: string,
+      customMinutes?: number,
+    ) => {
+      if (activeFocus) {
+        toast({
+          title: "Focus session already active",
+          description:
+            "Finish or cancel the active sprint from Plan before starting study.",
+        });
+        return;
+      }
+      const duration =
+        customMinutes ||
+        selectedSprintMinutes ||
+        chapter.estimatedMinutes ||
+        25;
       const newSession: ActiveStudySession = {
         id: `study_${Date.now().toString(36)}`,
         chapterId: chapter.id,
@@ -335,16 +394,16 @@ export default function DeepStudyCockpitModal({
         distractionCount: 0,
         attentionChecksTotal: 0,
         attentionChecksPassed: 0,
-        strictLockdown: true,
+        strictLockdown,
         notes: "",
         originDeviceId: getClientDeviceId(),
         originDeviceType: isMobilePhoneDevice() ? "mobile" : "desktop",
         originDeviceName: getDeviceDisplayName(),
-        blockMobileDevices: true,
+        blockMobileDevices: false,
       };
       setActiveSession(newSession, { immediate: true });
     },
-    [setActiveSession, selectedSprintMinutes]
+    [setActiveSession, selectedSprintMinutes, strictLockdown, activeFocus],
   );
 
   // ─── TAB SWITCH & DISTRACTION MONITORING ─────────────────────────────────────
@@ -373,7 +432,8 @@ export default function DeepStudyCockpitModal({
         }
       } else {
         // Returned to tab
-        document.title = originalTitleRef.current || "NOVA | Deep Study Cockpit";
+        document.title =
+          originalTitleRef.current || "NOVA | Deep Study Cockpit";
       }
     };
 
@@ -388,7 +448,12 @@ export default function DeepStudyCockpitModal({
     const onFullscreenChange = () => {
       const isFull = Boolean(document.fullscreenElement);
       setIsFullscreen(isFull);
-      if (!isFull && strictLockdown && activeSession && !showDistractionOverlay) {
+      if (
+        !isFull &&
+        strictLockdown &&
+        activeSession &&
+        !showDistractionOverlay
+      ) {
         if (soundEnabled) playDistractionWarning();
         setShowDistractionOverlay(true);
       }
@@ -397,7 +462,8 @@ export default function DeepStudyCockpitModal({
     // BeforeUnload confirmation
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = "You have an active deep study session in progress. Leave?";
+      e.returnValue =
+        "You have an active deep study session in progress. Leave?";
       return e.returnValue;
     };
 
@@ -417,24 +483,42 @@ export default function DeepStudyCockpitModal({
         document.title = originalTitleRef.current;
       }
     };
-  }, [open, activeSession, strictLockdown, soundEnabled, showDistractionOverlay, setActiveSession]);
+  }, [
+    open,
+    activeSession,
+    strictLockdown,
+    soundEnabled,
+    showDistractionOverlay,
+    setActiveSession,
+  ]);
 
   // ─── PERIODIC ATTENTION CHECK TIMER (EVERY 15 MINUTES) ──────────────────────
   useEffect(() => {
-    if (!open || !activeSession || activeSession.pausedAt !== undefined) return;
+    if (
+      !open ||
+      !strictLockdown ||
+      !activeSession ||
+      activeSession.pausedAt !== undefined
+    )
+      return;
 
     // Check attention every 15 minutes of elapsed study
-    const timer = setInterval(() => {
-      if (soundEnabled) playAttentionPing();
-      setShowAttentionCheck(true);
-      setAttentionSecondsLeft(60);
-      setActiveSession((prev) =>
-        prev ? { ...prev, attentionChecksTotal: prev.attentionChecksTotal + 1 } : prev
-      );
-    }, 15 * 60 * 1000);
+    const timer = setInterval(
+      () => {
+        if (soundEnabled) playAttentionPing();
+        setShowAttentionCheck(true);
+        setAttentionSecondsLeft(60);
+        setActiveSession((prev) =>
+          prev
+            ? { ...prev, attentionChecksTotal: prev.attentionChecksTotal + 1 }
+            : prev,
+        );
+      },
+      15 * 60 * 1000,
+    );
 
     return () => clearInterval(timer);
-  }, [open, activeSession, soundEnabled, setActiveSession]);
+  }, [open, activeSession, soundEnabled, setActiveSession, strictLockdown]);
 
   // Attention check countdown
   useEffect(() => {
@@ -485,7 +569,7 @@ export default function DeepStudyCockpitModal({
               ? `${prev.notes}\n• [Recall Invariant]: ${attentionRecallInput.trim()}`
               : prev.notes,
           }
-        : prev
+        : prev,
     );
     setAttentionRecallInput("");
     if (activeSession?.pausedAt !== undefined) {
@@ -503,9 +587,10 @@ export default function DeepStudyCockpitModal({
     if (soundEnabled) playSuccessChime();
 
     const elapsedMs = getStudyElapsedMs(activeSession, now);
-    const durationMinutes = Math.max(1, Math.round(elapsedMs / (60 * 1000)));
+    const durationMinutes = Math.floor(elapsedMs / (60 * 1000));
 
     const record: CompletedChapterRecord = {
+      sessionId: activeSession.id,
       chapterId: currentChapter.id,
       chapterTitle: currentChapter.title,
       stack: currentChapter.stack || "General",
@@ -518,7 +603,7 @@ export default function DeepStudyCockpitModal({
     };
 
     // 1. Save completed chapter
-    setCompletedChapters((prev) => [record, ...(prev || [])]);
+    setCompletedChapters((prev) => appendStudyCompletion(prev || [], record));
 
     // 2. Mark corresponding roadmap item in career execution state
     const itemId = `career:${activeSession.date}:study`;
@@ -554,6 +639,10 @@ export default function DeepStudyCockpitModal({
 
   // Start Next Chapter Immediately
   const handleStartNextChapter = (next: NextStudyGoal) => {
+    if (activeFocus) {
+      toast({ title: "Finish your active focus sprint first." });
+      return;
+    }
     setJustCompletedGoal(null);
     const newSession: ActiveStudySession = {
       id: `study_${Date.now().toString(36)}`,
@@ -569,7 +658,7 @@ export default function DeepStudyCockpitModal({
       distractionCount: 0,
       attentionChecksTotal: 0,
       attentionChecksPassed: 0,
-      strictLockdown: true,
+      strictLockdown,
       notes: "",
     };
     setActiveSession(newSession);
@@ -611,7 +700,8 @@ export default function DeepStudyCockpitModal({
               </span>
             </div>
             <p className="font-mono text-[11px] text-muted-foreground line-clamp-1">
-              {currentChapter.stack} · {currentChapter.estimatedMinutes || 25} min target
+              {currentChapter.stack} · {currentChapter.estimatedMinutes || 25}{" "}
+              min target
             </p>
           </div>
         </div>
@@ -626,14 +716,14 @@ export default function DeepStudyCockpitModal({
                 window.dispatchEvent(
                   new CustomEvent("portfolio-trigger-distraction-shield", {
                     detail: { url: "https://instagram.com" },
-                  })
+                  }),
                 )
               }
               className={cn(
                 "hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-xs font-semibold border transition-all cursor-pointer hover:scale-105 active:scale-95",
                 (activeSession.distractionCount || 0) === 0
                   ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                  : "border-amber-500/40 bg-amber-500/10 text-amber-500"
+                  : "border-amber-500/40 bg-amber-500/10 text-amber-500",
               )}
               title="Click to view Germany Goal Guardian & Distraction Shield"
             >
@@ -656,7 +746,7 @@ export default function DeepStudyCockpitModal({
                 window.dispatchEvent(
                   new CustomEvent("portfolio-trigger-night-curfew", {
                     detail: { openSettings: true },
-                  })
+                  }),
                 )
               }
               className="hidden md:flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-xs font-semibold border border-indigo-500/40 bg-indigo-500/10 text-indigo-400 transition-all cursor-pointer hover:scale-105 active:scale-95"
@@ -678,7 +768,11 @@ export default function DeepStudyCockpitModal({
                 className="ml-1 flex h-6 w-6 items-center justify-center rounded-md hover:bg-muted text-foreground transition-colors"
                 title={isPaused ? "Resume Timer" : "Pause Timer"}
               >
-                {isPaused ? <Play className="h-3.5 w-3.5 text-emerald-500" /> : <Pause className="h-3.5 w-3.5" />}
+                {isPaused ? (
+                  <Play className="h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <Pause className="h-3.5 w-3.5" />
+                )}
               </button>
             </div>
           </div>
@@ -686,11 +780,20 @@ export default function DeepStudyCockpitModal({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => startSession(currentChapter, activeDayPlan.day, activeDayPlan.date)}
+              onClick={() =>
+                startSession(
+                  currentChapter,
+                  activeDayPlan.day,
+                  activeDayPlan.date,
+                )
+              }
               className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 font-display text-xs font-bold text-primary-foreground hover:opacity-90 active:scale-95 shadow-xs transition-all cursor-pointer"
             >
               <Play className="h-3.5 w-3.5" />
-              <span>Start Deep Study Sprint ({currentChapter.estimatedMinutes || 25}m)</span>
+              <span>
+                Start Deep Study Sprint ({currentChapter.estimatedMinutes || 25}
+                m)
+              </span>
             </button>
           </div>
         )}
@@ -705,11 +808,17 @@ export default function DeepStudyCockpitModal({
               "flex h-8 items-center gap-1.5 px-2.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer",
               ambientPlaying
                 ? "border-primary bg-primary/20 text-primary shadow-xs"
-                : "border-border/70 text-muted-foreground hover:text-foreground"
+                : "border-border/70 text-muted-foreground hover:text-foreground",
             )}
-            title={ambientPlaying ? "432Hz Alpha Focus Drone: Playing (click to mute)" : "Enable 432Hz Alpha Focus Drone (sound generator)"}
+            title={
+              ambientPlaying
+                ? "432Hz Alpha Focus Drone: Playing (click to mute)"
+                : "Enable 432Hz Alpha Focus Drone (sound generator)"
+            }
           >
-            <Headphones className={cn("h-3.5 w-3.5", ambientPlaying && "animate-pulse")} />
+            <Headphones
+              className={cn("h-3.5 w-3.5", ambientPlaying && "animate-pulse")}
+            />
             <span className="hidden sm:inline text-[11px] font-mono">
               {ambientPlaying ? "432Hz On" : "432Hz Audio"}
             </span>
@@ -720,10 +829,10 @@ export default function DeepStudyCockpitModal({
             type="button"
             onClick={() => setShowBreakLounge(true)}
             className="flex h-8 items-center gap-1.5 px-2.5 rounded-lg border border-border/70 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all cursor-pointer"
-            title="Take a Break: YouTube Music & Top 10 Tech Podcasts"
+            title="Find a developer podcast on YouTube Music"
           >
             <Coffee className="h-3.5 w-3.5 text-amber-400" />
-            <span className="hidden sm:inline text-[11px]">Break Lounge</span>
+            <span className="hidden sm:inline text-[11px]">Audio break</span>
           </button>
 
           {/* Sound Toggle */}
@@ -733,7 +842,11 @@ export default function DeepStudyCockpitModal({
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 text-muted-foreground hover:text-foreground transition-colors"
             title={soundEnabled ? "Audio Cues Enabled" : "Mute Audio Cues"}
           >
-            {soundEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            {soundEnabled ? (
+              <Volume2 className="h-3.5 w-3.5" />
+            ) : (
+              <VolumeX className="h-3.5 w-3.5" />
+            )}
           </button>
 
           {/* Fullscreen Lockdown Toggle */}
@@ -741,9 +854,17 @@ export default function DeepStudyCockpitModal({
             type="button"
             onClick={toggleFullscreen}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 text-muted-foreground hover:text-foreground transition-colors"
-            title={isFullscreen ? "Exit Fullscreen" : "Enter Strict Fullscreen Lockdown"}
+            title={
+              isFullscreen
+                ? "Exit Fullscreen"
+                : "Enter Strict Fullscreen Lockdown"
+            }
           >
-            {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+            {isFullscreen ? (
+              <Minimize2 className="h-3.5 w-3.5" />
+            ) : (
+              <Maximize2 className="h-3.5 w-3.5" />
+            )}
           </button>
 
           {/* Toggle Side Panel */}
@@ -802,7 +923,9 @@ export default function DeepStudyCockpitModal({
                 type="button"
                 onClick={async () => {
                   if (navigator?.clipboard) {
-                    await navigator.clipboard.writeText(currentChapter.studyUrl);
+                    await navigator.clipboard.writeText(
+                      currentChapter.studyUrl,
+                    );
                     setCopiedChapterUrl(true);
                     setTimeout(() => setCopiedChapterUrl(false), 2000);
                     toast({
@@ -819,7 +942,9 @@ export default function DeepStudyCockpitModal({
                 ) : (
                   <Copy className="h-3 w-3" />
                 )}
-                <span className="hidden sm:inline">{copiedChapterUrl ? "Copied" : "Copy Link"}</span>
+                <span className="hidden sm:inline">
+                  {copiedChapterUrl ? "Copied" : "Copy Link"}
+                </span>
               </button>
 
               <a
@@ -859,7 +984,7 @@ export default function DeepStudyCockpitModal({
                     "flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer",
                     activeTab === "focus"
                       ? "bg-card text-foreground shadow-xs font-bold"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <Brain className="h-3.5 w-3.5 text-primary" />
@@ -872,11 +997,16 @@ export default function DeepStudyCockpitModal({
                     "flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer relative",
                     activeTab === "revision"
                       ? "bg-card text-foreground shadow-xs font-bold"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <RotateCcw className="h-3.5 w-3.5 text-amber-400" />
-                  <span>Recall{dueRevisionList.length > 0 ? ` (${dueRevisionList.length})` : ""}</span>
+                  <span>
+                    Recall
+                    {dueRevisionList.length > 0
+                      ? ` (${dueRevisionList.length})`
+                      : ""}
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -885,7 +1015,7 @@ export default function DeepStudyCockpitModal({
                     "flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer",
                     activeTab === "history"
                       ? "bg-card text-foreground shadow-xs font-bold"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <History className="h-3.5 w-3.5 text-primary" />
@@ -912,13 +1042,18 @@ export default function DeepStudyCockpitModal({
                       />
                     </div>
                     <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
-                      <span>{todayProgress.completed} of {todayProgress.total} chapters completed</span>
+                      <span>
+                        {todayProgress.completed} of {todayProgress.total}{" "}
+                        chapters completed
+                      </span>
                       <span>Day {activeDayPlan.day} of 100</span>
                     </div>
 
                     {/* Sprint Duration Preset Chips */}
                     <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between gap-1 text-xs">
-                      <span className="font-utility text-[11px] text-muted-foreground">Sprint Block:</span>
+                      <span className="font-utility text-[11px] text-muted-foreground">
+                        Sprint Block:
+                      </span>
                       <div className="flex items-center gap-1">
                         {[15, 25, 45, 60].map((mins) => (
                           <button
@@ -926,15 +1061,23 @@ export default function DeepStudyCockpitModal({
                             type="button"
                             onClick={() => {
                               setSelectedSprintMinutes(mins);
-                              if (activeSession && activeSession.pausedAt !== undefined) {
-                                setActiveSession((prev) => (prev ? { ...prev, targetMinutes: mins } : prev));
+                              if (
+                                activeSession &&
+                                activeSession.pausedAt !== undefined
+                              ) {
+                                setActiveSession((prev) =>
+                                  prev
+                                    ? { ...prev, targetMinutes: mins }
+                                    : prev,
+                                );
                               }
                             }}
                             className={cn(
                               "rounded-md px-2 py-0.5 font-mono text-[10px] font-semibold transition-all cursor-pointer",
-                              (activeSession?.targetMinutes || selectedSprintMinutes) === mins
+                              (activeSession?.targetMinutes ||
+                                selectedSprintMinutes) === mins
                                 ? "bg-primary text-primary-foreground shadow-xs"
-                                : "bg-muted text-muted-foreground hover:text-foreground"
+                                : "bg-muted text-muted-foreground hover:text-foreground",
                             )}
                           >
                             {mins}m
@@ -948,17 +1091,29 @@ export default function DeepStudyCockpitModal({
                   {!activeSession ? (
                     <div className="mt-4 rounded-xl border border-primary/40 bg-primary/10 p-4 text-center">
                       <ShieldCheck className="h-7 w-7 text-primary mx-auto mb-2" />
-                      <h4 className="font-display font-bold text-sm text-foreground">Anti-Distraction Shield</h4>
+                      <h4 className="font-display font-bold text-sm text-foreground">
+                        Anti-Distraction Shield
+                      </h4>
                       <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                        Activate tab-switch monitoring, attention recall pings &amp; focused timing for this chapter.
+                        Activate tab-switch monitoring, attention recall pings
+                        &amp; focused timing for this chapter.
                       </p>
                       <button
                         type="button"
-                        onClick={() => startSession(currentChapter, activeDayPlan.day, activeDayPlan.date, selectedSprintMinutes)}
+                        onClick={() =>
+                          startSession(
+                            currentChapter,
+                            activeDayPlan.day,
+                            activeDayPlan.date,
+                            selectedSprintMinutes,
+                          )
+                        }
                         className="mt-3.5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 px-4 font-display text-sm font-bold text-primary-foreground hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-md"
                       >
                         <Play className="h-4 w-4" />
-                        <span>Begin Deep Study Sprint ({selectedSprintMinutes}m)</span>
+                        <span>
+                          Begin Deep Study Sprint ({selectedSprintMinutes}m)
+                        </span>
                       </button>
                     </div>
                   ) : (
@@ -981,14 +1136,17 @@ export default function DeepStudyCockpitModal({
                           UP NEXT / NEXT GOAL
                         </span>
                         <span className="font-mono text-[10px] text-muted-foreground">
-                          {nextGoal.isToday ? "Today's Queue" : `Day ${nextGoal.day}`}
+                          {nextGoal.isToday
+                            ? "Today's Queue"
+                            : `Day ${nextGoal.day}`}
                         </span>
                       </div>
                       <h4 className="mt-1 font-display text-sm font-bold text-foreground">
                         {nextGoal.chapter.title}
                       </h4>
                       <p className="mt-0.5 text-xs text-muted-foreground font-mono">
-                        Est. {nextGoal.chapter.estimatedMinutes || 20} mins · {nextGoal.chapter.stack}
+                        Est. {nextGoal.chapter.estimatedMinutes || 20} mins ·{" "}
+                        {nextGoal.chapter.stack}
                       </p>
                       <button
                         type="button"
@@ -1004,7 +1162,10 @@ export default function DeepStudyCockpitModal({
                   {/* Quick Invariants & Notes Scratchpad */}
                   <div className="mt-4">
                     <div className="flex items-center justify-between">
-                      <label htmlFor="study-notes" className="font-utility text-xs font-semibold text-foreground">
+                      <label
+                        htmlFor="study-notes"
+                        className="font-utility text-xs font-semibold text-foreground"
+                      >
                         Chapter Invariants &amp; Key Ideas
                       </label>
                       <span className="font-mono text-[10px] text-muted-foreground">
@@ -1017,7 +1178,9 @@ export default function DeepStudyCockpitModal({
                       value={activeSession?.notes || ""}
                       onChange={(e) => {
                         const val = e.target.value;
-                        setActiveSession((prev) => (prev ? { ...prev, notes: val } : prev));
+                        setActiveSession((prev) =>
+                          prev ? { ...prev, notes: val } : prev,
+                        );
                       }}
                       placeholder="Note key invariant, code example, or failure mode..."
                       className="mt-2 w-full rounded-xl border border-border/80 bg-background p-3 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary font-mono resize-none shadow-inner"
@@ -1027,7 +1190,9 @@ export default function DeepStudyCockpitModal({
                   {/* Distraction Defenses Status */}
                   <div className="mt-4 space-y-2 rounded-xl border border-border/60 bg-muted/10 p-3 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Strict Tab-Switch Guard:</span>
+                      <span className="text-muted-foreground">
+                        Strict Tab-Switch Guard:
+                      </span>
                       <button
                         type="button"
                         onClick={() => setStrictLockdown((prev) => !prev)}
@@ -1035,7 +1200,7 @@ export default function DeepStudyCockpitModal({
                           "rounded-md px-2 py-0.5 font-mono text-[10px] font-semibold transition-colors",
                           strictLockdown
                             ? "bg-emerald-500/20 text-emerald-500"
-                            : "bg-muted text-muted-foreground"
+                            : "bg-muted text-muted-foreground",
                         )}
                       >
                         {strictLockdown ? "ENFORCED" : "OFF"}
@@ -1043,18 +1208,25 @@ export default function DeepStudyCockpitModal({
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Attention Checks:</span>
+                      <span className="text-muted-foreground">
+                        Attention Checks:
+                      </span>
                       <span className="font-mono font-semibold text-foreground">
-                        {activeSession?.attentionChecksPassed || 0} passed / {activeSession?.attentionChecksTotal || 0}
+                        {activeSession?.attentionChecksPassed || 0} passed /{" "}
+                        {activeSession?.attentionChecksTotal || 0}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Total Distractions:</span>
+                      <span className="text-muted-foreground">
+                        Total Distractions:
+                      </span>
                       <span
                         className={cn(
                           "font-mono font-bold",
-                          (activeSession?.distractionCount || 0) === 0 ? "text-emerald-500" : "text-amber-500"
+                          (activeSession?.distractionCount || 0) === 0
+                            ? "text-emerald-500"
+                            : "text-amber-500",
                         )}
                       >
                         {activeSession?.distractionCount || 0} tab switches
@@ -1065,16 +1237,28 @@ export default function DeepStudyCockpitModal({
                   {/* All-time Study Analytics Mini-Grid */}
                   <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                     <div className="rounded-xl border border-border/50 bg-muted/20 p-2">
-                      <span className="block font-mono text-sm font-bold text-foreground">{analytics.totalCompleted}</span>
-                      <span className="block text-[10px] text-muted-foreground font-utility">Mastered</span>
+                      <span className="block font-mono text-sm font-bold text-foreground">
+                        {analytics.totalCompleted}
+                      </span>
+                      <span className="block text-[10px] text-muted-foreground font-utility">
+                        Mastered
+                      </span>
                     </div>
                     <div className="rounded-xl border border-border/50 bg-muted/20 p-2">
-                      <span className="block font-mono text-sm font-bold text-primary">{analytics.totalMinutes}m</span>
-                      <span className="block text-[10px] text-muted-foreground font-utility">Focused</span>
+                      <span className="block font-mono text-sm font-bold text-primary">
+                        {analytics.totalMinutes}m
+                      </span>
+                      <span className="block text-[10px] text-muted-foreground font-utility">
+                        Focused
+                      </span>
                     </div>
                     <div className="rounded-xl border border-border/50 bg-muted/20 p-2">
-                      <span className="block font-mono text-sm font-bold text-emerald-500">{analytics.distractionFreePercentage}%</span>
-                      <span className="block text-[10px] text-muted-foreground font-utility">Clean Focus</span>
+                      <span className="block font-mono text-sm font-bold text-emerald-500">
+                        {analytics.distractionFreePercentage}%
+                      </span>
+                      <span className="block text-[10px] text-muted-foreground font-utility">
+                        Clean Focus
+                      </span>
                     </div>
                   </div>
                 </>
@@ -1088,10 +1272,13 @@ export default function DeepStudyCockpitModal({
                         <RotateCcw className="h-4 w-4" />
                         <span>Due for Revision ({dueRevisionList.length})</span>
                       </div>
-                      <span className="font-mono text-[10px] text-muted-foreground">Ebbinghaus SRS</span>
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        Ebbinghaus SRS
+                      </span>
                     </div>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      Active recall flashcards for mastered topics. Review before forgetting sets in.
+                      Active recall flashcards for mastered topics. Review
+                      before forgetting sets in.
                     </p>
                   </div>
 
@@ -1101,7 +1288,8 @@ export default function DeepStudyCockpitModal({
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <span className="inline-block rounded-md bg-primary/15 text-primary text-[10px] font-mono font-semibold px-1.5 py-0.5 mb-1">
-                            Day {currentRevisionCard.day} · {currentRevisionCard.stack}
+                            Day {currentRevisionCard.day} ·{" "}
+                            {currentRevisionCard.stack}
                           </span>
                           <h4 className="font-display text-xs font-bold text-foreground leading-snug">
                             {currentRevisionCard.chapterTitle}
@@ -1109,11 +1297,23 @@ export default function DeepStudyCockpitModal({
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleToggleStar(currentRevisionChapter.chapterId)}
+                          onClick={() =>
+                            handleToggleStar(currentRevisionChapter.chapterId)
+                          }
                           className="text-muted-foreground hover:text-amber-400 transition-colors p-1"
-                          title={currentRevisionChapter.starred ? "Unstar topic" : "Star as high-yield topic"}
+                          title={
+                            currentRevisionChapter.starred
+                              ? "Unstar topic"
+                              : "Star as high-yield topic"
+                          }
                         >
-                          <Star className={cn("h-4 w-4", currentRevisionChapter.starred && "fill-amber-400 text-amber-400")} />
+                          <Star
+                            className={cn(
+                              "h-4 w-4",
+                              currentRevisionChapter.starred &&
+                                "fill-amber-400 text-amber-400",
+                            )}
+                          />
                         </button>
                       </div>
 
@@ -1122,9 +1322,19 @@ export default function DeepStudyCockpitModal({
                         const stat = getRevisionStatus(currentRevisionChapter);
                         return (
                           <div className="flex items-center justify-between text-[10px] font-mono rounded bg-muted/30 px-2 py-1">
-                            <span className="text-muted-foreground">Stage {stat.stage} ({stat.intervalDays}d interval)</span>
-                            <span className={stat.daysOverdue > 0 ? "text-rose-400 font-bold" : "text-amber-400 font-medium"}>
-                              {stat.daysOverdue > 0 ? `${stat.daysOverdue}d overdue` : "Due today"}
+                            <span className="text-muted-foreground">
+                              Stage {stat.stage} ({stat.intervalDays}d interval)
+                            </span>
+                            <span
+                              className={
+                                stat.daysOverdue > 0
+                                  ? "text-rose-400 font-bold"
+                                  : "text-amber-400 font-medium"
+                              }
+                            >
+                              {stat.daysOverdue > 0
+                                ? `${stat.daysOverdue}d overdue`
+                                : "Due today"}
                             </span>
                           </div>
                         );
@@ -1147,7 +1357,9 @@ export default function DeepStudyCockpitModal({
                         </label>
                         <textarea
                           value={revisionScratchpad}
-                          onChange={(e) => setRevisionScratchpad(e.target.value)}
+                          onChange={(e) =>
+                            setRevisionScratchpad(e.target.value)
+                          }
                           rows={2}
                           placeholder="Type your recall invariants before checking..."
                           className="w-full rounded-lg border border-border/70 bg-background p-2 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none resize-none"
@@ -1161,24 +1373,35 @@ export default function DeepStudyCockpitModal({
                           onClick={() => setIsRevisionRevealed((prev) => !prev)}
                           className="w-full rounded-lg border border-border/70 bg-muted/30 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
                         >
-                          {isRevisionRevealed ? "Hide Verified Notes" : "Reveal Verified Notes & Solution"}
+                          {isRevisionRevealed
+                            ? "Hide Verified Notes"
+                            : "Reveal Verified Notes & Solution"}
                         </button>
 
                         {isRevisionRevealed && (
                           <div className="mt-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5 space-y-1.5 animate-fadeIn">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Your Mastered Notes</p>
-                            <p className="text-xs text-foreground/90 leading-relaxed font-mono whitespace-pre-wrap">
-                              {currentRevisionCard.notes || "No custom notes recorded during study sprint. Check curriculum practice task below."}
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                              Your Mastered Notes
                             </p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pt-1">Practice Task</p>
-                            <p className="text-[11px] text-muted-foreground">{currentRevisionCard.practiceTask}</p>
+                            <p className="text-xs text-foreground/90 leading-relaxed font-mono whitespace-pre-wrap">
+                              {currentRevisionCard.notes ||
+                                "No custom notes recorded during study sprint. Check curriculum practice task below."}
+                            </p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pt-1">
+                              Practice Task
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {currentRevisionCard.practiceTask}
+                            </p>
                           </div>
                         )}
                       </div>
 
                       {/* Self-Rating SRS Buttons */}
                       <div className="space-y-1 pt-1">
-                        <p className="text-[10px] font-mono text-muted-foreground text-center">Rate your retention to reschedule:</p>
+                        <p className="text-[10px] font-mono text-muted-foreground text-center">
+                          Rate your retention to reschedule:
+                        </p>
                         <div className="grid grid-cols-3 gap-1.5">
                           <button
                             type="button"
@@ -1210,9 +1433,15 @@ export default function DeepStudyCockpitModal({
                         onClick={() => {
                           const ch = curriculum.days
                             .flatMap((d) => d.chapters)
-                            .find((c) => c.id === currentRevisionChapter.chapterId);
+                            .find(
+                              (c) => c.id === currentRevisionChapter.chapterId,
+                            );
                           if (ch) {
-                            startSession(ch, currentRevisionChapter.day, currentRevisionChapter.date);
+                            startSession(
+                              ch,
+                              currentRevisionChapter.day,
+                              currentRevisionChapter.date,
+                            );
                             setActiveTab("focus");
                           }
                         }}
@@ -1225,16 +1454,22 @@ export default function DeepStudyCockpitModal({
                   ) : (
                     <div className="rounded-xl border border-dashed border-emerald-500/40 bg-emerald-500/5 py-8 px-4 text-center space-y-2">
                       <CheckCircle2 className="h-8 w-8 text-emerald-400 mx-auto" />
-                      <p className="font-display text-xs font-bold text-foreground">Zero Topics Overdue!</p>
+                      <p className="font-display text-xs font-bold text-foreground">
+                        Zero Topics Overdue!
+                      </p>
                       <p className="text-[11px] text-muted-foreground">
-                        You are 100% on track with spaced repetition. The forgetting curve is conquered.
+                        You are 100% on track with spaced repetition. The
+                        forgetting curve is conquered.
                       </p>
                       <button
                         type="button"
                         onClick={() => setActiveTab("history")}
                         className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline cursor-pointer"
                       >
-                        <span>Browse all {completedChapters.length} mastered chapters →</span>
+                        <span>
+                          Browse all {completedChapters.length} mastered
+                          chapters →
+                        </span>
                       </button>
                     </div>
                   )}
@@ -1260,15 +1495,21 @@ export default function DeepStudyCockpitModal({
                               "w-full flex items-center justify-between rounded-lg border p-2 text-left transition-all cursor-pointer text-xs",
                               idx === revisionIndex
                                 ? "border-primary bg-primary/10 text-foreground"
-                                : "border-border/60 bg-muted/10 text-muted-foreground hover:bg-muted/30"
+                                : "border-border/60 bg-muted/10 text-muted-foreground hover:bg-muted/30",
                             )}
                           >
                             <div className="min-w-0 pr-2">
-                              <p className="font-bold truncate text-[11px]">{item.chapterTitle}</p>
-                              <p className="text-[10px] text-muted-foreground font-mono">{item.stack}</p>
+                              <p className="font-bold truncate text-[11px]">
+                                {item.chapterTitle}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-mono">
+                                {item.stack}
+                              </p>
                             </div>
                             <span className="font-mono text-[9px] text-amber-400 shrink-0">
-                              {stat.daysOverdue > 0 ? `${stat.daysOverdue}d overdue` : "Due today"}
+                              {stat.daysOverdue > 0
+                                ? `${stat.daysOverdue}d overdue`
+                                : "Due today"}
                             </span>
                           </button>
                         );
@@ -1296,10 +1537,16 @@ export default function DeepStudyCockpitModal({
                       {completedChapters
                         .filter((c) =>
                           historySearch.trim()
-                            ? c.chapterTitle.toLowerCase().includes(historySearch.toLowerCase()) ||
-                              c.stack.toLowerCase().includes(historySearch.toLowerCase()) ||
-                              c.notes.toLowerCase().includes(historySearch.toLowerCase())
-                            : true
+                            ? c.chapterTitle
+                                .toLowerCase()
+                                .includes(historySearch.toLowerCase()) ||
+                              c.stack
+                                .toLowerCase()
+                                .includes(historySearch.toLowerCase()) ||
+                              c.notes
+                                .toLowerCase()
+                                .includes(historySearch.toLowerCase())
+                            : true,
                         )
                         .map((item, idx) => (
                           <div
@@ -1315,10 +1562,12 @@ export default function DeepStudyCockpitModal({
                                   "rounded-md px-1.5 py-0.5 font-mono text-[9px] font-semibold shrink-0",
                                   item.distractions === 0
                                     ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                                    : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                                    : "bg-amber-500/10 text-amber-500 border border-amber-500/20",
                                 )}
                               >
-                                {item.distractions === 0 ? "Clean Focus" : `${item.distractions} alerts`}
+                                {item.distractions === 0
+                                  ? "Clean Focus"
+                                  : `${item.distractions} alerts`}
                               </span>
                             </div>
 
@@ -1355,9 +1604,12 @@ export default function DeepStudyCockpitModal({
                   ) : (
                     <div className="rounded-xl border border-dashed border-border/60 py-10 text-center space-y-2">
                       <History className="h-8 w-8 text-muted-foreground/60 mx-auto" />
-                      <p className="font-display text-xs font-bold text-foreground">No Chapters Mastered Yet</p>
+                      <p className="font-display text-xs font-bold text-foreground">
+                        No Chapters Mastered Yet
+                      </p>
                       <p className="text-[11px] text-muted-foreground px-4">
-                        Complete your first chapter sprint and your verification notes will be logged here.
+                        Complete your first chapter sprint and your verification
+                        notes will be logged here.
                       </p>
                     </div>
                   )}
@@ -1397,7 +1649,8 @@ export default function DeepStudyCockpitModal({
               </div>
             </div>
             <div className="rounded-full bg-rose-500/20 border border-rose-500/30 px-2.5 py-1 text-xs font-mono font-bold text-rose-300">
-              {activeSession?.distractionCount || 1} Tab Switch{(activeSession?.distractionCount || 1) > 1 ? "es" : ""}
+              {activeSession?.distractionCount || 1} Tab Switch
+              {(activeSession?.distractionCount || 1) > 1 ? "es" : ""}
             </div>
           </header>
 
@@ -1409,8 +1662,10 @@ export default function DeepStudyCockpitModal({
                   Germany Blue Card Stakes (€75k–€85k Target in Berlin/Munich)
                 </p>
                 <p className="text-xs text-slate-300 leading-relaxed mt-1">
-                  You navigated away from your study reader. In strict lockdown mode, your timer is paused.
-                  Prove your neural engagement: answer this relevant interview question from today&apos;s curriculum before unlocking!
+                  You navigated away from your study reader. In strict lockdown
+                  mode, your timer is paused. Prove your neural engagement:
+                  answer this relevant interview question from today&apos;s
+                  curriculum before unlocking!
                 </p>
               </div>
             </div>
@@ -1447,7 +1702,11 @@ export default function DeepStudyCockpitModal({
                   className="text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>{isDistractionHintRevealed ? "Hide Model Answer" : "Need a hint? Reveal Model Answer"}</span>
+                  <span>
+                    {isDistractionHintRevealed
+                      ? "Hide Model Answer"
+                      : "Need a hint? Reveal Model Answer"}
+                  </span>
                 </button>
               </div>
 
@@ -1466,7 +1725,8 @@ export default function DeepStudyCockpitModal({
 
           <footer className="border-t border-white/10 pt-4 max-w-3xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="font-mono text-[11px] text-slate-400">
-              German companies (Personio, n8n, SumUp) screen for verbal precision and mental composure under pressure.
+              German companies (Personio, n8n, SumUp) screen for verbal
+              precision and mental composure under pressure.
             </span>
             <button
               type="button"
@@ -1514,7 +1774,8 @@ export default function DeepStudyCockpitModal({
                     `What is the primary architectural invariant you just studied in ${currentChapter.title}?`}
                 </h2>
                 <p className="mt-2 text-xs text-slate-300">
-                  Write at least 1 key invariant or rule you just read to trigger active recall and prevent passive reading illusions.
+                  Write at least 1 key invariant or rule you just read to
+                  trigger active recall and prevent passive reading illusions.
                 </p>
               </div>
 
@@ -1529,14 +1790,17 @@ export default function DeepStudyCockpitModal({
               </div>
 
               <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 text-xs font-mono text-slate-400">
-                <span className="text-primary font-bold">Goal:</span> Complete 25m focus sprint with zero mind-wandering to maintain 100% retention on today&apos;s chapter.
+                <span className="text-primary font-bold">Goal:</span> Complete
+                25m focus sprint with zero mind-wandering to maintain 100%
+                retention on today&apos;s chapter.
               </div>
             </div>
           </main>
 
           <footer className="border-t border-white/10 pt-4 max-w-3xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="font-mono text-[11px] text-slate-400">
-              Active recall at regular intervals doubles long-term synaptic retention.
+              Active recall at regular intervals doubles long-term synaptic
+              retention.
             </span>
             <button
               type="button"
@@ -1574,7 +1838,8 @@ export default function DeepStudyCockpitModal({
                 {justCompletedGoal.chapter.title}
               </h4>
               <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-                Est. {justCompletedGoal.chapter.estimatedMinutes || 20} mins · {justCompletedGoal.chapter.stack}
+                Est. {justCompletedGoal.chapter.estimatedMinutes || 20} mins ·{" "}
+                {justCompletedGoal.chapter.stack}
               </p>
             </div>
 
@@ -1609,6 +1874,6 @@ export default function DeepStudyCockpitModal({
         onClose={() => setShowBreakLounge(false)}
       />
     </div>,
-    document.body
+    document.body,
   );
 }

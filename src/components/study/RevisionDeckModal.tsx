@@ -1,10 +1,25 @@
 "use client";
 
+import Modal from "@/components/trackers/Modal";
 import { useMemo, useState } from "react";
 import {
-  RotateCcw, Sparkles, Star, CheckCircle2, AlertCircle,
-  BookOpen, ChevronRight, X, Shuffle, ArrowRight,
-  Filter, Search, Brain, Trophy, ShieldCheck, Flame, Layers
+  RotateCcw,
+  Sparkles,
+  Star,
+  CheckCircle2,
+  AlertCircle,
+  BookOpen,
+  ChevronRight,
+  X,
+  Shuffle,
+  ArrowRight,
+  Filter,
+  Search,
+  Brain,
+  Trophy,
+  ShieldCheck,
+  Flame,
+  Layers,
 } from "lucide-react";
 import {
   type ExtendedCompletedChapter,
@@ -41,9 +56,11 @@ export default function RevisionDeckModal({
   onClose,
   onOpenStudyCockpit,
 }: RevisionDeckModalProps) {
-  const { value: completedChapters, setValue: setCompletedChapters } = useSyncedStorage<
-    ExtendedCompletedChapter[]
-  >("study:completed_chapters", []);
+  const { value: completedChapters, setValue: setCompletedChapters } =
+    useSyncedStorage<ExtendedCompletedChapter[]>(
+      "study:completed_chapters",
+      [],
+    );
 
   const [activeTab, setActiveTab] = useState<RevisionTab>("due");
   const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -108,7 +125,9 @@ export default function RevisionDeckModal({
       completedChapters,
       currentItem.chapterId,
       rating,
-      recallScratchpad.trim() ? `${currentItem.notes || ""}\n\n[Revision Note]: ${recallScratchpad}` : undefined
+      recallScratchpad.trim()
+        ? `${currentItem.notes || ""}\n\n[Revision Note]: ${recallScratchpad}`
+        : undefined,
     );
     setCompletedChapters(updated);
 
@@ -119,7 +138,12 @@ export default function RevisionDeckModal({
     }
 
     toast({
-      title: rating === "easy" ? "Mastery Reinforced!" : rating === "good" ? "Retention Recorded" : "Interval Reset to 1 Day",
+      title:
+        rating === "easy"
+          ? "Mastery Reinforced!"
+          : rating === "good"
+            ? "Retention Recorded"
+            : "Interval Reset to 1 Day",
       description: `Next revision for "${currentItem.chapterTitle}" scheduled in Spaced Repetition queue.`,
     });
 
@@ -139,16 +163,19 @@ export default function RevisionDeckModal({
     playAttentionPing();
     setIsAnswerRevealed(false);
     setRecallScratchpad("");
-    setRouletteIndex((prev) => (prev + 1) % HIGH_YIELD_CURRICULUM_PRESETS.length);
+    setRouletteIndex(
+      (prev) => (prev + 1) % HIGH_YIELD_CURRICULUM_PRESETS.length,
+    );
   };
 
   const activeRouletteItem = HIGH_YIELD_CURRICULUM_PRESETS[rouletteIndex];
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-[110] grid place-items-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Learning recall"
+      className="max-w-3xl"
     >
       <div className="relative w-full max-w-3xl rounded-2xl border border-border/80 bg-card p-6 shadow-2xl text-foreground flex flex-col max-h-[90vh] overflow-hidden">
         {/* Header */}
@@ -175,6 +202,7 @@ export default function RevisionDeckModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close recall"
             className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted/40 hover:text-foreground cursor-pointer"
           >
             <X className="h-5 w-5" />
@@ -184,25 +212,33 @@ export default function RevisionDeckModal({
         {/* Quick Stats Strip */}
         <div className="grid grid-cols-4 gap-2 py-3 border-b border-border/40 shrink-0 text-center">
           <div className="rounded-xl bg-muted/20 p-2 border border-border/40">
-            <p className="font-mono text-[9px] uppercase text-muted-foreground font-semibold">Due Today</p>
+            <p className="font-mono text-[9px] uppercase text-muted-foreground font-semibold">
+              Due Today
+            </p>
             <p className="font-display text-base font-bold text-amber-400 tabular-nums">
               {metrics.dueTodayCount}
             </p>
           </div>
           <div className="rounded-xl bg-muted/20 p-2 border border-border/40">
-            <p className="font-mono text-[9px] uppercase text-muted-foreground font-semibold">Starred High-Yield</p>
+            <p className="font-mono text-[9px] uppercase text-muted-foreground font-semibold">
+              Starred High-Yield
+            </p>
             <p className="font-display text-base font-bold text-primary tabular-nums">
               {metrics.starredCount}
             </p>
           </div>
           <div className="rounded-xl bg-muted/20 p-2 border border-border/40">
-            <p className="font-mono text-[9px] uppercase text-muted-foreground font-semibold">Total Mastered</p>
+            <p className="font-mono text-[9px] uppercase text-muted-foreground font-semibold">
+              Total Mastered
+            </p>
             <p className="font-display text-base font-bold text-foreground tabular-nums">
               {metrics.totalMastered}
             </p>
           </div>
           <div className="rounded-xl bg-muted/20 p-2 border border-border/40">
-            <p className="font-mono text-[9px] uppercase text-muted-foreground font-semibold">Revisions Done</p>
+            <p className="font-mono text-[9px] uppercase text-muted-foreground font-semibold">
+              Revisions Done
+            </p>
             <p className="font-display text-base font-bold text-emerald-400 tabular-nums">
               {metrics.totalRevisionsDone}
             </p>
@@ -222,7 +258,7 @@ export default function RevisionDeckModal({
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-display text-xs font-bold transition-colors cursor-pointer",
               activeTab === "due"
                 ? "bg-primary text-primary-foreground"
-                : "bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                : "bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground",
             )}
           >
             <span>Due Today</span>
@@ -244,7 +280,7 @@ export default function RevisionDeckModal({
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-display text-xs font-bold transition-colors cursor-pointer",
               activeTab === "starred"
                 ? "bg-primary text-primary-foreground"
-                : "bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                : "bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground",
             )}
           >
             <Star className="h-3.5 w-3.5 fill-current" />
@@ -261,7 +297,7 @@ export default function RevisionDeckModal({
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-display text-xs font-bold transition-colors cursor-pointer",
               activeTab === "roulette"
                 ? "bg-primary text-primary-foreground"
-                : "bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                : "bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground",
             )}
           >
             <Shuffle className="h-3.5 w-3.5" />
@@ -278,7 +314,7 @@ export default function RevisionDeckModal({
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-display text-xs font-bold transition-colors cursor-pointer ml-auto",
               activeTab === "all"
                 ? "bg-primary text-primary-foreground"
-                : "bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                : "bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground",
             )}
           >
             <Layers className="h-3.5 w-3.5" />
@@ -301,7 +337,8 @@ export default function RevisionDeckModal({
                           {currentFlashcard.stack}
                         </span>
                         <span className="font-mono text-[10px] text-muted-foreground">
-                          Day {currentFlashcard.day} · SRS Stage {currentFlashcard.stage}/5
+                          Day {currentFlashcard.day} · SRS Stage{" "}
+                          {currentFlashcard.stage}/5
                         </span>
                         <span className="font-mono text-[10px] text-muted-foreground">
                           {currentFlashcard.timesRevised} revisions done
@@ -320,11 +357,20 @@ export default function RevisionDeckModal({
                           "rounded-lg p-2 border transition-colors cursor-pointer",
                           currentItem.starred
                             ? "bg-amber-500/20 border-amber-500/40 text-amber-400"
-                            : "bg-muted/40 border-border/60 text-muted-foreground hover:text-foreground"
+                            : "bg-muted/40 border-border/60 text-muted-foreground hover:text-foreground",
                         )}
-                        title={currentItem.starred ? "Starred as high-yield" : "Star as high-yield"}
+                        title={
+                          currentItem.starred
+                            ? "Starred as high-yield"
+                            : "Star as high-yield"
+                        }
                       >
-                        <Star className={cn("h-4 w-4", currentItem.starred && "fill-amber-400")} />
+                        <Star
+                          className={cn(
+                            "h-4 w-4",
+                            currentItem.starred && "fill-amber-400",
+                          )}
+                        />
                       </button>
 
                       <span className="font-mono text-xs text-muted-foreground">
@@ -346,8 +392,12 @@ export default function RevisionDeckModal({
                   {/* Recall Scratchpad */}
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-mono text-muted-foreground flex items-center justify-between">
-                      <span>Jot down your recall invariant before revealing:</span>
-                      <span className="text-[10px] opacity-70">Optional practice</span>
+                      <span>
+                        Jot down your recall invariant before revealing:
+                      </span>
+                      <span className="text-[10px] opacity-70">
+                        Optional practice
+                      </span>
                     </label>
                     <textarea
                       value={recallScratchpad}
@@ -388,7 +438,9 @@ export default function RevisionDeckModal({
                           <p className="font-mono text-[10px] font-bold uppercase text-muted-foreground">
                             Curriculum Challenge
                           </p>
-                          <p className="text-foreground/90">{currentFlashcard.practiceTask}</p>
+                          <p className="text-foreground/90">
+                            {currentFlashcard.practiceTask}
+                          </p>
                         </div>
                       )}
 
@@ -419,7 +471,8 @@ export default function RevisionDeckModal({
                       {/* Self Rating Bar */}
                       <div className="space-y-1.5 pt-1">
                         <p className="font-mono text-[10px] uppercase text-muted-foreground font-semibold text-center">
-                          Rate your retention quality to adjust Spaced Repetition interval
+                          Rate your retention quality to adjust Spaced
+                          Repetition interval
                         </p>
                         <div className="grid grid-cols-3 gap-2">
                           <button
@@ -427,8 +480,12 @@ export default function RevisionDeckModal({
                             onClick={() => handleRating("hard")}
                             className="flex flex-col items-center gap-1 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 hover:bg-rose-500/20 transition-all cursor-pointer text-center"
                           >
-                            <span className="font-display text-xs font-bold text-rose-400">Hard / Forgot</span>
-                            <span className="font-mono text-[9px] text-muted-foreground">Reset to 1d</span>
+                            <span className="font-display text-xs font-bold text-rose-400">
+                              Hard / Forgot
+                            </span>
+                            <span className="font-mono text-[9px] text-muted-foreground">
+                              Reset to 1d
+                            </span>
                           </button>
 
                           <button
@@ -436,8 +493,12 @@ export default function RevisionDeckModal({
                             onClick={() => handleRating("good")}
                             className="flex flex-col items-center gap-1 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 hover:bg-amber-500/20 transition-all cursor-pointer text-center"
                           >
-                            <span className="font-display text-xs font-bold text-amber-400">Good / Recalled</span>
-                            <span className="font-mono text-[9px] text-muted-foreground">Advance interval</span>
+                            <span className="font-display text-xs font-bold text-amber-400">
+                              Good / Recalled
+                            </span>
+                            <span className="font-mono text-[9px] text-muted-foreground">
+                              Advance interval
+                            </span>
                           </button>
 
                           <button
@@ -445,8 +506,12 @@ export default function RevisionDeckModal({
                             onClick={() => handleRating("easy")}
                             className="flex flex-col items-center gap-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 hover:bg-emerald-500/20 transition-all cursor-pointer text-center"
                           >
-                            <span className="font-display text-xs font-bold text-emerald-400">Easy / Mastered</span>
-                            <span className="font-mono text-[9px] text-muted-foreground">Jump interval</span>
+                            <span className="font-display text-xs font-bold text-emerald-400">
+                              Easy / Mastered
+                            </span>
+                            <span className="font-mono text-[9px] text-muted-foreground">
+                              Jump interval
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -457,7 +522,9 @@ export default function RevisionDeckModal({
                 <div className="rounded-2xl border border-dashed border-border/80 py-16 text-center space-y-2">
                   <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto" />
                   <p className="font-display text-base font-bold text-foreground">
-                    {activeTab === "due" ? "All Caught Up on Revision!" : "No Starred High-Yield Topics Yet"}
+                    {activeTab === "due"
+                      ? "All Caught Up on Revision!"
+                      : "No Starred High-Yield Topics Yet"}
                   </p>
                   <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                     {activeTab === "due"
@@ -585,10 +652,15 @@ export default function RevisionDeckModal({
                               "p-1.5 rounded-lg border cursor-pointer shrink-0 transition-colors",
                               item.starred
                                 ? "bg-amber-500/15 border-amber-500/30 text-amber-400"
-                                : "text-muted-foreground border-border/60 hover:text-foreground"
+                                : "text-muted-foreground border-border/60 hover:text-foreground",
                             )}
                           >
-                            <Star className={cn("h-3.5 w-3.5", item.starred && "fill-amber-400")} />
+                            <Star
+                              className={cn(
+                                "h-3.5 w-3.5",
+                                item.starred && "fill-amber-400",
+                              )}
+                            />
                           </button>
                         </div>
 
@@ -600,7 +672,8 @@ export default function RevisionDeckModal({
 
                         <div className="flex items-center justify-between pt-1">
                           <span className="font-mono text-[10px] text-muted-foreground">
-                            {item.durationMinutes}m focused · {item.revisionCount || 0} revisions
+                            {item.durationMinutes}m focused ·{" "}
+                            {item.revisionCount || 0} revisions
                           </span>
 
                           <button
@@ -632,6 +705,6 @@ export default function RevisionDeckModal({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -22,7 +22,16 @@ import {
 } from "@/lib/trackers";
 import { useMigrateTodos, useTodos, newTodo } from "@/lib/tracker-store";
 import { cn } from "@/lib/utils";
-import { CalendarDays, Check, ListChecks, Pencil, Play, Plus, Trash2, X } from "lucide-react";
+import {
+  CalendarDays,
+  Check,
+  ListChecks,
+  Pencil,
+  Play,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import SignalPanel from "@/components/trackers/SignalPanel";
 import StoryPanel from "@/components/trackers/StoryPanel";
 
@@ -40,34 +49,50 @@ export default function TodoPage() {
   const safe = useMemo(() => todos ?? [], [todos]);
 
   const [text, setText] = useState("");
+  const [removedTasks, setRemovedTasks] = useState<Todo[]>([]);
   const [priority, setPriority] = useState<TodoPriority>("P2");
   const [tag, setTag] = useState<TodoTag>("Personal");
   const [dateDraft, setDateDraft] = useState<"today" | "tomorrow">("today");
   const [view, setView] = useState<View>("today");
   const [tagFilter, setTagFilter] = useState<TodoTag | "all">("all");
-  const [priorityFilter, setPriorityFilter] = useState<TodoPriority | "all">("all");
+  const [priorityFilter, setPriorityFilter] = useState<TodoPriority | "all">(
+    "all",
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
 
   const today = dateKey();
   const tomorrow = tomorrowKey();
 
-  const overdueTasks = useMemo(() => safe.filter((t) => t.date < today && !t.done), [safe, today]);
+  const overdueTasks = useMemo(
+    () => safe.filter((t) => t.date < today && !t.done),
+    [safe, today],
+  );
 
   const visible = useMemo(() => {
     let list: Todo[];
-    if (view === "today") list = safe.filter((t) => (t.date === today || t.date < today) && !t.done);
-    else if (view === "tomorrow") list = safe.filter((t) => t.date === tomorrow && !t.done);
-    else if (view === "upcoming") list = safe.filter((t) => t.date > tomorrow && !t.done);
+    if (view === "today")
+      list = safe.filter(
+        (t) => (t.date === today || t.date < today) && !t.done,
+      );
+    else if (view === "tomorrow")
+      list = safe.filter((t) => t.date === tomorrow && !t.done);
+    else if (view === "upcoming")
+      list = safe.filter((t) => t.date > tomorrow && !t.done);
     else list = safe.filter((t) => t.done);
     if (tagFilter !== "all") list = list.filter((t) => t.tag === tagFilter);
-    if (priorityFilter !== "all") list = list.filter((t) => t.priority === priorityFilter);
+    if (priorityFilter !== "all")
+      list = list.filter((t) => t.priority === priorityFilter);
     // P1 first, overdue floats up within same priority, then by date
     const prioRank: Record<TodoPriority, number> = { P1: 0, P2: 1, P3: 2 };
     return [...list].sort((a, b) => {
       const aOverdue = a.date < today ? -1 : 0;
       const bOverdue = b.date < today ? -1 : 0;
-      return prioRank[a.priority] - prioRank[b.priority] || aOverdue - bOverdue || a.date.localeCompare(b.date);
+      return (
+        prioRank[a.priority] - prioRank[b.priority] ||
+        aOverdue - bOverdue ||
+        a.date.localeCompare(b.date)
+      );
     });
   }, [safe, view, tagFilter, priorityFilter, today, tomorrow]);
 
@@ -76,15 +101,21 @@ export default function TodoPage() {
   const todayList = safe.filter((t) => t.date === today || t.date < today);
   const doneToday = todayList.filter((t) => t.done).length;
   const openToday = todayList.filter((t) => !t.done).length;
-  const pct = todayList.length ? Math.round((doneToday / todayList.length) * 100) : 0;
+  const pct = todayList.length
+    ? Math.round((doneToday / todayList.length) * 100)
+    : 0;
   const streak = calculateStreak(
-    Object.entries(safe.reduce<Record<string, number>>((acc, t) => {
-      if (t.done && t.completedAt) {
-        const k = new Date(t.completedAt).toISOString().slice(0, 10);
-        acc[k] = (acc[k] ?? 0) + 1;
-      }
-      return acc;
-    }, {})).filter(([, n]) => n > 0).map(([k]) => k),
+    Object.entries(
+      safe.reduce<Record<string, number>>((acc, t) => {
+        if (t.done && t.completedAt) {
+          const k = dateKey(new Date(t.completedAt));
+          acc[k] = (acc[k] ?? 0) + 1;
+        }
+        return acc;
+      }, {}),
+    )
+      .filter(([, n]) => n > 0)
+      .map(([k]) => k),
   );
 
   const add = () => {
@@ -98,11 +129,27 @@ export default function TodoPage() {
   const toggle = (id: string) =>
     setTodos(
       safe.map((t) =>
-        t.id === id ? { ...t, done: !t.done, completedAt: !t.done ? Date.now() : undefined } : t,
+        t.id === id
+          ? {
+              ...t,
+              done: !t.done,
+              completedAt: !t.done ? Date.now() : undefined,
+            }
+          : t,
       ),
     );
 
-  const remove = (id: string) => setTodos(safe.filter((t) => t.id !== id));
+  const remove = (id: string) => {
+    setRemovedTasks(safe.filter((t) => t.id === id));
+    setTodos((previous) => previous.filter((t) => t.id !== id));
+  };
+  const undoRemoval = () => {
+    setTodos((previous) => [
+      ...previous,
+      ...removedTasks.filter((t) => !previous.some((p) => p.id === t.id)),
+    ]);
+    setRemovedTasks([]);
+  };
 
   const cyclePriority = (t: Todo) => {
     const order: TodoPriority[] = ["P1", "P2", "P3"];
@@ -116,11 +163,16 @@ export default function TodoPage() {
     setEditingId(null);
   };
 
-  const clearDone = () => setTodos(safe.filter((t) => !t.done));
+  const clearDone = () => {
+    setRemovedTasks(safe.filter((t) => t.done));
+    setTodos((previous) => previous.filter((t) => !t.done));
+  };
 
   // Push all overdue tasks to today
   const rescheduleOverdue = () =>
-    setTodos(safe.map((t) => (t.date < today && !t.done ? { ...t, date: today } : t)));
+    setTodos(
+      safe.map((t) => (t.date < today && !t.done ? { ...t, date: today } : t)),
+    );
 
   return (
     <RequireAuth>
@@ -130,11 +182,39 @@ export default function TodoPage() {
         subtitle="Plan your day and keep priorities clear. Select a task to edit it."
         badge={<SyncBadge status={status} />}
         actions={{
-          primary: <a href="#todo-list" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Add task</a>,
-          secondary: <a href="#todo-list" className="text-xs font-semibold text-primary hover:underline">Open task list →</a>,
+          primary: (
+            <a
+              href="#todo-list"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Add task
+            </a>
+          ),
+          secondary: (
+            <a
+              href="#todo-list"
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              Open task list →
+            </a>
+          ),
         }}
       >
-
+        {removedTasks.length > 0 && (
+          <p
+            role="status"
+            className="flex flex-wrap items-center gap-3 text-sm"
+          >
+            {removedTasks.length} task(s) removed.
+            <Button
+              variant="outline"
+              onClick={undoRemoval}
+              aria-label="Undo task deletion"
+            >
+              Undo deletion
+            </Button>
+          </p>
+        )}
         {/* ── Quick add ── */}
         <Card variant="dossier" id="todo-list">
           <CardContent className="space-y-3 p-5">
@@ -164,7 +244,10 @@ export default function TodoPage() {
               <Segmented
                 label="Priority"
                 variant="soft"
-                options={TODO_PRIORITIES.map((p) => ({ value: p.id, label: p.id }))}
+                options={TODO_PRIORITIES.map((p) => ({
+                  value: p.id,
+                  label: p.id,
+                }))}
                 value={priority}
                 onChange={setPriority}
               />
@@ -186,10 +269,15 @@ export default function TodoPage() {
               <span className="font-semibold">
                 {doneToday}/{todayList.length} done today
               </span>
-              <span className="text-xs text-muted-foreground">{streak}-day completion streak</span>
+              <span className="text-xs text-muted-foreground">
+                {streak}-day completion streak
+              </span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full bg-[var(--color-dossier-lime)] transition-all" style={{ width: `${pct}%` }} />
+              <div
+                className="h-full bg-[var(--color-dossier-lime)] transition-all"
+                style={{ width: `${pct}%` }}
+              />
             </div>
           </CardContent>
         </Card>
@@ -199,7 +287,10 @@ export default function TodoPage() {
           <Segmented
             label="Task view"
             options={[
-              { value: "today", label: `Today${openToday ? ` (${openToday})` : ""}` },
+              {
+                value: "today",
+                label: `Today${openToday ? ` (${openToday})` : ""}`,
+              },
               { value: "tomorrow", label: "Tomorrow" },
               { value: "upcoming", label: "Upcoming" },
               { value: "done", label: "Completed" },
@@ -223,7 +314,10 @@ export default function TodoPage() {
             <Segmented
               label="Tag filter"
               variant="soft"
-              options={[{ value: "all" as const, label: "All" }, ...TODO_TAGS.map((t) => ({ value: t, label: t }))]}
+              options={[
+                { value: "all" as const, label: "All" },
+                ...TODO_TAGS.map((t) => ({ value: t, label: t })),
+              ]}
               value={tagFilter}
               onChange={setTagFilter}
             />
@@ -234,7 +328,8 @@ export default function TodoPage() {
         {view === "today" && overdueTasks.length > 0 && (
           <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3 py-2.5">
             <p className="text-xs font-semibold text-rose-400">
-              {overdueTasks.length} overdue task{overdueTasks.length === 1 ? "" : "s"} carried from previous days
+              {overdueTasks.length} overdue task
+              {overdueTasks.length === 1 ? "" : "s"} carried from previous days
             </p>
             <button
               onClick={rescheduleOverdue}
@@ -268,40 +363,76 @@ export default function TodoPage() {
                   <li
                     key={t.id}
                     className={cn(
-                      "group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
-                      t.done ? "border-emerald-500/30 bg-emerald-500/5" : t.date < today ? "border-rose-500/30 bg-rose-500/5 hover:border-rose-500/50" : "border-border/60 hover:border-primary/30",
+                      "group flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
+                      t.done
+                        ? "border-emerald-500/30 bg-emerald-500/5"
+                        : t.date < today
+                          ? "border-rose-500/30 bg-rose-500/5 hover:border-rose-500/50"
+                          : "border-border/60 hover:border-primary/30",
                     )}
                   >
                     <button
                       onClick={() => toggle(t.id)}
                       className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs transition-all active:scale-90",
-                        t.done ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground/50",
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-md border text-xs transition-all active:scale-90",
+                        t.done
+                          ? "border-emerald-500 bg-emerald-500 text-white"
+                          : "border-muted-foreground/50",
                       )}
                       aria-pressed={t.done}
-                      aria-label={t.done ? `Mark "${t.text}" not done` : `Mark "${t.text}" done`}
+                      aria-label={
+                        t.done
+                          ? `Mark "${t.text}" not done`
+                          : `Mark "${t.text}" done`
+                      }
                     >
                       {t.done ? <Check className="h-3 w-3" /> : ""}
                     </button>
 
                     {editingId === t.id ? (
-                      <Input
-                        className="h-8 flex-1"
-                        value={editDraft}
-                        onChange={(e) => setEditDraft(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") saveEdit(t.id);
-                          if (e.key === "Escape") setEditingId(null);
-                        }}
-                        autoFocus
-                      />
+                      <div className="order-last grid w-full min-w-0 gap-2 sm:order-none sm:w-auto sm:flex-1 sm:grid-cols-2">
+                        <Input
+                          aria-label="Edit task name"
+                          className="min-h-11 flex-1"
+                          value={editDraft}
+                          onChange={(e) => setEditDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveEdit(t.id);
+                            if (e.key === "Escape") setEditingId(null);
+                          }}
+                          autoFocus
+                        />
+                        <label className="text-xs">
+                          Due date
+                          <Input
+                            type="date"
+                            aria-label={`Due date for ${t.text}`}
+                            value={t.date}
+                            onChange={(e) => {
+                              if (!/^\d{4}-\d{2}-\d{2}$/.test(e.target.value))
+                                return;
+                              setTodos((previous) =>
+                                previous.map((item) =>
+                                  item.id === t.id
+                                    ? { ...item, date: e.target.value }
+                                    : item,
+                                ),
+                              );
+                              setEditingId(null);
+                            }}
+                          />
+                        </label>
+                      </div>
                     ) : (
                       <button
                         onClick={() => {
                           setEditingId(t.id);
                           setEditDraft(t.text);
                         }}
-                        className={cn("min-w-0 flex-1 truncate text-left", t.done && "line-through opacity-60")}
+                        className={cn(
+                          "min-w-0 min-h-11 flex-1 break-words text-left",
+                          t.done && "line-through opacity-60",
+                        )}
                         title="Click to edit"
                       >
                         {t.text}
@@ -316,16 +447,28 @@ export default function TodoPage() {
                     )}
 
                     <span className="hidden shrink-0 sm:block">
-                      <span className={cn("rounded-full border px-2 py-0.5 text-xs font-semibold", TAG_COLORS[t.tag])}>{t.tag}</span>
+                      <span
+                        className={cn(
+                          "rounded-full border px-2 py-0.5 text-xs font-semibold",
+                          TAG_COLORS[t.tag],
+                        )}
+                      >
+                        {t.tag}
+                      </span>
                     </span>
 
                     <button
                       onClick={() => cyclePriority(t)}
                       aria-label="Cycle priority"
-                      className="flex shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-bold transition-colors hover:bg-accent"
+                      className="flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-bold transition-colors hover:bg-accent"
                       title="Click to cycle priority"
                     >
-                      <span className={cn("h-1.5 w-1.5 rounded-full", TODO_PRIORITIES.find((p) => p.id === t.priority)?.dot)} />
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          TODO_PRIORITIES.find((p) => p.id === t.priority)?.dot,
+                        )}
+                      />
                       {t.priority}
                     </button>
 
@@ -335,10 +478,10 @@ export default function TodoPage() {
 
                     {!t.done ? (
                       <Link
-                        href="/motivation"
+                        href={`/plan?task=${encodeURIComponent(t.id)}#focus-sprint`}
                         title={`Focus on "${t.text}"`}
                         aria-label={`Focus on "${t.text}"`}
-                        className="shrink-0 text-muted-foreground transition-colors hover:text-primary sm:opacity-0 sm:group-hover:opacity-100"
+                        className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-primary sm:opacity-0 sm:group-hover:opacity-100"
                       >
                         <Play className="h-3.5 w-3.5" />
                       </Link>
@@ -347,7 +490,7 @@ export default function TodoPage() {
                     <button
                       onClick={() => remove(t.id)}
                       aria-label="Delete task"
-                      className="shrink-0 text-muted-foreground transition-colors hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100"
+                      className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -356,39 +499,49 @@ export default function TodoPage() {
               </ul>
             )}
             {view === "done" && safe.some((t) => t.done) && (
-              <Button variant="outline" size="sm" className="mt-3" onClick={clearDone}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={clearDone}
+              >
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Clear completed
               </Button>
             )}
             {view === "today" && openToday === 0 && todayList.length > 0 && (
               <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-sm font-semibold text-emerald-500">
-                <CalendarDays className="h-4 w-4" /> All done for today. Beautiful.
+                <CalendarDays className="h-4 w-4" /> All done for today.
+                Beautiful.
               </p>
             )}
           </CardContent>
         </Card>
-        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
-
-        </details>
-        <details className="rounded-2xl border border-border p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Progress summary</summary>
-        <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
-          <StoryPanel
-            eyebrow="Next action"
-            title="Today&apos;s next move"
-            action={<a href="#todo-list" className="dossier-back-link">Open task list</a>}
-          >
-            {openToday
-              ? `${openToday} task${openToday === 1 ? "" : "s"} waiting in today’s queue. Start with the highest-priority move.`
-              : "Add one concrete task to open the next scene, or use the completed view to review the streak."}
-          </StoryPanel>
-          <SignalPanel
-            label="Completion signal"
-            value={`${pct}%`}
-            detail={`${doneToday}/${todayList.length} done today · ${streak}-day streak`}
-            progress={pct}
-            tone="lime"
-          />
-        </div>
+        <details className="rounded-2xl border border-border p-4">
+          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">
+            Progress summary
+          </summary>
+          <div className="grid gap-3 lg:grid-cols-[1.4fr_0.6fr]">
+            <StoryPanel
+              eyebrow="Next action"
+              title="Today's next move"
+              action={
+                <a href="#todo-list" className="dossier-back-link">
+                  Open task list
+                </a>
+              }
+            >
+              {openToday
+                ? `${openToday} task${openToday === 1 ? "" : "s"} waiting in today’s queue. Start with the highest-priority move.`
+                : "Add one concrete task to open the next scene, or use the completed view to review the streak."}
+            </StoryPanel>
+            <SignalPanel
+              label="Completion signal"
+              value={`${pct}%`}
+              detail={`${doneToday}/${todayList.length} done today · ${streak}-day streak`}
+              progress={pct}
+              tone="lime"
+            />
+          </div>
         </details>
       </TrackerShell>
     </RequireAuth>

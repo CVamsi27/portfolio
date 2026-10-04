@@ -9,7 +9,7 @@ One Next.js 16 codebase serving two experiences, split by host at the edge:
 
 The public site is a personal portfolio; the tracker side is gated by auth when Supabase is configured, and fully usable signed-out (local-only mode).
 
-The tracker UI is branded NOVA. Internal `vk:` localStorage keys and the `vk-tracker-suite` backup discriminator remain stable for existing data.
+The tracker UI is branded NOVA. Legacy `vk:` browser data is retained; authenticated storage uses `vk:account:<user id>:<key>` for isolation. The `vk-tracker-suite` backup discriminator remains stable.
 
 ### UI and product system
 
@@ -55,19 +55,24 @@ All state lives under the `vk:` localStorage namespace, one JSON document per tr
 - **Migrations** — v1→v2 adapters run once per page load, snapshot the old payload to `vk:backup:v1:<key>` first, and are idempotent (comma-string set logs → structured `{reps, weightKg}`; tick-counter fasts → real `startedAt` timestamps, in-flight fasts survive).
 - **Backup/restore** — `src/lib/backup.ts` exports the entire namespace (including v1 snapshots) as versioned JSON and imports with validate-before-write plus a pre-import snapshot.
 
+The approved scope and current evidence are in [NOVA change sheet](docs/NOVA_CHANGE_SHEET.md). See [implementation audit](docs/NOVA_IMPLEMENTATION_AUDIT.md) for coverage and [nutrition/reminder setup](docs/NUTRITION_AND_REMINDER_SETUP.md) for migrations, server credentials, scheduling, authenticated checks and rollback.
+
 ### Highlights
 
-- **Hub** (`/hub`, with `/trackers` retained for compatibility) — single momentum ring (fast · workout · tasks · goal anchor), one typed next action, compact world clocks, quick actions, 48h activity feed, and Week-in-Review.
+- **Today** (`/hub`, with `/trackers` retained for compatibility) — one next action, top three tasks, contextual clocks, optional modules, and a collapsed study timetable/checklist. Primary navigation is Today → Plan → Health → Review → More.
+- **Health and Food** — dated meal logging, calories/macros/micronutrients with unknown-aware coverage, declared portions, saved/recent/favorite foods, recipes, optional targets, water, body records and movement. Manual logging works without external credentials.
+- **Routine** — owner-only IST meal/supplement defaults, separate completion history, snooze/skip/undo and explicit Web Push opt-in. Closed-site notifications require configured migrations, server keys and a scheduler; they are not activated by committing code.
+- **Review and capture** — daily/weekly task, milestone, focus, study, food, sleep, movement, water and body records; quick capture and optional recovery/five-item habits.
 - **Workouts** — split-aware day tabs (PPL / Upper-Lower / Full Body / custom day builder), exercise library CRUD with reorder, structured `weight × reps` set rows, last-session prefill, kg⇄lbs display toggle (stored canonically in kg), rest timer with WebAudio chime, PRs and weekly volume.
 - **Fasting** — timestamp-derived elapsed time (immune to tab suspension drift), fasting/eating dual mode, manual past-fast entry, editable history, streak/avg/longest stats.
 - **Goal** — all seven categories fully interactive, editable daily metric, 14-day chart, run-rate ETA, ordered milestone CRUD, weekly commitment history, and missed-plan recovery.
 - **Weight Loss** — daily weigh-ins with unit conversion, target delta, seven-entry trend, notes, and energy/sleep/soreness recovery signals.
-- **Todos** — P1/P2/P3 priorities, tags, Today/Tomorrow/Upcoming/Done views, inline editing, Enter-chained quick add.
-- **Motivation** — daily deck + realistic category-aware imagery with allowlisted relay/fallbacks + custom affirmations + 3-prompt micro-journal with a true consecutive-day streak.
-- **Archive** — private local-first notes, links, image references, and quotes with tags, source URLs, pinning, goal links, search, and broken-media fallbacks.
+- **Tasks** — P1/P2/P3 priorities, tags, Today/Tomorrow/Upcoming/Completed views, name/date editing, selected-task focus and undo for deletion/cleanup.
+- **Motivation** — saved goal, one relevant encouragement, optional personal reminders, stable goal-aware imagery/fallbacks and a next-milestone action.
+- **Library** (`/archive`) — private local-first notes, links, image references, and quotes with tags, source URLs, pinning, goal links, search, and broken-media fallbacks.
 - **Reminders** — user-configured weigh-in, focus, and end-of-day prompts while the app is open. Browser permission is opt-in; background push is deferred until production scheduling and secrets exist.
-- **Career roadmap** (`/roadmap`) — dated study links for all 556 numbered Bible chapters, 10 focused work hours/day inside the 07:00–22:00 IST schedule, practice/role/OSS/interview prompts, saved evidence with a separate verify action, and opt-in in-app/browser reminders. Career completion is not a blank checkbox.
-- **Protection** — optional, user-configured bedtime windows and focus-session navigation locks. The browser/PWA can cover Personal and record interruptions, but it cannot disable other phone/laptop apps or activate system Do Not Disturb; users complete the OS Focus/DND/app-limit checklist manually. Bedtime is disabled until a user chooses valid times and active days.
+- **Career roadmap** (`/roadmap`) — dated study links for all 556 numbered Bible chapters, the owner-specific 10h weekday / 4h weekend overlay inside the IST schedule, practice/role/OSS/interview prompts, saved evidence with a separate verify action, and opt-in in-app/browser reminders. Career completion is not a blank checkbox.
+- **Focus and protection** — one active work-session controller with preserved legacy mirrors, navigation-safe focus/study sessions and cross-page pause/resume/cancel. Bedtime and distraction protection are opt-in, with immediate exit; NOVA does not control system Do Not Disturb or other apps.
 - **Share** (`/share`) — ephemeral drops with tags, pinning, fuzzy search, explicit private/public access, private media, email allowlists, and short-lived signed image URLs.
 - **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub); the service worker precaches `/hub`, serves pages network-first, and falls back to the cached canonical hub shell offline.
 - **Editorial foundation** — shared chapter primitives (`EditorialFrame`, `ChapterLabel`, `DisplayStatement`, `ActionBlock`, `SignalRule`, `TelemetryLine`, `EditorialGrid`) keep portfolio, tracker, focus, share, settings, and onboarding surfaces visually related while preserving their distinct identities.

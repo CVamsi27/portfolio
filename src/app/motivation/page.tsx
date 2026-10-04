@@ -1,513 +1,283 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import FocusScene from "@/components/motivation/FocusScene";
 import Modal from "@/components/trackers/Modal";
-import EmptyState from "@/components/trackers/EmptyState";
 import RequireAuth from "@/components/auth/RequireAuth";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SyncBadge } from "@/components/auth/AuthButton";
-import { useUserPrefs } from "@/lib/user-prefs";
 import {
-  type JournalMap,
-  MOTIVATION_QUOTES,
-  calculateStreak,
-  dateKey,
-  milestonesFor,
-} from "@/lib/trackers";
-import { useCustomQuotes, useGoalState, useJournal, useMigrateFasting, useMigrateGoal, useMotivationVisits, newCustomQuote, newTodo, useTodos } from "@/lib/tracker-store";
-import { GOAL_CATEGORIES, displayGoalTitle } from "@/lib/user-prefs";
-import Segmented from "@/components/trackers/Segmented";
-import FocusSprint from "@/components/trackers/FocusSprint";
+  useUserPrefs,
+  GOAL_CATEGORIES,
+  displayGoalTitle,
+} from "@/lib/user-prefs";
+import { dateKey, milestonesFor } from "@/lib/trackers";
+import {
+  useCustomQuotes,
+  useGoalState,
+  useMigrateGoal,
+  newCustomQuote,
+} from "@/lib/tracker-store";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import { fallbackMotivationMedia, type MotivationMedia } from "@/lib/motivation-media";
 import {
-  ArrowRight,
-  Bookmark,
-  BookOpen,
-  Check,
-  Copy,
-  Feather,
-  Plus,
-  Quote,
-  Sparkles,
-  Trash2,
-  X,
-  Zap,
-} from "lucide-react";
-
-const JOURNAL_PROMPTS = [
-  { key: "win" as const, label: "One win today", placeholder: "Shipped the auth flow…", icon: Sparkles },
-  { key: "learned" as const, label: "One thing I learned / grateful for", placeholder: "Finally understood RSC hydration…", icon: BookOpen },
-  { key: "focus" as const, label: "Tomorrow's #1 focus", placeholder: "Finish the set logger…", icon: ArrowRight },
-];
+  fallbackMotivationMedia,
+  type MotivationMedia,
+} from "@/lib/motivation-media";
+import { goalEncouragement } from "@/lib/goal-motivation";
 
 export default function MotivationPage() {
-  // Runs the fasting/goal migrations early for returning users; harmless no-op otherwise.
-  useMigrateFasting();
   useMigrateGoal();
-  const router = useRouter();
-  const { prefs, setPrefs } = useUserPrefs();
+  const { prefs } = useUserPrefs();
   const { value: goal } = useGoalState();
-  const presetQuotes = MOTIVATION_QUOTES[prefs.motivationStyle] ?? MOTIVATION_QUOTES.discipline;
-
-  const { value: favs, setValue: setFavs, status } = useSyncedStorage<string[]>("motivation:favs", []);
-  const { value: visits, setValue: setVisits } = useMotivationVisits();
-  const { value: customQuotes, setValue: setCustomQuotes } = useCustomQuotes();
-  const { value: journal, setValue: setJournal } = useJournal();
-  const { value: todos, setValue: setTodos } = useTodos();
-  const { value: mediaCache, setValue: setMediaCache } = useSyncedStorage<Record<string, MotivationMedia>>("motivation:media", {});
-
-  const safeFavs = favs ?? [];
-  const safeVisits = useMemo(() => visits ?? {}, [visits]);
-  const safeCustom = useMemo(() => customQuotes ?? [], [customQuotes]);
-  const safeJournal: JournalMap = useMemo(() => journal ?? {}, [journal]);
-  const safeGoal = useMemo(() => goal ?? { metricByDay: {}, milestonesByCategory: {} }, [goal]);
-  const goalMeta = GOAL_CATEGORIES.find((category) => category.id === prefs.goalCategory) ?? GOAL_CATEGORIES[0];
-  const milestones = useMemo(() => milestonesFor(safeGoal, prefs.goalCategory), [safeGoal, prefs.goalCategory]);
-  const completedMilestones = milestones.filter((milestone) => milestone.done).length;
-  const goalPct = milestones.length ? Math.round((completedMilestones / milestones.length) * 100) : 0;
-  const nextMilestone = milestones.find((milestone) => !milestone.done)?.title ?? "All milestones complete";
-
-  const today = dateKey();
-  const [copied, setCopied] = useState(false);
-  const [taskAdded, setTaskAdded] = useState(false);
-  const [quoteOpen, setQuoteOpen] = useState(false);
-  const [quoteDraft, setQuoteDraft] = useState({ text: "", tag: "Mine" });
-  const [media, setMedia] = useState<MotivationMedia>(() => fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory, prefs.goalCountry));
-  const [mediaLoading, setMediaLoading] = useState(false);
-  const [mediaRefreshKey, setMediaRefreshKey] = useState<string | null>(null);
-  const [rotationIndex, setRotationIndex] = useState(0);
-
-  const mediaCountry = prefs.motivationPersonalization === "goal" && prefs.goalCategory === "relocation"
-    ? prefs.goalCountry
-    : undefined;
-  const mediaKey = `v2:${prefs.motivationPersonalization}:${prefs.goalCategory}:${mediaCountry ?? "none"}`;
-  const mediaDeck = useMemo(() => {
-    const fallbackOptions = fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory, mediaCountry).imageOptions ?? [];
-    return [media, ...(media.imageOptions ?? fallbackOptions)].filter((option, index, options) => (
-      option.imageUrl && options.findIndex((candidate) => candidate.imageUrl === option.imageUrl) === index
-    ));
-  }, [media, mediaCountry, prefs.goalCategory, prefs.motivationPersonalization]);
-  const activeMedia = mediaDeck[rotationIndex % Math.max(1, mediaDeck.length)] ?? media;
-
-  useEffect(() => {
-    if (mediaDeck.length < 2) return;
-    const timer = window.setInterval(() => {
-      setRotationIndex((current) => (current + 1) % mediaDeck.length);
-    }, 10_000);
-    return () => window.clearInterval(timer);
-  }, [mediaDeck.length]);
-
-  // Register today's visit once, from an effect (never during render).
-  // Uses the store's updater form so a stale first-render snapshot (before
-  // localStorage hydration) can never wipe previously-visited days.
-  const [visitRecorded, setVisitRecorded] = useState(false);
-  useEffect(() => {
-    if (visitRecorded) return;
-    setVisitRecorded(true);
-    setVisits((prev) => {
-      const v = prev ?? {};
-      if (v[today]) return v;
-      return { ...v, [today]: Date.now() };
-    });
-  }, [visitRecorded, today, setVisits]);
-
-  // Deck = presets + user's custom affirmations (normalized to one shape)
-  const deck = useMemo<{ text: string; tag: string; id: string }[]>(
-    () => [
-      ...presetQuotes.map((q, i) => ({ ...q, id: `preset-${i}` })),
-      ...safeCustom.map((q) => ({ text: q.text, tag: q.tag || "Mine", id: q.id })),
-    ],
-    [presetQuotes, safeCustom],
+  const { value: favs, setValue: setFavs } = useSyncedStorage<string[]>(
+    "motivation:favs",
+    [],
   );
-
-  const qotdKey = `${today}:${prefs.motivationStyle}`;
-  const { value: storedQotdKey, setValue: setStoredQotdKey } = useSyncedStorage<string>("motivation:qotd:key", "");
-  const { value: storedQotdIdx, setValue: setStoredQotdIdx } = useSyncedStorage<number>("motivation:qotd:idx", 0);
-
-  // Compute deterministic day seed once per day
-  const daySeed = useMemo(() => {
-    let h = 0;
-    for (const c of today) h = (h * 31 + c.charCodeAt(0)) % 997;
-    return h;
-  }, [today]);
-
-  // Stable index: stored per (date + style) so it persists across revisits
-  const stableIdx = useMemo(() => {
-    if (storedQotdKey === qotdKey && storedQotdIdx !== null) return storedQotdIdx;
-    return daySeed % Math.max(1, deck.length);
-  }, [storedQotdKey, storedQotdIdx, qotdKey, daySeed, deck.length]);
-
-  const [idx, setIdx] = useState(stableIdx);
-
-  // Sync stored qotd when key changes (new day or style change)
-  useEffect(() => {
-    if (storedQotdKey !== qotdKey) {
-      const newIdx = daySeed % Math.max(1, deck.length);
-      setStoredQotdKey(qotdKey);
-      setStoredQotdIdx(newIdx);
-      setIdx(newIdx);
-    }
-  }, [qotdKey, storedQotdKey, daySeed, deck.length, setStoredQotdKey, setStoredQotdIdx]);
-
-  const current = deck[((idx % deck.length) + deck.length) % deck.length];
-  const currentText = current.text;
-  const isFav = safeFavs.includes(currentText);
-
-  // Real consecutive-day streak across journaling + visits.
-  const activeDays = useMemo(
-    () => Array.from(new Set([...Object.keys(safeJournal), ...Object.keys(safeVisits)])),
-    [safeJournal, safeVisits],
+  const { value: custom, setValue: setCustom } = useCustomQuotes();
+  const { value: mediaCache, setValue: setMediaCache } = useSyncedStorage<
+    Record<string, MotivationMedia>
+  >("motivation:media", {});
+  const [remindersOpen, setRemindersOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
+    "idle",
   );
-  const streak = calculateStreak(activeDays);
-
-  // Reflection-only streak (days with a saved journal entry)
-  const reflectionStreak = useMemo(
-    () => calculateStreak(Object.keys(safeJournal)),
-    [safeJournal],
+  const [notice, setNotice] = useState("");
+  const encouragement = goalEncouragement(
+    prefs.goalCategory,
+    prefs.goalCountry,
   );
-
-  const shuffle = () => {
-    const nextIdx = (idx + 1 + Math.floor(Math.random() * (deck.length - 1))) % Math.max(1, deck.length);
-    setIdx(nextIdx);
-    setStoredQotdIdx(nextIdx);
-    setStoredQotdKey(qotdKey);
-  };
-
-  const toggleFav = () =>
-    setFavs(isFav ? safeFavs.filter((f) => f !== currentText) : [...safeFavs, currentText]);
-
-  const copyQuote = async () => {
-    try {
-      await navigator.clipboard.writeText(`"${currentText}"`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      setCopied(false);
-    }
-  };
-
-  const addCustomQuote = () => {
-    const text = quoteDraft.text.trim();
-    if (!text) return;
-    setCustomQuotes([...safeCustom, newCustomQuote(text, quoteDraft.tag.trim() || "Mine")]);
-    setQuoteDraft({ text: "", tag: "Mine" });
-    setQuoteOpen(false);
-  };
-
-  // Journal draft state, hydrated from today's saved entry.
-  const entry = safeJournal[today] ?? { win: "", learned: "", focus: "", updatedAt: 0 };
-  const [draft, setDraft] = useState<{ win: string; learned: string; focus: string } | null>(null);
-  const draftState = draft ?? { win: entry.win, learned: entry.learned, focus: entry.focus };
-  const [savedFlash, setSavedFlash] = useState(false);
+  const deck = [
+    ...encouragement.reminders,
+    ...(custom ?? []).map((item) => item.text),
+  ];
+  const seed = Array.from(dateKey()).reduce(
+    (sum, char) => sum + char.charCodeAt(0),
+    0,
+  );
+  const reminder = deck[(seed + offset) % deck.length];
+  const milestones = milestonesFor(
+    goal ?? { metricByDay: {}, milestonesByCategory: {} },
+    prefs.goalCategory,
+  );
+  const completed = milestones.filter((item) => item.done).length;
+  const next = milestones.find((item) => !item.done)?.title;
+  const country =
+    prefs.goalCategory === "relocation" ? prefs.goalCountry : undefined;
+  const mediaKey = `v2:goal:${prefs.goalCategory}:${country ?? "none"}`;
+  const fallback = useMemo(
+    () => fallbackMotivationMedia("goal", prefs.goalCategory, country),
+    [prefs.goalCategory, country],
+  );
+  const media = mediaCache?.[mediaKey] ?? fallback;
 
   useEffect(() => {
-    // The synced preference store renders with its server-safe defaults first.
-    // Do not request generic media before the saved goal/country has hydrated.
     if (!prefs.questionnaireDone) return;
-    const forceRefresh = mediaRefreshKey === mediaKey;
     const cached = mediaCache?.[mediaKey];
-    if (!forceRefresh && cached && Date.now() - cached.fetchedAt < 86_400_000) {
-      setMedia(cached);
-      setMediaLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setMediaLoading(true);
+    if (cached && Date.now() - cached.fetchedAt < 86_400_000) return;
+    const controller = new AbortController();
     const params = new URLSearchParams({
-      source: prefs.motivationPersonalization,
+      source: "goal",
       category: prefs.goalCategory,
     });
-    if (mediaCountry) params.set("country", mediaCountry);
-    fetch(`/api/motivation-media?${params.toString()}`)
-      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("media unavailable"))))
-      .then((next: MotivationMedia) => {
-        if (cancelled) return;
-        setMedia(next);
-        setMediaLoading(false);
-        setMediaRefreshKey((current) => (current === mediaKey ? null : current));
-        setMediaCache((prev) => ({ ...(prev ?? {}), [mediaKey]: next }));
+    if (country) params.set("country", country);
+    fetch(`/api/motivation-media?${params}`, { signal: controller.signal })
+      .then((response) =>
+        response.ok
+          ? response.json()
+          : Promise.reject(new Error("Unavailable")),
+      )
+      .then((result: MotivationMedia) => {
+        if (!controller.signal.aborted)
+          setMediaCache((previous) => ({
+            ...(previous ?? {}),
+            [mediaKey]: result,
+          }));
       })
       .catch(() => {
-        if (cancelled) return;
-        setMedia(fallbackMotivationMedia(prefs.motivationPersonalization, prefs.goalCategory, mediaCountry));
-        setMediaLoading(false);
-        setMediaRefreshKey((current) => (current === mediaKey ? null : current));
+        /* Local goal-aware scene stays usable without the service. */
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [mediaCache, mediaCountry, mediaKey, mediaRefreshKey, prefs.goalCategory, prefs.motivationPersonalization, prefs.questionnaireDone, setMediaCache]);
+    return () => controller.abort();
+  }, [
+    prefs.questionnaireDone,
+    prefs.goalCategory,
+    country,
+    mediaKey,
+    mediaCache,
+    setMediaCache,
+  ]);
 
-  const refreshMedia = () => {
-    setRotationIndex(0);
-    setMediaRefreshKey(mediaKey);
-    setMediaCache((prev) => {
-      const next = { ...(prev ?? {}) };
-      delete next[mediaKey];
-      return next;
-    });
+  const toggleSave = () => {
+    setFavs((previous) =>
+      (previous ?? []).includes(reminder)
+        ? (previous ?? []).filter((item) => item !== reminder)
+        : [...(previous ?? []), reminder],
+    );
   };
-
-  const nextAction = nextMilestone === "All milestones complete"
-    ? "Log today's progress"
-    : `Move toward: ${nextMilestone}`;
-
-  const convertFocusToTask = () => {
-    const focusText = draftState.focus.trim();
-    if (!focusText) return;
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = dateKey(tomorrow);
-    const currentTodos = todos ?? [];
-    setTodos([...currentTodos, newTodo(focusText, { date: tomorrowStr, priority: "P1", tag: "Goal" })]);
-    setTaskAdded(true);
-    setTimeout(() => setTaskAdded(false), 2000);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(reminder);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
   };
-
-  const saveJournal = () => {
-    // Event handler — stamping the wall clock is the intent.
-    // eslint-disable-next-line react-hooks/purity
-    const savedAt = Date.now();
-    setJournal({ ...safeJournal, [today]: { ...draftState, updatedAt: savedAt } });
-    setDraft(null);
-    setSavedFlash(true);
-    setTimeout(() => setSavedFlash(false), 1500);
+  const add = () => {
+    if (!draft.trim()) return;
+    const item = newCustomQuote(draft.trim(), "Mine");
+    setCustom((previous) => [...(previous ?? []), item]);
+    setDraft("");
+    setNotice("Your reminder was added.");
   };
+  const label =
+    GOAL_CATEGORIES.find((item) => item.id === prefs.goalCategory)?.label ??
+    "Your goal";
+  const actionHref = ["relocation", "career", "learning"].includes(
+    prefs.goalCategory,
+  )
+    ? "/roadmap"
+    : "/goal";
 
   return (
     <RequireAuth>
       <TrackerShell
         icon="flame"
-        title="Focus"
-        subtitle="Start a focus session, find inspiration, or reflect on your day."
-        badge={<SyncBadge status={status} />}
-        actions={{
-          primary: <a href="#focus-scene" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Open focus scene</a>,
-          secondary: <a href="#journal" className="text-xs font-semibold text-primary hover:underline">Write reflection →</a>,
-        }}
+        title={null}
+        eyebrow="Your purpose"
+        subtitle="Keep your goal close. Take one meaningful step today."
       >
-        <div className="flex flex-col gap-2 border border-border/60 bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-utility text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Inspiration source</p>
-            <p className="mt-1 text-sm text-muted-foreground">Choose whether the scene follows your goal or stays broad.</p>
-          </div>
-          <Segmented
-            label="Inspiration source"
-            options={[
-              { value: "goal" as const, label: "Goal-aware" },
-              { value: "general" as const, label: "General inspiration" },
-            ]}
-            value={prefs.motivationPersonalization}
-            onChange={(value) => setPrefs({ ...prefs, motivationPersonalization: value })}
-          />
-        </div>
         <FocusScene
           goalTitle={displayGoalTitle(prefs)}
-          goalLabel={goalMeta.label}
-          goalPct={goalPct}
-          nextMilestone={nextMilestone}
-          nextAction={nextAction}
-          streak={streak}
-          quote={currentText}
-          quoteTag={current.tag}
-          quoteAuthor={media.quoteAuthor}
-          destination={media.destinationKey ?? mediaCountry}
-          categoryLabel={media.categoryLabel}
-          rationale={media.rationale}
-          saved={isFav}
-          copied={copied}
-          onStartAction={() => router.push("/goal")}
-          onShuffle={shuffle}
-          onSave={toggleFav}
-          onCopy={copyQuote}
-          onOpenGoal={() => router.push("/goal")}
-          onRefreshMedia={refreshMedia}
-          mediaLoading={mediaLoading}
-          media={activeMedia}
+          goalLabel={label}
+          why={encouragement.why}
+          reminder={reminder}
+          nextMilestone={next}
+          completed={completed}
+          total={milestones.length}
+          actionHref={actionHref}
+          saved={(favs ?? []).includes(reminder)}
+          copied={copyState === "copied"}
+          media={media}
+          onNextReminder={() => {
+            setOffset((value) => value + 1);
+            setCopyState("idle");
+          }}
+          onSave={toggleSave}
+          onCopy={copy}
         />
-        <FocusSprint label={nextMilestone === "All milestones complete" ? "Log today’s progress" : nextMilestone} compact />
-
-        {/* ── Stats ── */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { l: "Day streak", v: `${streak}`, Icon: Zap, color: "bg-amber-500" },
-            { l: "Saved", v: `${safeFavs.length}`, Icon: Bookmark, color: "bg-[#ff554d]" },
-            { l: "Deck size", v: `${deck.length}`, Icon: Quote, color: "bg-primary" },
-          ].map((s) => (
-            <Card variant="dossier" key={s.l} className="group overflow-hidden">
-              <div className="flex items-center gap-3 p-4">
-                <span
-                  aria-hidden
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${s.color} text-[#071014] shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg`}
-                >
-                  <s.Icon className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{s.l}</p>
-                  <p className="font-display text-2xl font-bold">{s.v}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
+        {copyState === "failed" && (
+          <p role="status" className="text-sm text-muted-foreground">
+            Couldn’t copy this reminder. You can select and copy its text.
+          </p>
+        )}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">
+            Keep words that bring you back to your purpose.
+          </p>
+          <Button variant="ghost" onClick={() => setRemindersOpen(true)}>
+            Personal reminders
+          </Button>
         </div>
-
-        {/* ── Daily micro-journal ── */}
-        <Card variant="dossier" id="journal">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display font-bold">Daily reflection</h2>
-              {entry.updatedAt ? (
-                <span className="text-xs text-emerald-600 dark:text-emerald-400">
-                  saved {new Date(entry.updatedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-                </span>
-              ) : null}
-            </div>
-            {reflectionStreak > 0 && (
-              <p className="mt-1.5 text-xs font-medium text-primary">
-                Reflected {reflectionStreak} day{reflectionStreak === 1 ? "" : "s"} in a row
-              </p>
-            )}
-            <div className="mt-3 space-y-3">
-              {JOURNAL_PROMPTS.map((p) => (
-                <div key={p.key}>
-                  <div className="flex items-center justify-between">
-                    <label htmlFor={`journal-${p.key}`} className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      <p.icon className="h-3.5 w-3.5 text-primary" /> {p.label}
-                    </label>
-                    {p.key === "focus" && draftState.focus.trim() && (
-                      <button
-                        type="button"
-                        onClick={convertFocusToTask}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                      >
-                        {taskAdded ? <Check className="h-3 w-3 text-emerald-500" /> : <Plus className="h-3 w-3" />}
-                        {taskAdded ? "Added to tomorrow" : "Add as tomorrow's P1"}
-                      </button>
-                    )}
-                  </div>
-                  <Input
-                    id={`journal-${p.key}`}
-                    className="mt-1.5"
-                    placeholder={p.placeholder}
-                    value={draftState[p.key]}
-                    onChange={(e) => setDraft({ ...draftState, [p.key]: e.target.value })}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 flex items-center justify-end gap-2">
-              {savedFlash && <span className="text-xs font-semibold text-emerald-500">Saved</span>}
-              <Button size="sm" onClick={saveJournal} disabled={!draftState.win && !draftState.learned && !draftState.focus}>
-                Save reflection
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ── Custom affirmations ── */}
-        <Card variant="dossier">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display font-bold">Your affirmations</h2>
-              <Button variant="outline" size="sm" onClick={() => setQuoteOpen(true)}>
-                <Plus className="mr-1 h-3.5 w-3.5" /> Add
-              </Button>
-            </div>
-            {safeCustom.length === 0 ? (
-              <div className="mt-3">
-                <EmptyState
-                  icon={Feather}
-                  title="No personal affirmations yet"
-                  hint="Add mantras in your own words — they join the daily deck and shuffle alongside the presets."
-                  action={
-                    <Button size="sm" variant="outline" onClick={() => setQuoteOpen(true)}>
-                      <Plus className="mr-1.5 h-4 w-4" /> Write one
-                    </Button>
-                  }
-                />
-              </div>
-            ) : (
-              <ul className="mt-3 space-y-2">
-                {safeCustom.map((q) => (
-                  <li key={q.id} className="flex items-start justify-between gap-3 rounded-xl border border-border/60 px-3 py-2.5 text-sm">
-                    <span>
-                      &ldquo;{q.text}&rdquo;
-                      <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">{q.tag}</span>
-                    </span>
-                    <button
-                      onClick={() => setCustomQuotes(safeCustom.filter((x) => x.id !== q.id))}
-                      aria-label="Delete affirmation"
-                      className="shrink-0 text-muted-foreground transition-colors hover:text-red-500"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ── Saved fuel ── */}
-        <Card variant="dossier">
-          <CardContent className="p-5">
-            <h2 className="font-display font-bold">Saved fuel</h2>
-            {safeFavs.length === 0 ? (
-              <p className="mt-2 text-sm text-muted-foreground">Nothing saved yet — hit &ldquo;Save&rdquo; on anything that hits.</p>
-            ) : (
-              <ul className="mt-3 space-y-2">
-                {safeFavs.map((f) => (
-                  <li key={f} className="flex items-start justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2 text-sm">
-                    <span>&ldquo;{f}&rdquo;</span>
-                    <button
-                      onClick={() => setFavs(safeFavs.filter((x) => x !== f))}
-                      aria-label="Remove"
-                      className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ── Custom quote modal ── */}
         <Modal
-          open={quoteOpen}
-          onClose={() => setQuoteOpen(false)}
-          title="New affirmation"
-          footer={
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setQuoteOpen(false)}>
-                Cancel
-              </Button>
-              <Button size="sm" onClick={addCustomQuote} disabled={!quoteDraft.text.trim()}>
-                Add to deck
-              </Button>
-            </div>
-          }
+          open={remindersOpen}
+          onClose={() => setRemindersOpen(false)}
+          title="Personal reminders"
         >
-          <div className="space-y-3">
-            <Input
-              placeholder="I show up for the hard things first…"
-              value={quoteDraft.text}
-              onChange={(e) => setQuoteDraft({ ...quoteDraft, text: e.target.value })}
-              onKeyDown={(e) => e.key === "Enter" && addCustomQuote()}
-              autoFocus
-            />
-            <Input
-              placeholder="Tag (optional) — e.g. Mantra"
-              value={quoteDraft.tag}
-              onChange={(e) => setQuoteDraft({ ...quoteDraft, tag: e.target.value })}
-            />
+          <div className="space-y-5">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                add();
+              }}
+              className="space-y-2"
+            >
+              <label
+                htmlFor="personal-reminder"
+                className="text-sm font-medium"
+              >
+                Your reminder
+              </label>
+              <Input
+                id="personal-reminder"
+                placeholder="Why this goal matters to me…"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                maxLength={600}
+              />
+              <Button type="submit" disabled={!draft.trim()}>
+                Add reminder
+              </Button>
+              {notice && (
+                <p role="status" className="text-sm text-muted-foreground">
+                  {notice}
+                </p>
+              )}
+            </form>
+            <section aria-label="Your own words">
+              <h3 className="font-semibold">Your own words</h3>
+              {(custom ?? []).length ? (
+                <ul className="mt-2 space-y-3">
+                  {(custom ?? []).map((item) => (
+                    <li
+                      key={item.id}
+                      className="space-y-1 border-b border-border pb-2"
+                    >
+                      <p className="text-sm break-words">{item.text}</p>
+                      <Button
+                        variant="ghost"
+                        onClick={() =>
+                          setCustom((previous) =>
+                            (previous ?? []).filter(
+                              (value) => value.id !== item.id,
+                            ),
+                          )
+                        }
+                        aria-label={`Remove personal reminder: ${item.text}`}
+                      >
+                        Remove
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Add a reason, a promise to yourself, or words you want to
+                  remember.
+                </p>
+              )}
+            </section>
+            <section aria-label="Saved reminders">
+              <h3 className="font-semibold">Saved reminders</h3>
+              {(favs ?? []).length ? (
+                <ul className="mt-2 space-y-3">
+                  {(favs ?? []).map((item) => (
+                    <li
+                      key={item}
+                      className="space-y-1 border-b border-border pb-2"
+                    >
+                      <p className="text-sm break-words">{item}</p>
+                      <Button
+                        variant="ghost"
+                        onClick={() =>
+                          setFavs((previous) =>
+                            (previous ?? []).filter((value) => value !== item),
+                          )
+                        }
+                        aria-label={`Remove saved reminder: ${item}`}
+                      >
+                        Remove
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Save a reminder from the page to find it here.
+                </p>
+              )}
+            </section>
           </div>
         </Modal>
       </TrackerShell>
