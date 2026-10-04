@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "sourceDigest": "beb869d2fae3ce69f8bfe23080e771eda65c4ea1d3bfde7067157c8aa3370acd",
+  "sourceDigest": "3b77d0a052d0c76f08a5f09998356f10ff8a544b3f5de3d2bfc4ff3221405e7b",
   "startDate": "2026-09-30",
   "endDate": "2027-01-07",
   "chapterCount": 556,
-  "totalStudyMinutes": 8206,
+  "totalStudyMinutes": 8202,
   "inventorySummary": {
     "markdownFilesScanned": 1008,
     "includedChapterCount": 556,
@@ -10274,7 +10274,7 @@
           "title": "BFF — Backend for Frontend",
           "studyUrl": "https://study.buildora.work/20-backend/20.3-rest-apis/04-edge-and-scale/20.3.4.03-bff.md",
           "stack": "20-backend",
-          "estimatedMinutes": 19,
+          "estimatedMinutes": 18,
           "rolePriority": "Essential",
           "generalImportance": "Foundational"
         },
@@ -10289,7 +10289,7 @@
           "generalImportance": "Foundational"
         }
       ],
-      "studyMinutes": 79,
+      "studyMinutes": 78,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -18028,12 +18028,12 @@
           "title": "Sharding & Replication",
           "studyUrl": "https://study.buildora.work/30-architecture/30.2-system-design/01-theory/30.2.1.03-sharding-and-replication.md",
           "stack": "30-architecture",
-          "estimatedMinutes": 14,
+          "estimatedMinutes": 13,
           "rolePriority": "Essential",
           "generalImportance": "Foundational"
         }
       ],
-      "studyMinutes": 90,
+      "studyMinutes": 89,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -18314,7 +18314,7 @@
           "title": "Caching Patterns",
           "studyUrl": "https://study.buildora.work/30-architecture/30.2-system-design/01-theory/30.2.1.05-caching-patterns.md",
           "stack": "30-architecture",
-          "estimatedMinutes": 13,
+          "estimatedMinutes": 12,
           "rolePriority": "Essential",
           "generalImportance": "Foundational"
         },
@@ -18379,7 +18379,7 @@
           "generalImportance": "Foundational"
         }
       ],
-      "studyMinutes": 86,
+      "studyMinutes": 85,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -18660,7 +18660,7 @@
           "title": "Backpressure & Flow Control",
           "studyUrl": "https://study.buildora.work/30-architecture/30.2-system-design/01-theory/30.2.1.13-backpressure-and-flow-control.md",
           "stack": "30-architecture",
-          "estimatedMinutes": 14,
+          "estimatedMinutes": 13,
           "rolePriority": "Essential",
           "generalImportance": "Foundational"
         },
@@ -18670,7 +18670,7 @@
           "title": "Distributed Locks & Coordination",
           "studyUrl": "https://study.buildora.work/30-architecture/30.2-system-design/01-theory/30.2.1.14-distributed-locks.md",
           "stack": "30-architecture",
-          "estimatedMinutes": 14,
+          "estimatedMinutes": 13,
           "rolePriority": "Essential",
           "generalImportance": "Foundational"
         },
@@ -18695,7 +18695,7 @@
           "generalImportance": "Foundational"
         }
       ],
-      "studyMinutes": 77,
+      "studyMinutes": 75,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
@@ -22262,7 +22262,7 @@
           "title": "API Gateway System Design",
           "studyUrl": "https://study.buildora.work/30-architecture/30.2-system-design/02-case-studies/30.2.2.31-api-gateway.md",
           "stack": "30-architecture",
-          "estimatedMinutes": 11,
+          "estimatedMinutes": 12,
           "rolePriority": "Important",
           "generalImportance": "Important"
         },
@@ -22327,7 +22327,7 @@
           "generalImportance": "Specialized"
         }
       ],
-      "studyMinutes": 92,
+      "studyMinutes": 93,
       "schedule": {
         "07:00-08:30": {
           "label": "Exercise and freshen up (no breakfast)",
