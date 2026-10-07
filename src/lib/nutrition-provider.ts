@@ -15,12 +15,36 @@ export async function authenticatedRequest(request: Request) {
 }
 export function normalizeFdcFood(raw: Record<string, unknown>): Food {
   const nutrients: Food["nutrients"] = {};
-  const items = Array.isArray(raw.foodNutrients) ? raw.foodNutrients : [];
+  const items = Array.isArray(raw.foodNutrients)
+    ? raw.foodNutrients.filter(
+        (item): item is Record<string, unknown> =>
+          !!item && typeof item === "object" && !Array.isArray(item),
+      )
+    : [];
   for (const [key, meta] of Object.entries(NUTRIENTS)) {
-    const item = items.find((candidate: Record<string, unknown>) => {
-      const detail = candidate.nutrient as Record<string, unknown> | undefined;
-      return (detail?.id ?? candidate.nutrientId) === meta.fdc;
-    }) as Record<string, unknown> | undefined;
+    // Foundation Foods report Atwater energy rather than the legacy 1008 field.
+    // Use a supplied kcal value, never derive calories from incomplete macros.
+    const ids = key === "energy" ? [1008, 2048, 2047] : [meta.fdc];
+    const item = ids
+      .map((id) =>
+        items.find((candidate) => {
+          const detail = candidate.nutrient as
+            | Record<string, unknown>
+            | undefined;
+          const value = candidate.amount ?? candidate.value;
+          return (
+            (detail?.id ?? candidate.nutrientId) === id &&
+            typeof value === "number" &&
+            Number.isFinite(value) &&
+            value >= 0 &&
+            (key !== "energy" ||
+              String(
+                detail?.unitName ?? candidate.unitName ?? "",
+              ).toLowerCase() === "kcal")
+          );
+        }),
+      )
+      .find(Boolean);
     const detail = item?.nutrient as Record<string, unknown> | undefined;
     const unit = String(detail?.unitName ?? item?.unitName ?? "").toLowerCase();
     const value = item?.amount ?? item?.value;

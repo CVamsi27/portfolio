@@ -51,6 +51,7 @@ export default function FoodTracker() {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(blank);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [ingredientOnly, setIngredientOnly] = useState(false);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
   const [editing, setEditing] = useState<FoodEntry | null>(null);
   const [foodId, setFoodId] = useState<string | null>(null);
@@ -88,6 +89,16 @@ export default function FoodTracker() {
       setOpen(true);
     }
   }, []);
+  const syncStates = Object.values(store).map(
+    (collection) => collection.status,
+  );
+  const syncStatus = syncStates.includes("error")
+    ? "error"
+    : syncStates.includes("syncing")
+      ? "syncing"
+      : syncStates.every((status) => status === "synced")
+        ? "synced"
+        : "local-only";
   const entries = Object.values(store.entries.value ?? {}).filter(
     (entry) => !entry.deleted && entry.date === date,
   );
@@ -123,6 +134,7 @@ export default function FoodTracker() {
     /* Validation is shown on save. */
   }
   const load = (food: Food, entry?: FoodEntry) => {
+    setIngredientOnly(false);
     setEditingFood(null);
     setUnitMessage("");
     setEntryDate(entry?.date ?? date);
@@ -131,7 +143,12 @@ export default function FoodTracker() {
       name: food.name,
       basisAmount: String(food.basisAmount),
       basisUnit: food.basisUnit,
-      quantity: String(entry?.quantity ?? food.basisAmount),
+      quantity: String(
+        entry?.quantity ??
+          ("ingredients" in food && food.basisUnit === "serving"
+            ? 1
+            : food.basisAmount),
+      ),
       source: food.source,
     });
     setValues(
@@ -149,6 +166,7 @@ export default function FoodTracker() {
     setOpen(true);
   };
   const start = () => {
+    setIngredientOnly(false);
     setEditingFood(null);
     setUnitMessage("");
     setEntryDate(date);
@@ -166,13 +184,14 @@ export default function FoodTracker() {
     const basis = Number(draft.basisAmount);
     const quantity = Number(draft.quantity);
     if (
-      !meal.trim() ||
+      (!ingredientOnly && !editingFood && !meal.trim()) ||
       !draft.name.trim() ||
       !validNutrients(nutrients) ||
       !Number.isFinite(basis) ||
       basis <= 0 ||
-      !Number.isFinite(quantity) ||
-      quantity <= 0 ||
+      (!ingredientOnly &&
+        !editingFood &&
+        (!Number.isFinite(quantity) || quantity <= 0)) ||
       !/^\d{4}-\d{2}-\d{2}$/.test(entryDate)
     ) {
       setError(
@@ -194,17 +213,22 @@ export default function FoodTracker() {
       source: draft.source,
       updatedAt: stamp,
     };
-    if (editingFood) {
+    if (editingFood || ingredientOnly) {
       try {
         store.foods.setValue((previous) => ({
           ...previous,
           [fid]: {
             ...food,
-            updatedAt: Math.max(stamp, editingFood.updatedAt + 1),
+            updatedAt: Math.max(stamp, (editingFood?.updatedAt ?? 0) + 1),
           },
         }));
         setOpen(false);
-        setMessage("Saved food updated. Historical meals remain unchanged.");
+        setIngredientOnly(false);
+        setMessage(
+          editingFood
+            ? "Saved food updated. Historical meals remain unchanged."
+            : "Ingredient saved. No meal was logged.",
+        );
       } catch (e) {
         setError(e instanceof Error ? e.message : "Food was not saved.");
       }
@@ -225,9 +249,9 @@ export default function FoodTracker() {
     }
     saving.current = true;
     try {
-      store.entries.setValue((previous) => ({ ...previous, [id]: entry }));
       if (reuse && !editing && !store.recipes.value[fid])
         store.foods.setValue((previous) => ({ ...previous, [fid]: food }));
+      store.entries.setValue((previous) => ({ ...previous, [id]: entry }));
       setOpen(false);
       setDate(entryDate);
       setMessage(
@@ -299,6 +323,7 @@ export default function FoodTracker() {
   };
   const loadRemote = async (id: number) => {
     setSearching(true);
+    setError("");
     try {
       const { food } = await request(`/api/nutrition/food/${id}`);
       load(food);
@@ -310,7 +335,12 @@ export default function FoodTracker() {
   };
   const addIngredient = () => {
     const food = foods.find((item) => item.id === ingredientId);
-    if (!food) return;
+    if (!food) {
+      setError(
+        "Choose a saved ingredient. Use Add saved food to create one without logging a meal.",
+      );
+      return;
+    }
     try {
       const amount = Number(ingredientQuantity);
       setIngredients((previous) => [
@@ -422,8 +452,22 @@ export default function FoodTracker() {
           <Button
             variant="outline"
             onClick={() => {
+              start();
+              setIngredientOnly(true);
+            }}
+          >
+            Add saved food
+          </Button>
+        )}
+        {foodView === "saved" && (
+          <Button
+            variant="outline"
+            onClick={() => {
               setRecipeEditing(null);
               setRecipeName("");
+              setYieldAmount("4");
+              setYieldUnit("serving");
+              setIngredientId("");
               setIngredients([]);
               setError("");
               setRecipeOpen(true);
@@ -434,11 +478,11 @@ export default function FoodTracker() {
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        {store.entries.status === "synced"
+        {syncStatus === "synced"
           ? "Synced"
-          : store.entries.status === "syncing"
+          : syncStatus === "syncing"
             ? "Syncing…"
-            : store.entries.status === "error"
+            : syncStatus === "error"
               ? "Saved locally · sync needs retry on reconnect"
               : "Saved on this device"}
       </p>
@@ -655,6 +699,9 @@ export default function FoodTracker() {
                     >
                       Edit recipe
                     </Button>
+                    <Button variant="outline" onClick={() => load(item)}>
+                      Log recipe
+                    </Button>
                     <Button
                       variant="ghost"
                       onClick={() =>
@@ -747,21 +794,27 @@ export default function FoodTracker() {
         open={open}
         onClose={() => setOpen(false)}
         title={
-          editingFood
-            ? "Edit saved food"
-            : editing
-              ? "Edit food entry"
-              : "Log food"
+          ingredientOnly
+            ? "Add saved food"
+            : editingFood
+              ? "Edit saved food"
+              : editing
+                ? "Edit food entry"
+                : "Log food"
         }
         className="max-w-2xl"
         footer={
           <Button onClick={save}>
-            {editingFood || editing ? "Save changes" : "Save food"}
+            {ingredientOnly
+              ? "Save ingredient"
+              : editingFood || editing
+                ? "Save changes"
+                : "Save food"}
           </Button>
         }
       >
         <div className="space-y-4">
-          {!editingFood && (
+          {!editingFood && !ingredientOnly && (
             <label className="text-sm">
               Entry date
               <Input
@@ -771,7 +824,7 @@ export default function FoodTracker() {
               />
             </label>
           )}
-          {!editing && (
+          {!editing && !ingredientOnly && (
             <>
               <label htmlFor="saved-food" className="text-sm font-medium">
                 Saved foods and recipes
@@ -810,6 +863,11 @@ export default function FoodTracker() {
                     {searching ? "Loading…" : "Search foods"}
                   </Button>
                 </div>
+                {error && (
+                  <p role="status" className="mt-2 text-sm text-destructive">
+                    {error}
+                  </p>
+                )}
                 <ul className="mt-3 space-y-2">
                   {results.map((item) => (
                     <li key={item.id}>
@@ -880,45 +938,49 @@ export default function FoodTracker() {
                 <option value="serving">Declared serving</option>
               </select>
             </div>
-            <div>
-              <label htmlFor="food-quantity">Consumed quantity</label>
-              <Input
-                id="food-quantity"
-                type="number"
-                min="0.01"
-                step="any"
-                value={draft.quantity}
-                onChange={(e) =>
-                  setDraft({ ...draft, quantity: e.target.value })
-                }
-              />
-            </div>
+            {!ingredientOnly && !editingFood && (
+              <div>
+                <label htmlFor="food-quantity">Consumed quantity</label>
+                <Input
+                  id="food-quantity"
+                  type="number"
+                  min="0.01"
+                  step="any"
+                  value={draft.quantity}
+                  onChange={(e) =>
+                    setDraft({ ...draft, quantity: e.target.value })
+                  }
+                />
+              </div>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
             Use the label or source’s declared basis. A bowl or piece needs a
             defined serving; volume does not automatically equal weight.
           </p>
-          <div>
-            <label htmlFor="food-meal">Meal</label>
-            <Input
-              id="food-meal"
-              list="meal-options"
-              maxLength={100}
-              value={meal}
-              onChange={(e) => setMeal(e.target.value)}
-            />
-            <datalist id="meal-options">
-              {MEALS.map((value) => (
-                <option key={value} value={value} />
-              ))}
-            </datalist>
-          </div>
+          {!ingredientOnly && !editingFood && (
+            <div>
+              <label htmlFor="food-meal">Meal</label>
+              <Input
+                id="food-meal"
+                list="meal-options"
+                maxLength={100}
+                value={meal}
+                onChange={(e) => setMeal(e.target.value)}
+              />
+              <datalist id="meal-options">
+                {MEALS.map((value) => (
+                  <option key={value} value={value} />
+                ))}
+              </datalist>
+            </div>
+          )}
           {unitMessage && (
             <p role="status" className="text-sm text-muted-foreground">
               {unitMessage}
             </p>
           )}
-          {!editingFood && (
+          {!editingFood && !ingredientOnly && (
             <label className="text-sm">
               Meal note (optional)
               <Input
@@ -929,10 +991,12 @@ export default function FoodTracker() {
             </label>
           )}
           <NutrientFields values={values} onChange={setValues} />
-          <p className="text-sm">
-            This portion: {displayNutrient(preview.energy)} kcal ·{" "}
-            {displayNutrient(preview.protein)} g protein
-          </p>
+          {!ingredientOnly && !editingFood && (
+            <p className="text-sm">
+              This portion: {displayNutrient(preview.energy)} kcal ·{" "}
+              {displayNutrient(preview.protein)} g protein
+            </p>
+          )}
           <label htmlFor="food-source" className="text-sm">
             Source / label note
           </label>
@@ -942,7 +1006,7 @@ export default function FoodTracker() {
             maxLength={500}
             onChange={(e) => setDraft({ ...draft, source: e.target.value })}
           />
-          {!editing && (
+          {!editing && !ingredientOnly && (
             <label className="flex min-h-11 items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -978,7 +1042,12 @@ export default function FoodTracker() {
             id="ingredient-food"
             className="w-full rounded-lg border border-border bg-background p-3"
             value={ingredientId}
-            onChange={(e) => setIngredientId(e.target.value)}
+            onChange={(e) => {
+              setIngredientId(e.target.value);
+              const food = foods.find((item) => item.id === e.target.value);
+              if (food) setIngredientQuantity(String(food.basisAmount));
+              setError("");
+            }}
           >
             <option value="">Choose food</option>
             {foods.map((food) => (

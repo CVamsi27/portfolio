@@ -99,6 +99,7 @@ test("date navigation changes the period and returning to today restores it", as
 test("empty progress offers logging without fabricated trends and retains detail navigation", async ({
   page,
 }) => {
+  await page.clock.install({ time: new Date("2026-10-04T09:00:00+05:30") });
   await seed(page);
   await page.goto("/dashboard?view=health&metric=body");
   await expect(

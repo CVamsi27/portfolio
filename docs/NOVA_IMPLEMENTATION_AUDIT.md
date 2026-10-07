@@ -82,3 +82,14 @@ See [route-by-route decisions](superpowers/specs/2026-10-04-all-personal-pages-r
 These are local auth-open checks. Existing production SQL/provider, authenticated multi-device and real-device notification gates remain pending in NUTRITION_AND_REMINDER_SETUP.md.
 
 Final follow-up: **62 focused browser checks passed** after the Inbox banner and Learning URL-context cleanup. The final build, TypeScript, ESLint and whitespace checks passed.
+
+
+### Food and recipe repair — 7 October 2026
+
+Recipes now have a functioning ingredient-first path: Add saved food creates an ingredient without adding a meal; missing ingredient selection reports an actionable error; quantity begins from the selected basis; Log recipe and quick capture review one serving rather than the full serving-based batch. Edits preserve historical meal snapshots. Food/recipe/target sync failures are included in the visible status. Search errors are visible beside the controls and cleared before a new product load.
+
+USDA Foundation food calories now recognize 1008/2048/2047 in order, preserve explicit zero and ignore malformed nutrient rows. No calories are inferred from incomplete macros. Live USDA search remains blocked by missing production provider configuration (503); a tested public alternative also returned 503 and was not introduced as an unverified fallback.
+
+Verification: five new regressions were reproduced before their fixes; all 45 focused nutrition/workflow checks passed. The full run passed 268 checks and found one unrelated Progress test assuming October 4 without a frozen clock. After freezing its intended fixture date, all nine Progress checks passed. Production build, TypeScript, ESLint and whitespace checks passed. Local tests do not prove signed-in cloud migrations or activate provider configuration.
+
+User confirmed Android Health Connect / Google Fit. The [native companion design](superpowers/specs/2026-10-07-android-health-connect-design.md) covers read-only weight/steps/sleep permissions, account/device pairing, source attribution, deduplication, offline recovery and revocation. Native app, ingestion endpoints, migration and real-phone sync remain unimplemented pending this new platform design review; the food repair does not claim a Health Connect connection.

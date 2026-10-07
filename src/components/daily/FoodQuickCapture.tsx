@@ -72,7 +72,11 @@ export default function FoodQuickCapture({
   };
   const choose = (f: Food) => {
     setSelected(f.id);
-    setQuantity(String(f.basisAmount));
+    setQuantity(
+      String(
+        "ingredients" in f && f.basisUnit === "serving" ? 1 : f.basisAmount,
+      ),
+    );
     onDirty?.(true);
   };
   return (
