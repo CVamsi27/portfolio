@@ -360,3 +360,14 @@ User confirmed Android Health Connect / Google Fit. The [native companion design
 Implemented multi-food durable drafts, richer recipes with cooked weight/servings, dated manual/flexible programs, explicit day-quality review and 7/30/90-day coverage-aware insights. Backup/restore includes programs, reviews and optional recipe metadata. Health → Connections adds expiring pairing approval, device status, separately stored source records and explicit revocation. The Android foreground companion is compiled and locally tested.
 
 The full MacroFactor-level target remains in progress. Prepared batches/templates, provider coverage/offline catalog and declared portions, validated guided coaching/check-ins, capture assistance and the complete imported-record lifecycle remain requirements. Production database/cloud/device gates are listed in [delivery setup](NUTRITION_AND_REMINDER_SETUP.md); a merged bundle is not evidence those gates passed.
+
+
+## Nutrition final-pass checkpoint — 7 October 2026
+
+Delivered reusable meal templates, prepared batches with corrected remaining portions, declared provider portions and account-scoped offline catalog retrieval. Health imports now have historical pagination, full bounded export, reviewed restore and scoped deletion with per-upstream-key replay protection. Progress adds source-selected imported weight, steps and sleep trends separately from manual records.
+
+Fixed account-switch draft/search guards, idempotent meal retry conflicts, planned-versus-consumed filtering, numeric overflow, prototype nutrient keys, malformed flags and backup validation. Browser review also corrected batch unit selection and distinguished the database search action from the meal source selector.
+
+Cloud reuse controls remain disabled until migration 0014 and authenticated checks are verified. Migration 0013 is required for import lifecycle operations. Real PostgreSQL migration/reapply tests and existing SQL regressions pass locally. Production migrations/provider credentials and real-phone/native release checks remain pending. The full MacroFactor-level spec remains open for guided coaching/check-ins, capture assistance, broader provider coverage and revision-aware storage/outbox cutover. See [setup and rollback](NUTRITION_AND_REMINDER_SETUP.md).
+
+Verification for this checkpoint: **299 Chromium browser checks**, **79 nutrition/import domain checks** and **13 shared progress/storage checks** passed. Production build, TypeScript, ESLint and whitespace checks passed. Both new SQL migrations passed real isolated PostgreSQL tests, reapplication and their existing collection/health SQL regressions. These are local checks; cloud activation and physical-phone behavior remain unverified.

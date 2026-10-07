@@ -1,4 +1,4 @@
-import { HEALTH_WINDOW_DAYS, validHealthDate } from "@/lib/health-connect";
+import { validHealthDate } from "@/lib/health-connect";
 import {
   healthAdmin,
   healthFailure,
@@ -14,9 +14,6 @@ export async function GET(request: Request) {
     await healthThrottle(request, "owner", user.id);
     const parameters = new URL(request.url).searchParams;
     const today = new Date().toISOString().slice(0, 10);
-    const oldest = new Date(Date.parse(today) - HEALTH_WINDOW_DAYS * 86400000)
-      .toISOString()
-      .slice(0, 10);
     const from =
       parameters.get("from") ??
       new Date(Date.parse(today) - 30 * 86400000).toISOString().slice(0, 10);
@@ -28,7 +25,6 @@ export async function GET(request: Request) {
     if (
       !validHealthDate(from) ||
       !validHealthDate(to) ||
-      from < oldest ||
       to > new Date(Date.parse(today) + 86400000).toISOString().slice(0, 10) ||
       from > to ||
       !Number.isInteger(limit) ||
@@ -36,7 +32,7 @@ export async function GET(request: Request) {
       limit > 100 ||
       !Number.isInteger(offset) ||
       offset < 0 ||
-      offset > 10000
+      offset > 500000
     )
       throw new HealthApiError(
         "Choose a valid health record date range and page.",
@@ -49,10 +45,11 @@ export async function GET(request: Request) {
       .eq("deleted", false)
       .gte("date", from)
       .lte("date", to)
-      .order("updated_at_ms", { ascending: false })
+      .order("date", { ascending: false })
       .order("record_id", { ascending: true })
       .order("type", { ascending: true })
       .order("source", { ascending: true })
+      .order("device_id", { ascending: true })
       .range(offset, offset + limit - 1);
     if (error)
       throw new HealthApiError("Imported health records are unavailable.", 503);

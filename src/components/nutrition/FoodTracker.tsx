@@ -12,6 +12,7 @@ import {
   scaleNutrients,
   validNutrients,
   validEntry,
+  validFood,
   nutrientTotals,
   type Food,
   type FoodEntry,
@@ -20,8 +21,12 @@ import {
   type Recipe,
   type Unit,
 } from "@/lib/nutrition";
-import { getSupabase } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import CatalogSearch from "./CatalogSearch";
+import MealLibrary from "./MealLibrary";
+import { correctBatchBasis } from "@/lib/nutrition-reuse";
 import NutrientFields from "./NutrientFields";
+import { mergeMealEntries } from "@/lib/nutrition-meals";
 import NutritionDailySummary from "./NutritionDailySummary";
 import MealComposer from "./MealComposer";
 import RecipeBuilder from "./RecipeBuilder";
@@ -40,6 +45,7 @@ export default function FoodTracker() {
   const store = useNutrition();
   const [foodView, setFoodView] = useState("diary");
   const saving = useRef(false);
+  const loadedFood = useRef<Food | null>(null);
   const [copyDate, setCopyDate] = useState(() => foodDateKey());
   const [recipeEditing, setRecipeEditing] = useState<Recipe | null>(null);
   const [date, updateDate] = useState(() => foodDateKey());
@@ -65,11 +71,7 @@ export default function FoodTracker() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [removed, setRemoved] = useState<FoodEntry | null>(null);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<
-    Array<{ id: number; name: string; brand?: string; type?: string }>
-  >([]);
-  const [searching, setSearching] = useState(false);
+
   const [recipeOpen, setRecipeOpen] = useState(false);
   const [mealOpen, setMealOpen] = useState(false);
   useEffect(() => {
@@ -102,11 +104,15 @@ export default function FoodTracker() {
         ? "synced"
         : "local-only";
   const entries = Object.values(store.entries.value ?? {}).filter(
-    (entry) => !entry.deleted && entry.date === date,
+    (entry) =>
+      validEntry(entry) &&
+      !entry.deleted &&
+      !entry.planned &&
+      entry.date === date,
   );
   const recent = Object.fromEntries(
     Object.values(store.entries.value ?? {})
-      .filter((item) => !item.deleted)
+      .filter((item) => validEntry(item) && !item.deleted && !item.planned)
       .sort((a, b) => b.updatedAt - a.updatedAt)
       .slice(0, 20)
       .map((item) => [item.foodId, { ...item, id: item.foodId }]),
@@ -116,7 +122,7 @@ export default function FoodTracker() {
     ...store.foods.value,
     ...store.recipes.value,
   })
-    .filter((food) => !food.deleted)
+    .filter((food) => validFood(food) && !food.deleted)
     .sort((a, b) => Number(b.favorite ?? false) - Number(a.favorite ?? false));
   const getValues = (): Nutrients =>
     Object.fromEntries(
@@ -136,6 +142,7 @@ export default function FoodTracker() {
     /* Validation is shown on save. */
   }
   const load = (food: Food, entry?: FoodEntry) => {
+    loadedFood.current = food;
     setIngredientOnly(false);
     setEditingFood(null);
     setUnitMessage("");
@@ -168,6 +175,7 @@ export default function FoodTracker() {
     setOpen(true);
   };
   const start = () => {
+    loadedFood.current = null;
     setIngredientOnly(false);
     setEditingFood(null);
     setUnitMessage("");
@@ -207,6 +215,10 @@ export default function FoodTracker() {
     const food: Food = {
       ...(editingFood ?? {}),
       favorite: store.foods.value[fid]?.favorite,
+      portions:
+        (editingFood ?? loadedFood.current)?.basisUnit === draft.basisUnit
+          ? (editingFood ?? loadedFood.current)?.portions
+          : undefined,
       id: fid,
       name: draft.name.trim(),
       basisAmount: basis,
@@ -236,8 +248,25 @@ export default function FoodTracker() {
       }
       return;
     }
+    let batchBasis = {};
+    try {
+      if (editing)
+        batchBasis = correctBatchBasis(
+          editing,
+          basis,
+          draft.basisUnit,
+          editing.batchId ? store.batches.value[editing.batchId] : undefined,
+        );
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Batch portion was not corrected.",
+      );
+      return;
+    }
     const entry: FoodEntry = {
+      ...editing,
       ...food,
+      ...batchBasis,
       id,
       foodId: fid,
       date: entryDate,
@@ -292,48 +321,6 @@ export default function FoodTracker() {
     }));
     setRemoved(null);
     setMessage("Food entry restored.");
-  };
-  const request = async (path: string) => {
-    const session = await getSupabase()?.auth.getSession();
-    const response = await fetch(path, {
-      headers: session?.data.session
-        ? { Authorization: `Bearer ${session.data.session.access_token}` }
-        : {},
-    });
-    const result = await response.json();
-    if (!response.ok)
-      throw new Error(result.error ?? "Food database unavailable.");
-    return result;
-  };
-  const search = async () => {
-    setSearching(true);
-    setError("");
-    try {
-      const result = await request(
-        `/api/nutrition/search?q=${encodeURIComponent(query.trim())}`,
-      );
-      setResults(result.foods);
-      if (!result.foods.length)
-        setError(
-          "No matching foods. Try another name or add the food manually.",
-        );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Search unavailable.");
-    } finally {
-      setSearching(false);
-    }
-  };
-  const loadRemote = async (id: number) => {
-    setSearching(true);
-    setError("");
-    try {
-      const { food } = await request(`/api/nutrition/food/${id}`);
-      load(food);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Food unavailable.");
-    } finally {
-      setSearching(false);
-    }
   };
   return (
     <div className="space-y-5">
@@ -464,6 +451,29 @@ export default function FoodTracker() {
           entries={entries}
           targets={store.targets.value}
           details={foodView === "nutrients"}
+        />
+      )}
+      {foodView === "saved" && (
+        <MealLibrary
+          date={date}
+          entries={Object.values(store.entries.value)}
+          templates={store.templates.value}
+          batches={store.batches.value}
+          recipes={Object.values(store.recipes.value).filter(
+            (recipe) => !recipe.deleted && validFood(recipe),
+          )}
+          enabled={
+            !isSupabaseConfigured() ||
+            process.env.NEXT_PUBLIC_NUTRITION_REUSE_ENABLED === "true"
+          }
+          onTemplatesChange={store.templates.setValue}
+          onBatchesChange={store.batches.setValue}
+          onLog={(items) => {
+            store.entries.setValue((previous) =>
+              mergeMealEntries(previous, items),
+            );
+            setMessage("Consumed meal saved locally.");
+          }}
         />
       )}
       {foodView === "strategy" && <NutritionStrategy date={date} />}
@@ -808,39 +818,17 @@ export default function FoodTracker() {
                 <summary className="flex min-h-11 items-center cursor-pointer text-sm font-medium">
                   Search food database
                 </summary>
-                <div className="flex flex-wrap gap-2">
-                  <Input
-                    aria-label="Food search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Food or brand"
-                  />
-                  <Button
-                    onClick={search}
-                    disabled={searching || !query.trim()}
-                  >
-                    {searching ? "Loading…" : "Search foods"}
-                  </Button>
-                </div>
-                {error && (
-                  <p role="status" className="mt-2 text-sm text-destructive">
-                    {error}
-                  </p>
-                )}
-                <ul className="mt-3 space-y-2">
-                  {results.map((item) => (
-                    <li key={item.id}>
-                      <Button
-                        variant="outline"
-                        className="h-auto whitespace-normal text-left"
-                        onClick={() => loadRemote(item.id)}
-                        disabled={searching}
-                      >
-                        {item.name} · {item.brand ?? item.type}
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
+                <CatalogSearch
+                  foods={foods}
+                  onSelect={(food, quantity) => {
+                    load(food);
+                    if (quantity !== undefined)
+                      setDraft((previous) => ({
+                        ...previous,
+                        quantity: String(quantity),
+                      }));
+                  }}
+                />
               </details>
             </>
           )}
@@ -1003,7 +991,9 @@ export default function FoodTracker() {
         meal={meal}
         foods={foods}
         onSave={(items, day) => {
-          store.entries.setValue((previous) => ({ ...previous, ...items }));
+          store.entries.setValue((previous) =>
+            mergeMealEntries(previous, items),
+          );
           setDate(day);
           setFoodView("diary");
           setMessage("Meal saved on this device.");

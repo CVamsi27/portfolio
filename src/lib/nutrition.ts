@@ -34,6 +34,12 @@ export const NUTRIENTS = {
 export type NutrientKey = keyof typeof NUTRIENTS;
 export type Nutrients = Partial<Record<NutrientKey, number | null>>;
 export type Unit = "g" | "ml" | "serving";
+export type FoodPortion = {
+  name: string;
+  amount: number;
+  unit: Unit;
+  gramWeight?: number;
+};
 export type Food = {
   id: string;
   name: string;
@@ -44,6 +50,7 @@ export type Food = {
   updatedAt: number;
   deleted?: boolean;
   favorite?: boolean;
+  portions?: FoodPortion[];
 };
 export type FoodEntry = Food & {
   date: string;
@@ -51,6 +58,10 @@ export type FoodEntry = Food & {
   quantity: number;
   foodId: string;
   note?: string;
+  mealId?: string;
+  batchId?: string;
+  batchFraction?: number;
+  planned?: boolean;
 };
 export type Recipe = Food & {
   ingredients: Array<{
@@ -79,7 +90,7 @@ export function validNutrients(value: unknown): value is Nutrients {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   return Object.entries(value).every(
     ([key, v]) =>
-      key in NUTRIENTS &&
+      Object.hasOwn(NUTRIENTS, key) &&
       (v === null || (typeof v === "number" && Number.isFinite(v) && v >= 0)),
   );
 }
@@ -99,7 +110,16 @@ export function scaleNutrients(
   return Object.fromEntries(
     Object.entries(values).map(([key, value]) => [
       key,
-      value === null ? null : (value * quantity) / basis,
+      value === null
+        ? null
+        : (() => {
+            const scaled = (value * quantity) / basis;
+            if (!Number.isFinite(scaled))
+              throw new Error(
+                "Nutrient amount is too large. Review the portion.",
+              );
+            return scaled;
+          })(),
     ]),
   );
 }
@@ -115,9 +135,8 @@ export function nutrientTotals(values: Nutrients[]) {
           typeof value === "number" && Number.isFinite(value),
       );
     coverage[key] = known.length;
-    totals[key] = known.length
-      ? known.reduce((sum, value) => sum + value, 0)
-      : null;
+    const total = known.reduce((sum, value) => sum + value, 0);
+    totals[key] = known.length && Number.isFinite(total) ? total : null;
   }
   return { values: totals, coverage, count: values.length };
 }
@@ -132,10 +151,12 @@ export function recipeNutrients(
   return scaleNutrients(result.values, quantity, yieldAmount);
 }
 export function validFood(value: unknown): value is Food {
-  if (!value || typeof value !== "object") return false;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const f = value as Food;
   return (
     typeof f.id === "string" &&
+    f.id.trim().length > 0 &&
+    f.id.length <= 500 &&
     typeof f.name === "string" &&
     f.name.trim().length > 0 &&
     f.name.length <= 300 &&
@@ -143,14 +164,40 @@ export function validFood(value: unknown): value is Food {
     Number.isFinite(f.basisAmount) &&
     f.basisAmount > 0 &&
     Number.isFinite(f.updatedAt) &&
+    f.updatedAt >= 0 &&
+    (f.deleted === undefined || typeof f.deleted === "boolean") &&
+    (f.favorite === undefined || typeof f.favorite === "boolean") &&
+    (f.portions === undefined ||
+      (Array.isArray(f.portions) &&
+        f.portions.length <= 50 &&
+        f.portions.every(
+          (p) =>
+            p &&
+            typeof p === "object" &&
+            !Array.isArray(p) &&
+            typeof p.name === "string" &&
+            p.name.trim().length > 0 &&
+            p.name.length <= 100 &&
+            Number.isFinite(p.amount) &&
+            p.amount > 0 &&
+            p.amount <= 1000000 &&
+            ["g", "ml", "serving"].includes(p.unit) &&
+            (p.gramWeight === undefined ||
+              (Number.isFinite(p.gramWeight) &&
+                p.gramWeight > 0 &&
+                p.gramWeight <= 1000000)),
+        ))) &&
     validNutrients(f.nutrients) &&
-    typeof f.source === "string"
+    typeof f.source === "string" &&
+    f.source.length <= 1000
   );
 }
 export function validEntry(value: unknown): value is FoodEntry {
   if (!validFood(value)) return false;
   const e = value as FoodEntry;
   return (
+    typeof e.date === "string" &&
+    !e.date.startsWith("0000-") &&
     /^\d{4}-\d{2}-\d{2}$/.test(e.date) &&
     Number.isFinite(Date.parse(`${e.date}T12:00:00Z`)) &&
     new Date(`${e.date}T12:00:00Z`).toISOString().slice(0, 10) === e.date &&
@@ -159,11 +206,30 @@ export function validEntry(value: unknown): value is FoodEntry {
     typeof e.meal === "string" &&
     e.meal.trim().length > 0 &&
     e.meal.length <= 100 &&
-    typeof e.foodId === "string"
+    typeof e.foodId === "string" &&
+    e.foodId.trim().length > 0 &&
+    e.foodId.length <= 500 &&
+    (e.note === undefined ||
+      (typeof e.note === "string" && e.note.length <= 2000)) &&
+    (e.planned === undefined || typeof e.planned === "boolean") &&
+    (e.mealId === undefined ||
+      (typeof e.mealId === "string" &&
+        e.mealId.length > 0 &&
+        e.mealId.length <= 100)) &&
+    ((e.batchId === undefined && e.batchFraction === undefined) ||
+      (typeof e.batchId === "string" &&
+        /^[A-Za-z0-9_-]{1,100}$/.test(e.batchId) &&
+        typeof e.batchFraction === "number" &&
+        Number.isFinite(e.batchFraction) &&
+        e.batchFraction > 0 &&
+        e.batchFraction <= 1000000)) &&
+    Object.values(e.nutrients).every(
+      (n) => n === null || Number.isFinite((n * e.quantity) / e.basisAmount),
+    )
   );
 }
 export function displayNutrient(value: number | null | undefined) {
-  return value == null
+  return value == null || !Number.isFinite(value)
     ? "Unknown"
     : new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(value);
 }

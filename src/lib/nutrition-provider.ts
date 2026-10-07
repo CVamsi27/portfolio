@@ -1,4 +1,5 @@
 import { NUTRIENTS, type Food, type NutrientKey } from "./nutrition";
+import { normalizeFdcPortions } from "./nutrition-catalog";
 import { createClient } from "@supabase/supabase-js";
 export async function authenticatedRequest(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -80,6 +81,7 @@ export function normalizeFdcFood(raw: Record<string, unknown>): Food {
     basisAmount: 100,
     basisUnit: "g",
     nutrients,
+    portions: normalizeFdcPortions(raw.foodPortions),
     source: `USDA FoodData Central #${raw.fdcId} · ${String(raw.dataType ?? "Food")} · Retrieved ${new Date().toISOString().slice(0, 10)}`,
     updatedAt: Date.now(),
   };

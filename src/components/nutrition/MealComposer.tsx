@@ -1,8 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/lib/auth-store";
-import { getSupabase } from "@/lib/supabase/client";
-import { readDraft, writeDraft, deleteDraft } from "@/lib/nutrition-drafts";
+import { currentAuthUserId, useAuth } from "@/lib/auth-store";
+import CatalogSearch from "./CatalogSearch";
+import {
+  readDraft,
+  writeDraft,
+  deleteDraft,
+  assertDraftOwner,
+} from "@/lib/nutrition-drafts";
 import { mealEntries, type MealDraft } from "@/lib/nutrition-meals";
 import { convertRecipePortion, type RichRecipe } from "@/lib/nutrition-recipes";
 import {
@@ -29,16 +34,21 @@ type Props = {
   foods: Food[];
   onSave: (entries: Record<string, FoodEntry>, date: string) => void;
 };
-export default function MealComposer({
+export default function MealComposer(props: Props) {
+  const { user, configured } = useAuth();
+  const scope = configured ? `account:${user?.id ?? "signed-out"}` : "local";
+  return <ScopedMealComposer key={scope} {...props} scope={scope} />;
+}
+function ScopedMealComposer({
   open,
   onClose,
   date,
   meal = "Lunch",
   foods,
   onSave,
-}: Props) {
-  const { user, configured } = useAuth();
-  const scope = configured ? `account:${user?.id ?? "signed-out"}` : "local";
+  scope,
+}: Props & { scope: string }) {
+  const { configured } = useAuth();
   const [draft, setDraft] = useState<MealDraft | null>(null);
   const [ready, setReady] = useState(false);
   const [status, setStatus] = useState("");
@@ -47,19 +57,15 @@ export default function MealComposer({
     "library",
   );
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<
-    Array<{ id: number; name: string; brand?: string; type?: string }>
-  >([]);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [values, setValues] = useState<Record<string, string>>({});
   const writes = useRef<Promise<void>>(Promise.resolve());
   const generation = useRef(0);
   const latestWrite = useRef(0);
-  const requestId = useRef(0);
+
   useEffect(() => {
-    if (!open) return;
+    if (!open || (configured && !currentAuthUserId())) return;
     const current = ++generation.current;
     setReady(false);
     setError("");
@@ -90,12 +96,10 @@ export default function MealComposer({
       // These are numeric cancellation tokens, not refs to DOM nodes.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      requestId.current++;
     };
     // Date and meal are seeds only: changes in the surrounding page must not replace an open/restored draft.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, scope]);
+  }, [open, scope, configured]);
   useEffect(() => {
     if (!open || !ready || !draft) return;
     const current = generation.current;
@@ -103,7 +107,10 @@ export default function MealComposer({
     setStatus("Saving draft…");
     writes.current = writes.current
       .catch(() => undefined)
-      .then(() => writeDraft(scope, draft));
+      .then(() => {
+        assertDraftOwner(scope, configured, currentAuthUserId());
+        return writeDraft(scope, draft);
+      });
     void writes.current
       .then(() => {
         if (
@@ -121,7 +128,7 @@ export default function MealComposer({
           setError(e.message);
         }
       });
-  }, [draft, open, ready, scope]);
+  }, [draft, open, ready, scope, configured]);
   const update = (change: (d: MealDraft) => MealDraft) =>
     setDraft((d) =>
       d
@@ -149,51 +156,6 @@ export default function MealComposer({
       ],
     }));
     setError("");
-  };
-  const request = async (path: string) => {
-    const session = await getSupabase()?.auth.getSession();
-    const response = await fetch(path, {
-      headers: session?.data.session
-        ? { Authorization: `Bearer ${session.data.session.access_token}` }
-        : {},
-    });
-    const result = await response.json();
-    if (!response.ok) throw Error(result.error ?? "Food database unavailable.");
-    return result;
-  };
-  const search = async () => {
-    const current = ++requestId.current;
-    setLoading(true);
-    setError("");
-    try {
-      const result = await request(
-        `/api/nutrition/search?q=${encodeURIComponent(query.trim())}`,
-      );
-      if (current === requestId.current) {
-        setResults(result.foods);
-        if (!result.foods.length)
-          setError("No matching foods. Try another name or use Quick add.");
-      }
-    } catch (e) {
-      if (current === requestId.current)
-        setError(e instanceof Error ? e.message : "Search unavailable.");
-    } finally {
-      if (current === requestId.current) setLoading(false);
-    }
-  };
-  const load = async (id: number) => {
-    const current = ++requestId.current;
-    setLoading(true);
-    setError("");
-    try {
-      const result = await request(`/api/nutrition/food/${id}`);
-      if (current === requestId.current) add(result.food);
-    } catch (e) {
-      if (current === requestId.current)
-        setError(e instanceof Error ? e.message : "Food unavailable.");
-    } finally {
-      if (current === requestId.current) setLoading(false);
-    }
   };
   const quickAdd = () => {
     const nutrients: Nutrients = Object.fromEntries(
@@ -226,11 +188,15 @@ export default function MealComposer({
     if (!draft || saving) return;
     setSaving(true);
     setError("");
+    const token = generation.current;
     try {
       const entries = mealEntries(draft, draft.updatedAt);
       await writes.current;
-      if (configured && !user) throw Error("Sign in before saving a meal.");
+      if (token !== generation.current)
+        throw Error("The draft was closed. Reopen it before saving.");
+      assertDraftOwner(scope, configured, currentAuthUserId());
       onSave(entries, draft.date);
+      assertDraftOwner(scope, configured, currentAuthUserId());
       await deleteDraft(scope);
       setDraft(null);
       onClose();
@@ -251,6 +217,7 @@ export default function MealComposer({
       return;
     try {
       await writes.current;
+      assertDraftOwner(scope, configured, currentAuthUserId());
       await deleteDraft(scope);
       setDraft(null);
       onClose();
@@ -484,34 +451,7 @@ export default function MealComposer({
               </div>
             )}
             {source === "database" && (
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Input
-                    aria-label="Food database search"
-                    placeholder="Food or brand"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                  <Button onClick={search} disabled={loading || !query.trim()}>
-                    {loading ? "Loading…" : "Search foods"}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  USDA FoodData Central · review preparation and portions. Your
-                  draft remains available if search is offline.
-                </p>
-                {results.map((r) => (
-                  <Button
-                    className="h-auto whitespace-normal text-left"
-                    key={r.id}
-                    variant="outline"
-                    disabled={loading}
-                    onClick={() => load(r.id)}
-                  >
-                    {r.name} · {r.brand ?? r.type}
-                  </Button>
-                ))}
-              </div>
+              <CatalogSearch foods={foods} onSelect={add} />
             )}
             {source === "quick" && (
               <div className="space-y-3">

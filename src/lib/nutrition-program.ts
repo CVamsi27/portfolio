@@ -103,7 +103,7 @@ export function dayQuality(
   reason: string;
   energy: number | null;
 } {
-  const dated = entries.filter((entry) => entry.date === date);
+  const dated = entries.filter((entry) => entry.date === date && !entry.planned);
   const active = dated.filter((entry) => !entry.deleted);
   const confirmed =
     validNutritionDay(dayRecord) && !dayRecord.deleted && dayRecord.id === date;

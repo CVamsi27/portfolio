@@ -1,13 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mealEntries, validateMealDraft, type MealDraft } from "./nutrition-meals.ts";
+import {
+  mealEntries,
+  validateMealDraft,
+  type MealDraft,
+} from "./nutrition-meals.ts";
 
 const draft = (): MealDraft => ({
-  id: "meal-1", date: "2026-10-07", meal: "Lunch", updatedAt: 1,
-  items: [{ id: "item-1", quantity: 150, food: {
-    id: "rice", name: "Cooked rice", basisAmount: 100, basisUnit: "g",
-    nutrients: { energy: 130, sodium: 0, calcium: null }, source: "custom", updatedAt: 1,
-  } }],
+  id: "meal-1",
+  date: "2026-10-07",
+  meal: "Lunch",
+  updatedAt: 1,
+  items: [
+    {
+      id: "item-1",
+      quantity: 150,
+      food: {
+        id: "rice",
+        name: "Cooked rice",
+        basisAmount: 100,
+        basisUnit: "g",
+        nutrients: { energy: 130, sodium: 0, calcium: null },
+        source: "custom",
+        updatedAt: 1,
+      },
+    },
+  ],
 });
 
 test("meal projection keeps immutable portion snapshots and stable IDs on retry", () => {
@@ -42,12 +60,29 @@ test("every row is validated before projecting a meal", () => {
 
 test("validation rejects ambiguous IDs, impossible dates, oversized and non-finite values", () => {
   for (const change of [
-    { date: "2026-02-30" }, { date: "2026-1-01" }, { date: "0000-01-01" }, { id: "a:b" },
-    { meal: " " }, { note: "x".repeat(2001) }, { updatedAt: Infinity },
-    { items: Array.from({ length: 101 }, (_, i) => ({ ...draft().items[0], id: String(i) })) },
-  ]) assert.equal(validateMealDraft({ ...draft(), ...change }), false);
+    { date: "2026-02-30" },
+    { date: "2026-1-01" },
+    { date: "0000-01-01" },
+    { id: "a:b" },
+    { meal: " " },
+    { note: "x".repeat(2001) },
+    { updatedAt: Infinity },
+    {
+      items: Array.from({ length: 101 }, (_, i) => ({
+        ...draft().items[0],
+        id: String(i),
+      })),
+    },
+  ])
+    assert.equal(validateMealDraft({ ...draft(), ...change }), false);
   for (const quantity of [NaN, Infinity, -1, 1000001])
-    assert.equal(validateMealDraft({ ...draft(), items: [{ ...draft().items[0], quantity }] }), false);
+    assert.equal(
+      validateMealDraft({
+        ...draft(),
+        items: [{ ...draft().items[0], quantity }],
+      }),
+      false,
+    );
   assert.throws(() => mealEntries(draft(), NaN));
 });
 
@@ -76,4 +111,28 @@ test("meal notes and date survive without leaking deleted food state", () => {
   assert.equal(result.note, "Packed lunch");
   assert.equal(result.date, original.date);
   assert.equal(result.updatedAt, 8);
+});
+
+test("retrying a locally saved meal cannot overwrite a later edit or deletion", async () => {
+  const { mergeMealEntries } = await import("./nutrition-meals.ts");
+  const incoming = mealEntries(draft(), 7);
+  assert.deepEqual(mergeMealEntries(incoming, incoming), incoming);
+  const id = Object.keys(incoming)[0];
+  assert.throws(
+    () =>
+      mergeMealEntries(
+        { [id]: { ...incoming[id], quantity: 75, updatedAt: 8 } },
+        incoming,
+      ),
+    /changed|conflict/i,
+  );
+  assert.throws(
+    () =>
+      mergeMealEntries(
+        { [id]: { ...incoming[id], deleted: true, updatedAt: 8 } },
+        incoming,
+      ),
+    /changed|conflict/i,
+  );
+  assert.deepEqual(mergeMealEntries({}, incoming), incoming);
 });

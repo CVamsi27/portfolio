@@ -32,7 +32,7 @@ export function nutritionRange(
   const start = days[0].date;
   const active = entries.filter(
     (entry) =>
-      !entry.deleted &&
+      !entry.deleted && !entry.planned &&
       validEntry(entry) &&
       entry.date >= start &&
       entry.date <= date,

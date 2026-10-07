@@ -63,7 +63,7 @@ export function buildProgress(input: ProgressInput) {
   const inRange = (date: string) =>
     date >= dates[0] && date <= input.end && dates.includes(date);
   const food = Object.values(input.food ?? {}).filter(
-    (entry) => !entry.deleted && validEntry(entry) && inRange(entry.date),
+    (entry) => !entry.deleted && !entry.planned && validEntry(entry) && inRange(entry.date),
   );
   const focus = (input.focus ?? []).filter(
     (item) =>

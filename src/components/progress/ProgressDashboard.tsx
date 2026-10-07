@@ -13,6 +13,7 @@ import { displayGoalTitle } from "@/lib/user-prefs";
 import { NUTRIENTS, type NutrientKey } from "@/lib/nutrition";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import ImportedHealthTrends from "./ImportedHealthTrends";
 import TrendChart, { shortProgressDate } from "./TrendChart";
 const number = (value: number | null, unit = "") =>
   value === null
@@ -263,6 +264,9 @@ export default function ProgressDashboard() {
             </p>
           </div>
 
+          {view === "health" && (
+            <ImportedHealthTrends from={d.first} to={d.end} />
+          )}
           {view === "overview" && (
             <div className="progress-summary-grid">
               {[

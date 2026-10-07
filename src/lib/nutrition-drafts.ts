@@ -17,13 +17,19 @@ function open(): Promise<IDBDatabase> {
     const request = indexedDB.open(DATABASE, 1);
     let rejected = false;
     request.onupgradeneeded = () => {
-      if (!request.result.objectStoreNames.contains(STORE)) request.result.createObjectStore(STORE);
+      if (!request.result.objectStoreNames.contains(STORE))
+        request.result.createObjectStore(STORE);
     };
     request.onsuccess = () => {
       if (rejected) request.result.close();
       else resolve(request.result);
     };
-    request.onerror = () => reject(new Error(`Draft storage could not open: ${request.error?.message ?? "unknown error"}`));
+    request.onerror = () =>
+      reject(
+        new Error(
+          `Draft storage could not open: ${request.error?.message ?? "unknown error"}`,
+        ),
+      );
     request.onblocked = () => {
       rejected = true;
       reject(new Error("Draft storage is blocked by another open tab."));
@@ -31,8 +37,11 @@ function open(): Promise<IDBDatabase> {
   });
 }
 
-async function operation<T>(scope: string, mode: IDBTransactionMode,
-  run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+async function operation<T>(
+  scope: string,
+  mode: IDBTransactionMode,
+  run: (store: IDBObjectStore) => IDBRequest<T>,
+): Promise<T> {
   validScope(scope);
   const db = await open();
   return new Promise((resolve, reject) => {
@@ -41,12 +50,23 @@ async function operation<T>(scope: string, mode: IDBTransactionMode,
     try {
       transaction = db.transaction(STORE, mode);
       const request = run(transaction.objectStore(STORE));
-      request.onsuccess = () => { result = request.result; };
-      request.onerror = () => { /* The transaction abort reports the durable failure. */ };
-      transaction.oncomplete = () => { db.close(); resolve(result); };
+      request.onsuccess = () => {
+        result = request.result;
+      };
+      request.onerror = () => {
+        /* The transaction abort reports the durable failure. */
+      };
+      transaction.oncomplete = () => {
+        db.close();
+        resolve(result);
+      };
       transaction.onabort = transaction.onerror = () => {
         db.close();
-        reject(new Error(`Draft storage failed: ${transaction.error?.message ?? "transaction aborted"}`));
+        reject(
+          new Error(
+            `Draft storage failed: ${transaction.error?.message ?? "transaction aborted"}`,
+          ),
+        );
       };
     } catch (error) {
       db.close();
@@ -57,13 +77,19 @@ async function operation<T>(scope: string, mode: IDBTransactionMode,
 
 /** Account scope is mandatory. Corrupt records are reported, never treated as saved drafts. */
 export async function readDraft(scope: string): Promise<MealDraft | null> {
-  const draft: unknown = await operation(scope, "readonly", (store) => store.get(scope));
+  const draft: unknown = await operation(scope, "readonly", (store) =>
+    store.get(scope),
+  );
   if (draft === undefined) return null;
-  if (!validateMealDraft(draft)) throw new Error("Stored meal draft is invalid. Discard it to start again.");
+  if (!validateMealDraft(draft))
+    throw new Error("Stored meal draft is invalid. Discard it to start again.");
   return draft;
 }
 
-export async function writeDraft(scope: string, draft: MealDraft): Promise<void> {
+export async function writeDraft(
+  scope: string,
+  draft: MealDraft,
+): Promise<void> {
   if (!validateMealDraft(draft)) throw new Error("Invalid meal draft.");
   // Snapshot before opening the asynchronous transaction; later caller edits cannot change this save.
   const snapshot = structuredClone(draft);
@@ -72,4 +98,16 @@ export async function writeDraft(scope: string, draft: MealDraft): Promise<void>
 
 export async function deleteDraft(scope: string): Promise<void> {
   await operation(scope, "readwrite", (store) => store.delete(scope));
+}
+
+/** Check the current authenticated owner again after asynchronous draft operations. */
+export function assertDraftOwner(
+  scope: string,
+  configured: boolean,
+  userId: string | null,
+) {
+  if (configured ? !userId || scope !== `account:${userId}` : scope !== "local")
+    throw new Error(
+      "Your account changed. Reopen the meal draft before saving.",
+    );
 }

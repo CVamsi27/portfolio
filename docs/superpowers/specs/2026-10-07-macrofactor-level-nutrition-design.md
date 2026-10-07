@@ -170,3 +170,8 @@ Per-stage verification includes domain tests, browser journeys, accessible names
 ## Implementation checkpoint — 7 October 2026
 
 Meal drafts, rich recipes, manual/flexible programs, day reviews, nutrient insights and their backup support have been implemented. Android companion and pairing/import infrastructure are being verified. See the [implementation plan](../plans/2026-10-07-nutrition-workspace.md) and [rollout setup](../../NUTRITION_AND_REMINDER_SETUP.md) for verified evidence and pending release gates. The full target remains open: prepared batches/templates, provider-neutral catalog/offline cache and declared portions, guided coaching/check-ins, reviewed capture assistance and complete imported-record lifecycle are not delivered by this foundation.
+
+
+## Final-pass checkpoint — 7 October 2026
+
+Templates, prepared batches, declared portions, a bounded account-scoped offline catalog and imported-record lifecycle/source trends are now implemented and locally verified. The cache uses complete reviewed snapshots and retrieval aliases; it does not establish broad provider coverage. Cloud migrations and authenticated/device validation remain release gates. Guided coaching/check-ins, reviewed capture assistance, revision-aware meal storage/outbox and legacy cutover, broader catalog coverage and native background/change-token/signing requirements remain open. See the [final-pass plan](../plans/2026-10-07-nutrition-final-pass.md) and delivery setup for current evidence.

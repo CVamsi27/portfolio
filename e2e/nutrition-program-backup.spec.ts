@@ -159,3 +159,30 @@ test("invalid optional recipe yields and notes reject all writes rather than los
     expect(Array.from(storage.entries())).toEqual(before);
   }
 });
+
+test('meal templates and prepared snapshots are backed up without becoming intake',()=>{
+ const recipe=makeRecipe();
+ const template={id:'usual',name:'Usual meal',items:[{food:{...recipe,id:'food',basisAmount:100,basisUnit:'g'},quantity:150}],updatedAt:1};
+ const batch={id:'batch',recipe,preparedDate:'2026-10-07',updatedAt:1};
+ storage.set('vk:nutrition:templates',JSON.stringify({usual:template}));
+ storage.set('vk:nutrition:batches',JSON.stringify({batch}));
+ const backup=collectBackup();
+ expect(backup.data['nutrition:templates']).toEqual({usual:template});
+ expect(backup.data['nutrition:batches']).toEqual({batch});
+ storage.clear();
+ const result=applyBackup(backup);
+ expect(result.ok).toBe(true);
+ expect(JSON.parse(storage.get('vk:nutrition:batches')!)).toEqual({batch});
+ expect(storage.has('vk:nutrition:entries')).toBe(false);
+});
+test('invalid reusable meals reject the whole restore before replacing any record',()=>{
+ const before=JSON.stringify({unchanged:true});storage.set('vk:nutrition:foods',before);
+ const result=applyBackup(file({'nutrition:templates':{bad:{id:'bad',name:'Bad',items:[],updatedAt:1}},'nutrition:foods':{}}));
+ expect(result.ok).toBe(false);expect(storage.get('vk:nutrition:foods')).toBe(before);
+});
+test('undeclared portions and unpaired batch metadata are rejected before any restore',()=>{
+ const invalid={...makeRecipe(),portions:[{name:'cup',amount:0,unit:'serving'}]};
+ expect(applyBackup(file({'nutrition:recipes':{recipe:invalid}})).ok).toBe(false);
+ const entry={...makeRecipe(),id:'portion',foodId:'recipe',date:'2026-10-07',meal:'Lunch',quantity:1,batchId:'batch'};
+ expect(applyBackup(file({'nutrition:entries':{portion:entry}})).ok).toBe(false);
+});

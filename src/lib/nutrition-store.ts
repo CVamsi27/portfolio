@@ -2,6 +2,7 @@
 import { useSyncedStorage } from "./use-synced-storage";
 import type { Food, FoodEntry, Recipe, Target } from "./nutrition";
 import type { NutritionProgram, NutritionDay } from "./nutrition-program";
+import type { MealTemplate, PreparedBatch } from "./nutrition-reuse";
 const options = { accountScoped: true, records: true };
 export function useNutrition() {
   const entries = useSyncedStorage<Record<string, FoodEntry>>(
@@ -34,5 +35,24 @@ export function useNutrition() {
     {},
     options,
   );
-  return { entries, foods, recipes, targets, programs, days };
+  const templates = useSyncedStorage<Record<string, MealTemplate>>(
+    "nutrition:templates",
+    {},
+    options,
+  );
+  const batches = useSyncedStorage<Record<string, PreparedBatch>>(
+    "nutrition:batches",
+    {},
+    options,
+  );
+  return {
+    entries,
+    foods,
+    recipes,
+    targets,
+    programs,
+    days,
+    templates,
+    batches,
+  };
 }
