@@ -117,3 +117,14 @@ Fixed account-switch draft/search guards, idempotent meal retry conflicts, plann
 Cloud reuse controls remain disabled until migration 0014 and authenticated checks are verified. Migration 0013 is required for import lifecycle operations. Real PostgreSQL migration/reapply tests and existing SQL regressions pass locally. Production migrations/provider credentials and real-phone/native release checks remain pending. The full MacroFactor-level spec remains open for guided coaching/check-ins, capture assistance, broader provider coverage and revision-aware storage/outbox cutover. See [setup and rollback](NUTRITION_AND_REMINDER_SETUP.md).
 
 Verification for this checkpoint: **299 Chromium browser checks**, **79 nutrition/import domain checks** and **13 shared progress/storage checks** passed. Production build, TypeScript, ESLint and whitespace checks passed. Both new SQL migrations passed real isolated PostgreSQL tests, reapplication and their existing collection/health SQL regressions. These are local checks; cloud activation and physical-phone behavior remain unverified.
+
+
+## Nutrition consistency follow-up — 7 October 2026
+
+Planned food no longer enables complete intake review or blocks explicit fasting confirmation. Pending confirmations and success/error feedback reset when the selected diary date or account changes. Consumed corrections and tombstones still invalidate earlier day reviews.
+
+Recent-food retrieval chooses the newest valid consumed snapshot for each food, counts distinct foods toward its limit and excludes planned/deleted/malformed records. Reusable snapshots preserve declared portions and unknown nutrients while omitting old meal/batch/date tags. Existing saved-library records and tombstones keep precedence.
+
+Range analysis handles null/malformed persisted rows without crashing or fabricating zero intake. Dated malformed intake remains unknown and requires review. Incremental averaging avoids overflowing a sum of finite daily totals; year-zero dates are rejected. No production provider, database or native activation is performed by this follow-up.
+
+Verification: **302 Chromium browser checks** and **96 domain/storage checks** passed. The seven focused nutrition journeys passed after two new failures were reproduced before fixing. Production build, TypeScript, ESLint and whitespace checks passed. No SQL changes were required. Live provider/account/phone gates and the remaining MacroFactor-level stages remain open.

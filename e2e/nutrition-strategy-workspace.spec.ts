@@ -181,3 +181,82 @@ test("custom recipe ingredients preserve cooked weight and serving yield indepen
     edit.getByLabel("Cooked weight (g)", { exact: true }),
   ).toHaveValue("800");
 });
+
+test("planned food never blocks explicit fasting or enables complete intake review", async ({
+  page,
+}) => {
+  await seed(page, {
+    "vk:nutrition:entries": {
+      planned: { ...entry("2026-10-07"), planned: true },
+    },
+  });
+  await page.goto("/food?date=2026-10-07");
+  const review = page.getByRole("region", { name: "Nutrition day review" });
+  await expect(
+    review.getByRole("button", { name: "Mark complete", exact: true }),
+  ).toBeDisabled();
+  await review
+    .getByRole("button", { name: "Confirm fasting", exact: true })
+    .click();
+  await review
+    .getByRole("button", { name: "Yes, no caloric intake", exact: true })
+    .click();
+  await expect(review).toContainText("0 kcal recorded");
+  await expect(review).toContainText("Confirmed fasting");
+});
+
+test("changing the diary date closes an unconfirmed fasting action", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/food?date=2026-10-07");
+  const review = page.getByRole("region", { name: "Nutrition day review" });
+  await review
+    .getByRole("button", { name: "Confirm fasting", exact: true })
+    .click();
+  await page.getByLabel("Record date", { exact: true }).fill("2026-10-08");
+  await expect(
+    review.getByRole("button", { name: "Yes, no caloric intake", exact: true }),
+  ).toBeHidden();
+  expect(
+    await page.evaluate(() => localStorage.getItem("vk:nutrition:days")),
+  ).toBeNull();
+});
+
+test("meal retrieval uses the newest correction and repeating it does not consume its old batch", async ({
+  page,
+}) => {
+  const latest = {
+    ...entry("2026-10-07"),
+    id: "latest",
+    foodId: "rice",
+    name: "Corrected rice",
+    updatedAt: 3,
+    batchId: "old-batch",
+    batchFraction: 0.25,
+  };
+  await seed(page, {
+    "vk:nutrition:entries": {
+      latest,
+      older: { ...latest, id: "older", name: "Old rice", updatedAt: 1 },
+    },
+  });
+  await page.goto("/food?date=2026-10-08");
+  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  const modal = page.getByRole("dialog", { name: "Log meal", exact: true });
+  await expect(
+    modal.getByRole("button", { name: "Add Old rice", exact: true }),
+  ).toBeHidden();
+  await modal
+    .getByRole("button", { name: "Add Corrected rice", exact: true })
+    .click();
+  await modal.getByRole("button", { name: "Save meal", exact: true }).click();
+  const repeated = await page.evaluate(() =>
+    Object.values(
+      JSON.parse(localStorage.getItem("vk:nutrition:entries") ?? "{}"),
+    ).filter((e: any) => e.date === "2026-10-08"),
+  );
+  expect(repeated).toHaveLength(1);
+  expect(repeated[0]).not.toHaveProperty("batchId");
+  expect(repeated[0]).not.toHaveProperty("batchFraction");
+});

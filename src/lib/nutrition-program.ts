@@ -25,6 +25,7 @@ function validDate(value: unknown): value is string {
   return (
     typeof value === "string" &&
     /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    !value.startsWith("0000-") &&
     Number.isFinite(Date.parse(`${value}T12:00:00Z`)) &&
     new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) === value
   );
@@ -93,6 +94,17 @@ export function programForDate(
       )[0] ?? null
   );
 }
+/** Retain malformed dated intake for review; null rows cannot crash the diary. */
+export function nutritionReviewEntries(date: string, entries: FoodEntry[]) {
+  return entries.filter(
+    (entry) =>
+      entry &&
+      typeof entry === "object" &&
+      !Array.isArray(entry) &&
+      entry.date === date &&
+      entry.planned !== true,
+  );
+}
 export function dayQuality(
   date: string,
   entries: FoodEntry[],
@@ -103,8 +115,8 @@ export function dayQuality(
   reason: string;
   energy: number | null;
 } {
-  const dated = entries.filter((entry) => entry.date === date && !entry.planned);
-  const active = dated.filter((entry) => !entry.deleted);
+  const dated = nutritionReviewEntries(date, entries);
+  const active = dated.filter((entry) => entry.deleted !== true);
   const confirmed =
     validNutritionDay(dayRecord) && !dayRecord.deleted && dayRecord.id === date;
   const corrected =

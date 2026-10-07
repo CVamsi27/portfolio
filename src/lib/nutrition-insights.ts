@@ -16,6 +16,7 @@ export function nutritionRange(
   const end = new Date(`${date}T12:00:00Z`);
   if (
     !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+    date.startsWith("0000-") ||
     !Number.isFinite(end.getTime()) ||
     end.toISOString().slice(0, 10) !== date ||
     !Number.isInteger(range) ||
@@ -32,8 +33,9 @@ export function nutritionRange(
   const start = days[0].date;
   const active = entries.filter(
     (entry) =>
-      !entry.deleted && !entry.planned &&
       validEntry(entry) &&
+      !entry.deleted &&
+      !entry.planned &&
       entry.date >= start &&
       entry.date <= date,
   );
@@ -41,8 +43,11 @@ export function nutritionRange(
   const complete = known.filter((day) => day.quality.eligible);
   const average = (list: typeof days) =>
     list.length
-      ? list.reduce((sum, day) => sum + (day.quality.energy ?? 0), 0) /
-        list.length
+      ? list.reduce(
+          (mean, day, index) =>
+            mean + ((day.quality.energy ?? 0) - mean) / (index + 1),
+          0,
+        )
       : null;
   return {
     days,

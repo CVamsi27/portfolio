@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import {
   dayQuality,
+  nutritionReviewEntries,
   validNutritionDay,
   canEditNutritionProgram,
   type NutritionDay,
@@ -18,13 +20,13 @@ const labels = {
   estimated: "Estimated complete",
   fasting: "Confirmed fasting",
 };
-export default function NutritionDayQuality({
-  date,
-  entries,
-}: {
-  date: string;
-  entries: FoodEntry[];
-}) {
+type Props = { date: string; entries: FoodEntry[] };
+export default function NutritionDayQuality(props: Props) {
+  const { user, configured } = useAuth();
+  const scope = configured ? (user?.id ?? "signed-out") : "local";
+  return <DayReview key={`${scope}:${props.date}`} {...props} />;
+}
+function DayReview({ date, entries }: { date: string; entries: FoodEntry[] }) {
   const store = useSyncedStorage<Record<string, NutritionDay>>(
     "nutrition:days",
     {},
@@ -38,9 +40,8 @@ export default function NutritionDayQuality({
   const [message, setMessage] = useState("");
   const [confirming, setConfirming] = useState(false);
   const quality = dayQuality(date, entries, store.value[date]);
-  const active = entries.filter(
-    (entry) => entry.date === date && !entry.deleted,
-  );
+  const dated = nutritionReviewEntries(date, entries);
+  const active = dated.filter((entry) => entry.deleted !== true);
   const save = (status: NutritionDay["status"]) => {
     if (!canEdit) {
       setError(
@@ -55,7 +56,7 @@ export default function NutritionDayQuality({
       status,
       updatedAt: Math.max(
         Date.now(),
-        ...entries.filter((e) => e.date === date).map((e) => e.updatedAt),
+        ...dated.map((e) => e.updatedAt).filter(Number.isFinite),
       ),
     };
     if (!validNutritionDay(record)) {

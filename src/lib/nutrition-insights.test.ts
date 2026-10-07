@@ -66,3 +66,26 @@ test("invalid ranges cannot silently create fake observations", () => {
   assert.throws(() => nutritionRange("2026-10-07", 0, [], {}));
   assert.throws(() => nutritionRange("2026-10-07", 91, [], {}));
 });
+test("range averages stay finite when valid daily totals overflow a naive sum", () => {
+  const result = nutritionRange(
+    "2026-10-07",
+    2,
+    [
+      { ...entry("a", "2026-10-06", 1e308), basisAmount: 1, quantity: 1 },
+      { ...entry("b", "2026-10-07", 1e308), basisAmount: 1, quantity: 1 },
+    ],
+    {},
+  );
+  assert.equal(result.knownAverage, 1e308);
+});
+test("malformed persisted rows cannot crash range analysis or turn unknown intake into zero", () => {
+  const result = nutritionRange(
+    "2026-10-07",
+    1,
+    [null, { date: "2026-10-07", updatedAt: 1 }] as unknown as FoodEntry[],
+    {},
+  );
+  assert.equal(result.knownAverage, null);
+  assert.equal(result.completeCount, 0);
+  assert.throws(() => nutritionRange("0000-01-01", 1, [], {}));
+});

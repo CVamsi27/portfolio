@@ -23,6 +23,7 @@ import {
 } from "@/lib/nutrition";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import CatalogSearch from "./CatalogSearch";
+import { recentFoodSnapshots } from "@/lib/nutrition-history";
 import MealLibrary from "./MealLibrary";
 import { correctBatchBasis } from "@/lib/nutrition-reuse";
 import NutrientFields from "./NutrientFields";
@@ -110,13 +111,7 @@ export default function FoodTracker() {
       !entry.planned &&
       entry.date === date,
   );
-  const recent = Object.fromEntries(
-    Object.values(store.entries.value ?? {})
-      .filter((item) => validEntry(item) && !item.deleted && !item.planned)
-      .sort((a, b) => b.updatedAt - a.updatedAt)
-      .slice(0, 20)
-      .map((item) => [item.foodId, { ...item, id: item.foodId }]),
-  );
+  const recent = recentFoodSnapshots(Object.values(store.entries.value ?? {}));
   const foods = Object.values({
     ...recent,
     ...store.foods.value,

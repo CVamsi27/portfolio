@@ -81,3 +81,8 @@ Apply `0013_health_connect_lifecycle.sql` after `0011_health_connect.sql`. Owner
 Progress → Health offers imported weight, daily steps and sleep trends with one visible source choice per metric. Missing records remain gaps, step aggregates are not added across devices, and overlapping or unbounded sleep sessions require review. These trends remain separate from manual logs. Local API-mocked browser journeys do not establish live phone or cloud readiness.
 
 Still pending: revision-aware meal storage/outbox and legacy cutover, broader validated provider coverage, independently specified/validated guided expenditure coaching and check-ins, reviewed assisted capture, native background/change-token coverage, release signing and real-phone instrumentation.
+
+
+### Day-review and recent-food consistency
+
+Planned entries are excluded from fasting/complete review controls as well as consumed totals. Changing the diary date or account resets any unconfirmed fasting action. Recent & saved uses the newest valid consumed snapshot per distinct food; repeating it creates a new intake record without linking it to an old prepared batch. Malformed dated intake stays unknown in completeness analysis; null rows cannot crash the diary. No schema change or new configuration is required for these corrections. The preceding full-spec and live-release gates remain open.
