@@ -14,6 +14,7 @@ import { calendarZone, validDay } from "@/lib/day-plan";
 import { Button } from "@/components/ui/button";
 import DaySelector from "./DaySelector";
 import CaptureWorkspace from "./CaptureWorkspace";
+import HealthConnections from "@/components/health/HealthConnections";
 export default function HealthWorkspace() {
   const params = useSearchParams(),
     router = useRouter();
@@ -81,6 +82,7 @@ export default function HealthWorkspace() {
           ["today", "Today"],
           ["history", "History"],
           ["recovery", "Sleep & recovery"],
+          ["connections", "Connections"],
         ].map(([id, label]) => (
           <Link
             key={id}
@@ -94,7 +96,9 @@ export default function HealthWorkspace() {
           <Link href="/intermittent-fasting">Eating window</Link>
         )}
       </nav>
-      {view === "recovery" ? (
+      {view === "connections" ? (
+        <HealthConnections date={date} />
+      ) : view === "recovery" ? (
         <CaptureWorkspace
           key={date}
           initialType="sleep"

@@ -1,6 +1,7 @@
 "use client";
 import { useSyncedStorage } from "./use-synced-storage";
 import type { Food, FoodEntry, Recipe, Target } from "./nutrition";
+import type { NutritionProgram, NutritionDay } from "./nutrition-program";
 const options = { accountScoped: true, records: true };
 export function useNutrition() {
   const entries = useSyncedStorage<Record<string, FoodEntry>>(
@@ -23,5 +24,15 @@ export function useNutrition() {
     {},
     options,
   );
-  return { entries, foods, recipes, targets };
+  const programs = useSyncedStorage<Record<string, NutritionProgram>>(
+    "nutrition:programs",
+    {},
+    options,
+  );
+  const days = useSyncedStorage<Record<string, NutritionDay>>(
+    "nutrition:days",
+    {},
+    options,
+  );
+  return { entries, foods, recipes, targets, programs, days };
 }

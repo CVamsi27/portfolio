@@ -6,6 +6,8 @@
 
 **Status:** approved product scope implemented locally, including food tracking and routine reminders. Production database migrations, provider credentials, scheduler configuration and authenticated delivery verification remain release gates.
 
+The later approved [MacroFactor-level nutrition specification](superpowers/specs/2026-10-07-macrofactor-level-nutrition-design.md) expands the original nutrition/Android scope. That larger target is in progress; the original defer list below describes the earlier release, not cancellation of the newly accepted requirements.
+
 This is the single scope and decision sheet for the redesign. Earlier design documents remain historical references. Where they differ, use this sheet and the latest user instructions. Deliver one coherent release through small, reviewable implementation steps; “one change sheet” does not require one enormous commit.
 
 ## 1. The intended experience
@@ -351,3 +353,10 @@ USDA Foundation food calories now recognize 1008/2048/2047 in order, preserve ex
 Verification: five new regressions were reproduced before their fixes; all 45 focused nutrition/workflow checks passed. The full run passed 268 checks and found one unrelated Progress test assuming October 4 without a frozen clock. After freezing its intended fixture date, all nine Progress checks passed. Production build, TypeScript, ESLint and whitespace checks passed. Local tests do not prove signed-in cloud migrations or activate provider configuration.
 
 User confirmed Android Health Connect / Google Fit. The [native companion design](superpowers/specs/2026-10-07-android-health-connect-design.md) covers read-only weight/steps/sleep permissions, account/device pairing, source attribution, deduplication, offline recovery and revocation. Native app, ingestion endpoints, migration and real-phone sync remain unimplemented pending this new platform design review; the food repair does not claim a Health Connect connection.
+
+
+## Nutrition enhancement checkpoint — 7 October 2026
+
+Implemented multi-food durable drafts, richer recipes with cooked weight/servings, dated manual/flexible programs, explicit day-quality review and 7/30/90-day coverage-aware insights. Backup/restore includes programs, reviews and optional recipe metadata. Health → Connections adds expiring pairing approval, device status, separately stored source records and explicit revocation. The Android foreground companion is compiled and locally tested.
+
+The full MacroFactor-level target remains in progress. Prepared batches/templates, provider coverage/offline catalog and declared portions, validated guided coaching/check-ins, capture assistance and the complete imported-record lifecycle remain requirements. Production database/cloud/device gates are listed in [delivery setup](NUTRITION_AND_REMINDER_SETUP.md); a merged bundle is not evidence those gates passed.

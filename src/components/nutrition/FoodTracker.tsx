@@ -9,7 +9,6 @@ import {
   displayNutrient,
   MEALS,
   NUTRIENTS,
-  recipeNutrients,
   scaleNutrients,
   validNutrients,
   validEntry,
@@ -23,7 +22,12 @@ import {
 } from "@/lib/nutrition";
 import { getSupabase } from "@/lib/supabase/client";
 import NutrientFields from "./NutrientFields";
-import NutritionSummary from "./NutritionSummary";
+import NutritionDailySummary from "./NutritionDailySummary";
+import MealComposer from "./MealComposer";
+import RecipeBuilder from "./RecipeBuilder";
+import NutritionStrategy from "./NutritionStrategy";
+import NutritionDayQuality from "./NutritionDayQuality";
+import NutritionInsights from "./NutritionInsights";
 
 const blank = {
   name: "",
@@ -67,17 +71,15 @@ export default function FoodTracker() {
   >([]);
   const [searching, setSearching] = useState(false);
   const [recipeOpen, setRecipeOpen] = useState(false);
-  const [recipeName, setRecipeName] = useState("");
-  const [yieldAmount, setYieldAmount] = useState("4");
-  const [yieldUnit, setYieldUnit] = useState<Unit>("serving");
-  const [ingredients, setIngredients] = useState<Recipe["ingredients"]>([]);
-  const [ingredientId, setIngredientId] = useState("");
-  const [ingredientQuantity, setIngredientQuantity] = useState("100");
+  const [mealOpen, setMealOpen] = useState(false);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const selected = params.get("meal");
     const view = params.get("view");
-    if (view && ["diary", "saved", "nutrients"].includes(view))
+    if (
+      view &&
+      ["diary", "saved", "nutrients", "strategy", "insights"].includes(view)
+    )
       setFoodView(view);
     const day = params.get("date");
     if (day && /^\d{4}-\d{2}-\d{2}$/.test(day)) {
@@ -333,60 +335,6 @@ export default function FoodTracker() {
       setSearching(false);
     }
   };
-  const addIngredient = () => {
-    const food = foods.find((item) => item.id === ingredientId);
-    if (!food) {
-      setError(
-        "Choose a saved ingredient. Use Add saved food to create one without logging a meal.",
-      );
-      return;
-    }
-    try {
-      const amount = Number(ingredientQuantity);
-      setIngredients((previous) => [
-        ...previous,
-        {
-          name: food.name,
-          nutrients: scaleNutrients(food.nutrients, amount, food.basisAmount),
-          quantity: amount,
-          unit: food.basisUnit,
-        },
-      ]);
-      setError("");
-    } catch {
-      setError("Enter a positive ingredient quantity.");
-    }
-  };
-  const saveRecipe = () => {
-    try {
-      if (!recipeName.trim() || !ingredients.length)
-        throw new Error("Name the recipe and add ingredients.");
-      const amount = Number(yieldAmount);
-      const nutrients = recipeNutrients(
-        ingredients.map((item) => item.nutrients),
-        amount,
-        amount,
-      );
-      const id = recipeEditing?.id ?? crypto.randomUUID();
-      const recipe: Recipe = {
-        id,
-        name: recipeName.trim(),
-        basisAmount: amount,
-        basisUnit: yieldUnit,
-        nutrients,
-        ingredients,
-        source: "Recipe estimate · declared batch yield",
-        updatedAt: Math.max(Date.now(), (recipeEditing?.updatedAt ?? 0) + 1),
-      };
-      store.recipes.setValue((previous) => ({ ...previous, [id]: recipe }));
-      setRecipeOpen(false);
-      setIngredients([]);
-      setRecipeName("");
-      setMessage("Recipe saved locally. Historical meals remain unchanged.");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Enter a positive yield.");
-    }
-  };
   return (
     <div className="space-y-5">
       <nav className="workspace-views" aria-label="Food views">
@@ -394,6 +342,8 @@ export default function FoodTracker() {
           ["diary", "Diary"],
           ["saved", "Saved foods & recipes"],
           ["nutrients", "Nutrients"],
+          ["strategy", "Strategy"],
+          ["insights", "Progress"],
         ].map(([id, label]) => (
           <Button
             key={id}
@@ -447,7 +397,10 @@ export default function FoodTracker() {
         >
           →
         </Button>
-        <Button onClick={start}>Log food</Button>
+        <Button onClick={() => setMealOpen(true)}>Log meal</Button>
+        <Button variant="outline" onClick={start}>
+          Log food
+        </Button>
         {foodView === "saved" && (
           <Button
             variant="outline"
@@ -464,11 +417,6 @@ export default function FoodTracker() {
             variant="outline"
             onClick={() => {
               setRecipeEditing(null);
-              setRecipeName("");
-              setYieldAmount("4");
-              setYieldUnit("serving");
-              setIngredientId("");
-              setIngredients([]);
               setError("");
               setRecipeOpen(true);
             }}
@@ -509,11 +457,26 @@ export default function FoodTracker() {
           </label>
         </details>
       )}
-      {foodView !== "saved" && (
-        <NutritionSummary
+      {(foodView === "diary" || foodView === "nutrients") && (
+        <NutritionDailySummary
+          date={date}
+          programs={store.programs.value}
           entries={entries}
           targets={store.targets.value}
           details={foodView === "nutrients"}
+        />
+      )}
+      {foodView === "strategy" && <NutritionStrategy date={date} />}
+      {foodView === "insights" && (
+        <NutritionInsights
+          date={date}
+          entries={Object.values(store.entries.value)}
+        />
+      )}
+      {foodView === "diary" && (
+        <NutritionDayQuality
+          date={date}
+          entries={Object.values(store.entries.value)}
         />
       )}
       <div hidden={foodView !== "diary"} className="space-y-4">
@@ -689,10 +652,6 @@ export default function FoodTracker() {
                       variant="ghost"
                       onClick={() => {
                         setRecipeEditing(item);
-                        setRecipeName(item.name);
-                        setYieldAmount(String(item.basisAmount));
-                        setYieldUnit(item.basisUnit);
-                        setIngredients(item.ingredients);
                         setError("");
                         setRecipeOpen(true);
                       }}
@@ -1023,104 +982,33 @@ export default function FoodTracker() {
           )}
         </div>
       </Modal>
-      <Modal
+      <RecipeBuilder
         open={recipeOpen}
         onClose={() => setRecipeOpen(false)}
-        title={recipeEditing ? "Edit recipe" : "Create recipe"}
-        footer={<Button onClick={saveRecipe}>Save recipe</Button>}
-      >
-        <div className="space-y-3">
-          <label htmlFor="recipe-name">Recipe name</label>
-          <Input
-            id="recipe-name"
-            value={recipeName}
-            onChange={(e) => setRecipeName(e.target.value)}
-            maxLength={300}
-          />
-          <label htmlFor="ingredient-food">Saved ingredient</label>
-          <select
-            id="ingredient-food"
-            className="w-full rounded-lg border border-border bg-background p-3"
-            value={ingredientId}
-            onChange={(e) => {
-              setIngredientId(e.target.value);
-              const food = foods.find((item) => item.id === e.target.value);
-              if (food) setIngredientQuantity(String(food.basisAmount));
-              setError("");
-            }}
-          >
-            <option value="">Choose food</option>
-            {foods.map((food) => (
-              <option key={food.id} value={food.id}>
-                {food.name} ({food.basisUnit})
-              </option>
-            ))}
-          </select>
-          <label htmlFor="ingredient-quantity">
-            Ingredient quantity (selected food’s unit)
-          </label>
-          <Input
-            id="ingredient-quantity"
-            type="number"
-            step="any"
-            min="0.01"
-            value={ingredientQuantity}
-            onChange={(e) => setIngredientQuantity(e.target.value)}
-          />
-          <Button variant="outline" onClick={addIngredient}>
-            Add ingredient
-          </Button>
-          <ul>
-            {ingredients.map((item, index) => (
-              <li
-                key={index}
-                className="flex flex-wrap justify-between gap-2 border-b border-border py-2 text-sm"
-              >
-                <span>
-                  {item.name} · {item.quantity} {item.unit}
-                </span>
-                <Button
-                  variant="ghost"
-                  onClick={() =>
-                    setIngredients((previous) =>
-                      previous.filter((_, i) => i !== index),
-                    )
-                  }
-                >
-                  Remove ingredient
-                </Button>
-              </li>
-            ))}
-          </ul>
-          <label htmlFor="recipe-yield">Final batch yield</label>
-          <Input
-            id="recipe-yield"
-            type="number"
-            step="any"
-            min="0.01"
-            value={yieldAmount}
-            onChange={(e) => setYieldAmount(e.target.value)}
-          />
-          <select
-            aria-label="Recipe yield unit"
-            className="w-full rounded-lg border border-border bg-background p-3"
-            value={yieldUnit}
-            onChange={(e) => setYieldUnit(e.target.value as Unit)}
-          >
-            <option value="serving">Servings</option>
-            <option value="g">Cooked grams</option>
-          </select>
-          <p className="text-xs text-muted-foreground">
-            Include cooking oil and other additions. Nutrients are estimated
-            from ingredients; unknown values stay unknown.
-          </p>
-          {error && (
-            <p role="alert" className="text-sm text-destructive">
-              {error}
-            </p>
-          )}
-        </div>
-      </Modal>
+        foods={foods}
+        initialRecipe={recipeEditing}
+        onSave={(recipe) => {
+          store.recipes.setValue((previous) => ({
+            ...previous,
+            [recipe.id]: recipe,
+          }));
+          setRecipeOpen(false);
+          setMessage("Recipe saved. Historical meals remain unchanged.");
+        }}
+      />
+      <MealComposer
+        open={mealOpen}
+        onClose={() => setMealOpen(false)}
+        date={date}
+        meal={meal}
+        foods={foods}
+        onSave={(items, day) => {
+          store.entries.setValue((previous) => ({ ...previous, ...items }));
+          setDate(day);
+          setFoodView("diary");
+          setMessage("Meal saved on this device.");
+        }}
+      />
     </div>
   );
 }

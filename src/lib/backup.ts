@@ -13,6 +13,7 @@ import { currentAuthUserId } from "./auth-store";
 import { isSupabaseConfigured } from "./supabase/client";
 import { validEntry, validFood, validNutrients, NUTRIENTS } from "./nutrition";
 import { validSchedule } from "./routine-reminders";
+import { validProgram, validNutritionDay } from "./nutrition-program";
 const SCOPED_KEYS = [
   "plan:blocks",
   "plan:days",
@@ -20,6 +21,8 @@ const SCOPED_KEYS = [
   "nutrition:foods",
   "nutrition:recipes",
   "nutrition:targets",
+  "nutrition:programs",
+  "nutrition:days",
   "routine:schedules",
   "routine:history",
   "recovery:entries",
@@ -72,6 +75,8 @@ const KEYS = [
   "nutrition:foods",
   "nutrition:recipes",
   "nutrition:targets",
+  "nutrition:programs",
+  "nutrition:days",
   "routine:schedules",
   "routine:history",
   "recovery:entries",
@@ -251,6 +256,34 @@ function looksLikeShape(value: unknown): boolean {
   );
 }
 
+/** Preserve optional preparation metadata, rejecting bad values before any writes. */
+function validBackupRecipe(value: unknown): boolean {
+  if (!validFood(value)) return false;
+  const recipe = value as unknown as Record<string, unknown>;
+  return (
+    Array.isArray(recipe.ingredients) &&
+    recipe.ingredients.every(
+      (ingredient) =>
+        ingredient &&
+        typeof ingredient === "object" &&
+        !Array.isArray(ingredient) &&
+        validNutrients(ingredient.nutrients) &&
+        typeof ingredient.quantity === "number" &&
+        Number.isFinite(ingredient.quantity) &&
+        ingredient.quantity > 0,
+    ) &&
+    ["servings", "cookedWeightGrams"].every(
+      (key) =>
+        recipe[key] === undefined ||
+        (typeof recipe[key] === "number" &&
+          Number.isFinite(recipe[key]) &&
+          recipe[key] > 0),
+    ) &&
+    (recipe.notes === undefined ||
+      (typeof recipe.notes === "string" && recipe.notes.length <= 2000))
+  );
+}
+
 /**
  * Validate + apply a backup file. Writes only after full validation;
  * the pre-import state is snapshotted to `vk:backup:v1:<key>` semantics
@@ -395,39 +428,36 @@ export function applyBackup(backup: unknown): ImportReport {
               : key === "nutrition:foods"
                 ? validFood(record)
                 : key === "nutrition:recipes"
-                  ? validFood(record) &&
-                    Array.isArray(r.ingredients) &&
-                    r.ingredients.every(
-                      (i: Record<string, unknown>) =>
-                        validNutrients(i.nutrients) &&
-                        typeof i.quantity === "number" &&
-                        i.quantity > 0,
-                    )
-                  : key === "nutrition:targets"
-                    ? typeof r.id === "string" &&
-                      r.id in NUTRIENTS &&
-                      typeof r.amount === "number" &&
-                      Number.isFinite(r.amount) &&
-                      r.amount >= 0 &&
-                      ["reference", "limit"].includes(String(r.kind))
-                    : key === "routine:schedules"
-                      ? validSchedule(record)
-                      : key === "routine:history"
+                  ? validBackupRecipe(record)
+                  : key === "nutrition:programs"
+                    ? validProgram(record) && r.id === recordKey
+                    : key === "nutrition:days"
+                      ? validNutritionDay(record) && r.id === recordKey
+                      : key === "nutrition:targets"
                         ? typeof r.id === "string" &&
-                          typeof r.date === "string" &&
-                          ["done", "taken", "skipped", "snoozed"].includes(
-                            String(r.status),
-                          )
-                        : key === "recovery:entries"
-                          ? typeof r.date === "string" &&
-                            (r.sleepHours === null ||
-                              (typeof r.sleepHours === "number" &&
-                                r.sleepHours >= 0 &&
-                                r.sleepHours <= 24))
-                          : key === "habits:items"
-                            ? typeof r.name === "string"
-                            : typeof r.done === "boolean" &&
-                              typeof r.date === "string";
+                          r.id in NUTRIENTS &&
+                          typeof r.amount === "number" &&
+                          Number.isFinite(r.amount) &&
+                          r.amount >= 0 &&
+                          ["reference", "limit"].includes(String(r.kind))
+                        : key === "routine:schedules"
+                          ? validSchedule(record)
+                          : key === "routine:history"
+                            ? typeof r.id === "string" &&
+                              typeof r.date === "string" &&
+                              ["done", "taken", "skipped", "snoozed"].includes(
+                                String(r.status),
+                              )
+                            : key === "recovery:entries"
+                              ? typeof r.date === "string" &&
+                                (r.sleepHours === null ||
+                                  (typeof r.sleepHours === "number" &&
+                                    r.sleepHours >= 0 &&
+                                    r.sleepHours <= 24))
+                              : key === "habits:items"
+                                ? typeof r.name === "string"
+                                : typeof r.done === "boolean" &&
+                                  typeof r.date === "string";
       if (!valid)
         return {
           ok: false,

@@ -1,6 +1,6 @@
 # NOVA nutrition: MacroFactor-level product specification
 
-Status: proposed design for user review. This expands the food repair into a complete nutrition and coaching product. Features listed below are requirements, not claims of existing implementation.
+Status: accepted for staged implementation by the user's request to continue enhancements. This expands the food repair into a complete nutrition and coaching product. Features listed below are requirements, not claims of existing implementation.
 
 ## Product objective
 
@@ -166,3 +166,7 @@ Per-stage verification includes domain tests, browser journeys, accessible names
 - Step modifiers: https://macrofactor.com/expenditure-modifiers/
 - Nutrient coverage: https://help.macrofactorapp.com/en/articles/101-view-your-micronutrient-intake-and-more-detailed-information-about-your-macronutrient-intake
 - Health Connect: https://developer.android.com/health-and-fitness/health-connect/get-started
+
+## Implementation checkpoint — 7 October 2026
+
+Meal drafts, rich recipes, manual/flexible programs, day reviews, nutrient insights and their backup support have been implemented. Android companion and pairing/import infrastructure are being verified. See the [implementation plan](../plans/2026-10-07-nutrition-workspace.md) and [rollout setup](../../NUTRITION_AND_REMINDER_SETUP.md) for verified evidence and pending release gates. The full target remains open: prepared batches/templates, provider-neutral catalog/offline cache and declared portions, guided coaching/check-ins, reviewed capture assistance and complete imported-record lifecycle are not delivered by this foundation.

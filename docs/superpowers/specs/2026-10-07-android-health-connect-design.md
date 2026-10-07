@@ -10,7 +10,7 @@ The source apps must already write the relevant records to Health Connect. NOVA 
 
 Build a small read-only Android companion plus an authenticated website ingestion endpoint. The companion displays connection state, granted metric types, last successful sync and Sync now. Android permission prompts request only READ_WEIGHT, READ_STEPS and READ_SLEEP; background read is a separate optional permission when available. Android 13 devices support foreground sync; Android 14+ background capability must be checked before scheduling WorkManager.
 
-The website Settings > Health connections displays the connected device, permitted metrics, last sync, errors/retry and Disconnect. Health and Progress show source-labelled imported records and daily step counts. No disconnected feature appears as successfully connected.
+The website Health → Connections displays the connected device, permitted metrics, last sync, errors/retry and Disconnect. Health and Progress show source-labelled imported records and daily step counts. No disconnected feature appears as successfully connected.
 
 ## Alternatives
 
@@ -39,7 +39,7 @@ Use stable upstream IDs and timestamps for idempotent upsert and tombstones. Rep
 
 ## Current status
 
-Design prepared; companion, ingestion endpoint, database migration and live phone sync are not yet implemented. Android SDK/Gradle are not available in the current workspace environment. Implementing this is a new native-app deliverable beyond the existing website, with its own installation and device verification requirement.
+Implemented a foreground Android companion, server pairing/import endpoints, owner-scoped additive migration `0011_health_connect.sql` and a Health → Connections website view. The companion compiled into a debug APK and passed 10 JVM tests. Real PostgreSQL tests verified ownership, atomic imports, repeated batches, tombstones, expiry and revocation. Production migration/configuration, signed distribution and actual phone checks are pending; no live sync is claimed. Background scheduling, broad-history change tokens, imported-record export/restore/deletion and integration into unified trends remain delivery stages. See [native setup](../../../android/health-sync/README.md) and [rollout setup](../../NUTRITION_AND_REMINDER_SETUP.md).
 
 ## Primary references, checked 7 October 2026
 
@@ -50,4 +50,4 @@ Design prepared; companion, ingestion endpoint, database migration and live phon
 
 ## Expanded nutrition product proposal
 
-The user subsequently requested MacroFactor-level implementation. The [complete nutrition specification](2026-10-07-macrofactor-level-nutrition-design.md) incorporates this Android integration alongside the food catalog, multi-item logger, recipes, insights and independently validated coaching. It remains a proposed expanded design; no implementation status above is changed.
+The user subsequently requested MacroFactor-level implementation. The [complete nutrition specification](2026-10-07-macrofactor-level-nutrition-design.md) incorporates this Android integration alongside the food catalog, multi-item logger, recipes, insights and independently validated coaching. The user accepted the expanded scope by asking to continue enhancements. It remains in progress, with foundation features and native/server infrastructure implemented; the full nutrition target is not yet complete.
