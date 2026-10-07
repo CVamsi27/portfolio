@@ -87,8 +87,7 @@ test.describe("navigation & shell", () => {
       "href",
       "https://study.buildora.work/",
     );
-    await expect(desktopLink).toHaveAttribute("target", "_blank");
-    await expect(desktopLink).toHaveAttribute("rel", "noopener noreferrer");
+    await expect(desktopLink).not.toHaveAttribute("target", "_blank");
 
     await page.keyboard.press("Escape");
     await page.setViewportSize({ width: 390, height: 844 });

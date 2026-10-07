@@ -453,10 +453,8 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                     <a
                       data-testid="personal-study-link"
                       href="https://study.buildora.work/"
-                      target="_blank"
-                      rel="noopener noreferrer"
                     >
-                      Study Bible ↗
+                      Study Bible
                     </a>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
