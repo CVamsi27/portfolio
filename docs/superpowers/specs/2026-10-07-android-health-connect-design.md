@@ -47,3 +47,7 @@ Design prepared; companion, ingestion endpoint, database migration and live phon
 - https://developer.android.com/health-and-fitness/health-connect/read-data
 - https://developer.android.com/health-and-fitness/health-connect/migration/fit
 - https://developers.google.com/health
+
+## Expanded nutrition product proposal
+
+The user subsequently requested MacroFactor-level implementation. The [complete nutrition specification](2026-10-07-macrofactor-level-nutrition-design.md) incorporates this Android integration alongside the food catalog, multi-item logger, recipes, insights and independently validated coaching. It remains a proposed expanded design; no implementation status above is changed.
