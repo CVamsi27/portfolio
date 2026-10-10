@@ -12,6 +12,10 @@ import {
   personalSchedule,
 } from "@/lib/personal-timetable";
 import DailyTimetable from "@/components/trackers/DailyTimetable";
+import {
+  appendExamAttempt,
+  recordGermanyCompany,
+} from "@/lib/germany-execution";
 import GermanyRoadmapView from "@/components/career/GermanyRoadmap";
 import {
   isGermanyRoadmap,
@@ -1343,7 +1347,10 @@ function WeeklyTargetsSection({
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {entries.map(([key, value]) => {
-            const meta = labels[key] ?? { label: key.replace(/([a-z])([A-Z])/g, "$1 $2"), icon: Zap };
+            const meta = labels[key] ?? {
+              label: key.replace(/([a-z])([A-Z])/g, "$1 $2"),
+              icon: Zap,
+            };
             const Icon = meta.icon;
             return (
               <div
@@ -2408,7 +2415,13 @@ export default function RoadmapPage() {
     setCareer({
       ...career,
       germanyChecklist: career.germanyChecklist.map((i) =>
-        i.id === id ? { ...i, done: i.reviewRequired ? true : !i.done, reviewRequired: false } : i,
+        i.id === id
+          ? {
+              ...i,
+              done: i.reviewRequired ? true : !i.done,
+              reviewRequired: false,
+            }
+          : i,
       ),
     });
     toast({
@@ -2459,49 +2472,53 @@ export default function RoadmapPage() {
         eyebrow="NOVA // Execution"
       >
         {/* Section nav */}
-        <div className="flex gap-2 flex-wrap">
-          {NAV.filter((n) =>
-            ["roadmap", "germany", "curriculum", "revision"].includes(n.id),
-          ).map((n) => (
-            <button
-              key={n.id}
-              type="button"
-              aria-pressed={section === n.id}
-              onClick={() => setSection(n.id)}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${section === n.id ? "border-primary bg-primary text-primary-foreground" : "border-border/60 text-muted-foreground hover:border-primary/50"}`}
-            >
-              {n.icon}
-              {n.label}
-            </button>
-          ))}
-        </div>
+        {(!germanyPlan?.execution || section !== "roadmap") && (
+          <>
+            <div className="flex gap-2 flex-wrap">
+              {NAV.filter((n) =>
+                ["roadmap", "germany", "curriculum", "revision"].includes(n.id),
+              ).map((n) => (
+                <button
+                  key={n.id}
+                  type="button"
+                  aria-pressed={section === n.id}
+                  onClick={() => setSection(n.id)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${section === n.id ? "border-primary bg-primary text-primary-foreground" : "border-border/60 text-muted-foreground hover:border-primary/50"}`}
+                >
+                  {n.icon}
+                  {n.label}
+                </button>
+              ))}
+            </div>
 
-        <details className="workspace-panel">
-          <summary>Optional career resources</summary>
-          <div className="workspace-views">
-            {NAV.filter(
-              (n) =>
-                !["roadmap", "germany", "curriculum", "revision"].includes(
-                  n.id,
-                ),
-            ).map((n) => (
-              <button
-                key={n.id}
-                aria-pressed={section === n.id}
-                onClick={() => {
-                  setSection(n.id);
-                }}
-                className="inline-action"
-              >
-                {n.label}
-              </button>
-            ))}
-          </div>
-          <p>
-            Choose the resources relevant to your goal. Your curriculum and
-            daily study plan stay separate.
-          </p>
-        </details>
+            <details className="workspace-panel">
+              <summary>Optional career resources</summary>
+              <div className="workspace-views">
+                {NAV.filter(
+                  (n) =>
+                    !["roadmap", "germany", "curriculum", "revision"].includes(
+                      n.id,
+                    ),
+                ).map((n) => (
+                  <button
+                    key={n.id}
+                    aria-pressed={section === n.id}
+                    onClick={() => {
+                      setSection(n.id);
+                    }}
+                    className="inline-action"
+                  >
+                    {n.label}
+                  </button>
+                ))}
+              </div>
+              <p>
+                Choose the resources relevant to your goal. Your curriculum and
+                daily study plan stay separate.
+              </p>
+            </details>
+          </>
+        )}
         {section === "roadmap" &&
           (germanyPlan ? (
             <GermanyRoadmapView
@@ -2510,6 +2527,25 @@ export default function RoadmapPage() {
               email={user?.email}
               days={days}
               state={executionState}
+              onCompany={(id, record) =>
+                setExecutionState(
+                  recordGermanyCompany(executionState, id, record),
+                )
+              }
+              onAttempt={(attempt) => {
+                const execution = germanyPlan.execution!;
+                const round = execution.rounds.find(
+                  (r) => r.id === attempt.roundId,
+                )!;
+                setExecutionState(
+                  appendExamAttempt(
+                    executionState,
+                    attempt,
+                    round,
+                    execution.assessmentVersion,
+                  ),
+                );
+              }}
               onEvidence={(item, evidence, verify) => {
                 setExecutionState(
                   recordGermanyEvidence(executionState, item, evidence, verify),
@@ -2527,6 +2563,25 @@ export default function RoadmapPage() {
               </p>
             </section>
           ))}
+        {germanyPlan?.execution && section === "roadmap" && (
+          <details className="workspace-panel">
+            <summary className="min-h-11">
+              Study library, revision and career resources
+            </summary>
+            <div className="workspace-views">
+              {NAV.map((n) => (
+                <button
+                  key={n.id}
+                  className="inline-action min-h-11"
+                  aria-pressed={section === n.id}
+                  onClick={() => setSection(n.id)}
+                >
+                  {n.id === "germany" ? "Relocation checklist" : n.label}
+                </button>
+              ))}
+            </div>
+          </details>
+        )}
         {/* ── ROADMAP SECTION ── */}
         {(section === "roadmap" || section === "curriculum") && (
           <details

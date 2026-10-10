@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { dirname, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { generateGermanyExecution } from "./generate-germany-execution.mjs";
 const validDate = (date) =>
   /^\d{4}-\d{2}-\d{2}$/.test(date) &&
   Number.isFinite(Date.parse(`${date}T12:00:00Z`)) &&
@@ -9,7 +12,7 @@ const addDays = (date, n) =>
   new Date(Date.parse(`${date}T12:00:00Z`) + n * 86400000)
     .toISOString()
     .slice(0, 10);
-export function generateGermanyRoadmap(markdown) {
+export function generateGermanyRoadmap(markdown, detailed) {
   const meta =
     /<!-- germany-roadmap: start=(\S+) end=(\S+) reviewed=(\S+) -->/.exec(
       markdown,
@@ -125,7 +128,12 @@ export function generateGermanyRoadmap(markdown) {
     startDate,
     endDate,
     target,
-    sourceDigest: createHash("sha256").update(markdown).digest("hex"),
+    sourceDigest: createHash("sha256")
+      .update(JSON.stringify([markdown, detailed ?? null]))
+      .digest("hex"),
+    ...(detailed
+      ? { execution: generateGermanyExecution(detailed, startDate) }
+      : {}),
     weeks,
     allocations,
     sections: content,
@@ -141,7 +149,24 @@ if (
     throw new Error(
       "Usage: node scripts/generate-germany-roadmap.mjs PRIVATE_PLAN PRIVATE_OUTPUT",
     );
-  const plan = generateGermanyRoadmap(readFileSync(input, "utf8"));
+  const files = {
+    design: "detailed-roadmap-design",
+    curriculum: "daily-curriculum",
+    exams: "exams",
+    campaign: "campaign",
+  };
+  const paths = Object.fromEntries(
+    Object.entries(files).map(([key, name]) => [
+      key,
+      resolve(dirname(input), `2026-10-10-germany-${name}.md`),
+    ]),
+  );
+  const detailed = Object.values(paths).some((p) => existsSync(p))
+    ? Object.fromEntries(
+        Object.entries(paths).map(([key, p]) => [key, readFileSync(p, "utf8")]),
+      )
+    : undefined;
+  const plan = generateGermanyRoadmap(readFileSync(input, "utf8"), detailed);
   writeFileSync(output, JSON.stringify(plan, null, 2) + "\n", { mode: 0o600 });
   console.log(
     `Generated ${plan.weeks.length} weeks, ${plan.sections.length} guides, 50 hours/week; private output only.`,

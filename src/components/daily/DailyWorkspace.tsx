@@ -24,6 +24,12 @@ import {
   zonedDate,
   type RoutineHistory,
 } from "@/lib/routine-reminders";
+import { isGermanyRoadmap, type GermanyRoadmap } from "@/lib/germany-roadmap";
+import RoadmapGuide from "@/components/career/RoadmapGuide";
+import {
+  datedAssignments,
+  annotateGermanySchedule,
+} from "@/lib/germany-execution";
 import { personalSchedule } from "@/lib/personal-timetable";
 import { useRoutine } from "@/lib/routine-store";
 import { usePersonalModules } from "@/lib/personal-modules";
@@ -97,6 +103,16 @@ export default function DailyWorkspace({
     }>;
   } | null>("timetable_100_days", null);
   const storedDay = timetable.value?.days.find((day) => day.date === date);
+  const career = useSyncedStorage<{ germanyRoadmap?: GermanyRoadmap } | null>(
+    "career_command_center",
+    null,
+  );
+  const germany = isGermanyRoadmap(career.value?.germanyRoadmap)
+    ? career.value.germanyRoadmap
+    : null;
+  const germanyAssignments = germany?.execution
+    ? datedAssignments(germany.execution, date)
+    : {};
   const prescribed = modules.value.study
     ? personalSchedule(user?.email, date)
     : undefined;
@@ -113,7 +129,13 @@ export default function DailyWorkspace({
       return modules.value.study
         ? timetableBlocks(
             sourceDate,
-            prescribed ?? storedDay?.schedule ?? {},
+            germany?.execution
+              ? annotateGermanySchedule(
+                  germany.execution,
+                  sourceDate,
+                  prescribed ?? storedDay?.schedule ?? {},
+                )
+              : (prescribed ?? storedDay?.schedule ?? {}),
             prescribed
               ? "Asia/Kolkata"
               : (timetable.value?.timezone ?? timeZone),
@@ -298,7 +320,16 @@ export default function DailyWorkspace({
       </div>
       <div className="agenda-body">
         <strong>{row.title}</strong>
-        {row.block?.description && <p>{row.block.description}</p>}
+        {row.block?.description &&
+          (germany?.execution &&
+          (row.id.startsWith("owner:") || row.id.startsWith("timetable:")) ? (
+            <RoadmapGuide
+              content={row.block.description}
+              context={{ date, task: `germany:2026:day:${date}` }}
+            />
+          ) : (
+            <p>{row.block.description}</p>
+          ))}
         <small>
           {row.done
             ? (row.status ?? "Completed")
@@ -542,6 +573,23 @@ export default function DailyWorkspace({
           </Link>
         </div>
       )}
+      {modules.value.study &&
+        germany?.execution &&
+        Object.keys(germanyAssignments).length > 0 && (
+          <section className="workspace-panel space-y-2">
+            <h2 className="font-display text-lg">Germany execution · {date}</h2>
+            <p className="text-sm">
+              Today’s study, project, campaign and assessment assignments use
+              the same timetable below.
+            </p>
+            <Link
+              className="inline-action min-h-11"
+              href={`/roadmap?view=roadmap&panel=today&date=${date}`}
+            >
+              Open detailed assignments and study links
+            </Link>
+          </section>
+        )}
       {message && <p role="status">{message}</p>}
       {(plan.blocks.status === "error" || plan.days.status === "error") && (
         <p role="alert">

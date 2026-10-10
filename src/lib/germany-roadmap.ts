@@ -9,6 +9,10 @@ import {
   type CareerEvidence,
   type CareerExecutionState,
 } from "./career-roadmap.ts";
+import {
+  isGermanyExecution,
+  type GermanyExecution,
+} from "./germany-execution.ts";
 export interface GermanyWeek {
   number: number;
   start: string;
@@ -20,6 +24,7 @@ export interface GermanyWeek {
 }
 export interface GermanyRoadmap {
   version: 1;
+  execution?: GermanyExecution;
   reviewedOn: string;
   startDate: string;
   endDate: string;
@@ -60,23 +65,51 @@ export function mergeGermanyCareer(
           ? {
               ...record,
               ...replacement,
-              ...(record.done && (record.text !== replacement.text || record.link !== replacement.link) ? { reviewRequired: true } : {}),
+              ...(record.done &&
+              (record.text !== replacement.text ||
+                record.link !== replacement.link)
+                ? { reviewRequired: true }
+                : {}),
               criteriaReviewedOn: plan.reviewedOn,
             }
           : record;
       })
     : previous.germanyChecklist;
-  const previousTargets = (previous.weeklyTargets as Record<string, number>) ?? {};
-  const superseded = new Set(['ossPRs','leetcodeProblems','studyHours','germanHours','applications']);
-  const verification = previous.verificationChecklist as {items?: Array<{id:string;text:string}>} | undefined;
+  const previousTargets =
+    (previous.weeklyTargets as Record<string, number>) ?? {};
+  const superseded = new Set([
+    "ossPRs",
+    "leetcodeProblems",
+    "studyHours",
+    "germanHours",
+    "applications",
+  ]);
+  const verification = previous.verificationChecklist as
+    | { items?: Array<{ id: string; text: string }> }
+    | undefined;
   return {
     ...previous,
     germanyRoadmap: plan,
     reviewedOn: plan.reviewedOn,
     ...(checklist ? { germanyChecklist: checklist } : {}),
     legacyWeeklyTargets: previous.legacyWeeklyTargets ?? previousTargets,
-    weeklyTargets: {...Object.fromEntries(Object.entries(previousTargets).filter(([key])=>!superseded.has(key))),...GERMANY_WEEKLY_TARGETS},
-    ...(verification?.items ? { verificationChecklist: {...verification,items:verification.items.map(item=>({...item,text:GERMANY_VERIFICATION_UPDATES[item.id]??item.text}))} } : {}),
+    weeklyTargets: {
+      ...Object.fromEntries(
+        Object.entries(previousTargets).filter(([key]) => !superseded.has(key)),
+      ),
+      ...GERMANY_WEEKLY_TARGETS,
+    },
+    ...(verification?.items
+      ? {
+          verificationChecklist: {
+            ...verification,
+            items: verification.items.map((item) => ({
+              ...item,
+              text: GERMANY_VERIFICATION_UPDATES[item.id] ?? item.text,
+            })),
+          },
+        }
+      : {}),
     daySchedule: {
       timezone: "Asia/Kolkata",
       effectiveOn: "2026-10-12",
@@ -129,6 +162,7 @@ export function isGermanyRoadmap(value: unknown): value is GermanyRoadmap {
   const p = value as GermanyRoadmap;
   if (
     p.version !== 1 ||
+    (p.execution !== undefined && !isGermanyExecution(p.execution)) ||
     !isCalendarDate(p.startDate ?? "") ||
     !isCalendarDate(p.endDate ?? "") ||
     !isCalendarDate(p.reviewedOn ?? "") ||
@@ -236,12 +270,30 @@ export const GERMANY_CHECKLIST_UPDATES: Record<
   },
 };
 
-export const GERMANY_WEEKLY_TARGETS:Record<string,number> = {
- focusedStudyHours:7.5,projectHours:11,applicationHours:8.5,ossHours:4.5,networkingHours:3,interviewHours:9,germanPracticeMinutes:225,relocationHours:1,reviewHours:1.75,tailoredApplications:10,mockInterviews:2,publicProof:2,qualityOutreach:5,substantiveComments:10,practiceArtifacts:1,
+export const GERMANY_WEEKLY_TARGETS: Record<string, number> = {
+  focusedStudyHours: 7.5,
+  projectHours: 11,
+  applicationHours: 8.5,
+  ossHours: 4.5,
+  networkingHours: 3,
+  interviewHours: 9,
+  germanPracticeMinutes: 225,
+  relocationHours: 1,
+  reviewHours: 1.75,
+  tailoredApplications: 10,
+  mockInterviews: 2,
+  publicProof: 2,
+  qualityOutreach: 5,
+  substantiveComments: 10,
+  practiceArtifacts: 1,
 };
-export const GERMANY_VERIFICATION_UPDATES:Record<string,string> = {
- 'verify-outreach':'Relevant personalized conversations recorded with context and actual response status; quality replaces quotas.',
- 'verify-oss':'Prepare one focused contribution when ready; record submission, review and merge separately. Maintainers control review and merge.',
- 'verify-germany':'Verify visa and relocation prerequisites in parallel; apply once truthful materials and role constraints are checked.',
- 'verify-db':'Owner-scoped plan release preserves unrelated rows and passes exact database readback; website publication is verified separately.',
+export const GERMANY_VERIFICATION_UPDATES: Record<string, string> = {
+  "verify-outreach":
+    "Relevant personalized conversations recorded with context and actual response status; quality replaces quotas.",
+  "verify-oss":
+    "Prepare one focused contribution when ready; record submission, review and merge separately. Maintainers control review and merge.",
+  "verify-germany":
+    "Verify visa and relocation prerequisites in parallel; apply once truthful materials and role constraints are checked.",
+  "verify-db":
+    "Owner-scoped plan release preserves unrelated rows and passes exact database readback; website publication is verified separately.",
 };

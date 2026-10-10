@@ -14,121 +14,13 @@ import DailyTimetable, {
   type DailySchedule,
 } from "@/components/trackers/DailyTimetable";
 import RoadmapGuide from "./RoadmapGuide";
-function EvidenceItem({
-  item,
-  state,
-  onEvidence,
-}: {
-  item: CareerChecklistItem;
-  state: CareerExecutionState;
-  onEvidence: (
-    item: CareerChecklistItem,
-    evidence: CareerEvidence,
-    verify: boolean,
-  ) => void;
-}) {
-  const entry = state.evidenceByItemId[item.id];
-  const [editing, setEditing] = useState(false),
-    [value, setValue] = useState(entry?.evidence.value ?? ""),
-    [error, setError] = useState("");
-  return (
-    <li
-      className="min-w-0 rounded-xl border border-border p-4 space-y-2"
-      data-testid={item.id}
-    >
-      <p className="font-medium text-sm leading-relaxed break-words">
-        {item.text}
-      </p>
-      <p className="text-xs text-muted-foreground" role="status">
-        {entry?.verifiedAt
-          ? "Verified evidence"
-          : entry
-            ? "Evidence saved · needs verification"
-            : "Planned · evidence missing"}
-      </p>
-      <button
-        type="button"
-        className="inline-action min-h-11"
-        onClick={() => {
-          setValue(entry?.evidence.value ?? "");
-          setEditing(!editing);
-          setError("");
-        }}
-      >
-        {editing
-          ? "Close evidence"
-          : entry
-            ? "Review evidence"
-            : "Add evidence"}
-      </button>
-      {editing && (
-        <div className="space-y-3">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {item.acceptanceCriteria}
-          </p>
-          <label className="block text-sm">
-            Result and checks
-            <textarea
-              maxLength={2000}
-              className="mt-1 w-full min-h-28 rounded-lg border border-border bg-background p-3"
-              value={value}
-              onChange={(e) => {
-                setValue(e.target.value);
-                setError("");
-              }}
-            />
-          </label>
-          {error && (
-            <p role="alert" className="text-sm text-destructive">
-              {error}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="inline-action min-h-11"
-              onClick={() => {
-                try {
-                  onEvidence(item, { value }, false);
-                  setError("");
-                } catch (e) {
-                  setError(
-                    e instanceof Error
-                      ? e.message
-                      : "Evidence could not be saved",
-                  );
-                }
-              }}
-            >
-              Save evidence
-            </button>
-            {entry && (
-              <button
-                type="button"
-                className="inline-action min-h-11"
-                disabled={value !== entry.evidence.value}
-                onClick={() => {
-                  try {
-                    onEvidence(item, entry.evidence, true);
-                    setError("");
-                  } catch (e) {
-                    setError(
-                      e instanceof Error
-                        ? e.message
-                        : "Evidence could not be verified",
-                    );
-                  }
-                }}
-              >
-                Verify saved evidence
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-    </li>
-  );
-}
+import EvidenceItem from "./RoadmapEvidenceItem";
+import GermanyExecutionView from "./GermanyExecutionView";
+import { annotateGermanySchedule } from "@/lib/germany-execution";
+import type {
+  GermanyExamAttempt,
+  GermanyCompanyRecord,
+} from "@/lib/germany-execution";
 export default function GermanyRoadmap({
   plan,
   today,
@@ -136,8 +28,12 @@ export default function GermanyRoadmap({
   days,
   state,
   onEvidence,
+  onAttempt,
+  onCompany,
 }: {
   plan: Plan;
+  onAttempt?: (attempt: GermanyExamAttempt) => void;
+  onCompany?: (id: string, record: GermanyCompanyRecord) => void;
   today: string;
   email?: string;
   days: Array<{ date: string; schedule: DailySchedule }>;
@@ -175,6 +71,20 @@ export default function GermanyRoadmap({
   const next = week.items
     .filter((i) => !state.evidenceByItemId[i.id]?.verifiedAt)
     .slice(0, 3);
+  if (plan.execution)
+    return (
+      <GermanyExecutionView
+        plan={plan}
+        date={date}
+        setDate={setDate}
+        today={today}
+        schedule={annotateGermanySchedule(plan.execution, date, schedule)}
+        state={state}
+        onEvidence={onEvidence}
+        onAttempt={onAttempt}
+        onCompany={onCompany}
+      />
+    );
   return (
     <div className="space-y-6" data-testid="germany-roadmap">
       <section className="rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-6 space-y-3">
@@ -257,8 +167,8 @@ export default function GermanyRoadmap({
         {position.stage === "after" ? (
           <p className="text-sm leading-relaxed">
             Review actual application stages, retest the weakest interview
-            mechanism and replace next week&apos;s scope with the highest-value live
-            work. The twelve-week evidence remains below.
+            mechanism and replace next week&apos;s scope with the highest-value
+            live work. The twelve-week evidence remains below.
           </p>
         ) : recovery ? (
           <p className="text-sm text-muted-foreground">
@@ -278,8 +188,9 @@ export default function GermanyRoadmap({
           </ol>
         ) : (
           <p className="text-sm">
-            This week&apos;s milestones are verified. Maintain applications, replies,
-            German and recall; choose the next gap during Saturday&apos;s review.
+            This week&apos;s milestones are verified. Maintain applications,
+            replies, German and recall; choose the next gap during
+            Saturday&apos;s review.
           </p>
         )}
       </section>

@@ -1,3 +1,5 @@
+import type { GermanyExamAttempt, GermanyCompanyRecord } from "./germany-execution.ts";
+
 export type CareerEvidenceType = "note" | "recording" | "commit" | "url" | "application" | "screenshot" | "manual-confirmation";
 
 export interface CareerEvidence {
@@ -57,6 +59,8 @@ export interface CareerExecutionState {
   evidenceByItemId: Record<string, CareerExecutionEntry>;
   archivedItems: ArchivedCareerItem[];
   legacyClaims?: LegacyCompletionClaim[];
+  germanyExamAttempts?: GermanyExamAttempt[];
+  germanyCompanyRecords?: Record<string,GermanyCompanyRecord>;
 }
 
 export interface CareerTodo {
@@ -143,6 +147,7 @@ function normalizeState(value: unknown): CareerExecutionState {
   if (!value || typeof value !== "object") return structuredClone(EMPTY_CAREER_EXECUTION_STATE);
   const record = value as Partial<CareerExecutionState>;
   return {
+    ...record,
     version: 1,
     evidenceByItemId: record.evidenceByItemId && typeof record.evidenceByItemId === "object" ? record.evidenceByItemId : {},
     archivedItems: Array.isArray(record.archivedItems) ? record.archivedItems : [],
@@ -156,11 +161,11 @@ export function mergeExecutionState(previous: unknown, nextChecklistIds: string[
   const preserved: Record<string, CareerExecutionEntry> = {};
   const archived = [...current.archivedItems];
   for (const [id, entry] of Object.entries(current.evidenceByItemId)) {
-    if (nextIds.has(id)) preserved[id] = entry;
+    if (nextIds.has(id) || /^germany:2026:(?:day:|company:)/.test(id)) preserved[id] = entry;
     else archived.push({ id, archivedAt, reason: "Removed from generated curriculum" });
   }
   const uniqueArchives = new Map(archived.map(item => [item.id, item]));
-  return { version: 1, evidenceByItemId: preserved, archivedItems: [...uniqueArchives.values()], legacyClaims: current.legacyClaims };
+  return { ...current, version: 1, evidenceByItemId: preserved, archivedItems: [...uniqueArchives.values()], legacyClaims: current.legacyClaims };
 }
 
 export function buildPlannerTodos(curriculum: { days: Array<{ day: number; date: string; title?: string }> }, existingTodos: CareerTodo[]): CareerTodo[] {

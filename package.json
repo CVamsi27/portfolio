@@ -14,7 +14,7 @@
     "test:career-curriculum": "node --test scripts/generate-career-curriculum.test.mjs && node --experimental-strip-types --test src/lib/career-roadmap.test.ts src/lib/bible-sync.test.ts scripts/career-seed-apply.test.ts",
     "pretest:e2e": "test -f .env && mv .env .env.local_save || true; NEXT_TELEMETRY_DISABLED=1 NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY= next build; STATUS=$?; test -f .env.local_save && mv .env.local_save .env || true; exit $STATUS",
     "test:e2e": "playwright test",
-    "test:germany-roadmap": "node --test scripts/generate-germany-roadmap.test.mjs && node --experimental-strip-types --test src/lib/germany-roadmap.test.ts src/lib/personal-timetable.test.ts src/lib/personal-nav.test.ts"
+    "test:germany-roadmap": "node --test scripts/generate-germany-roadmap.test.mjs && node --experimental-strip-types --test src/lib/germany-roadmap.test.ts src/lib/germany-execution.test.ts src/lib/personal-timetable.test.ts src/lib/personal-nav.test.ts"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

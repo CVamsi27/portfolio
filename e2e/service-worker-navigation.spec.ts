@@ -47,6 +47,14 @@ test("worker upgrade clears the old navigation cache without deleting tracker da
   const todos = [{ id: "keep", text: "Keep my saved task", done: false }];
   await seed(page, { "vk:todos": todos });
   await page.goto("/hub");
+  // An upgrade starts with an established controller, not the first install's
+  // activation/claim race. The earlier navigation test uses the same boundary.
+  await expect
+    .poll(
+      () => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL),
+      { timeout: 20_000 },
+    )
+    .toMatch(/\/sw\.js$/);
   const before = await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
     const before = localStorage.getItem("vk:todos");
