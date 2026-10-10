@@ -184,3 +184,36 @@ test("missing campaign data gives a useful empty state and keeps legacy views", 
     page.getByText("Study catalogue and history", { exact: true }),
   ).toBeVisible();
 });
+
+test("mobile dock stays readable when web fonts are unavailable", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.route("**/*.woff2", (route) => route.abort());
+  await setup(page, "light");
+  await page.evaluate(() => document.fonts.ready);
+  const dock = page.getByTestId("mobile-command-dock");
+  await expect(dock.locator("[data-dock-label]")).toHaveCount(6);
+  for (const label of await dock.locator("[data-dock-label]").all()) {
+    const measurement = await label.evaluate((el) => ({
+      text: el.textContent,
+      clientWidth: el.clientWidth,
+      scrollWidth: el.scrollWidth,
+      fontFamily: getComputedStyle(el).fontFamily,
+      fontSize: parseFloat(getComputedStyle(el).fontSize),
+    }));
+    expect(measurement.fontSize).toBeGreaterThanOrEqual(12);
+    expect(
+      measurement.scrollWidth,
+      JSON.stringify(measurement),
+    ).toBeLessThanOrEqual(measurement.clientWidth);
+  }
+  for (const link of await dock.getByRole("link").all()) {
+    const box = await link.boundingBox();
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(320);
+});
