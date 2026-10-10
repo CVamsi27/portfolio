@@ -15,10 +15,10 @@
 - [x] Add the study return link before outline early exits. Validate date/task context, preserve it for chapter/revision navigation and authentication, and test redirect rejection.
 - [x] Activate the approved private companions and regenerate their private JSON. Dry-run the owner import, back up, apply with concurrency checks and verify exact readback.
 - [x] Run unit tests, relevant browser flows, lint/build, private data exclusions and Bible verification. Inspect 320px and desktop views in both themes.
-- [ ] Commit and push both repositories after gates pass. Verify deployed revisions, authenticated live behavior and retained history; record release evidence privately.
+- [x] Commit and push both repositories after gates pass. Verify deployed revisions, authenticated live behavior and retained history; record release evidence privately.
 
 ## Release constraints
 
 Do not send applications, outreach, social posts or OSS submissions. No credentials or private planning payload enter the portfolio repository. Attempts remain historical when prompts change and no date automatically creates a pass. A failed assessment replaces a later practice block; it adds no hours. Actual employer instructions override mock preparation.
 
-Local release gates passed: the final full browser suite, meaningful scoring/migration tests, lint/typecheck/build and Bible verification. Owner import applied one row with exact readback of all 17 owner rows and all 100 study days. Production completion is recorded separately in the canonical private release evidence.
+Local release gates passed: the final full browser suite, meaningful scoring/migration tests, lint/typecheck/build and Bible verification. Owner import applied one row with exact readback of all 17 owner rows and all 100 study days. Both production deployments and the authenticated chapter, revision and dated-task return flow passed. Production evidence and theme screenshots are recorded separately in the canonical private release report.
