@@ -40,7 +40,7 @@ const plan = {
   ],
   sources: [],
 };
-async function setup(page: import("@playwright/test").Page) {
+async function setup(page: import("@playwright/test").Page, theme?: string) {
   await page.clock.install({ time: new Date("2026-10-12T09:00:00Z") });
   await seed(page, {
     "vk:career_command_center": { germanyRoadmap: plan },
@@ -65,6 +65,8 @@ async function setup(page: import("@playwright/test").Page) {
       ],
     },
   });
+  if (theme)
+    await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
   await page.goto("/roadmap");
 }
 test("promotes the roadmap and preserves evidence through reload without auto-verification", async ({
@@ -112,7 +114,9 @@ test("promotes the roadmap and preserves evidence through reload without auto-ve
   await restored
     .getByRole("button", { name: "Verify saved evidence", exact: true })
     .click();
-  await expect(page.getByTestId("germany-roadmap")).toContainText("1/12 milestones verified");
+  await expect(page.getByTestId("germany-roadmap")).toContainText(
+    "1/12 milestones verified",
+  );
   await page.reload();
   await expect(page.getByTestId("germany-roadmap")).toContainText(
     "1/12 milestones verified",
@@ -122,11 +126,10 @@ for (const width of [320, 390, 768, 1440])
   for (const theme of ["light", "dark"])
     test(`roadmap is readable at ${width}px in ${theme}`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await setup(page);
-      await page.evaluate((t) => {
-        document.documentElement.classList.toggle("dark", t === "dark");
-        document.documentElement.classList.toggle("light", t === "light");
-      }, theme);
+      await setup(page, theme);
+      await expect(page.locator("html")).toHaveClass(
+        new RegExp(`(^| )${theme}( |$)`),
+      );
       await expect(page.getByTestId("germany-roadmap")).toBeVisible();
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),
@@ -143,8 +146,16 @@ for (const width of [320, 390, 768, 1440])
           expect(box!.width).toBeGreaterThanOrEqual(44);
           expect(box!.height).toBeGreaterThanOrEqual(44);
         }
-        for (const label of await dock.locator('a > span').all()) {
-          expect(await label.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);
+        await expect(dock.locator("[data-dock-label]")).toHaveCount(6);
+        for (const label of await dock.locator("[data-dock-label]").all()) {
+          expect(
+            await label.evaluate((el) =>
+              parseFloat(getComputedStyle(el).fontSize),
+            ),
+          ).toBeGreaterThanOrEqual(12);
+          expect(
+            await label.evaluate((el) => el.scrollWidth <= el.clientWidth),
+          ).toBe(true);
         }
       }
       await page.getByLabel("Plan date").fill("2026-10-18");

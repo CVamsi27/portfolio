@@ -58,6 +58,12 @@ test("worker upgrade clears the old navigation cache without deleting tracker da
     return before;
   });
   await expect
+    .poll(
+      () => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL),
+      { timeout: 20_000 },
+    )
+    .toContain("/sw.js?upgrade-probe");
+  await expect
     .poll(() => page.evaluate(() => caches.has("nova-os-v3")))
     .toBe(false);
   expect(await page.evaluate(() => localStorage.getItem("vk:todos"))).toBe(

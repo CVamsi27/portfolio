@@ -57,7 +57,9 @@ jobs:
         run: ./node_modules/.bin/tsc --noEmit
 
       - name: Career curriculum and sync unit tests
-        run: pnpm test:career-curriculum
+        run: |
+          pnpm test:career-curriculum
+          pnpm test:germany-roadmap
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4

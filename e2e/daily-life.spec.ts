@@ -57,7 +57,7 @@ test("daily capture shows one type and retains a chosen date", async ({
     page.getByRole("link", { name: "Return to Today", exact: true }),
   ).toHaveAttribute("href", "/hub");
 });
-test("editor shell removes repeated progress and clocks and keeps four primary destinations", async ({
+test("editor shell removes repeated progress and clocks and keeps five primary destinations", async ({
   page,
 }) => {
   await seed(page);
@@ -68,7 +68,7 @@ test("editor shell removes repeated progress and clocks and keeps four primary d
   await expect(page.locator(".dossier-world-clock")).toHaveCount(0);
   await expect(
     page.getByTestId("tracker-primary-nav").getByRole("link"),
-  ).toHaveCount(4);
+  ).toHaveCount(5);
 });
 
 test("scheduled block removal and undo retain its linked task", async ({
@@ -298,7 +298,9 @@ test("task scheduling opens its exact ID and an overlap requires review before s
     date,
     startLocal: "09:00",
     durationMinutes: 60,
-    timeZone: "Asia/Kolkata",
+    timeZone: await page.evaluate(
+      () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ),
     kind: "event",
     title: "Meeting",
     updatedAt: 1,

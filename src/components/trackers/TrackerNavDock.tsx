@@ -27,12 +27,12 @@ export default function TrackerNavDock({
       aria-label="Tracker navigation"
       data-testid="mobile-command-dock"
       data-dock-context="core"
-      className="dossier-command-dock fixed inset-x-2.5 bottom-2.5 z-[70] lg:hidden rounded-2xl border border-border/80 bg-background/90 shadow-2xl backdrop-blur-xl"
+      className="dossier-command-dock fixed inset-x-2 bottom-2.5 z-[70] lg:hidden rounded-2xl border border-border/80 bg-background/90 shadow-2xl backdrop-blur-xl"
       style={{
         paddingBottom: "calc(0.2rem + env(safe-area-inset-bottom, 0px))",
       }}
     >
-      <div className="flex items-center justify-between gap-0 px-1 py-1">
+      <div className="flex items-center justify-between gap-0 py-1">
         {PERSONAL_PRIMARY_NAV.map((l) => {
           const active = isPersonalPrimaryPath(pathname, l.href);
           return (
@@ -42,7 +42,9 @@ export default function TrackerNavDock({
               aria-label={l.label}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "dossier-command-link relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-0 min-h-12 py-2 transition-colors active:scale-95",
+                "dossier-command-link relative flex min-w-11 flex-1 flex-col items-center gap-1 rounded-xl px-0 min-h-12 py-2 transition-colors active:scale-95",
+                l.id === "roadmap" && "min-w-14",
+                l.id === "review" && "min-w-15",
                 active
                   ? "is-active bg-primary/15 text-primary font-bold"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/30",
@@ -55,7 +57,10 @@ export default function TrackerNavDock({
                   active && "scale-105",
                 )}
               />
-              <span className="w-full truncate text-center text-[11px] font-semibold leading-none tracking-tight">
+              <span
+                data-dock-label
+                className="w-full whitespace-nowrap text-center text-xs font-semibold leading-none tracking-tight normal-case"
+              >
                 {l.short}
               </span>
               {active ? (
@@ -85,12 +90,14 @@ export default function TrackerNavDock({
             router.push(`/log?${context.toString()}`);
           }}
           aria-label="Add a record"
-          className="dossier-command-link flex min-h-12 flex-1 flex-col items-center justify-center rounded-xl text-primary"
+          className="dossier-command-link flex min-h-12 min-w-11 flex-1 flex-col items-center justify-center rounded-xl text-primary"
         >
           <span aria-hidden className="text-xl">
             ＋
           </span>
-          <span className="text-xs font-semibold">Add</span>
+          <span data-dock-label className="text-xs font-semibold normal-case">
+            Add
+          </span>
         </Link>
       </div>
     </nav>

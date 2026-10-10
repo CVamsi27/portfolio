@@ -23,13 +23,13 @@ test("shared Add is available without stacking an action bar on every editor", a
     await expect(dialog).toBeHidden();
   }
 });
-test("mobile dock has four destinations and dated Add", async ({ page }) => {
+test("mobile dock has five destinations and dated Add", async ({ page }) => {
   await seed(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/health?date=2026-10-01");
   const dock = page.getByTestId("mobile-command-dock");
   await expect(dock).toBeVisible();
-  await expect(dock.getByRole("link")).toHaveCount(5);
+  await expect(dock.getByRole("link")).toHaveCount(6);
   await page.getByRole("button", { name: "Quick capture" }).click();
   await page
     .getByRole("dialog")

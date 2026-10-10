@@ -136,6 +136,7 @@ test("changing the food diary date survives reload", async ({ page }) => {
   await seed(page);
   await page.goto("/food?date=2026-10-03&view=diary");
   await page.getByLabel("Record date", { exact: true }).fill("2026-10-02");
+  await expect(page).toHaveURL(/[?&]date=2026-10-02(?:&|$)/);
   await page.reload();
   await expect(page.getByLabel("Record date", { exact: true })).toHaveValue(
     "2026-10-02",

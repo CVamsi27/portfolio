@@ -41,10 +41,11 @@ test.describe("personal today cockpit", () => {
     await seed(page);
     await page.goto("/hub");
     const primary = page.getByTestId("tracker-primary-nav");
-    await expect(primary.getByRole("link")).toHaveCount(4);
+    await expect(primary.getByRole("link")).toHaveCount(5);
     for (const [label, href] of [
       ["Today", "/hub"],
       ["Plan", "/plan"],
+      ["Roadmap", "/roadmap"],
       ["Health", "/health"],
       ["Progress", "/dashboard"],
     ] as const) {
@@ -57,7 +58,7 @@ test.describe("personal today cockpit", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
-    ).toHaveCount(5);
+    ).toHaveCount(6);
     await expect(
       page
         .getByTestId("mobile-command-dock")

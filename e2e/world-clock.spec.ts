@@ -31,10 +31,11 @@ test("clock advances across local midnight without stale dates", async ({
   page,
 }) => {
   await seed(page);
-  await page.clock.install({ time: new Date("2026-10-03T23:59:58+05:30") });
+  await page.clock.install({ time: new Date("2026-10-03T23:59:00+05:30") });
   await page.goto("/hub");
   await page.getByText("Time zones & reminders", { exact: true }).click();
   const clock = page.getByTestId("world-clock-strip");
+  await page.clock.pauseAt(new Date("2026-10-03T23:59:58+05:30"));
   await expect(clock.getByTestId("local-clock-time")).toHaveText("23:59");
   await page.clock.runFor(3000);
   await expect(clock.getByTestId("local-clock-time")).toHaveText("00:00");
@@ -43,11 +44,12 @@ test("clock advances across local midnight without stale dates", async ({
 
 test("city clocks respect daylight saving changes", async ({ page }) => {
   await seed(page);
-  await page.clock.install({ time: new Date("2026-10-25T00:59:58Z") });
+  await page.clock.install({ time: new Date("2026-10-25T00:59:00Z") });
   await page.goto("/hub");
   await page.getByText("Time zones & reminders", { exact: true }).click();
   const clock = page.getByTestId("world-clock-strip");
   await clock.locator("summary").click();
+  await page.clock.pauseAt(new Date("2026-10-25T00:59:58Z"));
   const munich = clock.getByTestId("clock-Munich");
   await expect(munich.locator("time")).toHaveText("02:59");
   await page.clock.runFor(3000);

@@ -57,6 +57,7 @@ test("primary navigation stays clickable during an active focus session", async 
   await expect(nav.getByRole("link")).toHaveText([
     "Today",
     "Plan",
+    "Roadmap",
     "Health",
     "Progress",
   ]);
