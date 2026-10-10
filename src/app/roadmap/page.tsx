@@ -12,6 +12,12 @@ import {
   personalSchedule,
 } from "@/lib/personal-timetable";
 import DailyTimetable from "@/components/trackers/DailyTimetable";
+import GermanyRoadmapView from "@/components/career/GermanyRoadmap";
+import {
+  isGermanyRoadmap,
+  recordGermanyEvidence,
+  type GermanyRoadmap,
+} from "@/lib/germany-roadmap";
 import { refreshBibleChapters, type BibleChapter } from "@/lib/bible-sync";
 import curriculum from "@/data/career-curriculum.json";
 import Link from "next/link";
@@ -127,6 +133,7 @@ interface Timetable {
 }
 
 interface CareerData {
+  germanyRoadmap?: GermanyRoadmap;
   version?: number;
   reviewedOn?: string;
   profile?: {
@@ -206,6 +213,7 @@ interface CareerData {
     id: string;
     text: string;
     done: boolean;
+    reviewRequired?: boolean;
     link?: string;
   }[];
   weeklyTargets: Record<string, number>;
@@ -537,9 +545,9 @@ function DayCard({
             {masteredCount > 0 && (
               <span
                 className={cn(
-                "rounded-full px-2 py-0.5 text-xs font-bold border",
-                allChaptersMastered
-                  ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                  "rounded-full px-2 py-0.5 text-xs font-bold border",
+                  allChaptersMastered
+                    ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
                     : "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
                 )}
               >
@@ -580,7 +588,7 @@ function DayCard({
               style={{ width: `${progress}%`, background: color.ring }}
             />
           </div>
-          </div>
+        </div>
         <div className="shrink-0 text-muted-foreground">
           {open ? (
             <ChevronUp className="h-4 w-4" />
@@ -844,14 +852,14 @@ function DayCard({
                         setSelected(null);
                     }}
                   >
-                  <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-5 shadow-2xl">
+                    <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-5 shadow-2xl">
                       <h3
                         id="evidence-title"
                         className="font-display text-lg font-bold"
                       >
                         Verify task completion
                       </h3>
-                    <p className="mt-2 text-sm">{selected.text}</p>
+                      <p className="mt-2 text-sm">{selected.text}</p>
                       <p className="mt-2 rounded-lg bg-muted/50 p-3 text-xs">
                         <strong>Done means:</strong>{" "}
                         {selected.acceptanceCriteria}
@@ -959,7 +967,7 @@ function DayCard({
                           Save evidence
                         </button>
                       </div>
-                  </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1307,7 +1315,15 @@ function WeeklyTargetsSection({
     focusedStudyHours: { label: "Study hours", icon: BookOpen },
     practiceArtifacts: { label: "Practice artifacts", icon: Code2 },
     tailoredApplications: { label: "Tailored applications", icon: Briefcase },
-    qualityOutreach: { label: "Quality outreach msgs", icon: Mail },
+    qualityOutreach: { label: "Relevant conversations (up to)", icon: Mail },
+    projectHours: { label: "Project hours", icon: Code2 },
+    applicationHours: { label: "Application hours", icon: Briefcase },
+    ossHours: { label: "OSS hours", icon: GitPullRequest },
+    networkingHours: { label: "Networking / writing hours", icon: Globe },
+    interviewHours: { label: "Coding / mock hours", icon: Brain },
+    relocationHours: { label: "Relocation hours", icon: MapPin },
+    reviewHours: { label: "Recall / planning hours", icon: RotateCcw },
+    substantiveComments: { label: "Useful comments", icon: Mail },
     mockInterviews: { label: "Mock interviews", icon: Users },
     ossPRs: { label: "OSS PRs", icon: GitPullRequest },
     publicProof: { label: "Public proof posts", icon: Globe },
@@ -1322,12 +1338,12 @@ function WeeklyTargetsSection({
           <Target className="h-4 w-4 text-primary" />
           <h2 className="font-display font-bold">Weekly Targets</h2>
           <span className="ml-auto text-xs text-muted-foreground">
-            Treat as floors, not ceilings.
+            Adjust outputs to role fit; keep the 50-hour cap.
           </span>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {entries.map(([key, value]) => {
-            const meta = labels[key] ?? { label: key, icon: Zap };
+            const meta = labels[key] ?? { label: key.replace(/([a-z])([A-Z])/g, "$1 $2"), icon: Zap };
             const Icon = meta.icon;
             return (
               <div
@@ -1336,7 +1352,7 @@ function WeeklyTargetsSection({
               >
                 <Icon className="h-4 w-4 shrink-0 text-primary" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-xs text-muted-foreground break-words">
                     {meta.label}
                   </p>
                   <p className="font-mono text-sm font-bold tabular-nums">
@@ -1390,9 +1406,9 @@ function DayScheduleSection({
         <p className="mb-4 text-xs text-muted-foreground">
           {aligned
             ? schedule.blocks.length
-              ? "Personal Bible timetable: example IST times; keep the durations. Ten focused hours each weekday, four on both Saturday and Sunday. Interview preparation replaces planned work rather than adding hours."
+              ? "This dated timetable is shared with Today. From 12 October 2026: nine focused hours each weekday, five on Saturday and recovery Sunday. Interview preparation replaces scheduled work. Earlier dates keep their historical allocation."
               : "No scheduled work."
-            : "Designed for 10h focused study + 2h family time + 90m exercise + 2 meals. Shift block order on days with interviews or appointments."}
+            : "Example clock placements: move blocks around real commitments and keep their planned durations. Record evidence rather than counting elapsed time as completion."}
         </p>
         <div className="space-y-1.5">
           {schedule.blocks.map((block) => (
@@ -1603,12 +1619,12 @@ function VerificationSection({
                 key={id}
                 onClick={() => {
                   setChecked((prev) => {
-                  const next = new Set(prev);
+                    const next = new Set(prev);
                     if (next.has(id)) next.delete(id);
                     else next.add(id);
-                  return next;
-                });
-              }}
+                    return next;
+                  });
+                }}
                 className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-muted/30 transition-colors ${isDone ? "opacity-60" : ""}`}
               >
                 {isDone ? (
@@ -1649,24 +1665,24 @@ function NotificationsPanel({
         Notification.permission !== "granted"
       )
         return;
-    try {
+      try {
         const notif = new Notification(
           `Day ${notifications.length ? "" : ""}${n.time} · ${n.message}`,
           {
-        body: n.message,
-        icon: "/icons/icon-192.png",
-        tag: `career-${n.key}`,
+            body: n.message,
+            icon: "/icons/icon-192.png",
+            tag: `career-${n.key}`,
           },
         );
-      notif.onclick = () => {
-        window.focus();
-        if (n.href) window.location.href = n.href;
-        notif.close();
-      };
-      setTimeout(() => notif.close(), 8000);
-    } catch {
-      /* ignore */
-    }
+        notif.onclick = () => {
+          window.focus();
+          if (n.href) window.location.href = n.href;
+          notif.close();
+        };
+        setTimeout(() => notif.close(), 8000);
+      } catch {
+        /* ignore */
+      }
     },
     [notifications.length],
   );
@@ -1804,7 +1820,7 @@ function GermanyChecklist({
   items: CareerData["germanyChecklist"];
   onToggle: (id: string) => void;
 }) {
-  const done = items.filter((i) => i.done).length;
+  const done = items.filter((i) => i.done && !i.reviewRequired).length;
   return (
     <Card variant="dossier">
       <CardContent className="p-5">
@@ -1835,9 +1851,10 @@ function GermanyChecklist({
             >
               <button
                 onClick={() => onToggle(item.id)}
-                className="mt-0.5 shrink-0"
+                aria-label={`Review requirement: ${item.text}`}
+                className="mt-0.5 shrink-0 min-h-11 min-w-11 grid place-items-center"
               >
-                {item.done ? (
+                {item.done && !item.reviewRequired ? (
                   <CheckSquare className="h-4 w-4 text-emerald-400" />
                 ) : (
                   <Square className="h-4 w-4 text-muted-foreground" />
@@ -1849,6 +1866,11 @@ function GermanyChecklist({
                 >
                   {item.text}
                 </p>
+                {item.reviewRequired && (
+                  <p className="mt-1 text-xs text-primary">
+                    Previously checked · updated requirement needs review
+                  </p>
+                )}
               </div>
               {item.link && (
                 <a
@@ -2125,12 +2147,12 @@ function MotivationHero({
                     key={w.date}
                     className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1.5"
                   >
-                  <p className="font-mono text-emerald-300">{w.date}</p>
+                    <p className="font-mono text-emerald-300">{w.date}</p>
                     <p className="truncate text-foreground/80" title={w.title}>
                       {w.title}
                     </p>
-                </div>
-              ))}
+                  </div>
+                ))}
               {weeklyWins.filter((w) => w.pct === 100).length === 0 && (
                 <div className="col-span-2 rounded-md border border-dashed border-border/40 p-2 text-center text-muted-foreground">
                   No full days yet. Ship today&apos;s checklist to break zero.
@@ -2239,6 +2261,9 @@ export default function RoadmapPage() {
   };
 
   const today = istDateTime().date;
+  const germanyPlan = isGermanyRoadmap(career?.germanyRoadmap)
+    ? career.germanyRoadmap
+    : null;
   const days = (() => {
     const saved = timetable?.days?.length ? timetable.days : curriculum.days;
     const source = alignPersonalTimetable(user?.email, {
@@ -2383,7 +2408,7 @@ export default function RoadmapPage() {
     setCareer({
       ...career,
       germanyChecklist: career.germanyChecklist.map((i) =>
-        i.id === id ? { ...i, done: !i.done } : i,
+        i.id === id ? { ...i, done: i.reviewRequired ? true : !i.done, reviewRequired: false } : i,
       ),
     });
     toast({
@@ -2395,7 +2420,7 @@ export default function RoadmapPage() {
   const NAV = [
     {
       id: "roadmap" as const,
-      label: "Current study",
+      label: "Overview",
       icon: <CalendarDays className="h-4 w-4" />,
     },
     {
@@ -2430,13 +2455,13 @@ export default function RoadmapPage() {
       <PersonalShell
         icon="book"
         title="Career roadmap"
-        subtitle="Your daily study plan, evidence, and next career steps."
+        subtitle="Your Germany campaign, daily timetable and verified work."
         eyebrow="NOVA // Execution"
       >
         {/* Section nav */}
         <div className="flex gap-2 flex-wrap">
           {NAV.filter((n) =>
-            ["roadmap", "curriculum", "revision"].includes(n.id),
+            ["roadmap", "germany", "curriculum", "revision"].includes(n.id),
           ).map((n) => (
             <button
               key={n.id}
@@ -2455,18 +2480,21 @@ export default function RoadmapPage() {
           <summary>Optional career resources</summary>
           <div className="workspace-views">
             {NAV.filter(
-              (n) => !["roadmap", "curriculum", "revision"].includes(n.id),
+              (n) =>
+                !["roadmap", "germany", "curriculum", "revision"].includes(
+                  n.id,
+                ),
             ).map((n) => (
-                <button
-                  key={n.id}
-                  aria-pressed={section === n.id}
-                  onClick={() => {
-                    setSection(n.id);
-                  }}
-                  className="inline-action"
-                >
-                  {n.label}
-                </button>
+              <button
+                key={n.id}
+                aria-pressed={section === n.id}
+                onClick={() => {
+                  setSection(n.id);
+                }}
+                className="inline-action"
+              >
+                {n.label}
+              </button>
             ))}
           </div>
           <p>
@@ -2474,380 +2502,418 @@ export default function RoadmapPage() {
             daily study plan stay separate.
           </p>
         </details>
+        {section === "roadmap" &&
+          (germanyPlan ? (
+            <GermanyRoadmapView
+              plan={germanyPlan}
+              today={today}
+              email={user?.email}
+              days={days}
+              state={executionState}
+              onEvidence={(item, evidence, verify) => {
+                setExecutionState(
+                  recordGermanyEvidence(executionState, item, evidence, verify),
+                );
+              }}
+            />
+          ) : (
+            <section className="rounded-xl border border-border p-4">
+              <h2 className="font-semibold">
+                Germany campaign is not available in this account yet.
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Sign in to the account containing your reviewed plan. Existing
+                study history and Curriculum remain available below.
+              </p>
+            </section>
+          ))}
         {/* ── ROADMAP SECTION ── */}
         {(section === "roadmap" || section === "curriculum") && (
-          <>
-            {/* Quick Actions: Audio Break Lounge, 10 PM Curfew & Opaque Recall Gate */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setBreakLoungeOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer shadow-xs"
-                  title="Find a developer podcast on YouTube Music"
-                >
-                  <Headphones className="h-3.5 w-3.5 text-cyan-400" />
-                  <span>Audio break</span>
-                </button>
-              </div>
-
-              {dueRevisionList.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setRevisionGateOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/40 px-3.5 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/25 transition-all cursor-pointer shadow-xs"
-                >
-                  <RotateCcw className="h-3.5 w-3.5 animate-spin-slow text-amber-400" />
-                  <span>
-                    Review due topics ({dueRevisionList.length} Due) →
-                  </span>
-                </button>
-              )}
-            </div>
-
-            {executionState.legacyClaims?.length ? (
-              <div
-                role="status"
-                className="rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3 text-xs text-amber-100"
-              >
-                <strong>
-                  {executionState.legacyClaims.length} prior-plan checkmarks
-                  preserved for review.
-                </strong>{" "}
-                They are not counted as verified completion. Re-complete the
-                matching current task with evidence to earn verified progress.
-              </div>
-            ) : null}
-
-            <div
-              hidden={section !== "roadmap"}
-              className="workspace-section-stack"
-            >
-            {/* Today spotlight */}
-            {todayPlan && (
-                <Card
-                  variant="dossier"
-                  className="ring-2 ring-primary/40 shadow-md shadow-primary/10"
-                >
-                <CardContent className="p-5">
-                  <div className="flex items-start gap-4">
-                    <div className="relative shrink-0">
-                        <SimpleRing
-                          pct={todayPct}
-                          size={68}
-                          thickness={7}
-                          from={getColor(todayPlan.topic).ring}
-                          to="#a855f7"
-                        />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-sm font-bold text-primary tabular-nums">
-                            {todayPct}%
-                          </span>
-                      </div>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                            Today · {todayPlan.date} · Day {todayPlan.day}
-                          </span>
-                      </div>
-                        <p className="font-display font-bold">
-                          {todayPlan.title}
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                          {todayPlan.mission}
-                        </p>
-                      <div className="mt-4 rounded-lg border border-border/60 bg-background/50 p-3">
-                        <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                              Study in this order
-                            </p>
-                          <span className="text-xs font-mono text-primary flex items-center gap-1">
-                              <ShieldCheck className="h-3 w-3" />{" "}
-                              Anti-distraction guard enabled
-                          </span>
-                        </div>
-                        <ol className="mt-2 space-y-1.5">
-                          {todayPlan.chapters.map((chapter, index) => {
-                              const isMastered = completedChapterIdSet.has(
-                                chapter.id,
-                              );
-                            return (
-                                <li
-                                  key={chapter.id}
-                                  className="chapter-study-row flex items-center justify-between gap-2 text-sm"
-                                >
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <span className="font-mono text-xs text-muted-foreground">
-                                      {index + 1}.
-                                    </span>
-                                  <button
-                                    type="button"
-                                      onClick={() =>
-                                        handleOpenStudy(
-                                          {
-                                            ...chapter,
-                                            stack: todayPlan.topic,
-                                          },
-                                          todayPlan.day,
-                                        )
-                                      }
-                                      className="text-left font-medium text-foreground hover:text-primary transition-colors cursor-pointer"
-                                  >
-                                    {chapter.title}
-                                      <span className="block text-xs font-normal text-muted-foreground">
-                                        Role:{" "}
-                                        {chapter.rolePriority ?? "Unclassified"}{" "}
-                                        · General:{" "}
-                                        {chapter.generalImportance ??
-                                          "Unclassified"}
-                                      </span>
-                                  </button>
-                                  {isMastered && (
-                                    <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-xs font-bold text-emerald-400 shrink-0">
-                                      <Check className="h-2.5 w-2.5" />
-                                      <span>Mastered</span>
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <button
-                                    type="button"
-                                      onClick={() =>
-                                        handleOpenStudy(
-                                          {
-                                            ...chapter,
-                                            stack: todayPlan.topic,
-                                          },
-                                          todayPlan.day,
-                                        )
-                                      }
-                                    className={cn(
-                                      "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold transition-colors cursor-pointer",
-                                      isMastered
-                                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                                          : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20",
-                                    )}
-                                  >
-                                    <ShieldCheck className="h-3 w-3" />
-                                      <span>
-                                        {isMastered
-                                          ? "Review Sprint"
-                                          : "Deep Study"}
-                                      </span>
-                                  </button>
-                                    <a
-                                      href={chapter.studyUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      aria-label={`Open ${chapter.title} in new tab`}
-                                      className="text-muted-foreground hover:text-primary"
-                                    >
-                                    <ExternalLink className="h-3 w-3" />
-                                  </a>
-                                </div>
-                              </li>
-                            );
-                          })}
-                        </ol>
-                      </div>
-
-                      <div className="mt-3">
-                          <DailyTimetable
-                            schedule={todayPlan.schedule}
-                            date={todayPlan.date}
-                            timeZone="Asia/Kolkata"
-                          />
-                      </div>
-
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                          <div className="rounded-lg bg-muted/35 p-3">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                              Build and verify
-                            </p>
-                            <p className="mt-1 text-sm leading-relaxed">
-                              {todayPlan.practiceTask}
-                            </p>
-                          </div>
-                          <div className="rounded-lg bg-muted/35 p-3">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                              Career outcome
-                            </p>
-                            <p className="mt-1 text-sm leading-relaxed">
-                              {todayPlan.roleTrack.action}
-                            </p>
-                          </div>
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                            onClick={() =>
-                              handleOpenStudy(
-                                todayPlan.chapters[0] || {
-                                  id: todayPlan.chapterId,
-                                  title: todayPlan.title,
-                                  studyUrl: todayPlan.studyLink,
-                                  stack: todayPlan.topic,
-                                },
-                                todayPlan.day,
-                              )
-                            }
-                          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-xs"
-                        >
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                            Start study session
-                        </button>
-                          <a
-                            href={todayPlan.studyLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
-                          >
-                            <BookOpen className="h-3 w-3" />
-                            Web tab
-                        </a>
-                          <button
-                            onClick={() => setFilter("today")}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
-                          >
-                            <ListChecks className="h-3 w-3" />
-                            Verify today&apos;s work
-                        </button>
-                          <a
-                            href="https://micro1.ai"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
-                          >
-                            <Users className="h-3 w-3" />
-                            Practice interview
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-              {todayPlan?.notifications &&
-                todayPlan.notifications.length > 0 && (
-              <NotificationsPanel notifications={todayPlan.notifications} />
-            )}
-            </div>
-            <div
-              hidden={section !== "curriculum"}
-              className="workspace-section-stack"
-            >
-            {/* Phase bars */}
-            {phaseGroups.length > 0 && (
-              <Card variant="dossier">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <BarChart2 className="h-4 w-4 text-primary" />
-                    <h2 className="font-display font-bold">Phase Progress</h2>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                      {phaseGroups.map((g) => (
-                      <div key={g.label} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                            <span className="font-medium truncate">
-                              {g.label}
-                            </span>
-                            <span className="shrink-0 tabular-nums text-muted-foreground">
-                              {g.done}/{g.total}
-                            </span>
-                        </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{
-                                width: `${g.total ? Math.round((g.done / g.total) * 100) : 0}%`,
-                                background: g.ring,
-                              }}
-                            />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Filter + search */}
-            <div className="flex flex-wrap gap-2 items-center">
-              <div className="flex gap-1.5">
-                  {(["all", "today", "pending", "done"] as const).map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      aria-pressed={filter === f}
-                      onClick={() => setFilter(f)}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors ${filter === f ? "border-primary bg-primary text-primary-foreground" : "border-border/70 bg-card text-muted-foreground hover:border-primary/60"}`}
-                    >
-                    {f}
-                  </button>
-                ))}
-              </div>
-              <div className="relative flex-1 min-w-[140px]">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                  <input
-                    aria-label="Search roadmap"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search topic…"
-                    className="h-8 w-full rounded-full border border-border/70 bg-card pl-8 pr-3 text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-                  />
-              </div>
-                <span className="text-xs text-muted-foreground">
-                  {filtered.length} days
-                </span>
-            </div>
-
-              {days.length > 0 && filtered.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-border p-6">
-                  <h2 className="font-semibold">No days match this view</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Choose all days or clear your search to find another study
-                    block.
-                  </p>
+          <details
+            className="workspace-panel"
+            open={section === "curriculum" || !germanyPlan}
+          >
+            <summary className="min-h-11">Study catalogue and history</summary>
+            <>
+              {/* Quick Actions: Audio Break Lounge, 10 PM Curfew & Opaque Recall Gate */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      setFilter("all");
-                      setSearch("");
-                    }}
-                    className="mt-4 min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                    onClick={() => setBreakLoungeOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer shadow-xs"
+                    title="Find a developer podcast on YouTube Music"
                   >
-                    Show all days
+                    <Headphones className="h-3.5 w-3.5 text-cyan-400" />
+                    <span>Audio break</span>
                   </button>
                 </div>
-              ) : null}
-            {days.length === 0 && (
-              <div className="rounded-xl border border-dashed border-border/60 py-16 text-center">
-                <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                <p className="font-display font-bold">Timetable syncing…</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Sign in with your NOVA account — your data loads
-                    automatically.
-                  </p>
-              </div>
-            )}
 
-            <div className="space-y-2">
-                {filtered.map((plan) => (
-                  <DayCard
-                    key={plan.day}
-                    plan={plan}
-                    onToggle={toggleChecklist}
-                    evidence={executionState.evidenceByItemId}
-                    isToday={plan.date === today}
-                    onOpenStudy={handleOpenStudy}
-                    completedChapterIdSet={completedChapterIdSet}
-                  />
-              ))}
-            </div>
-            </div>
-          </>
+                {dueRevisionList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setRevisionGateOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/40 px-3.5 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/25 transition-all cursor-pointer shadow-xs"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 animate-spin-slow text-amber-400" />
+                    <span>
+                      Review due topics ({dueRevisionList.length} Due) →
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              {executionState.legacyClaims?.length ? (
+                <div
+                  role="status"
+                  className="rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3 text-xs text-amber-100"
+                >
+                  <strong>
+                    {executionState.legacyClaims.length} prior-plan checkmarks
+                    preserved for review.
+                  </strong>{" "}
+                  They are not counted as verified completion. Re-complete the
+                  matching current task with evidence to earn verified progress.
+                </div>
+              ) : null}
+
+              <div
+                hidden={section !== "roadmap"}
+                className="workspace-section-stack"
+              >
+                {/* Today spotlight */}
+                {todayPlan &&
+                  (!germanyPlan ||
+                    Object.keys(todayPlan.schedule).length > 0) && (
+                    <Card
+                      variant="dossier"
+                      className="ring-2 ring-primary/40 shadow-md shadow-primary/10"
+                    >
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div className="relative shrink-0">
+                            <SimpleRing
+                              pct={todayPct}
+                              size={68}
+                              thickness={7}
+                              from={getColor(todayPlan.topic).ring}
+                              to="#a855f7"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-sm font-bold text-primary tabular-nums">
+                                {todayPct}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                                Today · {todayPlan.date} · Day {todayPlan.day}
+                              </span>
+                            </div>
+                            <p className="font-display font-bold">
+                              {todayPlan.title}
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                              {todayPlan.mission}
+                            </p>
+                            <div className="mt-4 rounded-lg border border-border/60 bg-background/50 p-3">
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                  Study in this order
+                                </p>
+                                <span className="text-xs font-mono text-primary flex items-center gap-1">
+                                  <ShieldCheck className="h-3 w-3" />{" "}
+                                  Anti-distraction guard enabled
+                                </span>
+                              </div>
+                              <ol className="mt-2 space-y-1.5">
+                                {todayPlan.chapters.map((chapter, index) => {
+                                  const isMastered = completedChapterIdSet.has(
+                                    chapter.id,
+                                  );
+                                  return (
+                                    <li
+                                      key={chapter.id}
+                                      className="chapter-study-row flex items-center justify-between gap-2 text-sm"
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <span className="font-mono text-xs text-muted-foreground">
+                                          {index + 1}.
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleOpenStudy(
+                                              {
+                                                ...chapter,
+                                                stack: todayPlan.topic,
+                                              },
+                                              todayPlan.day,
+                                            )
+                                          }
+                                          className="text-left font-medium text-foreground hover:text-primary transition-colors cursor-pointer"
+                                        >
+                                          {chapter.title}
+                                          <span className="block text-xs font-normal text-muted-foreground">
+                                            Role:{" "}
+                                            {chapter.rolePriority ??
+                                              "Unclassified"}{" "}
+                                            · General:{" "}
+                                            {chapter.generalImportance ??
+                                              "Unclassified"}
+                                          </span>
+                                        </button>
+                                        {isMastered && (
+                                          <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-xs font-bold text-emerald-400 shrink-0">
+                                            <Check className="h-2.5 w-2.5" />
+                                            <span>Mastered</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleOpenStudy(
+                                              {
+                                                ...chapter,
+                                                stack: todayPlan.topic,
+                                              },
+                                              todayPlan.day,
+                                            )
+                                          }
+                                          className={cn(
+                                            "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold transition-colors cursor-pointer",
+                                            isMastered
+                                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                                              : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20",
+                                          )}
+                                        >
+                                          <ShieldCheck className="h-3 w-3" />
+                                          <span>
+                                            {isMastered
+                                              ? "Review Sprint"
+                                              : "Deep Study"}
+                                          </span>
+                                        </button>
+                                        <a
+                                          href={chapter.studyUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          aria-label={`Open ${chapter.title} in new tab`}
+                                          className="text-muted-foreground hover:text-primary"
+                                        >
+                                          <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                      </div>
+                                    </li>
+                                  );
+                                })}
+                              </ol>
+                            </div>
+
+                            <div className="mt-3">
+                              <DailyTimetable
+                                schedule={todayPlan.schedule}
+                                date={todayPlan.date}
+                                timeZone="Asia/Kolkata"
+                              />
+                            </div>
+
+                            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                              <div className="rounded-lg bg-muted/35 p-3">
+                                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                  Build and verify
+                                </p>
+                                <p className="mt-1 text-sm leading-relaxed">
+                                  {todayPlan.practiceTask}
+                                </p>
+                              </div>
+                              <div className="rounded-lg bg-muted/35 p-3">
+                                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                  Career outcome
+                                </p>
+                                <p className="mt-1 text-sm leading-relaxed">
+                                  {todayPlan.roleTrack.action}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleOpenStudy(
+                                    todayPlan.chapters[0] || {
+                                      id: todayPlan.chapterId,
+                                      title: todayPlan.title,
+                                      studyUrl: todayPlan.studyLink,
+                                      stack: todayPlan.topic,
+                                    },
+                                    todayPlan.day,
+                                  )
+                                }
+                                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-xs"
+                              >
+                                <ShieldCheck className="h-3.5 w-3.5" />
+                                Start study session
+                              </button>
+                              <a
+                                href={todayPlan.studyLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
+                              >
+                                <BookOpen className="h-3 w-3" />
+                                Web tab
+                              </a>
+                              <button
+                                onClick={() => setFilter("today")}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
+                              >
+                                <ListChecks className="h-3 w-3" />
+                                Verify today&apos;s work
+                              </button>
+                              <a
+                                href="https://micro1.ai"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
+                              >
+                                <Users className="h-3 w-3" />
+                                Practice interview
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                {todayPlan?.notifications &&
+                  todayPlan.notifications.length > 0 && (
+                    <NotificationsPanel
+                      notifications={todayPlan.notifications}
+                    />
+                  )}
+              </div>
+              <div
+                hidden={section !== "curriculum"}
+                className="workspace-section-stack"
+              >
+                {/* Phase bars */}
+                {phaseGroups.length > 0 && (
+                  <Card variant="dossier">
+                    <CardContent className="p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <BarChart2 className="h-4 w-4 text-primary" />
+                        <h2 className="font-display font-bold">
+                          Phase Progress
+                        </h2>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {phaseGroups.map((g) => (
+                          <div key={g.label} className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="font-medium truncate">
+                                {g.label}
+                              </span>
+                              <span className="shrink-0 tabular-nums text-muted-foreground">
+                                {g.done}/{g.total}
+                              </span>
+                            </div>
+                            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                              <div
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${g.total ? Math.round((g.done / g.total) * 100) : 0}%`,
+                                  background: g.ring,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Filter + search */}
+                <div className="flex flex-wrap gap-2 items-center">
+                  <div className="flex gap-1.5">
+                    {(["all", "today", "pending", "done"] as const).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        aria-pressed={filter === f}
+                        onClick={() => setFilter(f)}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors ${filter === f ? "border-primary bg-primary text-primary-foreground" : "border-border/70 bg-card text-muted-foreground hover:border-primary/60"}`}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="relative flex-1 min-w-[140px]">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <input
+                      aria-label="Search roadmap"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search topic…"
+                      className="h-8 w-full rounded-full border border-border/70 bg-card pl-8 pr-3 text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {filtered.length} days
+                  </span>
+                </div>
+
+                {days.length > 0 && filtered.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border p-6">
+                    <h2 className="font-semibold">No days match this view</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Choose all days or clear your search to find another study
+                      block.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilter("all");
+                        setSearch("");
+                      }}
+                      className="mt-4 min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                    >
+                      Show all days
+                    </button>
+                  </div>
+                ) : null}
+                {days.length === 0 && (
+                  <div className="rounded-xl border border-dashed border-border/60 py-16 text-center">
+                    <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                    <p className="font-display font-bold">Timetable syncing…</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Sign in with your NOVA account — your data loads
+                      automatically.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {filtered.map((plan) => (
+                    <DayCard
+                      key={plan.day}
+                      plan={plan}
+                      onToggle={toggleChecklist}
+                      evidence={executionState.evidenceByItemId}
+                      isToday={plan.date === today}
+                      onOpenStudy={handleOpenStudy}
+                      completedChapterIdSet={completedChapterIdSet}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          </details>
         )}
 
         {/* ── REVISION & RECALL SECTION ── */}
@@ -3067,8 +3133,8 @@ export default function RoadmapPage() {
                 revisionFilter === "due"
                   ? dueRevisionList
                   : revisionFilter === "starred"
-                  ? starredRevisionList
-                  : completedChapters;
+                    ? starredRevisionList
+                    : completedChapters;
 
               if (search.trim()) {
                 const q = search.toLowerCase();
@@ -3088,15 +3154,15 @@ export default function RoadmapPage() {
                       {revisionFilter === "due"
                         ? "Zero topics due for revision!"
                         : revisionFilter === "starred"
-                        ? "No chapters starred as high-yield yet."
-                        : "No matching mastered chapters found."}
+                          ? "No chapters starred as high-yield yet."
+                          : "No matching mastered chapters found."}
                     </p>
                     <p className="text-xs text-muted-foreground max-w-md mx-auto">
                       {revisionFilter === "due"
                         ? "You have completed all scheduled recall reviews. The Ebbinghaus retention curve is maintained."
                         : revisionFilter === "starred"
-                        ? "Star critical chapters during your study sprint to build your personal high-yield interview arsenal."
-                        : "Complete focus sprints in the Deep Study Cockpit to add chapters to your revision queue."}
+                          ? "Star critical chapters during your study sprint to build your personal high-yield interview arsenal."
+                          : "Complete focus sprints in the Deep Study Cockpit to add chapters to your revision queue."}
                     </p>
                   </div>
                 );
@@ -3367,110 +3433,118 @@ export default function RoadmapPage() {
         {section === "germany" && career && (
           <>
             {/* ── Distraction Shield & Germany Goal Guardian ── */}
-            <Card variant="dossier" className="ring-1 ring-purple-500/40">
-              <CardContent className="p-5 space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <ShieldAlert className="h-5 w-5 text-purple-400 shrink-0" />
-                    <div>
-                      <h2 className="font-display font-bold text-base">
-                        Germany Goal Guardian & Distraction Shield
-                      </h2>
-                      <p className="text-xs text-muted-foreground">
-                        Strict social media blocklist · 10m leash · 1-hour
-                        lockdown · allowlist only
+            <details className="workspace-panel">
+              <summary className="min-h-11">Distraction controls</summary>
+              <Card variant="dossier" className="ring-1 ring-purple-500/40">
+                <CardContent className="p-5 space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <ShieldAlert className="h-5 w-5 text-purple-400 shrink-0" />
+                      <div>
+                        <h2 className="font-display font-bold text-base">
+                          Germany Goal Guardian & Distraction Shield
+                        </h2>
+                        <p className="text-xs text-muted-foreground">
+                          Strict social media blocklist · 10m leash · 1-hour
+                          lockdown · allowlist only
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.dispatchEvent(
+                          new CustomEvent(
+                            "portfolio-trigger-distraction-shield",
+                            {
+                              detail: { url: "https://instagram.com" },
+                            },
+                          ),
+                        )
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-full bg-purple-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-purple-500 transition-colors shadow-xs cursor-pointer shrink-0"
+                    >
+                      <span>Test Guardian</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="grid gap-2.5 sm:grid-cols-2 text-xs">
+                    <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-1.5">
+                      <p className="font-mono text-xs font-bold uppercase text-emerald-400 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Protected Allowlist
                       </p>
+                      <div className="flex flex-wrap gap-1 font-mono text-xs text-emerald-300">
+                        <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 border border-emerald-500/20">
+                          buildora.work
+                        </span>
+                        <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 border border-emerald-500/20">
+                          notion.com
+                        </span>
+                        <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 border border-emerald-500/20">
+                          github.com
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3 space-y-1.5">
+                      <p className="font-mono text-xs font-bold uppercase text-rose-400 flex items-center gap-1">
+                        <ShieldAlert className="h-3 w-3" /> Guarded Social Apps
+                        (12 Blocked)
+                      </p>
+                      <div className="flex flex-wrap gap-1 font-mono text-xs text-rose-300">
+                        <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
+                          x.com
+                        </span>
+                        <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
+                          instagram.com
+                        </span>
+                        <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
+                          youtube.com
+                        </span>
+                        <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
+                          reddit.com
+                        </span>
+                        <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
+                          linkedin.com
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      window.dispatchEvent(
-                        new CustomEvent(
-                          "portfolio-trigger-distraction-shield",
-                          {
-                          detail: { url: "https://instagram.com" },
-                          },
-                        ),
-                      )
-                    }
-                    className="inline-flex items-center gap-1.5 rounded-full bg-purple-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-purple-500 transition-colors shadow-xs cursor-pointer shrink-0"
-                  >
-                    <span>Test Guardian</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
 
-                <div className="grid gap-2.5 sm:grid-cols-2 text-xs">
-                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-1.5">
-                    <p className="font-mono text-xs font-bold uppercase text-emerald-400 flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" /> Protected Allowlist
-                    </p>
-                    <div className="flex flex-wrap gap-1 font-mono text-xs text-emerald-300">
-                      <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 border border-emerald-500/20">
-                        buildora.work
-                      </span>
-                      <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 border border-emerald-500/20">
-                        notion.com
-                      </span>
-                      <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 border border-emerald-500/20">
-                        github.com
-                      </span>
-                    </div>
+                  <div className="rounded-xl border border-border/60 bg-muted/20 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <span className="text-muted-foreground text-xs">
+                      Visiting any blocked app reminds you of your Germany
+                      relocation goals, requires a conscious &ldquo;Forget your
+                      dreams&rdquo; confirmation, limits access to 10 minutes,
+                      and locks down for 1 hour.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.dispatchEvent(
+                          new CustomEvent(
+                            "portfolio-trigger-distraction-shield",
+                            {
+                              detail: { url: "https://x.com" },
+                            },
+                          ),
+                        )
+                      }
+                      className="font-utility text-xs font-semibold text-primary hover:underline cursor-pointer shrink-0"
+                    >
+                      Open Guardian Shield Console →
+                    </button>
                   </div>
+                </CardContent>
+              </Card>
+            </details>
 
-                  <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3 space-y-1.5">
-                    <p className="font-mono text-xs font-bold uppercase text-rose-400 flex items-center gap-1">
-                      <ShieldAlert className="h-3 w-3" /> Guarded Social Apps
-                      (12 Blocked)
-                    </p>
-                    <div className="flex flex-wrap gap-1 font-mono text-xs text-rose-300">
-                      <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
-                        x.com
-                      </span>
-                      <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
-                        instagram.com
-                      </span>
-                      <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
-                        youtube.com
-                      </span>
-                      <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
-                        reddit.com
-                      </span>
-                      <span className="rounded bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20">
-                        linkedin.com
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-border/60 bg-muted/20 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                  <span className="text-muted-foreground text-xs">
-                    Visiting any blocked app reminds you of your Germany
-                    relocation goals, requires a conscious &ldquo;Forget your
-                    dreams&rdquo; confirmation, limits access to 10 minutes, and
-                    locks down for 1 hour.
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      window.dispatchEvent(
-                        new CustomEvent(
-                          "portfolio-trigger-distraction-shield",
-                          {
-                          detail: { url: "https://x.com" },
-                          },
-                        ),
-                      )
-                    }
-                    className="font-utility text-xs font-semibold text-primary hover:underline cursor-pointer shrink-0"
-                  >
-                    Open Guardian Shield Console →
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-
+            <p className="text-sm text-muted-foreground">
+              Earlier checklist marks are historical checks. Recheck changed
+              requirements against the dated official guidance; they do not
+              establish current visa eligibility.
+            </p>
             <GermanyChecklist
               items={career.germanyChecklist}
               onToggle={toggleGermany}
@@ -3480,38 +3554,55 @@ export default function RoadmapPage() {
                 <div className="flex items-center gap-2 mb-3">
                   <Zap className="h-4 w-4 text-purple-400" />
                   <h2 className="font-display font-bold">
-                    EU Blue Card — Key Facts
+                    EU Blue Card — 2026 rules to verify
                   </h2>
                 </div>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Checked 10 October 2026. Verify the route with an actual offer
+                  and your qualification evidence.{" "}
+                  <a
+                    href="https://www.make-it-in-germany.com/en/visa-residence/types/eu-blue-card"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                  >
+                    Official Blue Card rules
+                  </a>{" "}
+                  ·{" "}
+                  <a
+                    href="https://india.diplo.de/in-en/service/2755736-2755736"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                  >
+                    India employment checklist
+                  </a>
+                </p>
                 <div className="space-y-2 text-xs">
                   {[
                     {
-                      q: "Minimum salary (IT shortage occupation)",
-                      a: "€41,041/year gross (2025)",
+                      q: "2026 reduced threshold — conditional",
+                      a: "€45,934.20 gross/year for qualifying routes; Federal Employment Agency approval where required. Recheck for 2027.",
                     },
                     {
-                      q: "Minimum salary (standard)",
-                      a: "€45,552/year gross (2025)",
+                      q: "2026 standard threshold",
+                      a: "€50,700 gross/year. An appropriate qualifying offer of at least six months and the applicable qualification evidence are also required.",
                     },
                     {
-                      q: "Degree requirement",
-                      a: "Recognised university degree — KL University qualifies (check anabin.kmk.org)",
+                      q: "Qualification evidence",
+                      a: "Verify the institution and degree in anabin or obtain ZAB comparability. Institution listing alone does not establish degree eligibility. A separate IT experience route has its own conditions.",
                     },
                     {
-                      q: "Processing time",
-                      a: "4–12 weeks after job offer + blocked account + degree docs",
+                      q: "Application documents and timing",
+                      a: "Use the responsible mission's employment checklist: passport, offer/employer declaration, qualification evidence and insurance as applicable. Additional documents or verification depend on the route. Do not assume a universal blocked account, apostille or processing window.",
                     },
                     {
-                      q: "What you need",
-                      a: "Job offer + degree certificate (apostilled) + blocked account + health insurance",
+                      q: "Settlement permit — conditional",
+                      a: "Blue Card holders may qualify after 27 months with A1 German or 21 months with B1, subject to the other requirements. This is not automatic permanent residence.",
                     },
                     {
-                      q: "Path to PR",
-                      a: "Blue Card → 21 months (B1 German) or 33 months without language",
-                    },
-                    {
-                      q: "German language required?",
-                      a: "Not for the Blue Card, but critical for interviews and integration. Start NOW.",
+                      q: "Language and authorization",
+                      a: "Employer language requirements vary. Start beginner German and record practice without claiming a certificate. Planning eligibility does not establish current work authorization.",
                     },
                   ].map(({ q, a }) => (
                     <div

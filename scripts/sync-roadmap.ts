@@ -1,5 +1,6 @@
 import { applyCareerRows, verifyCareerReadback } from "./career-seed-apply.ts";
-import { alignPersonalTimetable } from "../src/lib/personal-timetable.ts";
+import { isGermanyRoadmap, mergeGermanyCareer, GERMANY_WEEKLY_TARGETS, GERMANY_CHECKLIST_UPDATES } from "../src/lib/germany-roadmap.ts";
+import { alignPersonalTimetable, personalSchedule, TIMETABLE_OWNER_EMAIL } from "../src/lib/personal-timetable.ts";
 import { createClient } from "@supabase/supabase-js";
 import curriculum from "../src/data/career-curriculum.json" with { type: "json" };
 import {
@@ -104,44 +105,60 @@ function careerData() {
       linkedinConnection: "Hi {Name} — saw your work on {specific thing}. I'm a senior full-stack engineer exploring {role-family} roles in {location}. If you're open to a quick chat about {team/product}, I'd love to connect. — Vamsi",
     },
     germanyChecklist: [
-      { id: "germany-degree", text: "Verify degree and institution recognition through official Anabin/ZAB guidance", done: false, link: "https://anabin.kmk.org/anabin.html" },
-      { id: "germany-blue-card", text: "Check current EU Blue Card requirements (2025: €41,041 IT shortage / €45,552 standard)", done: false, link: "https://www.make-it-in-germany.com/en/visa-residence/types/eu-blue-card" },
-      { id: "germany-documents", text: "Apostille degree + transcripts + experience letters + passport + certified translations", done: false, link: "https://www.auswaertiges-amt.de/en/apostille" },
-      { id: "germany-language", text: "Set an achievable German A1 study cadence (15 min/day, 5 days/week) and record weekly practice", done: false, link: "https://www.goethe.de/en/spr/kup/kur/dlk.html" },
-      { id: "germany-budget", text: "Build a relocation budget from current official and provider quotes (blocked account, deposit, flights)", done: false },
-      { id: "germany-health", text: "Confirm German statutory/private health insurance plan and provider quote", done: false },
-      { id: "germany-network", text: "Join 2 German engineering communities (e.g. Berlin/JS, Munich Rust, ReactJS Munich Discord)", done: false },
-      { id: "germany-portfolio", text: "Tailor portfolio + resume for German SaaS roles (formal tone, photo optional, 1-page CV)", done: false },
-    ],
-    weeklyTargets: {
-      focusedStudyHours: 14,
-      practiceArtifacts: 5,
-      tailoredApplications: 5,
-      qualityOutreach: 10,
-      mockInterviews: 2,
-      ossPRs: 1,
-      publicProof: 1,
-      leetcodeProblems: 25,
-      germanPracticeMinutes: 75,
-    },
+      {
+        id: "germany-degree",
+        text: "Verify degree and institution recognition through official Anabin/ZAB guidance",
+        done: false,
+        link: "https://anabin.kmk.org/anabin.html",
+      },
+      {
+        id: "germany-blue-card",
+        text: "Check 2026 Blue Card requirements: standard EUR 50,700 or qualifying reduced EUR 45,934.20, required approvals and qualification evidence; recheck annual figures for 2027",
+        done: false,
+        link: "https://www.make-it-in-germany.com/en/visa-residence/types/eu-blue-card",
+      },
+      {
+        id: "germany-documents",
+        text: "Verify the responsible mission’s employment checklist, qualification evidence, employer documents and route-specific additional documents",
+        done: false,
+        link: "https://www.auswaertiges-amt.de/en/apostille",
+      },
+      {
+        id: "germany-language",
+        text: "Practice beginner German 45 minutes each weekday and record listening, speaking and writing; do not claim an unearned certificate",
+        done: false,
+        link: "https://www.goethe.de/en/spr/kup/kur/dlk.html",
+      },
+      {
+        id: "germany-budget",
+        text: "Build a relocation budget from current official and provider quotes (net income, rent/deposit, insurance, flights, household costs and buffer; check any route-specific proof of funds)",
+        done: false,
+      },
+      {
+        id: "germany-health",
+        text: "Confirm German statutory/private health insurance plan and provider quote",
+        done: false,
+      },
+      {
+        id: "germany-network",
+        text: "Join 2 German engineering communities (e.g. Berlin/JS, Munich Rust, ReactJS Munich Discord)",
+        done: false,
+      },
+      {
+        id: "germany-portfolio",
+        text: "Tailor truthful materials to the actual vacancy",
+        done: false,
+      },
+    ].map((item) => ({
+      ...item,
+      ...(GERMANY_CHECKLIST_UPDATES[item.id] ?? {}),
+    })),
+    weeklyTargets: GERMANY_WEEKLY_TARGETS,
     daySchedule: {
       timezone: "Asia/Kolkata",
-      blocks: [
-        { time: "07:00–08:30", label: "Exercise + freshen up (no breakfast)", minutes: 90, type: "health" },
-        { time: "08:30–09:00", label: "Hydrate, plan the day, review yesterday's evidence ledger", minutes: 30, type: "ritual" },
-        { time: "09:00–11:00", label: "Deep study block A — Bible chapter(s) for today", minutes: 120, type: "study", output: "Notes committed to study.buildora.work chapter" },
-        { time: "11:00–11:15", label: "Break · walk · water", minutes: 15, type: "break" },
-        { time: "11:15–13:15", label: "Deep study block B — coding patterns / system-design", minutes: 120, type: "study", output: "Code committed, test passing" },
-        { time: "13:15–13:45", label: "Buffer · message check · OSS PR review", minutes: 30, type: "buffer" },
-        { time: "13:45–14:00", label: "Lunch", minutes: 15, type: "meal" },
-        { time: "14:00–15:30", label: "Practice / build — Docita feature, OSS PR, or portfolio artifact", minutes: 90, type: "practice", output: "PR opened or design doc drafted" },
-        { time: "15:30–17:30", label: "Role research + tailored applications + outreach", minutes: 120, type: "job", output: "1 tailored application or 5 quality outreach messages" },
-        { time: "17:30–18:00", label: "Break · decompression", minutes: 30, type: "break" },
-        { time: "18:00–19:30", label: "Mock interview prep (Mon/Wed) or DSA practice (Tue/Thu/Sat)", minutes: 90, type: "interview", output: "1 mock interview or 5 LeetCode problems" },
-        { time: "19:30–20:00", label: "Dinner with family", minutes: 30, type: "meal" },
-        { time: "20:00–22:00", label: "Family time · light reading · German practice (15m)", minutes: 120, type: "family" },
-        { time: "22:00", label: "Sleep target", minutes: 0, type: "anchor" },
-      ],
+      blocks: Object.entries(
+        personalSchedule(TIMETABLE_OWNER_EMAIL, "2026-10-12")!,
+      ).map(([time, block]) => ({ time, ...block, type: "work" })),
     },
     remindersDefault: {
       morning: { enabled: false, time: "07:00", message: "Wake up. Hydrate. Plan today. — Vamsi" },
@@ -190,10 +207,10 @@ function careerData() {
         { id: "verify-portal", text: "personal.buildora.work /roadmap loads career_command_center data and shows today's checklist" },
         { id: "verify-study", text: "Every study block link opens study.buildora.work chapter (404 → curriculum gap)" },
         { id: "verify-evidence", text: "Every 'done' checklist item has evidence type matching its contract (commit / url / application / manual-confirmation)" },
-        { id: "verify-outreach", text: "10 outreach messages/day logged with company + role + date + response status" },
-        { id: "verify-oss", text: "≥1 merged OSS PR / month referenced in resume or portfolio" },
+        { id: "verify-outreach", text: "Relevant personalized conversations recorded with context and actual response status; quality replaces quotas" },
+        { id: "verify-oss", text: "One focused contribution when ready; track submission, review and merge separately" },
         { id: "verify-mock", text: "2 mock interviews / week logged with platform + questions + score" },
-        { id: "verify-germany", text: "Germany checklist 100% done before serious job applications" },
+        { id: "verify-germany", text: "Verify visa and relocation prerequisites in parallel; apply once truthful materials and role constraints are checked" },
       ],
     },
   };
@@ -226,8 +243,20 @@ let userId = "00000000-0000-4000-8000-000000000000";
     throw new Error("Apply mode requires the configured database.");
   }
 
-  const currentState = existing.career_execution_state ?? EMPTY_CAREER_EXECUTION_STATE;
-  const checklistIds = curriculum.days.flatMap(day => day.checklist.map(item => item.id));
+  const currentState =
+    existing.career_execution_state ?? EMPTY_CAREER_EXECUTION_STATE;
+  const savedCareer =
+    existing.career_command_center &&
+    typeof existing.career_command_center === "object"
+      ? (existing.career_command_center as Record<string, unknown>)
+      : {};
+  const germanyPlan = isGermanyRoadmap(savedCareer.germanyRoadmap)
+    ? savedCareer.germanyRoadmap
+    : null;
+  const checklistIds = [
+    ...curriculum.days.flatMap((day) => day.checklist.map((item) => item.id)),
+    ...(germanyPlan?.weeks.flatMap((w) => w.items.map((i) => i.id)) ?? []),
+  ];
   const executionState = mergeExecutionState(currentState, checklistIds);
   const previousDays = (existing.timetable_100_days as { days?: Array<{ date?: string; checklist?: Array<{ id?: string; text?: string; done?: boolean }> }> } | undefined)?.days ?? [];
   const priorClaims = previousDays.flatMap(day => (day.checklist ?? [])
@@ -243,7 +272,7 @@ let userId = "00000000-0000-4000-8000-000000000000";
   };
   const values: Record<string, unknown> = {
     timetable_100_days: timetable,
-    career_command_center: careerData(),
+    career_command_center: germanyPlan ? mergeGermanyCareer({ ...careerData(), ...savedCareer }, germanyPlan) : { ...careerData(), ...savedCareer },
     career_execution_state: executionState,
     todos,
     reminders,

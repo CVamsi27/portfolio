@@ -94,7 +94,7 @@ test.describe("personal roadmap", () => {
     await expect(page.getByTestId("clock-disclosure")).toBeVisible();
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
-    ).toHaveCount(5);
+    ).toHaveCount(6);
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
       .toBeLessThanOrEqual(390);

@@ -30,6 +30,13 @@ export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
   { id: "today", href: "/hub", label: "Today", short: "Today", icon: "hub" },
   { id: "plan", href: "/plan", label: "Plan", short: "Plan", icon: "todo" },
   {
+    id: "roadmap",
+    href: "/roadmap",
+    label: "Roadmap",
+    short: "Roadmap",
+    icon: "book",
+  },
+  {
     id: "health",
     href: "/health",
     label: "Health",
@@ -47,13 +54,6 @@ export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
 
 export const PERSONAL_MORE_NAV: readonly PersonalNavItem[] = [
   { id: "tasks", href: "/todo", label: "Tasks", short: "Tasks", icon: "todo" },
-  {
-    id: "roadmap",
-    href: "/roadmap",
-    label: "100-Day Roadmap",
-    short: "Roadmap",
-    icon: "book",
-  },
   { id: "goal", href: "/goal", label: "Goals", short: "Goals", icon: "flag" },
   {
     id: "health",
@@ -96,7 +96,7 @@ export function isPersonalPrimaryPath(pathname: string, href: string): boolean {
   if (pathname === href) return true;
   if (href === "/hub") return pathname === "/trackers";
   const sections: Record<string, string[]> = {
-    "/plan": ["/todo", "/goal", "/roadmap"],
+    "/plan": ["/todo", "/goal"],
     "/health": [
       "/food",
       "/routine",

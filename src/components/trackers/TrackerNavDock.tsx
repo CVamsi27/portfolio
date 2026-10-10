@@ -32,7 +32,7 @@ export default function TrackerNavDock({
         paddingBottom: "calc(0.2rem + env(safe-area-inset-bottom, 0px))",
       }}
     >
-      <div className="flex items-center justify-between gap-1 px-1 py-1">
+      <div className="flex items-center justify-between gap-0 px-1 py-1">
         {PERSONAL_PRIMARY_NAV.map((l) => {
           const active = isPersonalPrimaryPath(pathname, l.href);
           return (
@@ -42,7 +42,7 @@ export default function TrackerNavDock({
               aria-label={l.label}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "dossier-command-link relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 min-h-12 py-2 transition-colors active:scale-95",
+                "dossier-command-link relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-0 min-h-12 py-2 transition-colors active:scale-95",
                 active
                   ? "is-active bg-primary/15 text-primary font-bold"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/30",
@@ -55,7 +55,7 @@ export default function TrackerNavDock({
                   active && "scale-105",
                 )}
               />
-              <span className="w-full truncate text-center text-xs font-semibold leading-none tracking-tight">
+              <span className="w-full truncate text-center text-[11px] font-semibold leading-none tracking-tight">
                 {l.short}
               </span>
               {active ? (
@@ -67,13 +67,20 @@ export default function TrackerNavDock({
         <Link
           href="/log"
           onClick={(event) => {
-            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+            if (
+              event.metaKey ||
+              event.ctrlKey ||
+              event.shiftKey ||
+              event.altKey
+            )
               return;
             event.preventDefault();
             const context = new URLSearchParams({
               returnTo: window.location.pathname + window.location.search,
             });
-            const date = new URLSearchParams(window.location.search).get("date");
+            const date = new URLSearchParams(window.location.search).get(
+              "date",
+            );
             if (date) context.set("date", date);
             router.push(`/log?${context.toString()}`);
           }}

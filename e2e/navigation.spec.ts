@@ -93,7 +93,7 @@ test.describe("navigation & shell", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
-    ).toHaveCount(5);
+    ).toHaveCount(6);
     await page.goto("/more");
     await expect(
       page.getByRole("link", { name: /Software Developer Bible/ }),
@@ -121,7 +121,7 @@ test.describe("navigation & shell", () => {
     );
   });
 
-  test("personal navbar keeps the four daily destinations and two actions visible", async ({
+  test("personal navbar keeps the five daily destinations and two actions visible", async ({
     page,
   }) => {
     await seed(page);
@@ -131,7 +131,7 @@ test.describe("navigation & shell", () => {
     await expect(rail.getByTestId("tracker-primary-nav")).toBeVisible();
     await expect(
       rail.getByTestId("tracker-primary-nav").getByRole("link"),
-    ).toHaveCount(4);
+    ).toHaveCount(5);
     await expect(
       rail
         .getByTestId("tracker-primary-nav")
@@ -152,6 +152,7 @@ test.describe("navigation & shell", () => {
         .getByTestId("tracker-primary-nav")
         .getByRole("link", { name: "Health" }),
     ).toHaveAttribute("href", "/health");
+    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Roadmap", exact: true })).toHaveAttribute("href", "/roadmap");
     await expect(
       rail.getByRole("button", { name: "More options", exact: true }),
     ).toBeVisible();
@@ -160,7 +161,7 @@ test.describe("navigation & shell", () => {
     ).toBeVisible();
   });
 
-  test("mobile personal navigation keeps the five destinations in the dock", async ({
+  test("mobile personal navigation keeps five destinations plus capture in the dock", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -171,7 +172,7 @@ test.describe("navigation & shell", () => {
     await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
-    ).toHaveCount(5);
+    ).toHaveCount(6);
     await expect(
       page
         .getByTestId("mobile-command-dock")

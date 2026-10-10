@@ -141,3 +141,24 @@ Treat the 100-day inventory as navigation, not a completion deadline. Essential 
 For each Bible content/priority change: regenerate, run `career:validate`, the curriculum/sync tests and the roadmap browser tests, inspect the diff, then publish portfolio main. The Git-connected production deployment publishes the new bundle. A deployed bundle does not prove cloud planner rows are updated: run the owner-scoped seed in dry-run first, then `--apply`, and verify its complete readback. Keep credentials and owner identity in ignored environment configuration. If the RPC is unavailable, the seed uses one atomic bulk upsert; other RPC failures stop the sync. Existing evidence, unrelated todos and reminder preferences are retained.
 
 No cross-repository scheduled sync is configured. A new Bible push requires regeneration/publication of this snapshot; the visible digest identifies what was actually shipped.
+
+### Germany campaign release
+
+`/roadmap` is a primary personal navigation destination. Its account-scoped Germany campaign is separate from the public study catalogue. It shows the current week, three next actions, a dated shared timetable and evidence that requires an explicit verification step. Existing Curriculum, Revision and resource deep links remain available.
+
+The owner schedule switches on 12 October 2026: weekdays 540 minutes, Saturday 300, Sunday recovery. It continues as a weekly hiring routine after the twelve-week campaign. Clock placements are movable IST examples; actual meetings use their date-aware invitation time.
+
+Private content has one source: the reviewed plan under the private Bible's `personal/reports/100-day-job-roadmap.md`. Generate and release it from this checkout; the JSON output and release backups must stay under that private directory:
+
+```bash
+node scripts/generate-germany-roadmap.mjs \
+  ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/100-day-job-roadmap.md \
+  ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap.json
+node --env-file=.env --experimental-strip-types scripts/sync-germany-roadmap.ts \
+  --payload=../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap.json
+# Add --apply only after reviewing the dry-run and passing the release checks.
+```
+
+The release resolves the exact configured timetable owner and updates only the career/timetable rows using each row's expected timestamp. Each compare-and-swap is atomic; the two-row release is not a transaction. A conflict stops work and reports any applied keys. A private mode-0600 backup and an exact readback of every owner row protect tasks, reminders, study history and evidence. No external communication or reminder opt-in occurs.
+
+Run the generator, schedule/navigation/evidence unit tests and `e2e/germany-roadmap.spec.ts` alongside the existing navigation, Bible-sync and timetable suites. Verify the authenticated account and Git-connected deployment separately; a successful local-mode render does not prove either.
