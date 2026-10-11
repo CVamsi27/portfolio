@@ -418,8 +418,9 @@ test("routine editing previews a draft and preserves occurrence history", async 
 test("water undo never corrects a different selected day", async ({ page }) => {
   await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
   await page.goto("/hub?date=2026-10-02");
+  await page.getByText("Daily records & quick capture", { exact: true }).click();
   await page.getByRole("button", { name: "Water +1", exact: true }).click();
-  await page.locator("#workspace-date").fill("2026-10-01");
+  await page.getByLabel("Selected date", { exact: true }).fill("2026-10-01");
   await expect(page).toHaveURL(/date=2026-10-01/);
   await expect(page.getByRole("button", { name: "Undo water" })).toHaveCount(0);
   expect(
@@ -433,12 +434,13 @@ test("mobile capture preserves the selected day and returns to its planning view
   await page.setViewportSize({ width: 390, height: 844 });
   await seed(page);
   await page.goto("/plan?date=2026-10-03&view=week");
-  await page.getByTestId("mobile-command-dock").getByRole("link", { name: "Add a record" }).click();
+  await page.getByRole("button", { name: "Tools menu", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Add a record", exact: true }).click();
   await page.getByRole("button", { name: "Task", exact: true }).click();
   await page.getByLabel("Task name", { exact: true }).fill("Historical capture");
   await page.getByRole("button", { name: "Save task", exact: true }).click();
   const records = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:todos")!));
   expect(records[0].date).toBe("2026-10-03");
-  await page.getByRole("link", { name: "Return to previous page", exact: true }).click();
+  await page.getByRole("link", { name: "Return to Plan", exact: true }).click();
   await expect(page).toHaveURL(/\/plan\?date=2026-10-03&view=week$/);
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   PERSONAL_PRIMARY_NAV,
   isPersonalPrimaryPath,
@@ -19,7 +19,6 @@ export default function TrackerNavDock({
   showDock?: boolean;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   if (!showDock) return null;
 
   return (
@@ -69,39 +68,6 @@ export default function TrackerNavDock({
             </Link>
           );
         })}
-        <Link
-          href="/log"
-          onClick={(event) => {
-            if (
-              event.metaKey ||
-              event.ctrlKey ||
-              event.shiftKey ||
-              event.altKey
-            )
-              return;
-            event.preventDefault();
-            const context = new URLSearchParams({
-              returnTo: window.location.pathname + window.location.search,
-            });
-            const date = new URLSearchParams(window.location.search).get(
-              "date",
-            );
-            if (date) context.set("date", date);
-            router.push(`/log?${context.toString()}`);
-          }}
-          aria-label="Add a record"
-          className="dossier-command-link flex min-h-12 min-w-11 flex-1 flex-col items-center justify-center rounded-xl text-primary"
-        >
-          <span aria-hidden className="text-xl">
-            ＋
-          </span>
-          <span
-            data-dock-label
-            className="font-sans text-xs font-semibold normal-case"
-          >
-            Add
-          </span>
-        </Link>
       </div>
     </nav>
   );

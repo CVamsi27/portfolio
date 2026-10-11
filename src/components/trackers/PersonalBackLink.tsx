@@ -9,8 +9,23 @@ export default function PersonalBackLink() {
     { href: "/plan", label: "Plan" },
     { href: "/health", label: "Health" },
     { href: "/dashboard", label: "Progress" },
-    { href: "/more", label: "More" },
+    { href: "/more", label: "Tools" },
   ];
+  if (
+    [
+      "/hub",
+      "/trackers",
+      "/plan",
+      "/roadmap",
+      "/health",
+      "/dashboard",
+      "/more",
+      "/share",
+      "/archive",
+      "/settings",
+    ].includes(path)
+  )
+    return null;
   const parent = sections.find((section) =>
     isPersonalPrimaryPath(path, section.href),
   ) ?? {

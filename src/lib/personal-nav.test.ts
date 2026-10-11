@@ -4,6 +4,7 @@ import {
   PERSONAL_PRIMARY_NAV,
   PERSONAL_MORE_NAV,
   isPersonalPrimaryPath,
+  isPersonalToolPath,
 } from "./personal-nav.ts";
 test("Roadmap is directly reachable and owns its active navigation state", () => {
   assert.equal(
@@ -23,4 +24,11 @@ test("Roadmap is directly reachable and owns its active navigation state", () =>
     ).map((n) => n.id),
     ["plan"],
   );
+});
+
+test("Sharing owns shared links and the legacy inbox but not other tools", () => {
+  assert.equal(isPersonalToolPath("/share/link-id", "/share"), true);
+  assert.equal(isPersonalToolPath("/shared-with-me", "/share"), true);
+  assert.equal(isPersonalToolPath("/archive", "/share"), false);
+  assert.equal(isPersonalToolPath("/shareholder", "/share"), false);
 });

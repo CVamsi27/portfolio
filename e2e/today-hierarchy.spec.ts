@@ -1,7 +1,70 @@
 import { test, expect } from "@playwright/test";
 import { seed } from "./helpers";
 
-test("daily recording is reachable before a long agenda without scrolling", async ({
+test("the selected week date stays visible on narrow phones and after resizing", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await seed(page);
+  await page.goto("/hub?date=2026-10-11");
+  const week = page.getByRole("navigation", { name: "Week dates" });
+  const selected = week.locator('[aria-pressed="true"]');
+  const selectedIsVisible = async () => {
+    const [strip, day] = await Promise.all([
+      week.boundingBox(),
+      selected.boundingBox(),
+    ]);
+    return Boolean(
+      strip &&
+        day &&
+        day.x >= strip.x &&
+        day.x + day.width <= strip.x + strip.width,
+    );
+  };
+  await expect(selected).toHaveAccessibleName("Sunday, October 11, 2026");
+  await expect.poll(selectedIsVisible).toBe(true);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize({ width: 320, height: 844 });
+  await expect.poll(selectedIsVisible).toBe(true);
+  await expect(
+    page.getByRole("heading", { name: "Today", exact: true }),
+  ).toBeInViewport();
+});
+
+test("Tools dialogs return focus and release background isolation", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  await page.goto("/hub");
+  const tools = page.getByRole("button", { name: "Tools menu" });
+  for (const [item, dialog] of [
+    ["Add a record", "Add a record"],
+    ["Search or run command", "Command Palette"],
+    ["Keyboard shortcuts", "Keyboard Shortcuts"],
+  ]) {
+    await tools.click();
+    await page.getByRole("menuitem", { name: item, exact: true }).click();
+    await expect(
+      page.getByRole("dialog", { name: dialog, exact: true }),
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(tools).toBeFocused();
+    await expect(page.locator("main")).not.toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+  }
+  await page.getByRole("button", { name: "Choose date" }).click();
+  await expect(
+    page
+      .getByRole("dialog", { name: "Choose date" })
+      .getByRole("button", { name: "Close", exact: true }),
+  ).toBeFocused();
+});
+
+test("daily recording retains selected-date capture and undo from its disclosure", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -25,10 +88,11 @@ test("daily recording is reachable before a long agenda without scrolling", asyn
     ),
   });
   await page.goto(`/hub?date=${date}`);
+  await page
+    .getByText("Daily records & quick capture", { exact: true })
+    .click();
   const actions = page.getByRole("group", { name: "Daily recording actions" });
-  await expect(
-    actions.getByRole("button", { name: "Water +1" }),
-  ).toBeInViewport();
+  await expect(actions.getByRole("button", { name: "Water +1" })).toBeVisible();
   await actions.getByRole("button", { name: "Water +1" }).click();
   expect(
     await page.evaluate(

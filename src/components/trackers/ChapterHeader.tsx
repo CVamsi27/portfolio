@@ -30,12 +30,7 @@ export default function ChapterHeader({
           {(action || subtitle || utility) && (
             <div className="chapter-context-row">
               {action}
-              {subtitle && (
-                <details className="chapter-help">
-                  <summary>About this page</summary>
-                  <p>{subtitle}</p>
-                </details>
-              )}
+              {subtitle && <p className="chapter-description">{subtitle}</p>}
               {utility && <div className="dossier-utility">{utility}</div>}
             </div>
           )}

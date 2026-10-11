@@ -16,11 +16,7 @@ export default function TrackersHub() {
   useMigrateWorkouts();
   return (
     <RequireAuth>
-      <PersonalShell
-        showBack={false}
-        title="Today"
-        icon="hub"
-      >
+      <PersonalShell showBack={false} title={null} icon="hub">
         <Suspense fallback={<p>Loading your day…</p>}>
           <DailyWorkspace />
         </Suspense>

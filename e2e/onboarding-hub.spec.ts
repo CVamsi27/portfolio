@@ -77,7 +77,7 @@ test.describe("onboarding questionnaire", () => {
     await page.getByRole("button", { name: /Get started/ }).click();
 
     // Prefs persisted + onboarding dismissed.
-    await expect(page.getByTestId("today-header")).toContainText("E2E Runner", {
+    await expect(page.getByTestId("today-header")).toContainText("Today", {
       timeout: 10_000,
     });
     const prefs = JSON.parse(
@@ -167,16 +167,17 @@ test.describe("hub command center", () => {
 
     await page.goto("/trackers");
 
-    await expect(page.getByTestId("today-header")).toContainText("Test User");
+    await expect(page.getByTestId("today-header")).toContainText("Today");
     await expect(
       page.getByRole("heading", { name: "Tasks to do" }),
     ).toBeVisible();
-    await expect(page.getByTestId("next-move-card")).toContainText(
+    await expect(page.locator(".unscheduled-list")).toContainText(
       "Seed open task",
     );
 
     // Quick action: add a task from the hub → lands in todo store.
-    await page.getByRole("button", { name: "Quick capture" }).click();
+    await page.getByRole("button", { name: "Tools menu", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Add a record", exact: true }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByRole("button", { name: "Task", exact: true }).click();
     await dialog.getByLabel("Task name").fill("From the hub");

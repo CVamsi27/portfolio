@@ -35,8 +35,8 @@ test("service worker never replays cached router payloads across deployments", a
   });
   expect(response.status).toBe(200);
   expect(response.text).not.toBe("stale-router-payload");
-  await page.getByRole("button", { name: "More options", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Tools", exact: true }).click();
+  await page.getByRole("button", { name: "Tools menu", exact: true }).click();
+  await page.getByRole("menuitem", { name: "All tools", exact: true }).click();
   await expect(page).toHaveURL(/\/more$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });

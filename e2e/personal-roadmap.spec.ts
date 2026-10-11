@@ -86,15 +86,15 @@ test.describe("personal roadmap", () => {
       "San Francisco",
     );
     await expect(page.getByTestId("progress-rail")).toHaveCount(0);
-    await expect(page.getByTestId("next-move-card")).toBeVisible();
+    await expect(page.getByTestId("today-header").locator(".nova-primary-action")).toBeVisible();
     await expect(page.getByTestId("up-next-lane")).toHaveCount(0);
-    await expect(page.getByTestId("next-move-card")).not.toContainText(
+    await expect(page.getByTestId("today-header").locator(".nova-primary-action")).not.toContainText(
       /meal window|concrete job offer|about 10 min/i,
     );
-    await expect(page.getByTestId("clock-disclosure")).toBeVisible();
+    await expect(page.getByText("Time zones & reminders", { exact: true })).toBeVisible();
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
-    ).toHaveCount(6);
+    ).toHaveCount(5);
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
       .toBeLessThanOrEqual(390);

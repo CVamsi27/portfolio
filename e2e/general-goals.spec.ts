@@ -29,8 +29,8 @@ test.describe("general momentum goal", () => {
     await expect(page.getByTestId("tracker-public-landing")).not.toContainText(/Germany|Berlin|job search/i);
 
     await page.goto("/hub");
-    await expect(page.getByTestId("today-header")).toContainText(/general momentum/i);
-    await expect(page.getByTestId("next-move-card")).not.toContainText(/Germany|Berlin|job search/i);
+    await expect(page.getByTestId("today-header").getByRole("heading", { name: "Today", exact: true })).toBeVisible();
+    await expect(page.getByRole("main")).not.toContainText(/Germany|Berlin|job search/i);
   });
 
   test("offers General momentum in onboarding", async ({ page }) => {

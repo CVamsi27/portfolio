@@ -6,7 +6,7 @@ async function open(page: import("@playwright/test").Page, route: string) {
   if (route === "/") {
     await page.getByRole("button", { name: "Command Palette (⌘K)", exact: true }).click();
   } else {
-    await page.getByRole("button", { name: "More options", exact: true }).click();
+    await page.getByRole("button", { name: "Tools menu", exact: true }).click();
     await page.getByRole("menuitem", { name: "Search or run command" }).click();
   }
   return page.getByRole("dialog", { name: "Command Palette", exact: true });

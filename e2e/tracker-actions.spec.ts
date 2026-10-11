@@ -14,7 +14,8 @@ test("shared Add is available without stacking an action bar on every editor", a
   ]) {
     await page.goto(route);
     await expect(page.getByTestId("tracker-action-bar")).toHaveCount(0);
-    await page.getByRole("button", { name: "Quick capture" }).click();
+    await page.getByRole("button", { name: "Tools menu", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Add a record", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Add a record" });
     await expect(
       dialog.getByRole("button", { name: "Task", exact: true }),
@@ -23,14 +24,15 @@ test("shared Add is available without stacking an action bar on every editor", a
     await expect(dialog).toBeHidden();
   }
 });
-test("mobile dock has five destinations and dated Add", async ({ page }) => {
+test("mobile dock has five destinations and dated capture in Tools", async ({ page }) => {
   await seed(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/health?date=2026-10-01");
   const dock = page.getByTestId("mobile-command-dock");
   await expect(dock).toBeVisible();
-  await expect(dock.getByRole("link")).toHaveCount(6);
-  await page.getByRole("button", { name: "Quick capture" }).click();
+  await expect(dock.getByRole("link")).toHaveCount(5);
+  await page.getByRole("button", { name: "Tools menu", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Add a record", exact: true }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Weight", exact: true })

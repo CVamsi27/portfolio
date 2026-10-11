@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Bebas_Neue, IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import "./ui-system.css";
+import "./nova-workspace.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/common/ThemeProvider";
 import Navbar from "@/components/Navbar";
@@ -158,7 +159,7 @@ export default async function RootLayout({
     : null;
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link rel="icon" href={brand.iconPath} type="image/svg+xml" />
         {jsonLd ? (
@@ -180,7 +181,7 @@ export default async function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme={trackerSurface ? "dark" : "light"}
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

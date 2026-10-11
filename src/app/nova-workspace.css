@@ -1,0 +1,140 @@
+/* Approved Open agenda shell and Today pilot. Existing workflow styles remain
+   in ui-system.css; these rules are scoped to the NOVA workspace. */
+@media screen {
+  body.tracker-surface {
+    --color-background: #f5f7fa;
+    --nova-archive: #f5f7fa;
+    --color-border: #d8e1ec;
+    --color-muted: #e5edf3;
+    --color-accent: #e5edf3;
+    /* Next/font defines its variables on body. Resolve the aliases here,
+       rather than inheriting invalid aliases evaluated on the root. */
+    --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans);
+  }
+  html.dark body.tracker-surface { --color-background: #101820; --nova-archive: #101820; }
+  .tracker-surface .nova-navigation-layout { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 12px 20px; }
+  .tracker-surface .nova-navigation-body { display: flex; align-items: center; }
+  .tracker-surface .nova-personal-nav .nova-brand > svg { width: 36px; height: 36px; }
+  .tracker-surface .nova-personal-nav .nova-wordmark { font-size: 22px; }
+  .tracker-surface :is(.nova-primary-links, .nova-tools-links) { display: none; }
+  .tracker-surface .nova-login-nav .nova-navigation-body { display: none; }
+  .tracker-surface .nova-primary-links { border-left: 0; padding-left: 0; }
+  .tracker-surface .nova-tools-trigger { border: 0; box-shadow: none; }
+  .tracker-surface .nova-personal-nav { background: var(--color-background); backdrop-filter: none; }
+  .tracker-surface .chapter-description { font-size: 14px; color: var(--color-muted-foreground); line-height: 1.6; max-width: 65ch; }
+  .tracker-surface .personal-shell > div { max-width: 1120px; }
+  .tracker-surface .dossier-command-dock { inset-inline: 0; bottom: 0; border-radius: 0; background: var(--color-card); box-shadow: none; backdrop-filter: none; }
+  .tracker-surface .dossier-command-link { min-width: 0; min-height: 60px; border-radius: 8px; }
+  .tracker-surface .dossier-command-link > span:last-child:not([data-dock-label]) { display: none; }
+  .tracker-surface .dossier-command-link [data-dock-label] { font-size: 12px; letter-spacing: 0; }
+  .tracker-surface .dossier-command-dock > div { padding: 6px; }
+  .tracker-surface .personal-content { min-width: 0; }
+  .nova-today { gap: 0; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+  .nova-today-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 24px; }
+  .nova-today-header h1 { font-family: var(--font-display); font-size: 48px; font-weight: 600; letter-spacing: -.035em; line-height: 1.15; }
+  .nova-today-header p { margin-top: 8px; font-size: 14px; color: var(--color-muted-foreground); }
+  .nova-date-context { text-align: left; min-height: 44px; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; }
+  .nova-date-context:hover { text-decoration-color: currentColor; }
+  .nova-primary-action { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; padding: 12px 20px; border-radius: 8px; color: var(--color-primary-foreground); background: var(--color-primary); font-size: 16px; font-weight: 600; white-space: nowrap; }
+  .nova-primary-action:hover { opacity: .92; }
+  .nova-calendar-row { display: flex; min-width: 0; align-items: center; gap: 24px; padding-block: 16px; border-block: 1px solid var(--color-border); }
+  .nova-week-strip { display: flex; min-width: 0; flex: 1; gap: 4px; overflow-x: auto; }
+  .nova-week-strip button { display: grid; justify-items: center; align-content: center; gap: 8px; min-width: 44px; min-height: 72px; flex: 1 0 44px; border-radius: 8px; border-bottom: 3px solid transparent; font-size: 14px; color: var(--color-muted-foreground); }
+  .nova-week-strip button strong { color: var(--color-foreground); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .nova-week-strip button[aria-pressed="true"] { color: var(--color-primary); border-bottom-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+  .nova-week-strip button[aria-pressed="true"] strong { color: inherit; }
+  .nova-week-strip button:hover { background: var(--color-accent); }
+  .nova-calendar-row .day-selector { flex-wrap: nowrap; gap: 8px; }
+  .nova-calendar-row .day-selector button { min-width: 44px; padding: 10px; }
+  .nova-calendar-row .day-selector input { width: 152px; }
+  .nova-today .daily-agenda-layout, .nova-today .daily-agenda-layout:has(.task-queue-panel) { grid-template-columns: minmax(0, 1fr); gap: 32px; margin-top: 0; margin-inline: -32px; padding: 28px 32px; background: var(--color-card); }
+  .nova-today .workspace-panel { border: 0; border-radius: 0; padding: 0; background: transparent; }
+  .nova-agenda-group + .nova-agenda-group { margin-top: 28px; }
+  .nova-agenda-group h3 { font-size: 12px; font-weight: 600; color: var(--color-muted-foreground); letter-spacing: .14em; text-transform: uppercase; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
+  .nova-agenda-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); padding-block: 24px; border-bottom: 1px solid var(--color-border); }
+  .nova-agenda-time { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; font-variant-numeric: tabular-nums; }
+  .nova-agenda-time time { font-weight: 600; font-size: 20px; }
+  .nova-agenda-time small, .nova-agenda-label small { color: var(--color-muted-foreground); font-size: 14px; }
+  .nova-agenda-details { min-width: 0; border-left: 1px solid var(--color-border); }
+  .nova-agenda-details > summary { display: flex; align-items: flex-start; list-style: none; cursor: pointer; gap: 16px; min-height: 44px; position: relative; padding: 4px 0 4px 28px; }
+  .nova-agenda-details > summary::-webkit-details-marker { display: none; }
+  .nova-agenda-label { display: grid; gap: 8px; min-width: 0; flex: 1; }
+  .nova-agenda-label strong { font-size: 20px; font-weight: 600; overflow-wrap: anywhere; }
+  .nova-agenda-marker { position: absolute; left: -8px; top: 9px; width: 16px; height: 16px; color: var(--color-muted-foreground); fill: var(--color-border); stroke-width: 1.5; background: var(--color-card); border-radius: 50%; }
+  .nova-agenda-details[open] .nova-agenda-marker { color: var(--color-primary); fill: var(--color-primary); }
+  .nova-agenda-chevron { width: 20px; height: 20px; margin: 4px 8px 0 0; color: var(--color-muted-foreground); }
+  .nova-agenda-details[open] .nova-agenda-chevron { transform: rotate(180deg); }
+  .nova-agenda-expanded { padding: 20px 28px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; font-size: 16px; line-height: 1.6; }
+  .nova-agenda-expanded > p { max-width: 65ch; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .nova-agenda-expanded > :not(.nova-agenda-range):not(.agenda-actions) { flex-basis: 100%; order: 1; }
+  .nova-agenda-expanded .nova-agenda-range { order: 2; }
+  .nova-agenda-expanded .agenda-actions { order: 3; }
+  .nova-agenda-range { display: flex; align-items: center; gap: 8px; color: var(--color-muted-foreground); font-size: 14px; }
+  .nova-agenda-expanded .agenda-actions { grid-column: auto; grid-row: auto; justify-content: flex-start; margin: 0; }
+  .nova-today .agenda-actions .inline-action { background: transparent; padding-left: 0; }
+  .nova-today .task-queue-panel { border-top: 1px solid var(--color-border); padding-top: 24px; }
+  .nova-today .daily-utilities { margin-top: 24px; }
+  .nova-today .daily-utilities > summary { min-height: 44px; cursor: pointer; display: flex; align-items: center; font-size: 14px; }
+  .nova-today .daily-quick-actions { margin-block: 12px; }
+  .nova-today > :is([role="status"], [role="alert"], .capture-return, .recorded-strip) { margin-top: 20px; }
+  @media (min-width: 1024px) {
+    .tracker-surface .nova-personal-nav:not(.nova-login-nav) { position: fixed; inset: 0 auto 0 0; width: 224px; height: 100dvh; border-bottom: 0; border-right: 1px solid var(--color-border); }
+    .tracker-surface .nova-personal-nav:not(.nova-login-nav) .nova-navigation-layout { flex-direction: column; align-items: stretch; height: 100%; padding: 28px 20px; }
+    .tracker-surface .nova-personal-nav:not(.nova-login-nav) .nova-navigation-body { flex: 1; flex-direction: column; align-items: stretch; padding-top: 32px; min-height: 0; overflow-y: auto; }
+    .tracker-surface .nova-primary-links, .tracker-surface .nova-tools-links { display: grid; gap: 8px; }
+    .tracker-surface .nova-personal-nav .nova-brand > svg { width: 44px; height: 44px; }
+    .tracker-surface .nova-personal-nav .nova-wordmark { font-size: 26px; }
+    .tracker-surface .nova-personal-nav .dossier-rail-link { gap: 16px; padding: 10px 12px; min-height: 48px; border: 0; border-left: 3px solid transparent; border-radius: 8px; font-size: 16px; color: var(--color-foreground); }
+    .tracker-surface .nova-personal-nav .dossier-rail-link.is-active { border-left-color: var(--color-primary); color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+    .tracker-surface .nova-tools-links { border-top: 1px solid var(--color-border); margin-top: 24px; padding-top: 24px; }
+    .tracker-surface .nova-tools-links > p { font-size: 14px; color: var(--color-muted-foreground); margin: 0 12px 8px; }
+    .tracker-surface .nova-tools-trigger { margin-top: auto; justify-content: space-between; }
+    .tracker-surface .nova-personal-nav:not(.nova-login-nav) ~ .flex-1 { margin-left: 224px; }
+    .tracker-surface .editorial-frame.dossier-frame { padding: 32px; }
+    .tracker-surface .personal-shell .personal-content { margin-top: 0; }
+    .tracker-surface .personal-shell:has(.dossier-chapter-header) .personal-content { margin-top: 24px; }
+  }
+  @media (max-width: 767px) {
+    .tracker-surface .editorial-frame.dossier-frame { padding: 8px 20px 20px; }
+    .tracker-surface .personal-shell .personal-content { margin-top: 0; }
+    .tracker-surface .personal-shell:has(.dossier-chapter-header) .personal-content { margin-top: 20px; }
+    .nova-today > * { order: 3; }
+    .nova-today-header { display: contents; }
+    .nova-today-header > div { order: 0; padding-bottom: 8px; }
+    .nova-today-header .nova-primary-action { order: 2; margin-block: 16px 0; }
+    .nova-today-header h1 { font-size: 32px; }
+    .nova-today-header p { margin-top: 0; font-size: 14px; line-height: 1.6; }
+    .nova-date-context { margin-block: -8px; }
+    .nova-calendar-row { order: 1; gap: 12px; padding-block: 8px; border-top: 0; border-bottom: 0; }
+    .nova-week-strip { flex-basis: 100%; }
+    .nova-week-strip button { min-height: 48px; font-size: 12px; gap: 4px; }
+    .nova-week-strip button strong { font-size: 18px; line-height: 1.2; }
+    .nova-calendar-row .day-selector { display: none; }
+    .nova-today .daily-agenda-layout, .nova-today .daily-agenda-layout:has(.task-queue-panel) { margin-top: 20px; margin-inline: -20px; padding: 16px 20px; }
+    .nova-agenda-row { grid-template-columns: 60px minmax(0, 1fr); padding-block: 8px; }
+    .nova-agenda-time time { font-size: 16px; }
+    .nova-agenda-time { gap: 4px; padding-top: 0; }
+    .nova-agenda-time small, .nova-agenda-label small { font-size: 14px; }
+    .nova-agenda-details > summary { padding: 0 0 0 20px; gap: 8px; }
+    .nova-agenda-label strong { font-size: 16px; line-height: 1.5; }
+    .nova-agenda-label { gap: 4px; }
+    .nova-agenda-expanded { padding: 12px 8px 0 20px; gap: 8px; font-size: 14px; }
+    .nova-agenda-group + .nova-agenda-group { margin-top: 16px; }
+  }
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .tracker-surface .editorial-frame.dossier-frame { padding: 24px; }
+    .nova-today .daily-agenda-layout, .nova-today .daily-agenda-layout:has(.task-queue-panel) { margin-inline: -24px; padding-inline: 24px; }
+    .nova-calendar-row { flex-wrap: wrap; }
+    .nova-week-strip { flex-basis: 100%; }
+  }
+  @media (max-width: 359px) {
+    .tracker-surface .editorial-frame.dossier-frame { padding-inline: 16px; }
+    .nova-week-strip { justify-content: flex-start; }
+    .nova-week-strip button { flex: 0 0 44px; }
+    .nova-today .daily-agenda-layout, .nova-today .daily-agenda-layout:has(.task-queue-panel) { margin-inline: -16px; padding-inline: 16px; }
+    .nova-calendar-row .day-selector { gap: 4px; }
+    .nova-calendar-row .day-selector input { width: 140px; }
+  }
+}

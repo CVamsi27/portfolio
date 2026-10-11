@@ -136,7 +136,7 @@ for (const width of [320, 390, 768, 1440])
       ).toBeLessThanOrEqual(width);
       if (width < 1024) {
         const dock = page.getByTestId("mobile-command-dock");
-        await expect(dock.getByRole("link")).toHaveCount(6);
+        await expect(dock.getByRole("link")).toHaveCount(5);
         await expect(
           dock.getByRole("link", { name: "Roadmap", exact: true }),
         ).toHaveAttribute("aria-current", "page");
@@ -146,7 +146,7 @@ for (const width of [320, 390, 768, 1440])
           expect(box!.width).toBeGreaterThanOrEqual(44);
           expect(box!.height).toBeGreaterThanOrEqual(44);
         }
-        await expect(dock.locator("[data-dock-label]")).toHaveCount(6);
+        await expect(dock.locator("[data-dock-label]")).toHaveCount(5);
         for (const label of await dock.locator("[data-dock-label]").all()) {
           expect(
             await label.evaluate((el) =>
@@ -193,7 +193,7 @@ test("mobile dock stays readable when web fonts are unavailable", async ({
   await setup(page, "light");
   await page.evaluate(() => document.fonts.ready);
   const dock = page.getByTestId("mobile-command-dock");
-  await expect(dock.locator("[data-dock-label]")).toHaveCount(6);
+  await expect(dock.locator("[data-dock-label]")).toHaveCount(5);
   for (const label of await dock.locator("[data-dock-label]").all()) {
     const measurement = await label.evaluate((el) => ({
       text: el.textContent,

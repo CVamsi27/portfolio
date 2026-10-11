@@ -9,14 +9,14 @@ test("secondary destinations keep navigation context and Tasks is discoverable",
   await expect(page.getByRole("link", { name: /Tasks/ }).last()).toHaveAttribute("href", "/todo");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/shared-with-me");
-  await expect(page.getByRole("button",{name:"More options", exact:true})).toBeVisible();await expect(page.getByTestId("mobile-command-dock").getByRole("link",{name:"More"})).toHaveCount(0);
+  await expect(page.getByRole("button",{name:"Tools menu", exact:true})).toBeVisible();await expect(page.getByTestId("mobile-command-dock").getByRole("link",{name:"More"})).toHaveCount(0);
 });
 
 test("workspace has one main landmark and accessible quick capture", async ({ page }) => {
   await seed(page);
   await page.goto("/hub");
   await expect(page.getByRole("main")).toHaveCount(1);
-  await page.getByRole("button",{name:"Quick capture"}).click();await page.getByRole("dialog").getByRole("button",{name:"Task",exact:true}).click();
+  await page.getByRole("button",{name:"Tools menu",exact:true}).click();await page.getByRole("menuitem",{name:"Add a record",exact:true}).click();await page.getByRole("dialog").getByRole("button",{name:"Task",exact:true}).click();
   await page.getByRole("textbox", { name: "Task name", exact: true }).fill("Prepare interview notes");
   await page.getByRole("button", { name: "Save task", exact: true }).click();
   await page.goto("/todo");

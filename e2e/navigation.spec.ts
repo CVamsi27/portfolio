@@ -73,12 +73,12 @@ test.describe("navigation & shell", () => {
     await expect(page.locator('a[href="/study"]')).toHaveCount(0);
   });
 
-  test("links to the Study Bible from More options and the Tools page", async ({
+  test("links to the Study Bible from Tools menu and the Tools page", async ({
     page,
   }) => {
     await seed(page);
     await page.goto("/hub");
-    await page.getByRole("button", { name: "More options", exact: true }).click();
+    await page.getByRole("button", { name: "Tools menu", exact: true }).click();
     const desktopLink = page.getByTestId("personal-study-link");
     await expect(desktopLink).toBeVisible();
     await expect(desktopLink).toHaveAttribute(
@@ -91,7 +91,7 @@ test.describe("navigation & shell", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
-    ).toHaveCount(6);
+    ).toHaveCount(5);
     await page.goto("/more");
     await expect(
       page.getByRole("link", { name: /Software Developer Bible/ }),
@@ -152,14 +152,14 @@ test.describe("navigation & shell", () => {
     ).toHaveAttribute("href", "/health");
     await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Roadmap", exact: true })).toHaveAttribute("href", "/roadmap");
     await expect(
-      rail.getByRole("button", { name: "More options", exact: true }),
+      rail.getByRole("button", { name: "Tools menu", exact: true }),
     ).toBeVisible();
     await expect(
       rail.getByRole("button", { name: "Quick capture" }),
-    ).toBeVisible();
+    ).toHaveCount(0);
   });
 
-  test("mobile personal navigation keeps five destinations plus capture in the dock", async ({
+  test("mobile personal navigation keeps five destinations with capture in Tools", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -170,7 +170,7 @@ test.describe("navigation & shell", () => {
     await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
-    ).toHaveCount(6);
+    ).toHaveCount(5);
     await expect(
       page
         .getByTestId("mobile-command-dock")

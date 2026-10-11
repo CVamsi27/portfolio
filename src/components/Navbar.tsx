@@ -6,8 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { MENU_LIST, RESUME_PATH } from "@/lib/const";
 import {
   PERSONAL_PRIMARY_NAV,
+  PERSONAL_TOOLS_NAV,
   isPersonalPrimaryPath,
+  isPersonalToolPath,
 } from "@/lib/personal-nav";
+import { TrackerIcon } from "@/components/trackers/icons";
 import { ModeToggle } from "./common/ModeToggle";
 import HeaderMenu from "./HeaderMenu";
 import {
@@ -78,6 +81,8 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const [breakLoungeOpen, setBreakLoungeOpen] = useState(false);
   const gPressedRef = useRef(false);
   const gTimerRef = useRef<number | null>(null);
+  const toolsTriggerRef = useRef<HTMLButtonElement>(null);
+  const pendingToolsDialogRef = useRef<(() => void) | null>(null);
 
   const isTracker = Boolean(
     initialIsTracker || isTrackerHost(host) || isTrackerPath(pathname),
@@ -343,26 +348,47 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
       ? isPersonalPrimaryPath(pathname, href)
       : active === href.replace("#", "");
 
+  const openCapture = () => {
+    setCaptureContext({
+      returnTo: window.location.pathname + window.location.search,
+      date:
+        new URLSearchParams(window.location.search).get("date") ?? undefined,
+    });
+    setCaptureOpen(true);
+  };
+
   return (
     <nav
       data-testid="command-rail"
-      className="dossier-command-rail sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg"
+      className={cn(
+        "dossier-command-rail sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg",
+        isTracker && "nova-personal-nav",
+        isTracker && pathname === "/login" && "nova-login-nav",
+      )}
     >
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-0.5 bg-transparent"
-      >
+      {!isTracker && (
         <div
-          className={cn(
-            "h-full transition-[width] duration-150 ease-out",
-            isTracker
-              ? "bg-[var(--color-dossier-lime)]"
-              : "bg-gradient-to-r from-[var(--portfolio-accent)] via-[var(--portfolio-accent)] to-[var(--portfolio-clay)]",
-          )}
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-0.5 bg-transparent"
+        >
+          <div
+            className={cn(
+              "h-full transition-[width] duration-150 ease-out",
+              isTracker
+                ? "bg-[var(--color-dossier-lime)]"
+                : "bg-gradient-to-r from-[var(--portfolio-accent)] via-[var(--portfolio-accent)] to-[var(--portfolio-clay)]",
+            )}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
+      <div
+        className={
+          isTracker
+            ? "nova-navigation-layout"
+            : "mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10"
+        }
+      >
         <a
           href={isTracker ? "/hub" : "#Top"}
           aria-label={isTracker ? "NOVA home" : "Vamsi Krishna portfolio"}
@@ -374,10 +400,18 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             <VamsiMark variant="wordmark" label="Vamsi Krishna portfolio" />
           )}
         </a>
-        <div className="flex items-center gap-1.5">
+        <div
+          className={
+            isTracker ? "nova-navigation-body" : "flex items-center gap-1.5"
+          }
+        >
           <div
             data-editorial-index
-            className="hidden items-center gap-1 lg:flex"
+            className={
+              isTracker
+                ? "nova-primary-links"
+                : "hidden items-center gap-1 lg:flex"
+            }
             data-testid={isTracker ? "tracker-primary-nav" : undefined}
           >
             {menuItems.map((item) =>
@@ -393,7 +427,15 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                       : "text-muted-foreground hover:text-foreground hover:bg-accent",
                   )}
                 >
-                  {item.label}
+                  <TrackerIcon
+                    name={
+                      PERSONAL_PRIMARY_NAV.find(
+                        (link) => link.href === item.href,
+                      )!.icon
+                    }
+                    className="h-5 w-5"
+                  />
+                  <span>{item.label}</span>
                 </Link>
               ) : (
                 <a
@@ -414,37 +456,72 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
           </div>
           {isTracker ? (
             <>
-              <button
-                aria-label="Quick capture"
-                title="Add a record"
-                onClick={() => {
-                  setCaptureContext({
-                    returnTo: window.location.pathname + window.location.search,
-                    date:
-                      new URLSearchParams(window.location.search).get("date") ??
-                      undefined,
-                  });
-                  setCaptureOpen(true);
-                }}
-                className="inline-flex h-11 items-center gap-1 rounded-xl border border-border px-3 text-primary"
-              >
-                <Plus className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">Add</span>
-              </button>
+              <div className="nova-tools-links">
+                <p>Tools</p>
+                {PERSONAL_TOOLS_NAV.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={
+                      isPersonalToolPath(pathname, item.href)
+                        ? "page"
+                        : undefined
+                    }
+                    className={cn(
+                      "dossier-rail-link",
+                      isPersonalToolPath(pathname, item.href) && "is-active",
+                    )}
+                  >
+                    <TrackerIcon name={item.icon} className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
+                    ref={toolsTriggerRef}
                     type="button"
-                    aria-label="More options"
-                    className="inline-flex h-11 items-center gap-1.5 rounded-xl px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                    aria-label="Tools menu"
+                    className="nova-tools-trigger inline-flex h-11 items-center gap-1.5 rounded-xl px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
                   >
-                    <span>More</span>
+                    <span>Tools</span>
                     <MoreHorizontal className="h-4 w-4" aria-hidden />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="z-[90] w-60 p-2">
+                <DropdownMenuContent
+                  align="end"
+                  className="z-[90] w-60 p-2"
+                  onCloseAutoFocus={(event) => {
+                    const openDialog = pendingToolsDialogRef.current;
+                    if (!openDialog) return;
+                    event.preventDefault();
+                    pendingToolsDialogRef.current = null;
+                    toolsTriggerRef.current?.focus();
+                    // Let Radix release its focus trap and background isolation
+                    // before the portal dialog takes ownership of either.
+                    requestAnimationFrame(openDialog);
+                  }}
+                >
+                  {PERSONAL_TOOLS_NAV.map((item) => (
+                    <DropdownMenuItem
+                      key={item.href}
+                      asChild
+                      className="min-h-11 lg:hidden"
+                    >
+                      <Link href={item.href}>{item.label}</Link>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuItem
+                    className="min-h-11"
+                    onSelect={() => {
+                      pendingToolsDialogRef.current = openCapture;
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" aria-hidden /> Add a record
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild className="min-h-11">
-                    <Link href="/more">Tools</Link>
+                    <Link href="/more">All tools</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="min-h-11">
                     <Link href="/settings">Account &amp; settings</Link>
@@ -458,15 +535,29 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                     </a>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="min-h-11" onSelect={() => setPaletteOpen(true)}>
+                  <DropdownMenuItem
+                    className="min-h-11"
+                    onSelect={() => {
+                      pendingToolsDialogRef.current = () =>
+                        setPaletteOpen(true);
+                    }}
+                  >
                     Search or run command
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="min-h-11" onSelect={() => setShortcutsOpen(true)}>
+                  <DropdownMenuItem
+                    className="min-h-11"
+                    onSelect={() => {
+                      pendingToolsDialogRef.current = () =>
+                        setShortcutsOpen(true);
+                    }}
+                  >
                     Keyboard shortcuts
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="min-h-11"
-                    onSelect={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    onSelect={() =>
+                      setTheme(resolvedTheme === "dark" ? "light" : "dark")
+                    }
                   >
                     Switch to {resolvedTheme === "dark" ? "light" : "dark"} mode
                   </DropdownMenuItem>

@@ -149,7 +149,7 @@ export default function CommandPalette({
         run: () => router.push("/goal"),
       },
       {
-        id: "nav-health",
+        id: "nav-body-recovery",
         category: "Navigation",
         title: "Body & Recovery",
         subtitle: "Daily weigh-in, energy, sleep & soreness",

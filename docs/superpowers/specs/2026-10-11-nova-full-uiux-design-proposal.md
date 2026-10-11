@@ -1,14 +1,14 @@
 # NOVA: full personal workspace design proposal
 
 **Scope:** all user-facing pages on personal.buildora.work.
-**Status:** Open agenda visual direction selected; full-site adaptations proposed for review. Implementation has not started against this proposal.
+**Status:** Approved by the user on 11 October 2026. Shared shell and Today pilot implemented and verified locally; remaining workflows follow the checkpoint sequence below.
 **Date:** 11 October 2026.
 
 ## 1. What the design must accomplish
 
 NOVA helps two approved users run their day, develop their career, record health information, and review their progress. The interface should make the current action, its context, and its result easy to understand. The primary experience is doing and reviewing real work; every visible section must serve that purpose.
 
-The user has requested a proper design plan before further UI changes. The earlier Sharing revisions remain uncommitted implementation experiments. They are evidence for this proposal, not an approved template for the rest of the product. Do not expand or deploy them while the new design is under review.
+The user requested a proper design plan before further UI changes and approved this design packet. Earlier Sharing revisions remain separate uncommitted experiments; use the approved Open agenda system as the implementation reference. Deployment remains a separate step after workflow verification.
 
 This proposal establishes the shared system and page-level workflows together. It does not change the two-account Google access policy, saved-data contracts, learning curriculum, timetable allocations, evidence-based completion, nutrition calculations, reminder schedules, or public portfolio.
 
@@ -36,18 +36,18 @@ Other routes require representative rendered review before their designs are fin
 
 Selected direction: **Open agenda**, the first displayed image in the second ideation set, chosen by the user on 11 October 2026. This resolves the direction to a spacious left rail, a calendar ribbon, grouped rows and details opened inline. The earlier Weekly rhythm image inspired exploration but is not the selected target. The other alternatives are not implementation references.
 
-### Selected visual and proposed extensions
+### Selected visual and approved extensions
 
 | Reference | Decision | Use |
 | --- | --- | --- |
 | [Desktop Today](assets/2026-10-11-nova-open-agenda/today-desktop-selected.png) | Selected by the user | Authoritative composition, palette, row spacing and navigation direction |
-| [Mobile Today](assets/2026-10-11-nova-open-agenda/today-mobile-proposed.png) | Proposed adaptation | Calendar strip, inline details and five-destination dock |
-| [Desktop Sharing](assets/2026-10-11-nova-open-agenda/sharing-desktop-proposed.png) | Proposed adaptation | Content-first collection, inline preview and on-demand creation |
-| [Desktop Food](assets/2026-10-11-nova-open-agenda/food-desktop-proposed.png) | Proposed adaptation | Dated meal groups and compact known-nutrient summary |
+| [Mobile Today](assets/2026-10-11-nova-open-agenda/today-mobile-proposed.png) | Approved adaptation | Calendar strip, inline details and five-destination dock |
+| [Desktop Sharing](assets/2026-10-11-nova-open-agenda/sharing-desktop-proposed.png) | Approved adaptation | Content-first collection, inline preview and on-demand creation |
+| [Desktop Food](assets/2026-10-11-nova-open-agenda/food-desktop-proposed.png) | Approved adaptation | Dated meal groups and compact known-nutrient summary |
 
 These are generated design references with illustrative records. They are not browser captures or proof of working interactions. Desktop targets are 1440×1024 and mobile is 390×844; generated raster dimensions are approximate. Use the layout contract below at the actual CSS viewport sizes, rather than inferring CSS pixels directly from the raster.
 
-The proposed extensions continue the selected direction; they are not another numbered selection set. All remaining page designs inherit this system and the workflows in section 6. Before implementing a workflow, render its representative states with actual data and review them at the required viewports.
+The approved extensions continue the selected direction; they are not another numbered selection set. All remaining page designs inherit this system and the workflows in section 6. Before implementing a workflow, render its representative states with actual data and review them at the required viewports.
 
 ### Details resolved beyond the generated images
 
@@ -122,7 +122,7 @@ Dark accent controls use #101820 text; light accent controls use #FFFFFF text. D
 - Space Grotesk: page and section headings, used with restraint. Keep the existing NOVA wordmark treatment separate.
 - Inter: content, navigation and controls. Body and form input text is 16px; dense desktop table text may be 14px. Supporting text is 14px; 12px is reserved for nonessential annotations and dock labels.
 - Use Inter with tabular numerals for timestamps, durations and measurements. Keep the system to the selected two fonts.
-- Page titles: 32px desktop, 24px phone. Section headings: 18–20px. Body line height: 1.5–1.6.
+- Page titles: 32px desktop, 24px phone by default. The Today pilot uses 48px desktop and 32px phone after normalized visual comparison established the source's larger title hierarchy. Section headings: 18–20px. Body line height: 1.5–1.6.
 - Spacing scale: 4, 8, 12, 16, 24, 32, 48px. Phone page gutters: 16px at 320px, 20px at 390px. Section gaps: 24px phone, 32px desktop.
 - Controls: 44px minimum height; icons and icon-only controls have defined 44px targets. Use 8px control radii and 12px panel radii. Pills are reserved for concise statuses or selected filters.
 - Use a panel to group a form, chart, or independent record collection. Individual rows inside a collection use dividers. Avoid nesting panels within panels.
@@ -212,7 +212,7 @@ Login presents NOVA identity, one Google sign-in action and concise restricted-w
 
 ## 7. Wireframe contract
 
-These structural wireframes describe the selected Open agenda system. The selected desktop Today image is the visual target; adaptations remain proposed. Apply the token and interaction rules above to each workflow.
+These structural wireframes describe the approved Open agenda system. The selected desktop Today image is the visual target, with the approved adaptations beside it. Apply the token and interaction rules above to each workflow.
 
 ```text
 DESKTOP — shared workspace
@@ -275,10 +275,10 @@ PHONE — Today
 ## 8. Design review and delivery order
 
 1. **Select the direction.** Complete: the user selected Open agenda. Its left rail, calendar ribbon, flat grouped rows and inline inspection are the shared design direction.
-2. **Review adaptations and workflow states.** Desktop Today is selected; mobile Today, desktop Sharing and desktop Food are proposed visual references. Complete representative review of Plan, Roadmap and Progress, mobile Sharing/Food, 320px Sharing/editor, long content, an empty state and dark appearance before rolling out those workflows. These are design artifacts, separate from production source.
+2. **Review adaptations and workflow states.** The user approved desktop Today, mobile Today, desktop Sharing and desktop Food references. Complete representative review of Plan, Roadmap and Progress, mobile Sharing/Food, 320px Sharing/editor, long content, an empty state and dark appearance before rolling out those workflows. These are design artifacts, separate from production source.
 3. **Review real interaction sequences.** New record → save → edit → return; start/pause/finish work; choose food/portion → save; share → copy → revoke; failed save; denied account. Identify the next action and where feedback appears in each state.
 4. **Write the implementation plan against the approved mockups.** Map shared primitives, route ownership, storage-preserving adaptations and tests to exact files. Do not treat this proposal as permission to redesign all pages immediately.
-5. **Implement the shell and Today pilot.** Start with the selected visual target: shared navigation, tokens, page header, date strip and agenda rows. Verify populated, expanded, empty, historical-date and active-session states at 320, 390, 768 and 1440px before rollout.
+5. **Implement the shell and Today pilot.** Complete locally: shared navigation, tokens, page header, date strip and agenda rows. Populated and expanded views checked at 320, 390, 768 and 1440px; empty, historical/future-date, dialog focus and active-session entry/resume/cancel checked in the browser. See the implementation plan and root `design-qa.md` for evidence and limits.
 6. **Roll out complete workflows.** Sharing → Plan/Roadmap → Health and its logging tools → Progress/Reflection → Library/Motivation/Settings/account. Each checkpoint includes its proposed design, mobile/desktop visual review and appropriate behavioral verification.
 7. **Verify authenticated production behavior and release.** Distinguish local UI verification from signed-in cloud writes, provider behavior, pairing and actual notification delivery. Publish only the reviewed scope.
 
@@ -314,6 +314,6 @@ For each checkpoint, record the reviewed mockup, actual viewport captures, chang
 
 ## 10. Current handoff
 
-The requested scope is the full personal website. Open agenda is the selected direction. Four reference images are saved with this document: the chosen desktop Today and proposed mobile Today, Sharing and Food adaptations. Navigation ownership and all page workflows are specified above. The implementation sequence starts with the shell and Today rather than extending the earlier Sharing experiment.
+The requested scope is the full personal website. Open agenda and its Today, Sharing and Food adaptations are approved. Four reference images are saved with this document. Navigation ownership and all page workflows are specified above. The shared shell and Today are the completed local pilot; Sharing is the next workflow checkpoint.
 
-This design pass changed only documentation and reference assets. It did not modify or deploy application code. The next milestone is reviewing the full-site adaptations and writing the implementation plan against the accepted design packet. The generated references do not establish browser, accessibility, contrast or live-service verification; those checks belong to the rendered pilot and subsequent workflow checkpoints.
+The pilot has not been deployed. Generated references are design targets; local browser checks and production-build verification are recorded separately. Signed-in cloud behavior and the remaining page redesigns still require their own workflow verification before release.

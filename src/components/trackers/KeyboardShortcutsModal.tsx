@@ -117,9 +117,9 @@ export default function KeyboardShortcutsModal({
                       {item.description}
                     </span>
                     <div className="flex items-center gap-1">
-                      {item.keys.map((k) => (
+                      {item.keys.map((k, index) => (
                         <kbd
-                          key={k}
+                          key={`${index}-${k}`}
                           className="min-w-6 text-center rounded border border-border bg-muted/60 px-1.5 py-0.5 font-mono text-xs font-bold text-foreground shadow-xs"
                         >
                           {k}

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
-test("command deck leads with the goal and next move", async ({ page }) => {
+test("Today leads with a task action and preserves goal records", async ({ page }) => {
   const today = new Date().toISOString().slice(0, 10);
   await seed(page, {
     "vk:prefs": {
@@ -36,12 +36,11 @@ test("command deck leads with the goal and next move", async ({ page }) => {
     ],
   });
   await page.goto("/trackers");
-  await expect(page.getByTestId("next-move-card")).toContainText(
-    /Choose a neighborhood|next move/i,
-  );
-  await expect(page.getByTestId("today-header")).toContainText(
-    "Relocate to Canada",
-  );
+  await expect(page.locator(".unscheduled-list")).toContainText("Choose a neighborhood");
+  await expect(page.getByRole("link", { name: "Start focused work", exact: true })).toHaveAttribute("href", "/plan?view=focus&task=t1");
+  await page.goto("/motivation");
+  await expect(page.getByTestId("focus-scene")).toContainText("Relocate to Canada");
+  await page.goto("/trackers");
   await expect(
     page.getByRole("heading", { name: "Tasks to do" }),
   ).toBeVisible();

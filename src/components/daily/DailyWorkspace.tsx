@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { useAuth } from "@/lib/auth-store";
 import Questionnaire from "@/components/Questionnaire";
-import { useUserPrefs, displayGoalTitle } from "@/lib/user-prefs";
+import { useUserPrefs } from "@/lib/user-prefs";
 import { useTodos, useNow } from "@/lib/tracker-store";
 import { useDayPlan } from "@/lib/day-plan-store";
 import {
@@ -38,6 +38,10 @@ import { useWorkSession } from "@/lib/work-session-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DaySelector from "./DaySelector";
+import WeekDateStrip from "./WeekDateStrip";
+import TodayAgendaRow from "./TodayAgendaRow";
+import { agendaPeriod, agendaStatus } from "@/lib/day-presentation";
+import { ArrowRight } from "lucide-react";
 import HabitChecklist from "@/components/personal/HabitChecklist";
 import FocusSprint from "@/components/trackers/FocusSprint";
 import { displayWeight } from "@/lib/health";
@@ -72,6 +76,7 @@ export default function DailyWorkspace({
     work = useWorkSession();
   const water = useSyncedStorage<Record<string, number>>("fasting:water", {});
   const [waterUndo, setWaterUndo] = useState<string | null>(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const { data: records } = usePersonalProgress(1, date);
   const [editing, setEditing] = useState<PlanBlock | null>(null),
     [editor, setEditor] = useState(Boolean(params.get("schedule"))),
@@ -303,23 +308,9 @@ export default function DailyWorkspace({
     }));
     setMessage("Routine action undone.");
   };
-  const renderRow = (row: AgendaItem) => (
-    <li key={row.id} className="agenda-row">
-      <div className="agenda-time">
-        <time>
-          {new Intl.DateTimeFormat("en", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-            timeZone,
-          }).format(row.at)}
-        </time>
-        <small>
-          {row.durationMinutes ? `${row.durationMinutes} min` : row.kind}
-        </small>
-      </div>
-      <div className="agenda-body">
-        <strong>{row.title}</strong>
+  const renderRow = (row: AgendaItem) => {
+    const content = (
+      <>
         {row.block?.description &&
           (germany?.execution &&
           (row.id.startsWith("owner:") || row.id.startsWith("timetable:")) ? (
@@ -330,16 +321,14 @@ export default function DailyWorkspace({
           ) : (
             <p>{row.block.description}</p>
           ))}
-        <small>
-          {row.done
-            ? (row.status ?? "Completed")
-            : date === today && row.at < now && !current?.id?.includes(row.id)
-              ? "Earlier"
-              : row.unavailable
-                ? "Linked task unavailable"
-                : "Planned"}
-          {row.block?.id.startsWith("owner:") ? " · Bible timetable (IST)" : ""}
-        </small>
+        {planning && (
+          <small>
+            {agendaStatus(row, date, today, now)}
+            {row.block?.id.startsWith("owner:")
+              ? " · Bible timetable (IST)"
+              : ""}
+          </small>
+        )}
         <div className="agenda-actions">
           {!row.done &&
             !row.unavailable &&
@@ -350,6 +339,7 @@ export default function DailyWorkspace({
             (row.kind === "event" ? (
               <Button
                 size="sm"
+                variant={planning ? "default" : "outline"}
                 disabled={
                   !plan.enabled ||
                   row.id.startsWith("timetable:") ||
@@ -369,7 +359,11 @@ export default function DailyWorkspace({
                 Mark done
               </Button>
             ) : row.occurrence?.type === "supplement" ? (
-              <Button size="sm" onClick={() => act(row, "taken")}>
+              <Button
+                size="sm"
+                variant={planning ? "default" : "outline"}
+                onClick={() => act(row, "taken")}
+              >
                 Taken
               </Button>
             ) : (
@@ -447,9 +441,41 @@ export default function DailyWorkspace({
             )}
           {row.unavailable && <Link href="/todo">Find a task</Link>}
         </div>
-      </div>
-    </li>
-  );
+      </>
+    );
+    if (!planning)
+      return (
+        <TodayAgendaRow
+          key={row.id}
+          row={row}
+          timeZone={timeZone}
+          status={agendaStatus(row, date, today, now)}
+        >
+          {content}
+        </TodayAgendaRow>
+      );
+    return (
+      <li key={row.id} className="agenda-row">
+        <div className="agenda-time">
+          <time>
+            {new Intl.DateTimeFormat("en", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+              timeZone,
+            }).format(row.at)}
+          </time>
+          <small>
+            {row.durationMinutes ? `${row.durationMinutes} min` : row.kind}
+          </small>
+        </div>
+        <div className="agenda-body">
+          <strong>{row.title}</strong>
+          {content}
+        </div>
+      </li>
+    );
+  };
   const addUrl = (type: string) =>
     `/log?type=${type}&date=${date}&returnTo=${encodeURIComponent(`${planning ? "/plan" : "/hub"}?date=${date}`)}`;
   if (params.get("setup") === "1")
@@ -499,37 +525,83 @@ export default function DailyWorkspace({
         )}
       </section>
     );
+  const activeSession = Boolean(work.focus || work.study);
+  const actionableNext = date === today ? next : undefined;
+  const primaryHref = activeSession
+    ? work.study
+      ? "/roadmap"
+      : "/plan?view=focus"
+    : (actionableNext?.href ??
+      (date === today && pending[0]
+        ? `/plan?view=focus&task=${encodeURIComponent(pending[0].id)}`
+        : `/plan?date=${date === today && !incomplete.some((row) => row.at + (row.durationMinutes ?? 0) * 60000 > now) ? shiftDay(date, 1) : date}`));
+  const primaryLabel = activeSession
+    ? "Resume session"
+    : actionableNext
+      ? actionableNext.kind === "meal"
+        ? "Log meal"
+        : actionableNext.kind === "supplement"
+          ? "Open routine"
+          : "Open commitment"
+      : date === today && pending[0]
+        ? "Start focused work"
+        : date === today && !incomplete.some((row) => row.at >= now)
+          ? "Plan tomorrow"
+          : "Plan this day";
   return (
-    <div className="daily-workspace">
-      <div
-        className="workspace-heading"
-        data-testid={planning ? undefined : "today-header"}
-      >
-        <div>
-          <h2>
-            {planning
-              ? "Your plan"
-              : `Your day${prefs.name ? `, ${prefs.name}` : ""}`}
-          </h2>
-          <p>
-            {new Intl.DateTimeFormat("en", {
-              weekday: "long",
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-              timeZone: "UTC",
-            }).format(new Date(date + "T12:00:00Z"))}{" "}
-            · {timeZone}
-            {date !== today ? " · Historical / planned day" : ""}
-          </p>
+    <div className={`daily-workspace${planning ? "" : " nova-today"}`}>
+      {planning ? (
+        <div className="workspace-heading">
+          <div>
+            <h2>Your plan</h2>
+            <p>
+              {new Intl.DateTimeFormat("en", {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                timeZone: "UTC",
+              }).format(new Date(date + "T12:00:00Z"))}{" "}
+              · {timeZone}
+            </p>
+          </div>
+          <DaySelector date={date} today={today} onChange={setDate} />
         </div>
-        {!planning && (
-          <Link href="/goal" className="text-sm text-primary">
-            {displayGoalTitle(prefs)}
-          </Link>
-        )}
-        <DaySelector date={date} today={today} onChange={setDate} />
-      </div>
+      ) : (
+        <>
+          <header className="nova-today-header" data-testid="today-header">
+            <div>
+              <h1>Today</h1>
+              <p>
+                <button
+                  type="button"
+                  className="nova-date-context"
+                  aria-label="Choose date"
+                  onClick={() => setDatePickerOpen(true)}
+                >
+                  {new Intl.DateTimeFormat("en-GB", {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    timeZone: "UTC",
+                  }).format(new Date(date + "T12:00:00Z"))}
+                </button>
+                <span>
+                  {" "}
+                  · {timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone}
+                  {date !== today ? " · Selected day" : ""}
+                </span>
+              </p>
+            </div>
+            <Link className="nova-primary-action" href={primaryHref}>
+              {primaryLabel}
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </header>
+          <WeekDateStrip date={date} today={today} onChange={setDate} />
+        </>
+      )}
       {planning && (
         <nav className="workspace-views" aria-label="Planning views">
           {[
@@ -573,7 +645,8 @@ export default function DailyWorkspace({
           </Link>
         </div>
       )}
-      {modules.value.study &&
+      {planning &&
+        modules.value.study &&
         germany?.execution &&
         Object.keys(germanyAssignments).length > 0 && (
           <section className="workspace-panel space-y-2">
@@ -619,78 +692,6 @@ export default function DailyWorkspace({
         >
           Undo removed block
         </Button>
-      )}
-      {!planning && date === today && !work.focus && !work.study && (
-        <section className="next-commitment" data-testid="next-move-card">
-          <p className="text-xs text-muted-foreground">
-            {current ? "Now" : "Next"}
-          </p>
-          <h2>
-            {next?.title ??
-              (pending[0]?.text || "Make room for what matters today")}
-          </h2>
-          {next ? (
-            <Link className="inline-action" href={next.href}>
-              {next.kind === "meal"
-                ? "Log meal"
-                : next.kind === "supplement"
-                  ? "Open routine"
-                  : "Open commitment"}{" "}
-              →
-            </Link>
-          ) : pending[0] ? (
-            <Link
-              aria-label="Start focused work"
-              data-editorial-action
-              className="inline-action"
-              href={`/plan?view=focus&task=${encodeURIComponent(pending[0].id)}`}
-            >
-              Start focused work →
-            </Link>
-          ) : (
-            <Link data-editorial-action className="inline-action" href="/plan">
-              Plan today →
-            </Link>
-          )}
-        </section>
-      )}
-      {!planning && (
-        <div
-          className="daily-quick-actions"
-          role="group"
-          aria-label="Daily recording actions"
-        >
-          {modules.value.food && <Link href={addUrl("food")}>Food</Link>}
-          <Button
-            variant="outline"
-            onClick={() => {
-              water.setValue((p) => ({ ...p, [date]: (p[date] ?? 0) + 1 }));
-              setWaterUndo(date);
-              setMessage("Added one glass of water.");
-            }}
-          >
-            Water +1
-          </Button>
-          {waterUndo === date && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                water.setValue((p) => ({
-                  ...p,
-                  [date]: Math.max(0, (p[date] ?? 0) - 1),
-                }));
-                setWaterUndo(null);
-              }}
-            >
-              Undo water
-            </Button>
-          )}
-          <Link href={addUrl("weight")}>Weight</Link>
-          {modules.value.movement && (
-            <Link href={addUrl("exercise")}>Exercise</Link>
-          )}
-          {modules.value.recovery && <Link href={addUrl("sleep")}>Sleep</Link>}
-        </div>
       )}
       <div className={`daily-agenda-layout${planning ? " is-planning" : ""}`}>
         {planning && view === "week" ? (
@@ -738,14 +739,35 @@ export default function DailyWorkspace({
           </section>
         ) : (
           <section className="workspace-panel" data-testid="day-agenda">
-            <div className="workspace-heading">
+            <div className={planning ? "workspace-heading" : "sr-only"}>
               <h2>Your day</h2>
-              {!planning && (
-                <Link href={`/plan?date=${date}`}>Edit in Plan →</Link>
-              )}
             </div>
             {incomplete.length ? (
-              <ol className="agenda-list">{incomplete.map(renderRow)}</ol>
+              planning ? (
+                <ol className="agenda-list">{incomplete.map(renderRow)}</ol>
+              ) : (
+                <div className="nova-agenda-groups">
+                  {(["Morning", "Afternoon", "Evening"] as const).map(
+                    (period) => {
+                      const items = incomplete.filter(
+                        (row) => agendaPeriod(row.at, timeZone) === period,
+                      );
+                      return items.length ? (
+                        <section
+                          className="nova-agenda-group"
+                          key={period}
+                          aria-label={period}
+                        >
+                          <h3>{period}</h3>
+                          <ol className="agenda-list">
+                            {items.map(renderRow)}
+                          </ol>
+                        </section>
+                      ) : null;
+                    },
+                  )}
+                </div>
+              )
             ) : (
               <p className="workspace-empty">
                 No timed commitments for this day. Schedule an activity in Plan
@@ -828,23 +850,78 @@ export default function DailyWorkspace({
       </div>
       {!planning && (
         <>
-          <section
-            data-editorial-telemetry
-            className="recorded-strip"
-            aria-label="Recorded for this day"
-          >
-            <strong>Recorded</strong>
-            <span>
-              {modules.value.food ? `${records.foodCount} food entries · ` : ""}
-              {modules.value.movement
-                ? `${records.exerciseCount} exercises · `
-                : ""}
-              {records.latestWeight
-                ? displayWeight(records.latestWeight.value, prefs.weightUnit)
-                : "No weigh-in"}
-            </span>
-            <Link href={`/health?date=${date}`}>Edit records →</Link>
-          </section>
+          <details className="daily-utilities">
+            <summary>Daily records &amp; quick capture</summary>
+
+            <div
+              className="daily-quick-actions"
+              role="group"
+              aria-label="Daily recording actions"
+            >
+              {modules.value.food && <Link href={addUrl("food")}>Food</Link>}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  water.setValue((p) => ({ ...p, [date]: (p[date] ?? 0) + 1 }));
+                  setWaterUndo(date);
+                  setMessage("Added one glass of water.");
+                }}
+              >
+                Water +1
+              </Button>
+              {waterUndo === date && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    water.setValue((p) => ({
+                      ...p,
+                      [date]: Math.max(0, (p[date] ?? 0) - 1),
+                    }));
+                    setWaterUndo(null);
+                    setMessage("Water addition undone.");
+                  }}
+                >
+                  Undo water
+                </Button>
+              )}
+              <Link href={addUrl("weight")}>Weight</Link>
+              {modules.value.movement && (
+                <Link href={addUrl("exercise")}>Exercise</Link>
+              )}
+              {modules.value.recovery && (
+                <Link href={addUrl("sleep")}>Sleep</Link>
+              )}
+            </div>
+            <section
+              data-editorial-telemetry
+              className="recorded-strip"
+              aria-label="Recorded for this day"
+            >
+              <strong>Recorded</strong>
+              <span>
+                {modules.value.food
+                  ? `${records.foodCount} food entries · `
+                  : ""}
+                {modules.value.movement
+                  ? `${records.exerciseCount} exercises · `
+                  : ""}
+                {records.latestWeight
+                  ? displayWeight(records.latestWeight.value, prefs.weightUnit)
+                  : "No weigh-in"}
+              </span>
+              <Link href={`/health?date=${date}`}>Edit records →</Link>
+            </section>
+          </details>
+          {modules.value.study &&
+            germany?.execution &&
+            Object.keys(germanyAssignments).length > 0 && (
+              <Link
+                className="capture-return"
+                href={`/roadmap?view=roadmap&panel=today&date=${date}`}
+              >
+                Open detailed assignments and study links
+              </Link>
+            )}
           {modules.value.habits && date === today && <HabitChecklist />}
           <Link
             className="capture-return"
@@ -861,6 +938,20 @@ export default function DailyWorkspace({
           </details>
         </>
       )}
+      <Modal
+        open={datePickerOpen}
+        onClose={() => setDatePickerOpen(false)}
+        title="Choose date"
+      >
+        <DaySelector
+          date={date}
+          today={today}
+          onChange={(day) => {
+            setDate(day);
+            setDatePickerOpen(false);
+          }}
+        />
+      </Modal>
       <Modal
         open={editor && plan.enabled}
         onClose={() => {

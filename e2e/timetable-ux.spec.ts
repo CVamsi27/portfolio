@@ -76,7 +76,8 @@ test("timetable shows focus budget and full instructions without marking elapsed
   await page.setViewportSize({ width: 320, height: 700 });
   const timetable = await setup(page);
   await expect(timetable).toContainText("60 min");
-  await expect(timetable).toContainText("Notes and a correct recall answer");
+  await timetable.getByText(longLabel, { exact: true }).click();
+  await expect(timetable.getByText("Notes and a correct recall answer", { exact: false })).toBeVisible();
 
   const label = timetable.locator("ol").getByText(longLabel, { exact: true });
   await expect(label).toBeVisible();
@@ -95,18 +96,18 @@ test("timetable shows focus budget and full instructions without marking elapsed
   await expect(timetable).toContainText("Practical follow-up");
 });
 
-test("current block refreshes at the boundary and next action remains visible", async ({
-  page,
-}) => {
-  await setup(page);
-  const next = page.getByTestId("next-move-card");
-  await expect(next).toContainText("Now");
-  await expect(next).toContainText(longLabel);
+test("agenda status refreshes at the boundary and the commitment action remains visible", async ({ page }) => {
+  const agenda = await setup(page);
+  const current = agenda.locator(".nova-agenda-row").filter({ has: page.getByText(longLabel, { exact: true }) });
+  const next = agenda.locator(".nova-agenda-row").filter({ has: page.getByText("Practical follow-up", { exact: true }) });
+  await expect(current).toContainText("Planned");
+  await expect(page.getByRole("link", { name: "Open commitment", exact: true })).toBeVisible();
   await page.clock.fastForward(5 * 60_000);
-  await expect(next).toContainText("Next");
-  await expect(next).toContainText("Practical follow-up");
+  await expect(current).toContainText("Earlier");
+  await expect(next).toContainText("Planned");
   await page.clock.fastForward(5 * 60_000);
-  await expect(next).toContainText("Now");
+  await expect(next).toContainText("Planned");
+  await expect(page.getByRole("link", { name: "Open commitment", exact: true })).toBeVisible();
 });
 test("agenda is directly available without opening a second schedule", async ({
   page,

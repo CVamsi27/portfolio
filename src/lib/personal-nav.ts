@@ -92,6 +92,38 @@ export const PERSONAL_MORE_NAV: readonly PersonalNavItem[] = [
   },
 ];
 
+export const PERSONAL_TOOLS_NAV: readonly PersonalNavItem[] = [
+  {
+    id: "archive",
+    href: "/archive",
+    label: "Library",
+    short: "Library",
+    icon: "archive",
+  },
+  {
+    id: "sharing",
+    href: "/share",
+    label: "Sharing",
+    short: "Sharing",
+    icon: "share",
+  },
+  {
+    id: "settings",
+    href: "/settings",
+    label: "Settings",
+    short: "Settings",
+    icon: "settings",
+  },
+];
+
+export function isPersonalToolPath(pathname: string, href: string): boolean {
+  return (
+    pathname === href ||
+    pathname.startsWith(`${href}/`) ||
+    (href === "/share" && pathname === "/shared-with-me")
+  );
+}
+
 export function isPersonalPrimaryPath(pathname: string, href: string): boolean {
   if (pathname === href) return true;
   if (href === "/hub") return pathname === "/trackers";
