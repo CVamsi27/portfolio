@@ -49,7 +49,7 @@
   .nova-calendar-row .day-selector { flex-wrap: nowrap; gap: 8px; }
   .nova-calendar-row .day-selector button { min-width: 44px; padding: 10px; }
   .nova-calendar-row .day-selector input { width: 152px; }
-  .nova-today .daily-agenda-layout, .nova-today .daily-agenda-layout:has(.task-queue-panel) { grid-template-columns: minmax(0, 1fr); gap: 32px; margin-top: 0; margin-inline: -32px; padding: 28px 32px; background: var(--color-card); }
+  .nova-today .daily-agenda-layout { grid-template-columns: minmax(0, 1fr); gap: 32px; margin-top: 0; margin-inline: -32px; padding: 28px 32px; background: var(--color-card); }
   .nova-today .workspace-panel { border: 0; border-radius: 0; padding: 0; background: transparent; }
   .nova-agenda-group + .nova-agenda-group { margin-top: 28px; }
   .nova-agenda-group h3 { font-size: 12px; font-weight: 600; color: var(--color-muted-foreground); letter-spacing: .14em; text-transform: uppercase; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
@@ -74,7 +74,6 @@
   .nova-agenda-range { display: flex; align-items: center; gap: 8px; color: var(--color-muted-foreground); font-size: 14px; }
   .nova-agenda-expanded .agenda-actions { grid-column: auto; grid-row: auto; justify-content: flex-start; margin: 0; }
   .nova-today .agenda-actions .inline-action { background: transparent; padding-left: 0; }
-  .nova-today .task-queue-panel { border-top: 1px solid var(--color-border); padding-top: 24px; }
   .nova-today .daily-utilities { margin-top: 24px; }
   .nova-today .daily-utilities > summary { min-height: 44px; cursor: pointer; display: flex; align-items: center; font-size: 14px; }
   .nova-today .daily-quick-actions { margin-block: 12px; }
@@ -112,7 +111,7 @@
     .nova-week-strip button { min-height: 48px; font-size: 12px; gap: 4px; }
     .nova-week-strip button strong { font-size: 18px; line-height: 1.2; }
     .nova-calendar-row .day-selector { display: none; }
-    .nova-today .daily-agenda-layout, .nova-today .daily-agenda-layout:has(.task-queue-panel) { margin-top: 20px; margin-inline: -20px; padding: 16px 20px; }
+    .nova-today .daily-agenda-layout { margin-top: 20px; margin-inline: -20px; padding: 16px 20px; }
     .nova-agenda-row { grid-template-columns: 60px minmax(0, 1fr); padding-block: 8px; }
     .nova-agenda-time time { font-size: 16px; }
     .nova-agenda-time { gap: 4px; padding-top: 0; }
@@ -125,7 +124,7 @@
   }
   @media (min-width: 768px) and (max-width: 1023px) {
     .tracker-surface .editorial-frame.dossier-frame { padding: 24px; }
-    .nova-today .daily-agenda-layout, .nova-today .daily-agenda-layout:has(.task-queue-panel) { margin-inline: -24px; padding-inline: 24px; }
+    .nova-today .daily-agenda-layout { margin-inline: -24px; padding-inline: 24px; }
     .nova-calendar-row { flex-wrap: wrap; }
     .nova-week-strip { flex-basis: 100%; }
   }
@@ -133,7 +132,7 @@
     .tracker-surface .editorial-frame.dossier-frame { padding-inline: 16px; }
     .nova-week-strip { justify-content: flex-start; }
     .nova-week-strip button { flex: 0 0 44px; }
-    .nova-today .daily-agenda-layout, .nova-today .daily-agenda-layout:has(.task-queue-panel) { margin-inline: -16px; padding-inline: 16px; }
+    .nova-today .daily-agenda-layout { margin-inline: -16px; padding-inline: 16px; }
     .nova-calendar-row .day-selector { gap: 4px; }
     .nova-calendar-row .day-selector input { width: 140px; }
   }

@@ -107,20 +107,20 @@ test("daily recording retains selected-date capture and undo from its disclosure
   ).toBe(0);
 });
 
-test("empty Today omits an empty task panel while Plan keeps task capture", async ({
+test("Today omits the task queue while Plan retains captured unscheduled tasks", async ({
   page,
 }) => {
   await seed(page);
   await page.goto("/hub");
   await expect(
-    page.getByRole("heading", { name: "Tasks to do", exact: true }),
+    page.getByRole("heading", { name: "Unscheduled tasks", exact: true }),
   ).toHaveCount(0);
   await expect(
     page.getByText("No unscheduled tasks. Add one when you need it."),
   ).toHaveCount(0);
   await page.goto("/plan");
   await expect(
-    page.getByRole("heading", { name: "Tasks to do", exact: true }),
+    page.getByRole("heading", { name: "Unscheduled tasks", exact: true }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Add task", exact: true }).click();
   await page
@@ -128,12 +128,22 @@ test("empty Today omits an empty task panel while Plan keeps task capture", asyn
     .fill("A clear first step");
   await page.getByRole("button", { name: "Save task", exact: true }).click();
   await page.goto("/hub");
+  await expect(page.locator(".task-queue-panel")).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: "Tasks to do", exact: true }),
+    page.getByRole("link", { name: "Start focused work", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".unscheduled-list")).toContainText(
+  await page.goto("/plan");
+  const queue = page.locator(".task-queue-panel");
+  await expect(
+    queue.getByRole("heading", { name: "Unscheduled tasks", exact: true }),
+  ).toBeVisible();
+  await expect(queue).toContainText(
     "A clear first step",
   );
+  await queue.getByRole("button", { name: "Schedule", exact: true }).click();
+  await expect(
+    page.getByLabel("Link task").locator("option:checked"),
+  ).toHaveText("A clear first step");
 });
 
 test("Health keeps food capture beside its record with the selected date and return path", async ({

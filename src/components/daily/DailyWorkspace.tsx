@@ -782,10 +782,10 @@ export default function DailyWorkspace({
             )}
           </section>
         )}
-        {(planning || pending.length > 0) && (
+        {planning && (
           <section className="workspace-panel task-queue-panel">
             <div className="workspace-heading">
-              <h2>Tasks to do</h2>
+              <h2>Unscheduled tasks</h2>
               <Link href="/todo">All tasks →</Link>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -793,7 +793,7 @@ export default function DailyWorkspace({
             </p>
             {pending.length ? (
               <ul className="unscheduled-list">
-                {pending.slice(0, planning ? 20 : 5).map((task) => (
+                {pending.slice(0, 20).map((task) => (
                   <li key={task.id}>
                     <span>
                       <strong>{task.text}</strong>

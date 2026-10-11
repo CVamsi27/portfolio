@@ -36,14 +36,15 @@ test("Today leads with a task action and preserves goal records", async ({ page 
     ],
   });
   await page.goto("/trackers");
-  await expect(page.locator(".unscheduled-list")).toContainText("Choose a neighborhood");
+  await expect(page.locator(".task-queue-panel")).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Start focused work", exact: true })).toHaveAttribute("href", "/plan?view=focus&task=t1");
   await page.goto("/motivation");
   await expect(page.getByTestId("focus-scene")).toContainText("Relocate to Canada");
-  await page.goto("/trackers");
+  await page.goto("/plan");
   await expect(
-    page.getByRole("heading", { name: "Tasks to do" }),
+    page.getByRole("heading", { name: "Unscheduled tasks", exact: true }),
   ).toBeVisible();
+  await expect(page.locator(".unscheduled-list")).toContainText("Choose a neighborhood");
   await page.goto("/dashboard?view=work&metric=learning");
   await expect(page.getByText("25 min", { exact: true })).toBeVisible();
   await page.goto("/plan?view=focus");
