@@ -9,6 +9,8 @@ import { ThemeProvider } from "@/components/common/ThemeProvider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PWARegister from "@/components/PWARegister";
+import PersonalAccessGate from "@/components/auth/PersonalAccessGate";
+import { isPersonalHost } from "@/lib/personal-access";
 import { Toaster } from "@/components/ui/toaster";
 import ReminderNudges from "@/components/ReminderNudges";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -101,6 +103,7 @@ export default async function RootLayout({
 }>) {
   const brand = await requestBrand();
   const trackerSurface = brand === TRACKER_BRAND;
+  const personalHost = isPersonalHost((await headers()).get("host") ?? "");
 
   const jsonLd = !trackerSurface
     ? {
@@ -188,15 +191,21 @@ export default async function RootLayout({
             Skip to main content
           </a>
           <main id="main-content" className="relative flex flex-col min-h-screen">
-            <Navbar initialIsTracker={trackerSurface} />
-            <Suspense fallback={null}>
-              <DistractionInterceptor />
-            </Suspense>
-            <div className="flex-1">{children}</div>
-            <Toaster />
-            {trackerSurface ? <ReminderNudges /> : null}
-            <ScrollToTop isPortfolio={!trackerSurface} />
-            <Footer initialIsTracker={trackerSurface} />
+            <PersonalAccessGate initialIsPersonal={personalHost}>
+              <Navbar initialIsTracker={trackerSurface} />
+              <PersonalAccessGate allowLogin={false} initialIsPersonal={personalHost}>
+                <Suspense fallback={null}>
+                  <DistractionInterceptor />
+                </Suspense>
+              </PersonalAccessGate>
+              <div className="flex-1">{children}</div>
+              <Toaster />
+              <PersonalAccessGate allowLogin={false} initialIsPersonal={personalHost}>
+                {trackerSurface ? <ReminderNudges /> : null}
+              </PersonalAccessGate>
+              <ScrollToTop isPortfolio={!trackerSurface} />
+              <Footer initialIsTracker={trackerSurface} />
+            </PersonalAccessGate>
             <PWARegister />
           </main>
         </ThemeProvider>

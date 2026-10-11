@@ -5,7 +5,8 @@ One Next.js 16 codebase serving two experiences, split by host at the edge:
 | Host | Experience |
 |---|---|
 | `buildora.work` (and `/`) | Vamsi Krishna's public portfolio — selected work, experience, capabilities, and contact |
-| `personal.buildora.work` (and `localhost:3000`) | Private life-OS command center — fasting, workouts, goals, todos, motivation, journal |
+| `personal.buildora.work` | Private life-OS command center; restricted to two approved Google accounts |
+| `localhost:3000` | Development tracker routes; local-only mode remains available |
 
 The public site is a personal portfolio; the tracker side is gated by auth when Supabase is configured, and fully usable signed-out (local-only mode).
 
@@ -76,7 +77,7 @@ The approved scope and current evidence are in [NOVA change sheet](docs/NOVA_CHA
 - **Career roadmap** (`/roadmap`) — dated study links for all 556 numbered Bible chapters, the owner-specific 10h weekday / 4h weekend overlay inside the IST schedule, practice/role/OSS/interview prompts, saved evidence with a separate verify action, and opt-in in-app/browser reminders. Career completion is not a blank checkbox.
 - **Focus and protection** — one active work-session controller with preserved legacy mirrors, navigation-safe focus/study sessions and cross-page pause/resume/cancel. Bedtime and distraction protection are opt-in, with immediate exit; NOVA does not control system Do Not Disturb or other apps.
 - **Share** (`/share`) — ephemeral drops with tags, pinning, fuzzy search, explicit private/public access, private media, email allowlists, and short-lived signed image URLs.
-- **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub); the service worker precaches `/hub`, serves pages network-first, and falls back to the cached canonical hub shell offline.
+- **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub). The personal host uses network requests with server access checks and purges previous caches; offline page fallback remains available in local development.
 - **Editorial foundation** — shared chapter primitives (`EditorialFrame`, `ChapterLabel`, `DisplayStatement`, `ActionBlock`, `SignalRule`, `TelemetryLine`, `EditorialGrid`) keep portfolio, tracker, focus, share, settings, and onboarding surfaces visually related while preserving their distinct identities.
 
 ---
@@ -103,11 +104,46 @@ pnpm dev            # http://localhost:3000 → tracker suite
 
 **Environment.** Copy your Supabase URL + publishable key into `.env` as `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to enable sign-in and cross-device sync. For public Share links, also configure `SUPABASE_SERVICE_ROLE_KEY` (or the server-only `SUPABASE_SECRET_KEY`) for the `/api/share/[shareId]` signer. Never prefix that secret with `NEXT_PUBLIC_`; it must not reach the browser. Leave the public variables blank for pure local mode. Note `NEXT_PUBLIC_*` vars are inlined at **build time**.
 
+### Personal website access
+
+`personal.buildora.work` permits only confirmed Google identities for
+`cvamsik99@gmail.com` and `srija210v@gmail.com`. The server validates the Supabase
+session with `getUser` before serving any personal page, including landing and
+sharing. Missing configuration, invalid sessions and auth outages deny access.
+Other signed-in accounts see an access-denied screen. The public portfolio stays
+open; localhost keeps local-only development.
+
+Google sign-in uses the PKCE callback
+`https://personal.buildora.work/auth/callback`. Include that callback, its query
+parameters, and approved development callbacks in Supabase's redirect URL
+allowlist (for example `https://personal.buildora.work/auth/callback**`). The Google
+provider continues to use the project's Supabase Auth callback. The application
+callback validates the account and a relative `next` path before redirecting;
+credentials and OAuth codes are never logged.
+
+Personal APIs enforce the same policy on every deployed host, including public
+and preview hosts. API clients may use verified bearer tokens. Contact remains
+public; scheduled push requires its cron secret. Android pairing creates a pending
+device only; claiming requires an approved account and paired device status/upload
+checks the approved owner before existing credential/revocation/throttle RPC
+checks. User data and database RLS are unchanged. No migration is required.
+
+The personal service worker does not cache pages or replay an offline workspace.
+Existing installed clients must connect once to receive the worker update and
+purge older caches. Previously stored local records are not deleted. Client gating
+hides loaded private UI after sign-out or account changes.
+
+Run `pnpm test:personal-access`, build, and run
+`pnpm exec playwright test e2e/personal-access.spec.ts e2e/branding.spec.ts e2e/navigation.spec.ts e2e/public-portfolio.spec.ts`.
+Verify live root/deep pages redirect to `/login`, anonymous personal APIs return
+401, and both approved accounts finish Google sign-in. A build alone does not
+confirm deployment or a real Google sign-in.
+
 ### Share storage and access
 
 Run Supabase migrations in order: `0001_tracker_data.sql`, `0002_drops_storage.sql`, `0003_shared_drops.sql`, `0004_shared_allowlist.sql`, `0005_private_share_media.sql`, then `0006_career_roadmap_atomic_sync.sql`. Migration 0006 adds a `SECURITY INVOKER` function with a fixed search path and strict row-key/user validation; only `service_role` can execute it. The career seed defaults to dry-run. After migration 0006 is deployed, configure `CAREER_OWNER_EMAIL`, `SUPABASE_URL`, and `SUPABASE_SECRET_KEY` privately, then run `pnpm career:seed -- --apply`. It reads only the five planner keys, preserves unrelated todos, evidence, and reminder choices, performs one atomic RPC (or one bulk upsert if the function is absent), then compares every value in readback. Never print or commit private account identifiers or service credentials. The share migration makes the `drops` bucket private, adds public/private access mode and storage-path columns, backfills compatible paths, and applies owner/allowlist/expiry RLS.
 
-Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximately 1.2 MB limit per local-only image, and an approximately 5,000 KB browser-storage display capacity. Expired drops are removed from the active list and cleaned opportunistically. Private links require a matching signed-in email; public links are an explicit “Anyone with the link” choice and are readable only until expiry. Public detail pages use the server route to issue a five-minute signed media URL. Backups include link URL, expiry, allowlist, and access mode metadata, but never storage tokens.
+Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximately 1.2 MB limit per local-only image, and an approximately 5,000 KB browser-storage display capacity. Expired drops are removed from the active list and cleaned opportunistically. Private links require a matching signed-in email. Public drops keep their explicit access mode and expiry in storage, but every deployed personal website/share API request now also requires an approved Google account. Allowed detail requests use the server route to issue a five-minute signed media URL. Backups include link URL, expiry, allowlist, and access mode metadata, but never storage tokens.
 
 **Conventions.** TypeScript strict, ESLint 0-error/0-warning policy (React Compiler rules included), Radix where it matters, dependency-free primitives for tracker UI (`Ring`, `MiniBars`, `Modal`, `RestTimer` in `src/components/trackers/`).
 

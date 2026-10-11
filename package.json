@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
+    "test:personal-access": "node --experimental-strip-types --test src/lib/personal-access*.test.ts && node --test scripts/personal-service-worker.test.mjs",
     "career:generate": "node scripts/generate-career-curriculum.mjs --bible-root ../software-developer-bible --start-date 2026-09-30 --days 100 --study-base-url https://study.buildora.work --output src/data/career-curriculum.json",
     "career:validate": "node scripts/generate-career-curriculum.mjs --bible-root ../software-developer-bible --start-date 2026-09-30 --days 100 --study-base-url https://study.buildora.work --output src/data/career-curriculum.json --check",
     "career:seed": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --experimental-strip-types scripts/sync-roadmap.ts",

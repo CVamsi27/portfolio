@@ -64,11 +64,11 @@ export default function PersonalShell({
             utility={badge}
           />
         )}
-        <LockdownGate>
+        {icon === "login" ? <div className="personal-content mt-5 space-y-5">{children}</div> : <LockdownGate>
           <RoutineNotifier />
           <div className="personal-content mt-5 space-y-5">{children}</div>
           <TrackerNavDock showDock={showDock} />
-        </LockdownGate>
+        </LockdownGate>}
       </div>
     </EditorialFrame>
   );

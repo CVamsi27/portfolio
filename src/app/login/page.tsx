@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,8 +8,15 @@ import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-store";
 import { KeyRound, Loader2, UserCheck, Wrench } from "lucide-react";
-import { safeReturn } from "@/components/daily/CaptureWorkspace";
+import {
+  isAllowedPersonalUser,
+  isPersonalHost,
+  safePersonalReturn,
+} from "@/lib/personal-access";
 import { useToast } from "@/components/ui/use-toast";
+
+const subscribeHost = () => () => {};
+const personalBrowser = () => isPersonalHost(window.location.host);
 
 function StatusIcon({
   children,
@@ -35,13 +42,17 @@ function StatusIcon({
 
 export default function LoginPage() {
   const [destination, setDestination] = useState("/hub");
-  useEffect(
-    () =>
-      setDestination(
-        safeReturn(new URLSearchParams(window.location.search).get("next")),
-      ),
-    [],
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const personal = useSyncExternalStore(
+    subscribeHost,
+    personalBrowser,
+    () => false,
   );
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setDestination(safePersonalReturn(params.get("next")));
+    setLoginError(params.get("error"));
+  }, []);
   const { user, loading, configured } = useAuth();
   const [signingIn, setSigningIn] = useState(false);
   const { toast } = useToast();
@@ -51,9 +62,15 @@ export default function LoginPage() {
     if (!sb) return;
     setSigningIn(true);
     try {
+      if (user && personal && !isAllowedPersonalUser(user)) {
+        await sb.auth.signOut({ scope: "local" });
+      }
       const { error } = await sb.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}${destination}` },
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}`,
+          queryParams: { prompt: "select_account" },
+        },
       });
       if (error) {
         toast({
@@ -83,6 +100,11 @@ export default function LoginPage() {
         className="overflow-hidden border-[color-mix(in_srgb,var(--color-dossier-lime)_30%,transparent)] bg-card shadow-xl shadow-[rgba(200,255,61,0.05)]"
       >
         <CardContent className="flex flex-col items-center p-8 text-center">
+          {loginError === "sign-in-failed" && (
+            <p role="alert" className="mb-4 text-sm text-muted-foreground">
+              Sign-in could not be completed. Please try again.
+            </p>
+          )}
           {loading ? (
             <div className="flex flex-col items-center justify-center gap-3 py-6">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -96,18 +118,45 @@ export default function LoginPage() {
                 <Wrench className="h-7 w-7 text-white" />
               </StatusIcon>
               <h2 className="font-display mt-4 text-xl font-bold">
-                Your workspace is ready
+                {personal
+                  ? "Sign-in is unavailable"
+                  : "Your workspace is ready"}
               </h2>
               <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                Cloud sync is unavailable. Your trackers and saved items work on
-                this device.
+                {personal
+                  ? "This private workspace requires Google sign-in. Access is unavailable until sign-in is configured."
+                  : "Cloud sync is unavailable. Your trackers and saved items work on this device."}
               </p>
-              <Link
-                href={destination}
-                className="mt-4 inline-block text-sm text-primary hover:underline"
+              {!personal && (
+                <Link
+                  href={destination}
+                  className="mt-4 inline-block text-sm text-primary hover:underline"
+                >
+                  Continue to workspace
+                </Link>
+              )}
+            </>
+          ) : personal &&
+            ((user && !isAllowedPersonalUser(user)) ||
+              loginError === "access-denied") ? (
+            <>
+              <StatusIcon variant="warn">
+                <KeyRound className="h-7 w-7 text-white" />
+              </StatusIcon>
+              <h2 className="font-display mt-4 text-xl font-bold">
+                Access denied
+              </h2>
+              <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                This workspace is restricted to approved Google accounts. Choose
+                a different account to continue.
+              </p>
+              <Button
+                className="mt-5 w-full"
+                onClick={signIn}
+                disabled={signingIn}
               >
-                Continue to workspace
-              </Link>
+                Sign in with another Google account
+              </Button>
             </>
           ) : user ? (
             <>
@@ -138,8 +187,9 @@ export default function LoginPage() {
                 Sign in with Google
               </h2>
               <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                Free, no password. Your fasting, workouts, todos, goal board and
-                motivation sync across phone + laptop.
+                {personal
+                  ? "This private workspace is available to approved Google accounts only."
+                  : "Free, no password. Your fasting, workouts, todos, goal board and motivation sync across phone + laptop."}
               </p>
               <Button
                 className="mt-5 w-full"
@@ -155,16 +205,18 @@ export default function LoginPage() {
                   "Continue with Google"
                 )}
               </Button>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Public pages stay open:{" "}
-                <Link href="/" className="hover:underline">
-                  home
-                </Link>{" "}
-                ·{" "}
-                <Link href="/share" className="hover:underline">
-                  Sharing
-                </Link>
-              </p>
+              {!personal && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Public pages stay open:{" "}
+                  <Link href="/" className="hover:underline">
+                    home
+                  </Link>{" "}
+                  ·{" "}
+                  <Link href="/share" className="hover:underline">
+                    Sharing
+                  </Link>
+                </p>
+              )}
             </>
           )}
         </CardContent>

@@ -14,19 +14,17 @@ test.describe("navigation & shell", () => {
     await expect(page.getByTestId("nova-simple-mark")).toHaveCount(0);
   });
 
-  test("personal-host rewrite lands on the public tracker landing", async ({
+  test("personal-host root redirects anonymous visitors to login", async ({
     page,
   }) => {
     const resp = await page.request.get("http://127.0.0.1:4111/", {
       headers: { Host: "personal.buildora.work" },
       maxRedirects: 0,
     });
-    // The proxy rewrites (not redirects) the personal host onto the public landing.
-    expect(resp.status()).toBe(200);
-    const html = await resp.text();
-    expect(html).toContain('data-testid="tracker-public-landing"');
-    expect(html).toContain('href="/hub"');
-    expect(html).not.toContain("Sign in required");
+    expect(resp.status()).toBe(307);
+    const location = new URL(resp.headers()["location"], resp.url());
+    expect(location.pathname).toBe("/login");
+    expect(location.searchParams.get("next")).toBe("/");
   });
 
   test("portfolio host never serves tracker pages", async ({ page }) => {

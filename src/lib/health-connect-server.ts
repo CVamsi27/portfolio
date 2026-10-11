@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server.js";
+import { isAllowedPersonalUser, isLocalHost } from "./personal-access.ts";
 
 export class HealthApiError extends Error {
   status: number;
@@ -31,6 +32,8 @@ export async function healthOwner(request: Request) {
   );
   if (error || !data.user)
     throw new HealthApiError("Sign in to manage health connections.", 401);
+  if (!isLocalHost(new URL(request.url).host) && !isAllowedPersonalUser(data.user))
+    throw new HealthApiError("Access denied.", 403);
   return data.user;
 }
 export const digestText = (value: string) =>
@@ -87,7 +90,27 @@ export async function healthBody(
   }
 }
 export async function healthRpc(name: string, args: Record<string, unknown>) {
-  const { data, error } = await healthAdmin().rpc(name, args);
+  const admin = healthAdmin();
+  // Machine credentials bypass browser cookies, but never the owner's allowlist.
+  // Keep the SQL RPC's own credential, revocation, expiry and throttle checks too.
+  if (name === "health_connect_sync" || name === "health_connect_status") {
+    const { data: device, error: deviceError } = await admin
+      .from("health_connect_devices")
+      .select("user_id")
+      .eq("id", args.p_device_id)
+      .eq("secret_digest", args.p_secret_digest)
+      .is("revoked_at", null)
+      .maybeSingle();
+    if (deviceError) throw new HealthApiError("Health connection storage is unavailable.", 503);
+    if (!device || (name === "health_connect_sync" && !device.user_id))
+      throw new HealthApiError("Health connection is not authorized.", 401);
+    if (device.user_id) {
+      const { data: owner, error: ownerError } = await admin.auth.admin.getUserById(device.user_id);
+      if (ownerError || !owner.user) throw new HealthApiError("Health connection is not authorized.", 401);
+      if (!isAllowedPersonalUser(owner.user)) throw new HealthApiError("Access denied.", 403);
+    }
+  }
+  const { data, error } = await admin.rpc(name, args);
   if (error) {
     if (error.message.includes("Health authentication required"))
       throw new HealthApiError("Health connection is not authorized.", 401);

@@ -61,6 +61,9 @@ jobs:
           pnpm test:career-curriculum
           pnpm test:germany-roadmap
 
+      - name: Personal access boundary tests
+        run: pnpm test:personal-access
+
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:

@@ -20,17 +20,13 @@ test.describe("product branding", () => {
     await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", "/icons/vk.svg");
   });
 
-  test("personal-host landing explains the product before workspace entry", async ({ page }) => {
+  test("personal-host entry requires server-checked sign-in", async ({ page }) => {
     const response = await page.request.get("http://127.0.0.1:4111/", {
       headers: { Host: "personal.buildora.work" },
       maxRedirects: 0,
     });
-    expect(response.status()).toBe(200);
-    const html = await response.text();
-    expect(html).toContain('data-testid="tracker-public-landing"');
-    expect(html).toContain("Goals, routines, focus");
-    expect(html).toContain('href="/hub"');
-    expect(html).not.toContain("Sign in required");
+    expect(response.status()).toBe(307);
+    expect(new URL(response.headers()["location"], response.url()).pathname).toBe("/login");
   });
 
   test("tracker navigation retains NOVA without a redundant workspace footer", async ({ page }) => {
@@ -78,7 +74,6 @@ test.describe("product branding", () => {
     const source = await sw.text();
     expect(source).toContain("NOVA service worker");
     expect(source).not.toContain("NOVA//OS");
-    expect(source).toContain('CACHE_VERSION = "nova-os-v4"');
     expect(source).not.toContain(["VK", "Personal", "Suite"].join(" "));
   });
 });

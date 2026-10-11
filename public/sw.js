@@ -9,7 +9,9 @@
  *
  * Bump CACHE_VERSION to invalidate everything.
  */
-const CACHE_VERSION = "nova-os-v4";
+const CACHE_VERSION = "nova-os-v5";
+// Server-checked personal sessions must never fall back to cached private HTML.
+const RESTRICTED_HOST = self.location.hostname === "personal.buildora.work";
 const OFFLINE_URL = "/hub";
 
 const PRECACHE = [
@@ -24,6 +26,10 @@ const PRECACHE = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
+      if (RESTRICTED_HOST) {
+        await self.skipWaiting();
+        return;
+      }
       const cache = await caches.open(CACHE_VERSION);
       // Individual awaits so one failed fetch can't break the install.
       await Promise.all(
@@ -43,7 +49,7 @@ self.addEventListener("activate", (event) => {
     (async () => {
       const keys = await caches.keys();
       await Promise.all(
-        keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k)),
+        keys.filter((k) => RESTRICTED_HOST || k !== CACHE_VERSION).map((k) => caches.delete(k)),
       );
       await self.clients.claim();
     })(),
@@ -56,6 +62,9 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  // Use the browser's network fetch for all personal requests, including Flight,
+  // login and static assets. Activation purges caches from earlier releases.
+  if (RESTRICTED_HOST) return;
 
   // Never cache API or auth-adjacent traffic.
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/sb-")) {

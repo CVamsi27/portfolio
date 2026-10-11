@@ -1,8 +1,19 @@
 # NOVA — consolidated website change sheet
 
-**Updated:** 4 October 2026 (IST)
+**Updated:** 11 October 2026 (IST)
 
 **Product:** personal.buildora.work — one personal workspace for planning, health, progress and purpose.
+
+**Access decision (11 October 2026):** restrict the personal website to confirmed
+Google identities for `cvamsik99@gmail.com` and `srija210v@gmail.com`. Server session
+validation protects every personal page (including landing/sharing) and personal
+APIs across deployed domains. Public portfolio/contact and localhost remain
+available. Android pairing and cron dispatch retain their credential checks;
+paired devices additionally require an approved owner. Personal page caching is
+disabled and older worker caches are purged on update. This supersedes earlier
+public-personal-entry and anonymous-sharing decisions for the deployed website.
+See [access design](superpowers/specs/2026-10-11-personal-access-allowlist-design.md)
+and [implementation plan](superpowers/plans/2026-10-11-personal-access-allowlist.md).
 
 **Status:** approved product scope implemented locally, including food tracking and routine reminders. Production database migrations, provider credentials, scheduler configuration and authenticated delivery verification remain release gates.
 
