@@ -4,6 +4,7 @@ export type PersonalPrimaryId =
   | "tasks"
   | "today"
   | "focus"
+  | "motivation"
   | "log"
   | "sharing"
   | "more"
@@ -93,6 +94,13 @@ export const PERSONAL_MORE_NAV: readonly PersonalNavItem[] = [
 ];
 
 export const PERSONAL_TOOLS_NAV: readonly PersonalNavItem[] = [
+  {
+    id: "motivation",
+    href: "/motivation",
+    label: "Motivation",
+    short: "Motivation",
+    icon: "flame",
+  },
   {
     id: "archive",
     href: "/archive",

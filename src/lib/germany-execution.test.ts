@@ -6,6 +6,7 @@ import {
   examReadiness,
   appendExamAttempt,
   datedAssignments,
+  examTrend,
   type GermanyRound,
   type GermanyExamAttempt,
   type GermanyExecution,
@@ -48,6 +49,17 @@ const attempt: GermanyExamAttempt = {
   repair: "Repeat with duplicate writes on form B.",
   retakeDate: "2026-10-28",
 };
+test("exam trend compares only scored eligible attempts under the same round, track and rubric", () => {
+  const version=attempt.promptVersion;
+  const attempts=[attempt,
+    {...attempt,id:"other-track",track:"backend" as const},
+    {...attempt,id:"old",promptVersion:"old"},
+    {...attempt,id:"assisted",tools:"assisted" as const},
+    {...attempt,id:"unscored",scores:[null,4,3,3,3,3]},
+    {...attempt,id:"other-round",roundId:"R1"},
+  ];
+  assert.deepEqual(examTrend(round,attempts,version,"frontend"),[{date:"2026-10-24",value:19}]);
+});
 test("adds only safe study return context and rejects a mismatched task date", () => {
   const url = new URL(
     studyTaskUrl(

@@ -42,6 +42,8 @@ import WeekDateStrip from "./WeekDateStrip";
 import TodayAgendaRow from "./TodayAgendaRow";
 import { agendaPeriod, agendaStatus } from "@/lib/day-presentation";
 import { ArrowRight } from "lucide-react";
+import { editablePlanBlocks } from "@/lib/plan-presentation";
+import { ProgressLead } from "@/components/progress/WorkspaceProgressLead";
 import HabitChecklist from "@/components/personal/HabitChecklist";
 import FocusSprint from "@/components/trackers/FocusSprint";
 import { displayWeight } from "@/lib/health";
@@ -122,42 +124,47 @@ export default function DailyWorkspace({
     ? personalSchedule(user?.email, date)
     : undefined;
   const sourceDays = [shiftDay(date, -1), date, shiftDay(date, 1)];
+  const fixedBlocks = (sourceDate: string) => {
+    const prescribed = modules.value.study
+      ? personalSchedule(user?.email, sourceDate)
+      : undefined;
+    const storedDay = timetable.value?.days?.find((d) => d.date === sourceDate);
+    return modules.value.study
+      ? timetableBlocks(
+          sourceDate,
+          germany?.execution
+            ? annotateGermanySchedule(
+                germany.execution,
+                sourceDate,
+                prescribed ?? storedDay?.schedule ?? {},
+              )
+            : (prescribed ?? storedDay?.schedule ?? {}),
+          prescribed ? "Asia/Kolkata" : (timetable.value?.timezone ?? timeZone),
+          prescribed ? "owner" : "timetable",
+        )
+      : {};
+  };
   const ownerBlocks = Object.assign(
     {},
-    ...sourceDays.map((sourceDate) => {
-      const prescribed = modules.value.study
-        ? personalSchedule(user?.email, sourceDate)
-        : undefined;
-      const storedDay = timetable.value?.days?.find(
-        (d) => d.date === sourceDate,
-      );
-      return modules.value.study
-        ? timetableBlocks(
-            sourceDate,
-            germany?.execution
-              ? annotateGermanySchedule(
-                  germany.execution,
-                  sourceDate,
-                  prescribed ?? storedDay?.schedule ?? {},
-                )
-              : (prescribed ?? storedDay?.schedule ?? {}),
-            prescribed
-              ? "Asia/Kolkata"
-              : (timetable.value?.timezone ?? timeZone),
-            prescribed ? "owner" : "timetable",
-          )
-        : {};
-    }),
+    ...sourceDays.map(fixedBlocks),
   ) as Record<string, PlanBlock>;
   const allBlocks = { ...ownerBlocks, ...plan.blocks.value };
   const rows = dayAgenda({
     date,
     calendarTimeZone: timeZone,
-    blocks: allBlocks,
+    blocks: planning
+      ? Object.fromEntries(
+          editablePlanBlocks(plan.blocks.value, date).map((block) => [
+            block.id,
+            block,
+          ]),
+        )
+      : allBlocks,
     tasks: todos.value,
-    routines: modules.value.routine
-      ? sourceDays.flatMap((day) => routineOccurrences(routine.items, day))
-      : [],
+    routines:
+      !planning && modules.value.routine
+        ? sourceDays.flatMap((day) => routineOccurrences(routine.items, day))
+        : [],
     history: routine.history.value,
   });
   const completed = rows.filter((row) => row.done);
@@ -195,7 +202,7 @@ export default function DailyWorkspace({
   const save = () => {
     if (!plan.enabled) {
       setError(
-        "Planning edits become available after cloud rollout verification.",
+        "Activity editing is currently unavailable. Your draft is retained.",
       );
       return;
     }
@@ -204,10 +211,10 @@ export default function DailyWorkspace({
       ...editing,
       deleted: false,
       id: editing?.id ?? crypto.randomUUID(),
-      date,
+      date: editing?.date ?? date,
       startLocal: start,
       durationMinutes: Number(duration),
-      timeZone,
+      timeZone: editing?.timeZone ?? timeZone,
       kind,
       title: kind === "task" && task ? task.text : title.trim(),
       sourceId: kind === "task" && task ? task.id : undefined,
@@ -223,7 +230,14 @@ export default function DailyWorkspace({
       setError("Choose an existing task or select Personal event.");
       return;
     }
-    const overlapping = Object.values(allBlocks).filter(
+    const conflictBlocks: Record<string, PlanBlock> = {
+      ...Object.assign(
+        {},
+        ...[-1, 0, 1].map((delta) => fixedBlocks(shiftDay(b.date, delta))),
+      ),
+      ...plan.blocks.value,
+    };
+    const overlapping = Object.values(conflictBlocks).filter(
       (x) => validPlanBlock(x) && conflicts(b, x),
     );
     if (overlapping.length && !confirmOverlap) {
@@ -236,7 +250,7 @@ export default function DailyWorkspace({
     try {
       plan.blocks.setValue((p) => ({ ...p, [b.id]: b }));
       setEditor(false);
-      setMessage("Time block saved on this device.");
+      setMessage("Activity saved on this device.");
     } catch {
       setError("Unable to save. Your draft is retained.");
     }
@@ -251,29 +265,7 @@ export default function DailyWorkspace({
       },
     }));
     setRemoved(b);
-    setMessage(
-      "Time block removed. Its task and activity records are retained.",
-    );
-  };
-  const togglePriority = (id: string) => {
-    if (!plan.enabled) return;
-    const next = priorities.includes(id)
-      ? priorities.filter((x) => x !== id)
-      : [...priorities, id];
-    if (next.length > 3) {
-      setMessage(
-        "Choose up to three priorities. Unpin one before adding another.",
-      );
-      return;
-    }
-    plan.days.setValue((p) => ({
-      ...p,
-      [date]: {
-        date,
-        priorityTaskIds: next,
-        updatedAt: Math.max(now, (p[date]?.updatedAt ?? 0) + 1),
-      },
-    }));
+    setMessage("Activity removed. Its task and activity records are retained.");
   };
   const act = (row: AgendaItem, status: RoutineHistory["status"]) => {
     if (!row.occurrence) return;
@@ -483,6 +475,7 @@ export default function DailyWorkspace({
   if (planning && view === "focus")
     return (
       <section className="workspace-panel">
+        <h1 className="font-display text-3xl font-semibold">Focus</h1>
         <div className="workspace-heading">
           <h2>
             {work.focus?.label ??
@@ -551,22 +544,20 @@ export default function DailyWorkspace({
   return (
     <div className={`daily-workspace${planning ? "" : " nova-today"}`}>
       {planning ? (
-        <div className="workspace-heading">
+        <header className="nova-today-header">
           <div>
-            <h2>Your plan</h2>
+            <h1>Plan</h1>
             <p>
-              {new Intl.DateTimeFormat("en", {
-                weekday: "long",
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                timeZone: "UTC",
-              }).format(new Date(date + "T12:00:00Z"))}{" "}
-              · {timeZone}
+              {date} ·{" "}
+              {timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone}
             </p>
           </div>
-          <DaySelector date={date} today={today} onChange={setDate} />
-        </div>
+          {plan.enabled && (
+            <Button className="nova-primary-action" onClick={() => begin()}>
+              Add activity
+            </Button>
+          )}
+        </header>
       ) : (
         <>
           <header className="nova-today-header" data-testid="today-header">
@@ -599,17 +590,20 @@ export default function DailyWorkspace({
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </header>
-          <WeekDateStrip date={date} today={today} onChange={setDate} />
         </>
       )}
+      <ProgressLead metric="focus" endDate={date} />
+      {!planning && (
+        <WeekDateStrip date={date} today={today} onChange={setDate} />
+      )}
+      {planning && <DaySelector date={date} today={today} onChange={setDate} />}
       {planning && (
         <nav className="workspace-views" aria-label="Planning views">
           {[
-            ["day", "Day"],
+            ["day", "Activities"],
             ["week", "Week"],
             ["tasks", "Tasks"],
-            ["goal", "Goal"],
-            ["learning", "Learning"],
+            ["goal", "Goals"],
           ].map(([id, label]) => (
             <Link
               key={id}
@@ -619,9 +613,7 @@ export default function DailyWorkspace({
                   ? "/todo"
                   : id === "goal"
                     ? "/goal"
-                    : id === "learning"
-                      ? "/roadmap"
-                      : `/plan?view=${id}&date=${date}`
+                    : `/plan?view=${id}&date=${date}`
               }
             >
               {label}
@@ -631,38 +623,23 @@ export default function DailyWorkspace({
       )}
       {planning && !plan.enabled && (
         <p className="workspace-notice">
-          Day planning is awaiting cloud setup. Your existing tasks, timetable
-          and records remain available.
+          Activity editing is currently unavailable. You can view your agenda in
+          Today.
         </p>
       )}
       {planning && (
         <div className="flex flex-wrap gap-2">
-          {plan.enabled && (
-            <Button onClick={() => begin()}>Add time block</Button>
-          )}
-          <Link className="inline-action" href="/plan?view=focus">
-            Start open work →
+          <Link className="inline-action" href={`/hub?date=${date}`}>
+            View timetable
           </Link>
+          <details>
+            <summary className="min-h-11">Focus tools</summary>
+            <Link className="inline-action" href="/plan?view=focus">
+              Start open work
+            </Link>
+          </details>
         </div>
       )}
-      {planning &&
-        modules.value.study &&
-        germany?.execution &&
-        Object.keys(germanyAssignments).length > 0 && (
-          <section className="workspace-panel space-y-2">
-            <h2 className="font-display text-lg">Germany execution · {date}</h2>
-            <p className="text-sm">
-              Today’s study, project, campaign and assessment assignments use
-              the same timetable below.
-            </p>
-            <Link
-              className="inline-action min-h-11"
-              href={`/roadmap?view=roadmap&panel=today&date=${date}`}
-            >
-              Open detailed assignments and study links
-            </Link>
-          </section>
-        )}
       {message && <p role="status">{message}</p>}
       {(plan.blocks.status === "error" || plan.days.status === "error") && (
         <p role="alert">
@@ -687,60 +664,62 @@ export default function DailyWorkspace({
                 : p,
             );
             setRemoved(null);
-            setMessage("Time block restored.");
+            setMessage("Activity restored.");
           }}
         >
-          Undo removed block
+          Undo removed activity
         </Button>
       )}
       <div className={`daily-agenda-layout${planning ? " is-planning" : ""}`}>
         {planning && view === "week" ? (
           <section className="workspace-panel">
-            <h2>Seven-day outline</h2>
-            <div className="week-outline">
-              {Array.from({ length: 7 }, (_, i) => shiftDay(date, i)).map(
-                (day) => {
-                  const blocks = Object.values(plan.blocks.value).filter(
-                    (b) => validPlanBlock(b) && !b.deleted && b.date === day,
-                  );
-                  const fixed = personalSchedule(user?.email, day);
-                  return (
-                    <button
-                      key={day}
-                      onClick={() => {
-                        const q = new URLSearchParams({
-                          date: day,
-                          view: "day",
-                        });
-                        router.replace(`/plan?${q}`);
-                      }}
-                    >
-                      <strong>{day}</strong>
-                      <span>{blocks.length} time blocks</span>
-                      {fixed && (
-                        <small>
-                          {Object.values(fixed).reduce(
-                            (sum, b) => sum + b.minutes,
-                            0,
-                          ) / 60}
-                          h Bible timetable
-                        </small>
-                      )}
-                      {blocks.slice(0, 3).map((b) => (
-                        <small key={b.id}>
-                          {b.startLocal} · {b.title}
-                        </small>
-                      ))}
-                    </button>
-                  );
-                },
-              )}
-            </div>
+            <h2>
+              Your activities · {date}–{shiftDay(date, 6)}
+            </h2>
+            {editablePlanBlocks(plan.blocks.value, date, 7).length ? (
+              <ul>
+                {editablePlanBlocks(plan.blocks.value, date, 7).map((block) => (
+                  <li
+                    className="workspace-heading border-b border-border py-4"
+                    key={block.id}
+                  >
+                    <div>
+                      <strong>{block.title}</strong>
+                      <p className="text-sm text-muted-foreground">
+                        {block.date} · {block.startLocal} ·{" "}
+                        {block.durationMinutes} min
+                        {block.completedAt ? " · Completed" : ""}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        disabled={!plan.enabled}
+                        onClick={() => begin(block)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        disabled={!plan.enabled}
+                        onClick={() => remove(block)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="workspace-empty">
+                No activities in this week. Add an activity to begin.
+              </p>
+            )}
           </section>
         ) : (
           <section className="workspace-panel" data-testid="day-agenda">
             <div className={planning ? "workspace-heading" : "sr-only"}>
-              <h2>Your day</h2>
+              <h2>{planning ? "Your activities" : "Your day"}</h2>
             </div>
             {incomplete.length ? (
               planning ? (
@@ -770,8 +749,9 @@ export default function DailyWorkspace({
               )
             ) : (
               <p className="workspace-empty">
-                No timed commitments for this day. Schedule an activity in Plan
-                or add a record.
+                {planning
+                  ? "No activities for this date. Add an activity to begin."
+                  : "No timed commitments for this day. Schedule an activity in Plan."}
               </p>
             )}
             {completed.length > 0 && (
@@ -780,71 +760,6 @@ export default function DailyWorkspace({
                 <ol className="agenda-list">{completed.map(renderRow)}</ol>
               </details>
             )}
-          </section>
-        )}
-        {planning && (
-          <section className="workspace-panel task-queue-panel">
-            <div className="workspace-heading">
-              <h2>Unscheduled tasks</h2>
-              <Link href="/todo">All tasks →</Link>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Pending tasks due by this date. Pin up to three priorities.
-            </p>
-            {pending.length ? (
-              <ul className="unscheduled-list">
-                {pending.slice(0, 20).map((task) => (
-                  <li key={task.id}>
-                    <span>
-                      <strong>{task.text}</strong>
-                      <small>
-                        Due {task.date} · {task.priority}
-                        {priorities.includes(task.id) ? " · Priority" : ""}
-                      </small>
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {date === today && (
-                        <Link
-                          className="inline-action"
-                          href={`/plan?view=focus&task=${encodeURIComponent(task.id)}`}
-                        >
-                          Start
-                        </Link>
-                      )}
-                      {plan.enabled && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          aria-pressed={priorities.includes(task.id)}
-                          onClick={() => togglePriority(task.id)}
-                        >
-                          {priorities.includes(task.id) ? "Unpin" : "Pin"}
-                        </Button>
-                      )}
-                      {planning && plan.enabled && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            begin();
-                            setTaskId(task.id);
-                          }}
-                        >
-                          Schedule
-                        </Button>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="workspace-empty">
-                No unscheduled tasks. Add one when you need it.
-              </p>
-            )}
-            <Link className="inline-action" href={addUrl("task")}>
-              Add task
-            </Link>
           </section>
         )}
       </div>
@@ -922,7 +837,12 @@ export default function DailyWorkspace({
                 Open detailed assignments and study links
               </Link>
             )}
-          {modules.value.habits && date === today && <HabitChecklist />}
+          {modules.value.habits && date === today && (
+            <details className="daily-utilities">
+              <summary>Habits</summary>
+              <HabitChecklist />
+            </details>
+          )}
           <Link
             className="capture-return"
             href={`/log?view=journal&date=${date}`}
@@ -961,11 +881,11 @@ export default function DailyWorkspace({
             start !== (editing?.startLocal ?? "09:00") ||
             duration !== String(editing?.durationMinutes ?? 60) ||
             kind !== (editing?.kind ?? "task");
-          if (changed && !window.confirm("Discard the unsaved time block?"))
+          if (changed && !window.confirm("Discard the unsaved activity?"))
             return;
           setEditor(false);
         }}
-        title={editing ? "Edit time block" : "Add time block"}
+        title={editing ? "Edit activity" : "Add activity"}
       >
         <form
           className="capture-form"
@@ -1027,7 +947,7 @@ export default function DailyWorkspace({
             </label>
           )}
           <p>
-            {date} · {timeZone}
+            {editing?.date ?? date} · {editing?.timeZone ?? timeZone}
           </p>
           <label className="field-label">
             Start time
@@ -1057,9 +977,7 @@ export default function DailyWorkspace({
           </label>
           {error && <p role="alert">{error}</p>}
           <Button type="submit">
-            {confirmOverlap
-              ? "Save time block with overlap"
-              : "Save time block"}
+            {confirmOverlap ? "Save activity with overlap" : "Save activity"}
           </Button>
         </form>
       </Modal>

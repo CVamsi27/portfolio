@@ -8,9 +8,9 @@ export default function PlanPage() {
     <RequireAuth>
       <PersonalShell
         showBack={false}
-        title="Plan"
+        title={null}
         icon="todo"
-        subtitle="Give your work and personal commitments a place in the day."
+        subtitle={null}
       >
         <Suspense fallback={<p>Loading your plan…</p>}>
           <DailyWorkspace planning />

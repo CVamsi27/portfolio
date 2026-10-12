@@ -1,5 +1,6 @@
 import PersonalBackLink from "./PersonalBackLink";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
+import WorkspaceProgressLead from "@/components/progress/WorkspaceProgressLead";
 import { type TrackerIconName } from "./icons";
 import TrackerNavDock from "./TrackerNavDock";
 import ChapterHeader from "./ChapterHeader";
@@ -25,7 +26,8 @@ export default function PersonalShell({
   subtitle,
   eyebrow,
   badge,
-  showBack = true,
+  actions,
+  showBack = false,
   showDock = true,
   children,
 }: {
@@ -60,13 +62,13 @@ export default function PersonalShell({
               </span>
             }
             subtitle={subtitle}
-            action={showBack ? <PersonalBackLink /> : undefined}
+            action={actions?.primary ?? (showBack ? <PersonalBackLink /> : undefined)}
             utility={badge}
           />
         )}
         {icon === "login" ? <div className="personal-content mt-5 space-y-5">{children}</div> : <LockdownGate>
           <RoutineNotifier />
-          <div className="personal-content mt-5 space-y-5">{children}</div>
+          <div className="personal-content mt-5 space-y-5"><Suspense fallback={null}><WorkspaceProgressLead /></Suspense>{children}</div>
           <TrackerNavDock showDock={showDock} />
         </LockdownGate>}
       </div>

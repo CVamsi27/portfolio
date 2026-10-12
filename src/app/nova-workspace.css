@@ -1,4 +1,4 @@
-/* Approved Open agenda shell and Today pilot. Existing workflow styles remain
+/* Approved Open agenda personal workspace. Existing workflow styles remain
    in ui-system.css; these rules are scoped to the NOVA workspace. */
 @media screen {
   body.tracker-surface {
@@ -135,5 +135,77 @@
     .nova-today .daily-agenda-layout { margin-inline: -16px; padding-inline: 16px; }
     .nova-calendar-row .day-selector { gap: 4px; }
     .nova-calendar-row .day-selector input { width: 140px; }
+  }
+}
+
+/* Full-layout refinement: a single working surface, with progress leading the work. */
+@media screen {
+  .tracker-surface .nova-page-header { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+  .tracker-surface .nova-page-header > div { min-width:0; }
+  .tracker-surface .nova-page-header h1 { font-size:36px; font-weight:600; letter-spacing:-.03em; }
+  .tracker-surface .nova-today-header h1 { font-size:36px; }
+  .tracker-surface .nova-page-action { flex:none; }
+  .tracker-surface .workspace-progress-lead { min-width:0; margin-block:0 28px; padding:0 0 20px; border-bottom:1px solid var(--color-border); }
+  .tracker-surface .workspace-progress-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+  .tracker-surface .workspace-progress-heading h2 { font-family:var(--font-display); font-size:21px; font-weight:600; }
+  .tracker-surface .workspace-progress-heading h2, .tracker-surface .workspace-progress-footer span { overflow-wrap:anywhere; }
+  .tracker-surface .workspace-progress-controls { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .tracker-surface .workspace-progress-controls label { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--color-muted-foreground); }
+  .tracker-surface .workspace-progress-controls select { min-height:44px; max-width:100%; background:var(--color-card); border:1px solid var(--color-border); border-radius:6px; padding:8px 10px; font-size:16px; color:var(--color-foreground); }
+  .tracker-surface .workspace-progress-period { color:var(--color-muted-foreground); font-size:13px; margin-bottom:12px; }
+  .tracker-surface .workspace-progress-footer { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; font-size:13px; color:var(--color-muted-foreground); }
+  .tracker-surface .workspace-progress-footer a { color:var(--color-primary); min-height:44px; display:inline-flex; align-items:center; }
+  .tracker-surface .progress-chart { min-width:0; }
+  .tracker-surface .progress-chart svg { height:198px; width:100%; }
+  .tracker-surface .progress-chart-label { font-size:12px; }
+  .tracker-surface .progress-chart-empty { background:transparent; border-radius:0; min-height:64px; padding:12px 0; }
+  .tracker-surface .progress-chart summary { min-height:44px; cursor:pointer; font-size:13px; color:var(--color-primary); display:flex; align-items:center; }
+  .tracker-surface .progress-chart details { margin-top:4px; }
+  .tracker-surface .workspace-views { flex-wrap:wrap; overflow:visible; gap:4px 24px; }
+  .tracker-surface .workspace-views :is(a,button) { white-space:normal; text-align:left; }
+  .tracker-surface .workspace-disclosure { padding-block:8px; border-top:1px solid var(--color-border); }
+  .tracker-surface :is(.workspace-disclosure,.motivation-image) > summary { display:flex; align-items:center; gap:8px; min-height:44px; cursor:pointer; font-size:14px; list-style:none; }
+  .tracker-surface :is(.workspace-disclosure,.motivation-image) > summary::after { content:'+'; margin-left:auto; color:var(--color-muted-foreground); }
+  .tracker-surface :is(.workspace-disclosure,.motivation-image)[open] > summary::after { content:'−'; }
+  .tracker-surface .workspace-panel { border-radius:8px; background:var(--color-card); box-shadow:none; }
+  .tracker-surface .progress-panel { border:0; border-radius:8px; background:var(--color-card); padding:20px; }
+  .tracker-surface .personal-content > .dossier-card { box-shadow:none; }
+  .tracker-surface .sharing-workspace { display:block; }
+  .tracker-surface .sharing-workspace > * + * { margin-top:24px; }
+  .tracker-surface .goal-inspiration { display:block; }
+  .tracker-surface .goal-inspiration__story { padding:0; }
+  .tracker-surface .goal-inspiration__story h2 { font-family:var(--font-display); font-size:28px; line-height:1.3; font-weight:600; }
+  .tracker-surface .goal-inspiration__reminder { padding:24px 0; margin-top:24px; border-block:1px solid var(--color-border); }
+  .tracker-surface .goal-inspiration__reminder blockquote { font-family:var(--font-display); font-size:26px; line-height:1.5; }
+  .tracker-surface .goal-inspiration__next { margin-top:24px; }
+  .tracker-surface .motivation-image { border-top:1px solid var(--color-border); margin-top:24px; }
+  .tracker-surface .motivation-image .goal-inspiration__visual { min-height:0; max-height:420px; margin-top:12px; border-radius:8px; }
+  .tracker-surface .exam-rounds { display:flex; flex-wrap:wrap; gap:8px; }
+  .tracker-surface .exam-rounds button { min-width:44px; min-height:44px; border:1px solid var(--color-border); border-radius:6px; padding:8px 12px; font-size:14px; }
+  .tracker-surface .exam-rounds button[aria-pressed=true] { background:var(--color-primary); color:var(--color-primary-foreground); border-color:var(--color-primary); }
+  .tracker-surface .exam-history-row { display:grid; gap:12px; padding-block:16px; border-bottom:1px solid var(--color-border); }
+  .tracker-surface .exam-history-row h3 { font-weight:600; font-size:15px; }
+  .tracker-surface .daily-agenda-layout.is-planning .agenda-row { padding-block:16px; }
+  .tracker-surface .daily-agenda-layout.is-planning .workspace-panel { border:0; padding:0; background:transparent; }
+  .tracker-surface .nova-library-list li { border:0; border-bottom:1px solid var(--color-border); border-radius:0; padding-inline:0; }
+  .tracker-surface .nova-library-list summary { min-height:44px; cursor:pointer; font-size:14px; line-height:1.6; overflow-wrap:anywhere; }
+  .tracker-surface .daily-agenda-layout.is-planning .agenda-body { gap:8px; }
+  @media(max-width:767px) {
+    .tracker-surface .nova-page-header { flex-wrap:wrap; gap:16px; }
+    .tracker-surface .nova-page-header h1 { font-size:28px; }
+    .tracker-surface .nova-today-header h1 { font-size:28px; }
+    .tracker-surface .nova-page-action { flex-basis:100%; }
+    .tracker-surface .nova-page-action > * { width:100%; }
+    .tracker-surface .workspace-progress-controls { flex-basis:100%; gap:8px; }
+    .tracker-surface .workspace-progress-controls label { display:grid; gap:4px; flex:1; min-width:0; }
+    .tracker-surface .workspace-progress-controls select { width:100%; min-width:0; }
+    .tracker-surface .workspace-progress-lead { margin-block:20px; }
+    .tracker-surface .nova-today-header { display:flex; flex-wrap:wrap; order:0; padding-bottom:0; gap:12px; }
+    .tracker-surface .nova-today-header .nova-primary-action { margin-top:0; width:100%; }
+    .tracker-surface .nova-today > .workspace-progress-lead { order:1; }
+    .tracker-surface .nova-calendar-row { order:2; }
+    .tracker-surface .sharing-workspace ~ header, .tracker-surface header:has(>h1) { flex-wrap:wrap; }
+    .tracker-surface .goal-inspiration__reminder blockquote { font-size:22px; }
+    .tracker-surface .body-workspace-grid { grid-template-columns:minmax(0,1fr); }
   }
 }

@@ -11,7 +11,7 @@ export default function DashboardPage() {
         eyebrow="Your records over time"
         icon="log"
         showBack={false}
-        subtitle="See what changed, check what is missing and choose your next action."
+        subtitle={null}
       >
         <Suspense fallback={<p>Loading progress…</p>}>
           <ProgressDashboard />

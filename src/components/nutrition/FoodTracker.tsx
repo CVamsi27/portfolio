@@ -439,7 +439,7 @@ export default function FoodTracker() {
           </label>
         </details>
       )}
-      {(foodView === "diary" || foodView === "nutrients") && (
+      {((foodView === "diary" && entries.length > 0) || foodView === "nutrients") && (
         <NutritionDailySummary
           date={date}
           programs={store.programs.value}

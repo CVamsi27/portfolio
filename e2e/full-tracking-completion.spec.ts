@@ -198,6 +198,7 @@ test("task capture uses the device calendar date at an IST day boundary", async 
   await page.clock.install({ time: new Date("2026-10-03T20:00:00Z") });
   await seed(page);
   await page.goto("/todo");
+  await page.getByRole("button", { name: "Add task", exact: true }).click();
   await page
     .getByRole("textbox", { name: "New task", exact: true })
     .fill("Local calendar task");

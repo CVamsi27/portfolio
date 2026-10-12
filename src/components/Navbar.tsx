@@ -521,12 +521,6 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                     <Plus className="mr-2 h-4 w-4" aria-hidden /> Add a record
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="min-h-11">
-                    <Link href="/more">All tools</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="min-h-11">
-                    <Link href="/settings">Account &amp; settings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="min-h-11">
                     <a
                       data-testid="personal-study-link"
                       href="https://study.buildora.work/"

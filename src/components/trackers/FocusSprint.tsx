@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import SignalRule from "@/components/editorial/SignalRule";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
+import { DEFAULT_FOCUS_PREFERENCES, focusPreferences, type FocusPreferences } from "@/lib/focus-preferences";
 import { useNow } from "@/lib/tracker-store";
 import {
   FOCUS_PRESETS,
@@ -62,9 +63,14 @@ export default function FocusSprint({
     setValue: setSessions,
     status: sessionStatus,
   } = useSyncedStorage<FocusSession[]>("focus:sessions", []);
-  const [plannedMinutes, setPlannedMinutes] = useState<FocusMinutes>(25);
-  const [mode, setMode] = useState<FocusSessionMode>("timed");
-  const [fullscreenRequested, setFullscreenRequested] = useState(false);
+  const preferences=useSyncedStorage<FocusPreferences>("focus:preferences",DEFAULT_FOCUS_PREFERENCES,{accountScoped:true});
+  const defaults=focusPreferences(preferences.value);
+  const [minutesOverride, setPlannedMinutes] = useState<FocusMinutes>();
+  const [modeOverride, setMode] = useState<FocusSessionMode>();
+  const [fullscreenOverride, setFullscreenRequested] = useState<boolean>();
+  const plannedMinutes=minutesOverride??defaults.plannedMinutes;
+  const mode=modeOverride??defaults.mode;
+  const fullscreenRequested=fullscreenOverride??defaults.fullscreen;
   const [message, setMessage] = useState<string | null>(null);
   const now = useNow(1_000);
   const safeSessions = sessions ?? [];

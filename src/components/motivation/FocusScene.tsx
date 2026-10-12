@@ -52,10 +52,7 @@ export default function FocusScene({
       className="goal-inspiration"
     >
       <div className="goal-inspiration__story">
-        <p className="goal-inspiration__eyebrow" data-editorial-kicker>
-          Motivation · The future you’re working toward
-        </p>
-        <h1 data-testid="focus-goal">{goalTitle}</h1>
+        <h2 data-testid="focus-goal">{goalTitle}</h2>
         <p className="goal-inspiration__why" data-testid="goal-why">
           {why}
         </p>
@@ -103,20 +100,20 @@ export default function FocusScene({
           <div className="flex flex-wrap items-center gap-3 mt-4">
             <Button asChild>
               <Link href={complete ? "/log" : actionHref}>
-                {complete ? "Reflect on my progress" : "Open my plan"}
+                {complete ? "Reflect on my progress" : actionHref === "/goal" ? "Review goal" : "Open Roadmap"}
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
               </Link>
             </Button>
-            <Link
+            {(complete || actionHref !== "/goal") && <Link
               href="/goal"
               className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4"
             >
               Review my goal
-            </Link>
+            </Link>}
           </div>
         </div>
       </div>
-      <figure className="goal-inspiration__visual">
+      <details className="motivation-image"><summary>Supporting image</summary><figure className="goal-inspiration__visual">
         {imageVisible ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -138,7 +135,7 @@ export default function FocusScene({
             </a>
           ) : null}
         </figcaption>
-      </figure>
+      </figure></details>
     </section>
   );
 }

@@ -204,12 +204,13 @@ export default function FastingPage() {
       <TrackerShell
         icon="timer"
         title="Water & eating window"
-        subtitle="Record water or open your optional meal window."
+        subtitle={null}
         badge={<SyncBadge status={status} />}
         actions={{
           primary: (
             <a
               href="#meal-window"
+              onClick={()=>setView("window")}
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Open meal window

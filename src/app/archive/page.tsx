@@ -83,7 +83,7 @@ export default function ArchivePage() {
   const [sourceUrl, setSourceUrl] = useState("");
   const [query, setQuery] = useState("");
   const [goalFilter, setGoalFilter] = useState<"current" | "all" | "unlinked">(
-    "current",
+    "all",
   );
   const [linkGoalOverride, setLinkGoalOverride] = useState<
     GoalCategory | "none" | null
@@ -276,7 +276,8 @@ export default function ArchivePage() {
       <TrackerShell
         icon="archive"
         title="Library"
-        subtitle="Capture what matters now. Retrieve it when it matters again."
+        actions={{primary:<Button onClick={() => setCaptureOpen(true)}>New item</Button>}}
+        subtitle={null}
       >
         {feedback ? (
           <div
@@ -300,12 +301,6 @@ export default function ArchivePage() {
             ) : null}
           </div>
         ) : null}
-        <div className="workspace-heading">
-          <p className="text-sm text-muted-foreground">
-            Find saved notes, links and references.
-          </p>
-          <Button onClick={() => setCaptureOpen(true)}>Add item</Button>
-        </div>
         <Modal
           title="Add library item"
           open={captureOpen}
@@ -414,8 +409,9 @@ export default function ArchivePage() {
             </CardContent>
           </Card>
         </Modal>
-        <Card variant="dossier">
+        <Card variant="dossier" className="nova-library-list">
           <CardContent className="p-5">
+            {items.length > 0 && <>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <label className="relative flex-1 block">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -469,6 +465,7 @@ export default function ArchivePage() {
                 ))}
               </div>
             )}
+            </>}
             {matches.length ? (
               <ul className="mt-4 space-y-2">
                 {matches.map((item) => {
@@ -494,9 +491,7 @@ export default function ArchivePage() {
                               </span>
                             ) : null}
                           </p>
-                          <p className="mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm">
-                            {item.body}
-                          </p>
+                          {item.body.length > 240 ? <details><summary>{item.body.slice(0,180)}…</summary><p className="mt-2 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm">{item.body}</p></details> : <p className="mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm">{item.body}</p>}
                           {item.kind === "image" && item.sourceUrl ? (
                             <ArchiveImage
                               src={item.sourceUrl}
@@ -584,7 +579,7 @@ export default function ArchivePage() {
                       ? "No archive matches"
                       : items.length
                         ? "No items for this goal"
-                        : "Your archive is clear"
+                        : "No saved items yet"
                   }
                   hint={
                     query

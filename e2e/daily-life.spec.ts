@@ -19,12 +19,12 @@ test("Plan schedules a task and Today opens the exact task without duplicating i
   });
   await page.goto("/plan");
   await page
-    .getByRole("button", { name: "Add time block", exact: true })
+    .getByRole("button", { name: "Add activity", exact: true })
     .click();
   await page.getByLabel("Link task").selectOption("api");
   await page.getByLabel("Start time", { exact: true }).fill("09:00");
   await page
-    .getByRole("button", { name: "Save time block", exact: true })
+    .getByRole("button", { name: "Save activity", exact: true })
     .click();
   await page.reload();
   await expect(page.getByTestId("day-agenda")).toContainText("Practice APIs");
@@ -107,7 +107,7 @@ test("scheduled block removal and undo retain its linked task", async ({
     .getByRole("button", { name: "Remove", exact: true })
     .click();
   await expect(page.getByTestId("day-agenda")).not.toContainText("Linked task");
-  await page.getByRole("button", { name: "Undo removed block" }).click();
+  await page.getByRole("button", { name: "Undo removed activity" }).click();
   await expect(page.getByTestId("day-agenda")).toContainText("Linked task");
   expect(
     await page.evaluate(
@@ -310,7 +310,7 @@ test("task scheduling opens its exact ID and an overlap requires review before s
   await page.getByRole("link", { name: "Schedule", exact: true }).click();
   await expect(page.getByLabel("Link task")).toHaveValue("task");
   await page
-    .getByRole("button", { name: "Save time block", exact: true })
+    .getByRole("button", { name: "Save activity", exact: true })
     .click();
   await expect(page.getByRole("alert")).toContainText("Overlaps Meeting");
   expect(
@@ -320,7 +320,7 @@ test("task scheduling opens its exact ID and an overlap requires review before s
     ),
   ).toBe(1);
   await page
-    .getByRole("button", { name: /Save time block with overlap/ })
+    .getByRole("button", { name: /Save activity with overlap/ })
     .click();
   await expect(page.getByTestId("day-agenda")).toContainText("Selected task");
 });

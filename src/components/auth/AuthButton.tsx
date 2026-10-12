@@ -41,7 +41,7 @@ export default function AuthButton({ showEmail = false }: { showEmail?: boolean 
   if (!configured) {
     return (
       <span
-        title="Add NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to enable Google sync"
+        title="Records stay on this device. Cloud sign-in is unavailable."
         className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
       >
         Local mode

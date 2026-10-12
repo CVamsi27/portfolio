@@ -3,7 +3,7 @@ import { useWorkspaceView } from "@/lib/use-workspace-view";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { planningCanEdit } from "@/lib/day-plan";
+import { planningCanEdit, validDay } from "@/lib/day-plan";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import Modal from "@/components/trackers/Modal";
 import TrackerShell from "@/components/trackers/TrackerShell";
@@ -60,11 +60,13 @@ export default function TodoPage() {
   const safe = useMemo(() => todos ?? [], [todos]);
 
   const [text, setText] = useState("");
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const [captureMessage, setCaptureMessage] = useState("");
+  const [dueDate, setDueDate] = useState<string>();
   const [search, setSearch] = useState("");
   const [removedTasks, setRemovedTasks] = useState<Todo[]>([]);
   const [priority, setPriority] = useState<TodoPriority>("P2");
   const [tag, setTag] = useState<TodoTag>("Personal");
-  const [dateDraft, setDateDraft] = useState<"today" | "tomorrow">("today");
   const [view, setView] = useWorkspaceView<View>(["today", "tomorrow", "upcoming", "done"], "today");
   const [tagFilter, setTagFilter] = useState<TodoTag | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TodoPriority | "all">(
@@ -88,7 +90,7 @@ export default function TodoPage() {
     let list: Todo[];
     if (view === "today")
       list = safe.filter(
-        (t) => (t.date === today || t.date < today) && !t.done,
+        (t) => !t.done,
       );
     else if (view === "tomorrow")
       list = safe.filter((t) => t.date === tomorrow && !t.done);
@@ -142,9 +144,11 @@ export default function TodoPage() {
   const add = () => {
     const v = text.trim();
     if (!v) return;
-    const date = dateDraft === "tomorrow" ? tomorrow : today;
+    const date = dueDate || today;
+    if (!validDay(date)) return;
     setTodos([...safe, newTodo(v, { date, priority, tag })]);
     setText(""); // keep focus for chained entry
+    setCaptureMessage(`Added: ${v}`);
   };
 
   const toggle = (id: string) =>
@@ -201,26 +205,9 @@ export default function TodoPage() {
       <TrackerShell
         icon="todo"
         title="Tasks"
-        subtitle="Plan your day and keep priorities clear. Select a task to edit it."
+        subtitle={null}
         badge={<SyncBadge status={status} />}
-        actions={{
-          primary: (
-            <a
-              href="#todo-list"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Add task
-            </a>
-          ),
-          secondary: (
-            <a
-              href="#todo-list"
-              className="text-xs font-semibold text-primary hover:underline"
-            >
-              Open task list →
-            </a>
-          ),
-        }}
+        actions={{primary:<Button onClick={()=>{setCaptureOpen(true);setCaptureMessage("");}}>Add task</Button>}}
       >
         {removedTasks.length > 0 && (
           <p
@@ -263,6 +250,7 @@ export default function TodoPage() {
           </Button>
         </Modal>
         {/* ── Quick add ── */}
+        <Modal title="Add task" open={captureOpen} onClose={()=>{if(text.trim() && !window.confirm("Discard the unsaved task?"))return;setText("");setCaptureOpen(false);}}>
         <Card variant="dossier" id="todo-list">
           <CardContent className="space-y-3 p-5">
             <div className="flex gap-2">
@@ -273,25 +261,17 @@ export default function TodoPage() {
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && add()}
               />
-              <Button onClick={add}>
-                <Plus className="mr-1 h-4 w-4" /> Add
+              <Button onClick={add} disabled={!text.trim()}>
+                <Plus className="mr-1 h-4 w-4" /> Save task
               </Button>
             </div>
+            <label className="field-label">Due date<Input type="date" value={dueDate || today} onChange={event=>setDueDate(event.target.value)} /></label>
+            {captureMessage && <p role="status">{captureMessage}</p>}
             <details className="task-options">
               <summary>
-                Task options · {dateDraft} · {priority} · {tag}
+                Task options · {priority} · {tag}
               </summary>
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <Segmented
-                  label="Task date"
-                  variant="soft"
-                  options={[
-                    { value: "today", label: "Today" },
-                    { value: "tomorrow", label: "Tomorrow" },
-                  ]}
-                  value={dateDraft}
-                  onChange={setDateDraft}
-                />
                 <Segmented
                   label="Priority"
                   variant="soft"
@@ -312,20 +292,8 @@ export default function TodoPage() {
               </div>
             </details>
           </CardContent>
-        </Card>
+        </Card>        </Modal>
 
-        <p className="text-sm text-muted-foreground">
-          <span>
-            {doneToday}/{todayList.length} done today
-          </span>{" "}
-          ·{" "}
-          <Link
-            className="text-primary"
-            href="/dashboard?view=work&metric=goals"
-          >
-            Task history →
-          </Link>
-        </p>
         {/* ── Views + tag filter ── */}
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <Segmented
@@ -333,16 +301,16 @@ export default function TodoPage() {
             options={[
               {
                 value: "today",
-                label: `Today${openToday ? ` (${openToday})` : ""}`,
+                label: "Open",
               },
-              { value: "tomorrow", label: "Tomorrow" },
-              { value: "upcoming", label: "Upcoming" },
               { value: "done", label: "Completed" },
             ]}
             value={view}
             onChange={setView}
           />
         </div>
+        {safe.length > 0 && <details className="workspace-disclosure"><summary>Filters</summary>
+          <label className="field-label">Task dates<select value={view} onChange={event=>setView(event.target.value as View)}><option value="today">All open</option><option value="tomorrow">Tomorrow</option><option value="upcoming">Upcoming</option><option value="done">Completed</option></select></label>
         <div className="task-filter-grid">
           <label>
             Search tasks
@@ -399,6 +367,7 @@ export default function TodoPage() {
           )}
         </div>
 
+        </details>}
         {/* ── Overdue rescue banner ── */}
         {view === "today" && overdueTasks.length > 0 && (
           <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3 py-2.5">
@@ -427,7 +396,7 @@ export default function TodoPage() {
                     : view === "done"
                       ? "Nothing completed yet"
                       : view === "today"
-                        ? "Today is clear"
+                        ? "No open tasks"
                         : view === "tomorrow"
                           ? "Nothing planned for tomorrow"
                           : "No upcoming tasks"
@@ -435,7 +404,7 @@ export default function TodoPage() {
                 hint={
                   filtered
                     ? "Clear filters or change the search to see more tasks."
-                    : "Add a task above. Open Task options to choose its date, priority and tag."
+                    : "Use Add task to create one."
                 }
               />
             ) : (

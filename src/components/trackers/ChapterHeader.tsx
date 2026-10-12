@@ -23,17 +23,19 @@ export default function ChapterHeader({
         data-editorial-chapter="true"
         className="dossier-chapter-header dossier-chapter-header--compact"
       >
-        <div data-testid="personal-section-header">
+        <div data-testid="personal-section-header" className="nova-page-header">
+          <div>
           <h1 className="font-display font-semibold leading-tight tracking-tight">
             {title}
           </h1>
-          {(action || subtitle || utility) && (
+          {(subtitle || utility) && (
             <div className="chapter-context-row">
-              {action}
               {subtitle && <p className="chapter-description">{subtitle}</p>}
               {utility && <div className="dossier-utility">{utility}</div>}
             </div>
           )}
+          </div>
+          {action && <div className="nova-page-action">{action}</div>}
         </div>
       </header>
     );

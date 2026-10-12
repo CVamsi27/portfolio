@@ -9,7 +9,7 @@ export default function TrackerShell({
   eyebrow,
   badge,
   actions,
-  showBack = true,
+  showBack = false,
   showDock = true,
   children,
 }: {
