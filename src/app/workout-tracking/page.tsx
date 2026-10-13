@@ -311,12 +311,13 @@ export default function WorkoutPage() {
       <TrackerShell
         icon="workout"
         title="Workouts"
-        subtitle="Record your sets, review previous lifts, and track your training."
+        subtitle={null}
         badge={<SyncBadge status={status} />}
         actions={{
           primary: (
             <a
               href="#exercise-logger"
+              onClick={()=>setView("session")}
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Open session

@@ -8,7 +8,7 @@ export default function FoodPage() {
       <PersonalShell
         icon="scale"
         title="Food"
-        subtitle="Log meals, see known nutrients, and keep your own routine."
+        subtitle={null}
       >
         <FoodTracker />
       </PersonalShell>

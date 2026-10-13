@@ -44,7 +44,7 @@ test("form navigation does not promise a save and motivation leads with the save
   await page.goto("/intermittent-fasting?view=window");
   await expect(page.getByLabel("First meal time")).toBeVisible();await expect(page.getByTestId("tracker-action-bar")).toHaveCount(0);
   await page.goto("/motivation");
-  await expect(page.getByRole("heading", { level: 1, name: "Relocate to Canada", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Relocate to Canada", exact: true })).toBeVisible();
 });
 
 test("mobile controls are readable and primary navigation works through tablet widths", async ({ page }) => {

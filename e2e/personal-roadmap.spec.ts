@@ -15,7 +15,7 @@ test.describe("personal roadmap", () => {
 
     await page.goto("/todo");
     await expect(
-      page.getByTestId("chapter-header").getByRole("link", { name: "Plan" }),
+      page.getByTestId("tracker-primary-nav").getByRole("link", { name: "Plan" }),
     ).toHaveAttribute("href", "/plan");
 
     await page.goto("/trackers");
@@ -104,7 +104,7 @@ test.describe("personal roadmap", () => {
     await seed(page);
     await page.goto("/archive");
 
-    await page.getByRole("button", { name: "Add item", exact: true }).click();
+    await page.getByRole("button", { name: "New item", exact: true }).click();
     await page
       .getByLabel("Capture", { exact: true })
       .fill("A useful visa checklist from Berlin");
@@ -134,7 +134,7 @@ test.describe("personal roadmap", () => {
     });
     await page.goto("/archive");
 
-    await page.getByRole("button", { name: "Add item", exact: true }).click();
+    await page.getByRole("button", { name: "New item", exact: true }).click();
     await page.getByRole("button", { name: /image/i }).click();
     await page
       .getByLabel("Capture", { exact: true })

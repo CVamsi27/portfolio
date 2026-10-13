@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   PERSONAL_PRIMARY_NAV,
   PERSONAL_MORE_NAV,
+  PERSONAL_TOOLS_NAV,
   isPersonalPrimaryPath,
   isPersonalToolPath,
 } from "./personal-nav.ts";
@@ -24,6 +25,13 @@ test("Roadmap is directly reachable and owns its active navigation state", () =>
     ).map((n) => n.id),
     ["plan"],
   );
+});
+
+test("Motivation is reachable from Tools without selecting another primary page", () => {
+  const motivation = PERSONAL_TOOLS_NAV.find((item) => item.href === "/motivation");
+  assert.ok(motivation, "Motivation must be available in the shared Tools menu");
+  assert.equal(isPersonalToolPath("/motivation", motivation.href), true);
+  assert.equal(PERSONAL_PRIMARY_NAV.some((item) => isPersonalPrimaryPath("/motivation", item.href)), false);
 });
 
 test("Sharing owns shared links and the legacy inbox but not other tools", () => {

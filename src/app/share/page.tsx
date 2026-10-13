@@ -7,6 +7,7 @@ import TrackerShell from "@/components/trackers/TrackerShell";
 import SharedInbox from "@/components/trackers/SharedInbox";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
+import Modal from "@/components/trackers/Modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,6 @@ import { SyncBadge } from "@/components/auth/AuthButton";
 import { useToast } from "@/components/ui/use-toast";
 import { Users, Plus, Check, X, Search, Pin, PinOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import TelemetryLine from "@/components/editorial/TelemetryLine";
 import {
   accessMode,
   BROWSER_STORAGE_LIMIT_BYTES,
@@ -125,6 +125,7 @@ export default function SharePage() {
   const safeDrops = useMemo(() => drops ?? [], [drops]);
   const safeLinks = links ?? {};
   const [text, setText] = useState("");
+  const [composerOpen, setComposerOpen] = useState(searchParams.get("compose") === "1");
   const [pendingImg, setPendingImg] = useState<string | null>(null);
   const [ttl, setTtl] = useState<string>("7d");
   const [usage, setUsage] = useState(0);
@@ -278,6 +279,7 @@ export default function SharePage() {
       setDrops(next);
       setText("");
       setPendingImg(null);
+      setComposerOpen(false);
       if (fileRef.current) fileRef.current.value = "";
       refreshUsage();
       void cleanupExpiredShares();
@@ -377,22 +379,24 @@ export default function SharePage() {
         .select("id")
         .single();
       if (error || !data) {
-        toast({ title: "Could not create link", description: "Run Supabase migrations 0001 through 0005, then try again." });
+        toast({ title: "Could not save share settings", description: "Your drop and viewer changes are still here. Check your connection and try again." });
         return;
       }
       const url = `${window.location.origin}/share/${data.id}`;
-      try {
-        await navigator.clipboard.writeText(url);
-      } catch {
-        /* clipboard unavailable */
-      }
       setLinks({
         ...safeLinks,
         [d.id]: { id: data.id, url, expiresAt: d.expiresAt, emails: draftEmails, isPublic: shareAccess === "public" },
       });
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(url);
+        copied = true;
+      } catch {
+        // The saved link remains selectable in the editor.
+      }
       toast({
         title: safeLinks[d.id] ? "Share settings updated" : "Share link created",
-        description: shareAccess === "public" ? "Copied to clipboard — anyone with the link can view it until it expires." : "Copied to clipboard — only matching signed-in emails can view it.",
+        description: copied ? "Link copied. Viewers must meet this site's sign-in requirements and the access settings you selected." : "Settings saved, but the clipboard is unavailable. Select the share link below to copy it manually.",
       });
     } finally {
       setSharingId(null);
@@ -407,7 +411,7 @@ export default function SharePage() {
       setCopiedId(`link-${d.id}`);
       setTimeout(() => setCopiedId(null), 1200);
     } catch {
-      /* clipboard unavailable */
+      toast({ title: "Could not copy link", description: "Select the share link in the editor and copy it manually." });
     }
   };
 
@@ -432,7 +436,7 @@ export default function SharePage() {
       setCopiedId(d.id);
       setTimeout(() => setCopiedId(null), 1200);
     } catch {
-      /* clipboard unavailable */
+      toast({ title: "Could not copy text", description: "Select the note text and copy it manually, or enable clipboard access and try again." });
     }
   };
 
@@ -462,141 +466,69 @@ export default function SharePage() {
   const pendingImageBytes = pendingImg?.startsWith("data:") ? estimateDataUrlBytes(pendingImg) : 0;
   const limits = shareLimitState(activeDropCount, pendingImageBytes);
   const kb = Math.min(usage, BROWSER_STORAGE_LIMIT_BYTES) / 1024;
-  const selectedTtl = TTL_OPTIONS.find((option) => option.id === ttl) ?? TTL_OPTIONS[1];
 
 
   return (
     <TrackerShell
       icon="share"
-      title="Sharing"
-      subtitle={showInbox ? "Items shared with your account." : "Choose what to share, who can open it and when it expires."}
-      badge={<SyncBadge status={status} />}
-      actions={showInbox ? {
-        primary: <a href="#shared-inbox" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Review incoming items</a>,
-        secondary: <Link href="/share" className="text-xs font-semibold text-primary hover:underline">Create a share →</Link>,
-      } : {
-        primary: <a href="#share-editor" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Create share</a>,
-        secondary: <a href="#sent-drops" className="text-xs font-semibold text-primary hover:underline">View sent drops →</a>,
-      }}
+      title={null}
+      subtitle={null}
     >
-      <nav aria-label="Sharing views" data-testid="sharing-view-switcher" className="grid grid-cols-2 gap-1 rounded-xl border border-border/70 bg-card/55 p-1">
+      <header data-editorial-chapter="true" className="flex items-center justify-between gap-3">
+        <h1 className="font-display text-3xl font-semibold tracking-tight">Sharing</h1>
+        <div className="flex items-center gap-3"><SyncBadge status={status} />{showInbox?<Button asChild><Link href="/share?compose=1">New drop</Link></Button>:<Button onClick={()=>setComposerOpen(true)}>New drop</Button>}</div>
+      </header>
+      <nav aria-label="Sharing views" data-testid="sharing-view-switcher" className="workspace-views flex gap-6">
         <Link
           href="/share"
           aria-current={!showInbox ? "page" : undefined}
-          className={cn("rounded-lg px-3 py-2.5 text-center text-xs font-semibold transition-colors", !showInbox ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}
+          className="transition-colors"
         >
-          Create &amp; sent
+          My drops
         </Link>
         <Link
           href="/share?view=incoming"
           aria-current={showInbox ? "page" : undefined}
-          className={cn("rounded-lg px-3 py-2.5 text-center text-xs font-semibold transition-colors", showInbox ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}
+          className="transition-colors"
         >
           Inbox
         </Link>
       </nav>
       {showInbox ? <SharedInbox userId={user?.id ?? null} /> : (
-      <>
-      {/* ── Composer ── */}
-      <Card variant="dossier" id="share-editor" data-editorial-action className="editorial-dispatch-composer">
-        <CardContent className="space-y-3 p-5">
-          <div className="flex items-end justify-between gap-4">
-            <h2 className="font-semibold">New share</h2>
-            <span className="text-xs text-muted-foreground">{signedIn ? "Signed in" : "Local mode"}</span>
-          </div>
-          <TelemetryLine
-            items={[
-              { label: "Drops", value: `${activeDropCount}/${MAX_DROPS}` },
-              { label: "Images", value: imageCount },
-              { label: "Expiry", value: selectedTtl.label },
-            ]}
-          />
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Paste text, a link, a code snippet, a win..."
-            rows={3}
-            className="min-h-[80px] w-full rounded-lg border border-input bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          {pendingImg && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={pendingImg} alt="pending upload" className="max-h-48 rounded-lg border border-border/60 object-contain" />
-          )}
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-              <Plus className="mr-1 h-4 w-4" /> Add image
-            </Button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => onFile(e.target.files?.[0])}
-            />
-            <fieldset aria-label="Auto-clear this drop" className="flex min-w-0 flex-wrap items-center gap-2">
-              <legend className="sr-only">Auto-clear this drop</legend>
-              <span className="text-xs text-muted-foreground">Auto-clear this drop</span>
-              <Segmented
-                label="Drop expiry"
-                variant="soft"
-                options={TTL_OPTIONS.map((o) => ({ value: o.id, label: o.label }))}
-                value={ttl}
-                onChange={setTtl}
-              />
-              <span className="text-xs text-muted-foreground">
-                Expires {selectedTtl.label.toLowerCase()} after creation
-              </span>
-            </fieldset>
-            {pendingImg && (
-              <Button variant="ghost" size="sm" onClick={() => setPendingImg(null)}>
-                Remove image
-              </Button>
-            )}
-            <span className="flex-1" />
-            <Button size="sm" onClick={save} disabled={(!text.trim() && !pendingImg) || saving || limits.dropCapReached || limits.imageCapReached}>
-              {saving ? "Uploading…" : "Drop it"}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {activeDropCount}/{MAX_DROPS} drops · {limits.dropsLeft} drops left · {imageCount} images ·{" "}
-            {signedIn
-              ? "signed-in images use private Storage (5 MB max)."
-              : "local-only images are capped at approximately 1.2 MB; sharing needs sign-in."}{" "}
-            Browser: {kb.toFixed(1)} KB / {(BROWSER_STORAGE_LIMIT_BYTES / 1000).toLocaleString()} KB.
-          </p>
-          {limits.dropCapReached && <p className="text-sm font-medium text-destructive">Drop cap reached. Export or delete an active drop before adding another.</p>}
-          {limits.imageCapReached && <p className="text-sm font-medium text-destructive">This image exceeds the active image limit. Choose a smaller file.</p>}
-        </CardContent>
-      </Card>
-
+      <div className="sharing-workspace">
       {/* ── Search + tag filter ── */}
-      <Card variant="dossier" id="sent-drops">
-        <CardContent className="space-y-3 p-4">
-          <div className="relative">
+      <section id="sent-drops" className="sharing-saved min-w-0 space-y-3" aria-labelledby="saved-drops-title">
+        <div className="flex items-center justify-between gap-2">
+          <h2 id="saved-drops-title" className="text-lg font-semibold">Saved drops</h2>
+          <span className="text-sm text-muted-foreground">{activeDropCount} {activeDropCount === 1 ? "drop" : "drops"}</span>
+        </div>
+        {activeDropCount > 0 && <>
+        <div className="flex gap-2">
+          <div className="relative min-w-0 flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-9"
-              placeholder="Search drops (fuzzy) — try 'snip' or a URL fragment"
+              aria-label="Search drops"
+              placeholder="Search drops"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
-          <Segmented
-            label="Tag filter"
-            variant="soft"
-            options={[
-              { value: "all" as const, label: "All" },
-              { value: "Note" as const, label: "Notes" },
-              { value: "Snippet" as const, label: "Snippets" },
-              { value: "Image" as const, label: "Images" },
-              { value: "Link" as const, label: "Links" },
-            ]}
+          <select
+            aria-label="Filter drops by type"
+            className="min-h-11 max-w-28 rounded-xl border border-input bg-background px-2 text-sm"
             value={tagFilter}
-            onChange={setTagFilter}
-          />
-        </CardContent>
-      </Card>
+            onChange={(event) => setTagFilter(event.target.value as DropTag | "all")}
+          >
+            <option value="all">All types</option>
+            <option value="Note">Notes</option>
+            <option value="Snippet">Snippets</option>
+            <option value="Image">Images</option>
+            <option value="Link">Links</option>
+          </select>
+        </div>
 
+        </>}
       {/* ── Drops grid ── */}
       {visible.length === 0 ? (
         <EmptyState
@@ -605,21 +537,22 @@ export default function SharePage() {
           hint={
             query || tagFilter !== "all"
               ? "Try a different search or clear the filter."
-              : "Your quick captures land here newest-first, and vanish when their timer runs out."
+              : "Create a drop to save a note, link or image."
           }
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-3">
           {visible.map((d) => (
-            <Card variant="dossier" key={d.id} className={cn("group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg", d.pinned && "border-primary/40")}>
+            <Card variant="dossier" key={d.id} className={cn("overflow-hidden", d.pinned && "border-primary/40")}>
               {d.image && (
                 <DropImage src={d.image} className="max-h-56 w-full object-cover" />
               )}
               <CardContent className="p-4">
-                {d.text && <p className="whitespace-pre-wrap text-sm leading-relaxed">{d.text}</p>}
+                {d.text && (d.text.length > 300 ? <details><summary className="min-h-11 cursor-pointer break-words [overflow-wrap:anywhere] text-sm">{d.text.slice(0,180)}…</summary><p className="mt-3 whitespace-pre-wrap break-words text-base leading-relaxed">{d.text}</p></details> : <p className="whitespace-pre-wrap break-words text-base leading-relaxed">{d.text}</p>)}
                 <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs tabular-nums text-muted-foreground">
                   <span>{d.createdAt.slice(0, 16).replace("T", " ")}</span>
                   <span>· {expiryCopy(d.expiresAt)}</span>
+                  <span>· {safeLinks[d.id] ? "Shared" : "Private"}</span>
                   {(d.tags ?? []).map((t) => (
                     <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
                       {t}
@@ -627,7 +560,7 @@ export default function SharePage() {
                   ))}
                   {safeLinks[d.id] && (
                     <span className="inline-flex items-center gap-1">
-                      · <Users className="h-3 w-3" /> {safeLinks[d.id].isPublic ? "public" : safeLinks[d.id].emails.length}
+                      · <Users className="h-3 w-3" /> {safeLinks[d.id].isPublic ? "link access" : safeLinks[d.id].emails.length}
                     </span>
                   )}
                 </div>
@@ -640,15 +573,9 @@ export default function SharePage() {
                       {copiedId === d.id ? <><Check className="mr-1 h-4 w-4" /> Copied</> : "Copy text"}
                     </Button>
                   )}
-                  {shareEditor === d.id ? (
-                    <Button variant="ghost" size="sm" onClick={() => setShareEditor(null)}>
-                      Close
-                    </Button>
-                  ) : (
                     <Button variant="outline" size="sm" onClick={() => openEditor(d)}>
-                      {safeLinks[d.id] ? <><Check className="mr-1 h-4 w-4" /> Sharing</> : "Share"}
+                      {safeLinks[d.id] ? <><Check className="mr-1 h-4 w-4" /> Manage access</> : "Share"}
                     </Button>
-                  )}
                   {d.image?.startsWith("data:") && (
                     <a
                       href={d.image}
@@ -670,9 +597,9 @@ export default function SharePage() {
                   </button>
                 </div>
 
-                {shareEditor === d.id && (
-                  <div className="mt-3 space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
-                    <h3 className="text-sm font-semibold">Who can view this drop?</h3>
+                  <Modal open={shareEditor === d.id} onClose={() => setShareEditor(null)} title="Who can view this drop?" className="sharing-access-dialog sm:max-w-lg">
+                  <div className="space-y-4">
+                    <p className="text-sm leading-relaxed text-muted-foreground">Viewers on personal.buildora.work must use an approved Google account.</p>
                     <div className="grid gap-2 sm:grid-cols-2">
                       <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/60 p-2.5 text-sm">
                         <input
@@ -683,7 +610,7 @@ export default function SharePage() {
                           onChange={() => setShareAccess("private")}
                           className="mt-0.5 accent-primary"
                         />
-                        <span><strong>Specific people</strong><span className="block text-xs text-muted-foreground">Only matching signed-in emails.</span></span>
+                        <span><strong>Specific people</strong><span className="mt-1 block text-sm text-muted-foreground">Only the emails you add.</span></span>
                       </label>
                       <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/60 p-2.5 text-sm">
                         <input
@@ -694,16 +621,16 @@ export default function SharePage() {
                           onChange={() => setShareAccess("public")}
                           className="mt-0.5 accent-primary"
                         />
-                        <span><strong>Anyone with the link</strong><span className="block text-xs text-muted-foreground">Signed-out visitors can view it until expiry.</span></span>
+                        <span><strong>Link access</strong><span className="mt-1 block text-sm text-muted-foreground">Both approved accounts can open the link.</span></span>
                       </label>
                     </div>
                     {shareAccess === "private" && draftEmails.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">
                         {draftEmails.map((e) => (
-                          <span key={e} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
-                            {e}
-                            <button onClick={() => removeEmail(d, e)} aria-label={`Remove ${e}`} className="text-muted-foreground transition-colors hover:text-foreground">
-                              <X className="h-3 w-3" />
+                          <span key={e} className="inline-flex max-w-full items-center rounded-lg bg-muted pl-3 text-sm">
+                            <span className="min-w-0 break-all">{e}</span>
+                            <button onClick={() => removeEmail(d, e)} aria-label={`Remove ${e}`} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                              <X className="h-4 w-4" />
                             </button>
                           </span>
                         ))}
@@ -712,9 +639,11 @@ export default function SharePage() {
                       <p className="text-xs text-muted-foreground">No viewers yet — add emails below.</p>
                     ) : null}
                     {shareAccess === "private" ? (
-                      <div className="flex gap-2">
+                      <div className="flex min-w-0 gap-2">
                         <Input
                           type="email"
+                          aria-label="Viewer email"
+                          className="min-w-0 flex-1"
                           placeholder="friend@gmail.com"
                           value={emailInput}
                           onChange={(e) => setEmailInput(e.target.value)}
@@ -727,17 +656,22 @@ export default function SharePage() {
                         </Button>
                       </div>
                     ) : (
-                      <p className="rounded-lg bg-primary/10 p-2 text-xs text-muted-foreground">Public mode is an explicit opt-in: anyone who receives this link can read the drop before it auto-clears.</p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">The link stops working when this drop expires.</p>
                     )}
-                    <div className="flex flex-wrap gap-2">
-                      {!safeLinks[d.id] ? (
-                        <Button size="sm" onClick={() => createLink(d)} disabled={sharingId === d.id || !signedIn}>
-                          {sharingId === d.id ? "Creating…" : "Confirm & create link"}
-                        </Button>
-                      ) : (
+                    {safeLinks[d.id] && (
+                      <label className="block space-y-2 text-sm text-muted-foreground">
+                        <span>Share link</span>
+                        <Input readOnly value={safeLinks[d.id].url} onFocus={(event) => event.currentTarget.select()} onClick={(event) => event.currentTarget.select()} />
+                      </label>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
+                      <Button size="sm" onClick={() => createLink(d)} disabled={sharingId === d.id || !signedIn}>
+                        {sharingId === d.id ? "Saving…" : safeLinks[d.id] ? "Save share settings" : "Confirm & create link"}
+                      </Button>
+                      {safeLinks[d.id] && (
                         <>
-                          <span className="self-center text-xs text-muted-foreground">
-                            {safeLinks[d.id].isPublic ? "Public access" : "Private allowlist"} · {expiryCopy(d.expiresAt)}
+                          <span className="order-last w-full text-sm text-muted-foreground">
+                            {safeLinks[d.id].isPublic ? "Link access" : "Private allowlist"} · {expiryCopy(d.expiresAt)}
                           </span>
                           <Button size="sm" variant="secondary" onClick={() => copyLink(d)}>
                             {copiedId === `link-${d.id}` ? <><Check className="mr-1 h-4 w-4" /> Link copied</> : "Copy link"}
@@ -748,31 +682,91 @@ export default function SharePage() {
                         </>
                       )}
                     </div>
-                    {!signedIn && <p className="text-xs text-muted-foreground">Sign in with Google to create or update share links.</p>}
+                    {!signedIn && <p className="text-sm text-muted-foreground">Sign in with Google to save these permissions.</p>}
                   </div>
-                )}
+                  </Modal>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+      </section>
+
+      <Modal open={composerOpen} title="New drop" onClose={()=>{
+        if ((text.trim() || pendingImg) && !window.confirm("Discard the unsaved drop?")) return;
+        setComposerOpen(false);setText("");setPendingImg(null);
+      }}>
+      {/* ── Composer ── */}
+      <Card variant="dossier" id="share-editor" className="sharing-composer">
+        <CardContent className="space-y-4 p-4 sm:p-5">
+          
+          <label htmlFor="drop-content" className="sr-only">Drop content</label>
+          <textarea
+            id="drop-content"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Write a note or paste a link…"
+            rows={3}
+            className="block min-h-24 w-full resize-y rounded-xl border border-input bg-background px-3 py-3 text-base outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          />
+          {pendingImg && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pendingImg} alt="pending upload" className="max-h-48 rounded-lg border border-border/60 object-contain" />
+          )}
+          <div className="space-y-3">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => onFile(e.target.files?.[0])}
+            />
+            <fieldset aria-label="Auto-clear this drop" className="space-y-1.5">
+              <legend className="sr-only">Auto-clear this drop</legend>
+              <span className="text-sm text-muted-foreground">Auto-clear after</span>
+              <Segmented
+                label="Drop expiry"
+                variant="soft"
+                options={TTL_OPTIONS.map((o) => ({ value: o.id, label: o.label }))}
+                value={ttl}
+                onChange={setTtl}
+              />
+            </fieldset>
+            <div className="flex items-center justify-between gap-2">
+              <Button variant="ghost" size="sm" onClick={() => pendingImg ? setPendingImg(null) : fileRef.current?.click()}>
+                {pendingImg ? "Remove image" : <><Plus className="mr-1 h-4 w-4" /> Add image</>}
+              </Button>
+            <Button size="sm" data-editorial-action onClick={save} disabled={(!text.trim() && !pendingImg) || saving || limits.dropCapReached || limits.imageCapReached}>
+              {saving ? "Saving…" : "Save drop"}
+            </Button>
+            </div>
+          </div>
+          {limits.dropCapReached && <p className="text-sm font-medium text-destructive">Drop cap reached. Export or delete an active drop before adding another.</p>}
+          {limits.imageCapReached && <p className="text-sm font-medium text-destructive">This image exceeds the active image limit. Choose a smaller file.</p>}
+        </CardContent>
+      </Card>
+
+      </Modal>
 
       {/* ── Storage limits ── */}
-      <Card variant="dossier">
-        <CardContent className="p-5">
-          <h2 className="font-display font-bold">Storage limits</h2>
+      <details className="sharing-limits border-t border-border pt-2">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm text-muted-foreground">
+          <span>Storage limits <span aria-hidden="true">+</span></span>
+          <span className="tabular-nums">{kb.toFixed(1)} KB used · {imageCount} images</span>
+        </summary>
+        <div className="pb-3">
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
             <li><strong className="text-foreground">Drops:</strong> {MAX_DROPS} active drops maximum. Expired drops clear from this list automatically.</li>
             <li><strong className="text-foreground">Images:</strong> 5 MB per signed-in image, or approximately 1.2 MB per local-only image.</li>
             <li><strong className="text-foreground">Browser:</strong> approximately {(BROWSER_STORAGE_LIMIT_BYTES / 1000).toLocaleString()} KB display capacity. Export before making large changes.</li>
-            <li><strong className="text-foreground">Sharing:</strong> private allowlists match signed-in emails; public mode is an explicit link-access choice. <Link href="/share?view=incoming" className="text-primary hover:underline">Inbox</Link> shows incoming private drops.</li>
+            <li><strong className="text-foreground">Sharing:</strong> specific people must match signed-in emails; link access adds no email allowlist. Both follow the site&apos;s sign-in requirements. <Link href="/share?view=incoming" className="text-primary hover:underline">Inbox</Link> shows incoming private drops.</li>
           </ul>
-          <Button variant="secondary" size="sm" className="mt-3" onClick={exportAll} disabled={visible.length === 0}>
+          <Button variant="secondary" size="sm" className="mt-3" onClick={exportAll} disabled={activeDropCount === 0}>
             Export JSON backup
           </Button>
-        </CardContent>
-      </Card>
-      </>
+        </div>
+      </details>
+      </div>
       )}
     </TrackerShell>
   );

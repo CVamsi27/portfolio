@@ -10,7 +10,9 @@ test("clock shows the local date and timezone at phone widths", async ({
   await page.clock.install({ time: new Date("2026-10-03T00:05:00+05:30") });
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto("/hub");
+  await expect(page.getByRole("button", { name: "Choose date", exact: true })).toContainText(/\b3 Oct 2026/);
   await page.getByText("Time zones & reminders", { exact: true }).click();
+  await page.clock.runFor(100);
   const clock = page.getByTestId("world-clock-strip");
   await expect(clock.locator(".dossier-world-date")).toBeVisible();
   await expect(clock.getByTestId("local-clock-time")).toHaveText("00:05");
@@ -33,7 +35,9 @@ test("clock advances across local midnight without stale dates", async ({
   await seed(page);
   await page.clock.install({ time: new Date("2026-10-03T23:59:00+05:30") });
   await page.goto("/hub");
+  await expect(page.getByRole("button", { name: "Choose date", exact: true })).toContainText(/\b3 Oct 2026/);
   await page.getByText("Time zones & reminders", { exact: true }).click();
+  await page.clock.runFor(100);
   const clock = page.getByTestId("world-clock-strip");
   await page.clock.pauseAt(new Date("2026-10-03T23:59:58+05:30"));
   await expect(clock.getByTestId("local-clock-time")).toHaveText("23:59");
@@ -46,7 +50,9 @@ test("city clocks respect daylight saving changes", async ({ page }) => {
   await seed(page);
   await page.clock.install({ time: new Date("2026-10-25T00:59:00Z") });
   await page.goto("/hub");
+  await expect(page.getByRole("button", { name: "Choose date", exact: true })).toContainText(/\b25 Oct 2026/);
   await page.getByText("Time zones & reminders", { exact: true }).click();
+  await page.clock.runFor(100);
   const clock = page.getByTestId("world-clock-strip");
   await clock.locator("summary").click();
   await page.clock.pauseAt(new Date("2026-10-25T00:59:58Z"));

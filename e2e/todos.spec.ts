@@ -8,6 +8,7 @@ test.describe("todo manager", () => {
     await seed(page);
     await page.goto("/todo");
 
+    await page.getByRole("button", { name: "Add task", exact: true }).click();
     const input = page.getByRole("textbox", { name: "New task", exact: true });
     await input.fill("Write E2E tests");
     await page.getByText(/^Task options/).click();
@@ -22,12 +23,12 @@ test.describe("todo manager", () => {
       .getByRole("button", { name: "Work", exact: true })
       .click();
     await input.press("Enter");
-    await expect(page.getByText("Write E2E tests")).toBeVisible();
+    await expect(page.getByText("Write E2E tests", {exact:true})).toBeVisible();
 
     // Chained entry: input keeps focus + value cleared.
     await input.fill("Second chained task");
     await input.press("Enter");
-    await expect(page.getByText("Second chained task")).toBeVisible();
+    await expect(page.getByText("Second chained task", {exact:true})).toBeVisible();
     await expect(input).toHaveValue("");
     await expect(input).toBeFocused();
 
@@ -47,11 +48,13 @@ test.describe("todo manager", () => {
   test("inline edit renames a task", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
+    await page.getByRole("button", { name: "Add task", exact: true }).click();
     await page
       .getByRole("textbox", { name: "New task", exact: true })
       .fill("Original name");
     await page.keyboard.press("Enter");
 
+    await page.getByRole("button", { name: "Close", exact: true }).click();
     const task = page.getByText("Original name");
     await task.click(); // click-to-edit
     const editBox = page.locator("input[value='']");
@@ -69,11 +72,13 @@ test.describe("todo manager", () => {
   test("toggle done moves task between views", async ({ page }) => {
     await seed(page);
     await page.goto("/todo");
+    await page.getByRole("button", { name: "Add task", exact: true }).click();
     await page
       .getByRole("textbox", { name: "New task", exact: true })
       .fill("Finishable task");
     await page.keyboard.press("Enter");
 
+    await page.getByRole("button", { name: "Close", exact: true }).click();
     // Complete it.
     await page
       .getByRole("button", { name: /Mark "Finishable task" done/ })
@@ -127,12 +132,13 @@ test.describe("todo manager", () => {
     await expect(page.getByText("Work item")).toBeVisible();
     await expect(page.getByText("Health item")).toBeVisible();
 
+    await page.getByText("Filters", { exact: true }).click();
     await page.getByLabel("Filter by tag").selectOption("Work");
     await expect(page.getByText("Work item")).toBeVisible();
     await expect(page.getByText("Health item")).toHaveCount(0);
   });
 
-  test("tomorrow view shows tasks scheduled ahead", async ({ page }) => {
+  test("date filter narrows open tasks and Open retains future tasks", async ({ page }) => {
     const tomorrow = daysAgoKey(-1);
     await seed(page, {
       "vk:todos": [
@@ -148,17 +154,15 @@ test.describe("todo manager", () => {
       ],
     });
     await page.goto("/todo");
+    await page.getByText("Filters", { exact: true }).click();
+    await page.getByLabel("Task dates").selectOption("tomorrow");
+    await expect(page.getByText("Plan tomorrow")).toBeVisible();
+    // Open retains pending work across all dates.
     await page
       .getByRole("group", { name: "Task view" })
-      .getByRole("button", { name: "Tomorrow" })
+      .getByRole("button", { name: "Open", exact: true })
       .click();
     await expect(page.getByText("Plan tomorrow")).toBeVisible();
-    // Not in Today view.
-    await page
-      .getByRole("group", { name: "Task view" })
-      .getByRole("button", { name: /^Today/ })
-      .click();
-    await expect(page.getByText("Plan tomorrow")).toHaveCount(0);
   });
 
   test("completed history preserves prior days without an execution streak", async ({ page }) => {

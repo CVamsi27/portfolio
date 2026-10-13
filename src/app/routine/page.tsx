@@ -8,7 +8,7 @@ export default function RoutinePage() {
       <PersonalShell
         icon="timer"
         title="Routine reminders"
-        subtitle="Meal and supplement times, with independent completion and no assumed doses."
+        subtitle={null}
       >
         <RoutineReminders configure />
       </PersonalShell>

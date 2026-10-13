@@ -130,19 +130,15 @@ test("open Today updates its plan across midnight", async ({ page }) => {
   ).toHaveCount(0);
 });
 
-test("roadmap summary and expanded schedule share totals and full outputs", async ({
-  page,
-}) => {
+test("Roadmap leaves its timetable in Today and keeps curriculum outputs", async ({ page }) => {
   await setup(page);
   await page.goto("/roadmap");
-  await expect(
-    page.getByRole("region", { name: "Today's timetable" }),
-  ).toContainText("1h 40m planned focus");
+  await expect(page.getByRole("region", { name: "Today's timetable" })).toHaveCount(0);
   await page.getByRole("button", { name: "Curriculum", exact: true }).click();
-  await page.getByRole("button", { name: "Schedule", exact: true }).click();
-  const schedule = page.getByRole("region", { name: "Day schedule" });
-  await expect(schedule).toContainText("1h 40m planned focus");
-  await expect(schedule).toContainText("Notes and a correct recall answer");
+  await expect(page.getByRole("region", { name: "Day schedule" })).toHaveCount(0);
+  await page.getByTestId("tracker-primary-nav").getByRole("link", { name: "Today", exact: true }).click();
+  const agenda = page.getByTestId("day-agenda");
+  await expect(agenda).toContainText("Notes and a correct recall answer");
 });
 
 test("legacy schedules show planned time without inventing a focus budget", async ({

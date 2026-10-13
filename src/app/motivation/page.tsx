@@ -144,11 +144,10 @@ export default function MotivationPage() {
     <RequireAuth>
       <TrackerShell
         icon="flame"
-        title={null}
+        title="Motivation"
         eyebrow="Your purpose"
-        subtitle="Keep your goal close. Take one meaningful step today."
+        subtitle={null}
       >
-        <a className="capture-return" href="/goal">← Goal and milestones</a>
         <FocusScene
           goalTitle={displayGoalTitle(prefs)}
           goalLabel={label}
@@ -174,9 +173,6 @@ export default function MotivationPage() {
           </p>
         )}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
-          <p className="text-sm text-muted-foreground">
-            Keep words that bring you back to your purpose.
-          </p>
           <Button variant="ghost" onClick={() => setRemindersOpen(true)}>
             Personal reminders
           </Button>

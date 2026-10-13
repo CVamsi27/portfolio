@@ -1,7 +1,8 @@
 "use client";
 import { useWorkspaceView } from "@/lib/use-workspace-view";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { Suspense, useEffect, useMemo, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   useNotificationPermission,
   refreshNotificationPermission,
@@ -11,7 +12,6 @@ import {
   alignPersonalTimetable,
   personalSchedule,
 } from "@/lib/personal-timetable";
-import DailyTimetable from "@/components/trackers/DailyTimetable";
 import {
   appendExamAttempt,
   recordGermanyCompany,
@@ -487,7 +487,7 @@ function DayCard({
     {
       id: "schedule" as const,
       icon: <Clock className="h-3.5 w-3.5" />,
-      label: "Schedule",
+      label: "Agenda",
     },
     {
       id: "steps" as const,
@@ -998,14 +998,7 @@ function DayCard({
             )}
 
             {/* SCHEDULE */}
-            {tab === "schedule" && (
-              <DailyTimetable
-                title="Day schedule"
-                schedule={plan.schedule}
-                date={plan.date}
-                timeZone="Asia/Kolkata"
-              />
-            )}
+            {tab === "schedule" && <Link className="inline-action" href={`/hub?date=${plan.date}`}>Open Today’s agenda</Link>}
 
             {/* STEPS */}
             {tab === "steps" && (
@@ -1378,78 +1371,6 @@ function WeeklyTargetsSection({
   );
 }
 
-function DayScheduleSection({
-  schedule,
-  aligned = false,
-}: {
-  schedule: NonNullable<CareerData["daySchedule"]>;
-  aligned?: boolean;
-}) {
-  const typeColor: Record<string, string> = {
-    health: "border-emerald-500/30 bg-emerald-500/5",
-    ritual: "border-cyan-500/30 bg-cyan-500/5",
-    study: "border-blue-500/30 bg-blue-500/5",
-    break: "border-amber-500/20 bg-amber-500/5",
-    buffer: "border-slate-500/20 bg-slate-500/5",
-    meal: "border-orange-500/30 bg-orange-500/5",
-    practice: "border-violet-500/30 bg-violet-500/5",
-    job: "border-pink-500/30 bg-pink-500/5",
-    interview: "border-rose-500/30 bg-rose-500/5",
-    family: "border-emerald-500/20 bg-emerald-500/5",
-    anchor: "border-border/40 bg-muted/30",
-  };
-  const totalMinutes = schedule.blocks.reduce((sum, b) => sum + b.minutes, 0);
-  return (
-    <Card variant="dossier">
-      <CardContent className="p-5">
-        <div className="flex items-center gap-2 mb-1">
-          <CalendarDays className="h-4 w-4 text-primary" />
-          <h2 className="font-display font-bold">Daily Schedule Template</h2>
-          <span className="ml-auto text-xs text-muted-foreground">
-            {schedule.timezone} · {Math.floor(totalMinutes / 60)}h{" "}
-            {totalMinutes % 60}m mapped
-          </span>
-        </div>
-        <p className="mb-4 text-xs text-muted-foreground">
-          {aligned
-            ? schedule.blocks.length
-              ? "This dated timetable is shared with Today. From 12 October 2026: nine focused hours each weekday, five on Saturday and recovery Sunday. Interview preparation replaces scheduled work. Earlier dates keep their historical allocation."
-              : "No scheduled work."
-            : "Example clock placements: move blocks around real commitments and keep their planned durations. Record evidence rather than counting elapsed time as completion."}
-        </p>
-        <div className="space-y-1.5">
-          {schedule.blocks.map((block) => (
-            <div
-              key={block.time}
-              className={`flex items-center gap-3 rounded-lg border p-2.5 ${typeColor[block.type] ?? "border-border/40 bg-card/30"}`}
-            >
-              <span className="w-24 shrink-0 font-mono text-xs font-semibold tabular-nums text-foreground/90">
-                {block.time}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium">{block.label}</p>
-                {block.output && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    → {block.output}
-                  </p>
-                )}
-              </div>
-              <span className="shrink-0 rounded-full bg-background/60 px-2 py-0.5 text-xs font-mono tabular-nums">
-                {block.minutes > 0 ? `${block.minutes}m` : "anchor"}
-              </span>
-              <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wider ${block.type === "study" ? "bg-blue-500/20 text-blue-300" : block.type === "job" ? "bg-pink-500/20 text-pink-300" : block.type === "interview" ? "bg-rose-500/20 text-rose-300" : block.type === "family" || block.type === "meal" || block.type === "health" ? "bg-emerald-500/20 text-emerald-300" : "bg-muted text-muted-foreground"}`}
-              >
-                {block.type}
-              </span>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function MotivationalResourcesSection({
   resources,
 }: {
@@ -1647,117 +1568,6 @@ function VerificationSection({
               </button>
             );
           })}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function NotificationsPanel({
-  notifications,
-}: {
-  notifications: NonNullable<DayPlan["notifications"]>;
-}) {
-  const permState = useNotificationPermission();
-  const requestPermission = useCallback(async () => {
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    await Notification.requestPermission();
-    refreshNotificationPermission();
-  }, []);
-  const fire = useCallback(
-    (n: NonNullable<DayPlan["notifications"]>[number]) => {
-      if (
-        typeof window === "undefined" ||
-        !("Notification" in window) ||
-        Notification.permission !== "granted"
-      )
-        return;
-      try {
-        const notif = new Notification(
-          `Day ${notifications.length ? "" : ""}${n.time} · ${n.message}`,
-          {
-            body: n.message,
-            icon: "/icons/icon-192.png",
-            tag: `career-${n.key}`,
-          },
-        );
-        notif.onclick = () => {
-          window.focus();
-          if (n.href) window.location.href = n.href;
-          notif.close();
-        };
-        setTimeout(() => notif.close(), 8000);
-      } catch {
-        /* ignore */
-      }
-    },
-    [notifications.length],
-  );
-  const sorted = [...notifications].sort((a, b) =>
-    a.time.localeCompare(b.time),
-  );
-  return (
-    <Card variant="dossier" className="ring-1 ring-primary/30">
-      <CardContent className="p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Bell className="h-4 w-4 text-primary" />
-          <h2 className="font-display font-bold">Today&apos;s Notifications</h2>
-          <span className="ml-auto text-xs text-muted-foreground">
-            {sorted.length} cues · browser-supported
-          </span>
-        </div>
-        {permState === "unsupported" ? (
-          <p className="rounded-lg border border-dashed border-border/40 p-2.5 text-xs text-muted-foreground">
-            Browser notifications unsupported here. Set a phone alarm at each
-            listed time.
-          </p>
-        ) : permState === "default" ? (
-          <button
-            onClick={requestPermission}
-            className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Bell className="h-3.5 w-3.5" />
-            Enable browser notifications
-          </button>
-        ) : permState === "granted" ? (
-          <p className="mb-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-300">
-            Notifications enabled
-          </p>
-        ) : (
-          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-200">
-            Notifications blocked — open browser site settings to enable.
-          </p>
-        )}
-        <div className="space-y-1.5">
-          {sorted.map((n) => (
-            <div
-              key={n.key}
-              className="flex items-center gap-3 rounded-lg border border-border/40 bg-card/30 p-2.5"
-            >
-              <span className="w-14 shrink-0 font-mono text-xs font-semibold tabular-nums text-primary">
-                {n.time}
-              </span>
-              <p className="min-w-0 flex-1 text-xs leading-relaxed">
-                {n.message}
-              </p>
-              {permState === "granted" && (
-                <button
-                  onClick={() => fire(n)}
-                  className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-xs hover:border-primary/50"
-                >
-                  Test
-                </button>
-              )}
-              {n.href && (
-                <a
-                  href={n.href}
-                  className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-xs hover:border-primary/50"
-                >
-                  Open
-                </a>
-              )}
-            </div>
-          ))}
         </div>
       </CardContent>
     </Card>
@@ -2174,6 +1984,7 @@ function MotivationHero({
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+function RoadmapTitle() { return useSearchParams().get("panel") === "exams" ? "Exams" : "Roadmap"; }
 export default function RoadmapPage() {
   const { user } = useAuth();
   const { value: timetable } = useSyncedStorage<Timetable | null>(
@@ -2197,7 +2008,7 @@ export default function RoadmapPage() {
   );
   const [search, setSearch] = useState("");
   const [section, setSection] = useWorkspaceView(
-    ["roadmap", "curriculum", "revision", "career", "germany", "outreach"],
+    ["roadmap", "execution", "curriculum", "revision", "career", "germany", "outreach"],
     "roadmap",
   );
   const [revisionDeckOpen, setRevisionDeckOpen] = useState(false);
@@ -2351,12 +2162,12 @@ export default function RoadmapPage() {
   const phaseGroups = useMemo(() => {
     const groups: Record<
       string,
-      { label: string; ring: string; done: number; total: number }
+      { id: string; label: string; ring: string; done: number; total: number }
     > = {};
     for (const d of days) {
       const c = getColor(d.topic);
       if (!groups[d.topic])
-        groups[d.topic] = { label: c.short, ring: c.ring, done: 0, total: 0 };
+        groups[d.topic] = { id:d.topic, label: c===DEF_COLOR?d.topic:c.short, ring: c.ring, done: 0, total: 0 };
       groups[d.topic].total++;
       if (pct(d.checklist) === 100) groups[d.topic].done++;
     }
@@ -2467,62 +2278,22 @@ export default function RoadmapPage() {
     <RequireAuth>
       <PersonalShell
         icon="book"
-        title="Career roadmap"
-        subtitle="Your Germany campaign, daily timetable and verified work."
+        title={<Suspense fallback="Roadmap"><RoadmapTitle /></Suspense>}
+        subtitle={null}
         eyebrow="NOVA // Execution"
       >
-        {/* Section nav */}
-        {(!germanyPlan?.execution || section !== "roadmap") && (
-          <>
-            <div className="flex gap-2 flex-wrap">
-              {NAV.filter((n) =>
-                ["roadmap", "germany", "curriculum", "revision"].includes(n.id),
-              ).map((n) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  aria-pressed={section === n.id}
-                  onClick={() => setSection(n.id)}
-                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${section === n.id ? "border-primary bg-primary text-primary-foreground" : "border-border/60 text-muted-foreground hover:border-primary/50"}`}
-                >
-                  {n.icon}
-                  {n.label}
-                </button>
-              ))}
-            </div>
-
-            <details className="workspace-panel">
-              <summary>Optional career resources</summary>
-              <div className="workspace-views">
-                {NAV.filter(
-                  (n) =>
-                    !["roadmap", "germany", "curriculum", "revision"].includes(
-                      n.id,
-                    ),
-                ).map((n) => (
-                  <button
-                    key={n.id}
-                    aria-pressed={section === n.id}
-                    onClick={() => {
-                      setSection(n.id);
-                    }}
-                    className="inline-action"
-                  >
-                    {n.label}
-                  </button>
-                ))}
-              </div>
-              <p>
-                Choose the resources relevant to your goal. Your curriculum and
-                daily study plan stay separate.
-              </p>
-            </details>
-          </>
-        )}
-        {section === "roadmap" &&
+        <nav className="workspace-views" aria-label="Roadmap views">
+          <button aria-pressed={section === "roadmap"} onClick={()=>{setSection("roadmap");const url=new URL(window.location.href);url.searchParams.set("panel","today");window.history.replaceState(null,"",url);window.dispatchEvent(new Event("popstate"));}}>Today</button>
+          <button aria-pressed={["curriculum","revision"].includes(section)} onClick={()=>setSection("curriculum")}>Curriculum</button>
+          <button aria-pressed={["execution","career","germany","outreach"].includes(section)} onClick={()=>{setSection("execution");const url=new URL(window.location.href);url.searchParams.set("panel","this-week");window.history.replaceState(null,"",url);window.dispatchEvent(new Event("popstate"));}}>Career</button>
+        </nav>
+        {section === "curriculum" && <div className="workspace-views"><button onClick={()=>setSection("revision")}>Revision & recall</button></div>}
+        {["execution","career","germany","outreach"].includes(section) && <details className="workspace-disclosure"><summary>Career resources</summary><div className="workspace-views">{NAV.filter(n=>["career","germany","outreach"].includes(n.id)).map(n=><button key={n.id} onClick={()=>setSection(n.id)}>{n.label}</button>)}</div></details>}
+        {(section === "roadmap" || section === "execution") &&
           (germanyPlan ? (
             <GermanyRoadmapView
               plan={germanyPlan}
+              careerView={section === "execution"}
               today={today}
               email={user?.email}
               days={days}
@@ -2563,25 +2334,6 @@ export default function RoadmapPage() {
               </p>
             </section>
           ))}
-        {germanyPlan?.execution && section === "roadmap" && (
-          <details className="workspace-panel">
-            <summary className="min-h-11">
-              Study library, revision and career resources
-            </summary>
-            <div className="workspace-views">
-              {NAV.map((n) => (
-                <button
-                  key={n.id}
-                  className="inline-action min-h-11"
-                  aria-pressed={section === n.id}
-                  onClick={() => setSection(n.id)}
-                >
-                  {n.id === "germany" ? "Relocation checklist" : n.label}
-                </button>
-              ))}
-            </div>
-          </details>
-        )}
         {/* ── ROADMAP SECTION ── */}
         {(section === "roadmap" || section === "curriculum") && (
           <details
@@ -2768,13 +2520,7 @@ export default function RoadmapPage() {
                               </ol>
                             </div>
 
-                            <div className="mt-3">
-                              <DailyTimetable
-                                schedule={todayPlan.schedule}
-                                date={todayPlan.date}
-                                timeZone="Asia/Kolkata"
-                              />
-                            </div>
+                            <Link className="inline-action" href={`/hub?date=${todayPlan.date}`}>Open Today’s agenda</Link>
 
                             <div className="mt-3 grid gap-2 sm:grid-cols-2">
                               <div className="rounded-lg bg-muted/35 p-3">
@@ -2845,12 +2591,7 @@ export default function RoadmapPage() {
                     </Card>
                   )}
 
-                {todayPlan?.notifications &&
-                  todayPlan.notifications.length > 0 && (
-                    <NotificationsPanel
-                      notifications={todayPlan.notifications}
-                    />
-                  )}
+                <Link className="inline-action" href="/settings#notifications">Reminder settings</Link>
               </div>
               <div
                 hidden={section !== "curriculum"}
@@ -2858,7 +2599,7 @@ export default function RoadmapPage() {
               >
                 {/* Phase bars */}
                 {phaseGroups.length > 0 && (
-                  <Card variant="dossier">
+                  <details className="workspace-disclosure"><summary>Curriculum phases</summary><Card variant="dossier">
                     <CardContent className="p-5">
                       <div className="flex items-center gap-2 mb-4">
                         <BarChart2 className="h-4 w-4 text-primary" />
@@ -2868,7 +2609,7 @@ export default function RoadmapPage() {
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
                         {phaseGroups.map((g) => (
-                          <div key={g.label} className="space-y-1">
+                          <div key={g.id} className="space-y-1">
                             <div className="flex justify-between text-xs">
                               <span className="font-medium truncate">
                                 {g.label}
@@ -2890,7 +2631,7 @@ export default function RoadmapPage() {
                         ))}
                       </div>
                     </CardContent>
-                  </Card>
+                  </Card></details>
                 )}
 
                 {/* Filter + search */}
@@ -3349,25 +3090,7 @@ export default function RoadmapPage() {
             {career.weeklyTargets && (
               <WeeklyTargetsSection targets={career.weeklyTargets} />
             )}
-            {career.daySchedule && (
-              <DayScheduleSection
-                aligned={personalSchedule(user?.email, today) !== undefined}
-                schedule={
-                  personalSchedule(user?.email, today) !== undefined
-                    ? {
-                        timezone: "Asia/Kolkata",
-                        blocks: Object.entries(
-                          personalSchedule(user?.email, today)!,
-                        ).map(([time, block]) => ({
-                          ...block,
-                          time,
-                          type: "practice",
-                        })),
-                      }
-                    : career.daySchedule
-                }
-              />
-            )}
+            <Link className="inline-action" href={`/hub?date=${today}`}>Open Today’s agenda</Link>
             {career.motivationalResources && (
               <MotivationalResourcesSection
                 resources={career.motivationalResources}

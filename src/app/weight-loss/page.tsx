@@ -16,8 +16,6 @@ import {
   type WeightEntry,
 } from "@/lib/health";
 import { useUserPrefs } from "@/lib/user-prefs";
-import { progressDates } from "@/lib/personal-progress";
-import TrendChart from "@/components/progress/TrendChart";
 export default function WeightLossPage() {
   const { prefs } = useUserPrefs();
   const now = useNow(60_000);
@@ -43,7 +41,6 @@ export default function WeightLossPage() {
     note: string;
   }>();
   const [targetDraft, setTarget] = useState<string>();
-  const [range, setRange] = useState(30);
   const [all, setAll] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -73,13 +70,6 @@ export default function WeightLossPage() {
       ([, entry]) => Number.isFinite(entry.weightKg) && entry.weightKg > 0,
     )
     .sort(([a], [b]) => b.localeCompare(a));
-  const points = progressDates(date, range).map((day) => ({
-    date: day,
-    value:
-      state.entries[day]?.weightKg > 0
-        ? kgToDisplay(state.entries[day].weightKg, prefs.weightUnit)
-        : null,
-  }));
   const updateDraft = (changes: Partial<{ weight: string; note: string }>) =>
     setDraft({ date, weight, note, ...changes });
   const save = () => {
@@ -148,7 +138,7 @@ export default function WeightLossPage() {
       <TrackerShell
         icon="scale"
         title="Body and weight"
-        subtitle="Record measurements, review dated trends and manage your own target."
+        subtitle={null}
       >
         <div className="body-workspace-grid">
           <section id="weight-entry" className="progress-panel">
@@ -235,36 +225,6 @@ export default function WeightLossPage() {
             )}
           </section>
           <section className="progress-panel">
-            <header>
-              <h2>Weight trend</h2>
-              <div
-                role="group"
-                aria-label="Weight trend range"
-                className="progress-segmented"
-              >
-                {[30, 90].map((days) => (
-                  <button
-                    type="button"
-                    key={days}
-                    aria-pressed={range === days}
-                    onClick={() => setRange(days)}
-                  >
-                    {days} days
-                  </button>
-                ))}
-              </div>
-            </header>
-            <div className="mt-4">
-              <TrendChart
-                label="Weight trend"
-                unit={prefs.weightUnit}
-                points={points}
-              />
-            </div>
-            <p className="progress-note">
-              Through {date}. Each point is a saved weigh-in; gaps are unlogged
-              days.
-            </p>
             <details className="mt-4">
               <summary>Optional weight target</summary>
               <form

@@ -34,7 +34,7 @@ test.describe("goal motivation", () => {
     await expect(page.getByTestId("focus-next-action")).toContainText(
       "Collect visa documents",
     );
-    await page.getByRole("link", { name: "Open my plan", exact: true }).click();
+    await page.getByRole("link", { name: "Open Roadmap", exact: true }).click();
     await expect(page).toHaveURL(/\/roadmap$/);
     expect(
       await page.evaluate(() => JSON.parse(localStorage.getItem("vk:goal")!)),
@@ -60,6 +60,7 @@ test.describe("goal motivation", () => {
     );
     await seed(page);
     await page.goto("/motivation");
+    await page.getByText("Supporting image", { exact: true }).click();
     await expect(page.getByTestId("focus-media")).toHaveAttribute(
       "src",
       /journey.jpg/,
@@ -97,6 +98,7 @@ test.describe("goal motivation", () => {
     );
     await seed(page);
     await page.goto("/motivation");
+    await page.getByText("Supporting image", { exact: true }).click();
     await expect(page.getByTestId("focus-media")).toHaveAttribute(
       "src",
       /journey.jpg/,
@@ -119,13 +121,14 @@ test.describe("goal motivation", () => {
     await page.route("**/api/motivation-image**", (route) => route.abort());
     await seed(page);
     await page.goto("/motivation");
+    await page.getByText("Supporting image", { exact: true }).click();
     await expect(page.getByTestId("focus-media")).toHaveCount(0);
     await expect(page.getByTestId("focus-goal")).toHaveText(
       "Relocate to Canada",
     );
     await expect(page.locator("blockquote")).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Open my plan", exact: true }),
+      page.getByRole("link", { name: "Open Roadmap", exact: true }),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Public image source" }),
@@ -140,12 +143,13 @@ test.describe("goal motivation", () => {
     );
     await seed(page);
     await page.goto("/motivation");
+    await page.getByText("Supporting image", { exact: true }).click();
     await expect(page.getByTestId("focus-scene-category")).toContainText(
       "Canada relocation",
     );
     await expect(page.getByTestId("goal-why")).toContainText("Canada");
     await expect(
-      page.getByRole("link", { name: "Open my plan", exact: true }),
+      page.getByRole("link", { name: "Open Roadmap", exact: true }),
     ).toBeVisible();
   });
 
@@ -181,13 +185,20 @@ test.describe("goal motivation", () => {
         "meaningful engineering",
       );
       await expect(
-        page.getByRole("link", { name: "Open my plan", exact: true }),
+        page.getByRole("link", { name: "Open Roadmap", exact: true }),
       ).toBeVisible();
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),
       ).toBeLessThanOrEqual(width);
+      await page.getByText("Supporting image", { exact: true }).click();
+      const visual = page.locator(".goal-inspiration__visual");
+      const bounds = await visual.boundingBox();
+      const parent = await visual.locator("..").boundingBox();
+      expect(bounds!.height).toBeGreaterThanOrEqual(180);
+      expect(bounds!.width).toBeLessThanOrEqual(parent!.width);
+
       const action = await page
-        .getByRole("link", { name: "Open my plan", exact: true })
+        .getByRole("link", { name: "Open Roadmap", exact: true })
         .boundingBox();
       expect(action!.height).toBeGreaterThanOrEqual(44);
     }

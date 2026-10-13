@@ -83,6 +83,19 @@ const limits: Record<string, number> = {
   R5: 30,
   R6: 45,
 };
+export function examTimeLimit(roundId: string): number { return limits[roundId] ?? 60; }
+
+export function examTrend(round: GermanyRound, attempts: GermanyExamAttempt[], version: string, track: string) {
+  const byDate=new Map<string,{date:string;value:number}>();
+  for (const attempt of [...attempts].sort((a,b)=>a.finishedAt.localeCompare(b.finishedAt))) {
+    if (attempt.roundId!==round.id || attempt.track!==track || attempt.promptVersion!==version || !Number.isFinite(Date.parse(attempt.finishedAt))) continue;
+    const result=scoreExam(round,attempt);
+    if (!result.eligible || attempt.scores.length!==round.dimensions.length || attempt.scores.some(score=>score===null)) continue;
+    const date=new Intl.DateTimeFormat("en-CA",{year:"numeric",month:"2-digit",day:"2-digit",timeZone:"Asia/Kolkata"}).format(new Date(attempt.finishedAt));
+    byDate.set(date,{date,value:result.total});
+  }
+  return [...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date));
+}
 export function scoreExam(
   round: GermanyRound,
   attempt: GermanyExamAttempt,

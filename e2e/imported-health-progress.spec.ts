@@ -29,11 +29,12 @@ test("imported progress paginates, chooses sources and keeps manual metrics sepa
     });
   });
   await page.goto("/dashboard?view=health&metric=body&date=2026-10-07&range=7");
+  await page.getByText("Imported health records & sources", { exact: true }).click();
   await page.getByRole("button", { name: "View imported trends" }).click();
   const panel = page.getByRole("region", { name: "Imported health progress" });
   await expect(panel.getByLabel("Weight source")).toHaveValue("other scale");
   await panel.getByLabel("Weight source").selectOption("scale");
-  await panel.getByText("View daily readings · kg", { exact: true }).click();
+  await panel.getByText("View dated readings", { exact: true }).click();
   await expect(
     panel.getByRole("cell", { name: "72", exact: true }),
   ).toBeVisible();

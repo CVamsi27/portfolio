@@ -9,11 +9,12 @@ export default function MorePage() {
         showBack={false}
         title="Tools"
         icon="settings"
-        subtitle="Your account, saved material and sharing."
+        subtitle={null}
       >
         <div data-testid="more-links">
           <SectionLinks
             items={[
+              { href: "/motivation", label: "Motivation", description: "Your purpose, reminders and next step." },
               {
                 href: "/archive",
                 label: "Library",

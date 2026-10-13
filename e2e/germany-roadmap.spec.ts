@@ -78,7 +78,7 @@ test("promotes the roadmap and preserves evidence through reload without auto-ve
     roadmap.getByRole("heading", { name: "Build proof. Apply every week." }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Germany", exact: true }),
+    page.getByRole("button", { name: "Career", exact: true }),
   ).toBeVisible();
   const action = roadmap.getByTestId(item.id).first();
   await action
@@ -162,9 +162,8 @@ for (const width of [320, 390, 768, 1440])
       await expect(page.getByTestId("germany-roadmap")).toContainText(
         "Recovery Sunday. No required work.",
       );
-      await expect(
-        page.getByRole("region", { name: "Today's timetable" }),
-      ).toContainText("0m planned focus");
+      await expect(page.getByRole("region", { name: "Today's timetable" })).toHaveCount(0);
+      await expect(page.getByRole("link", { name: "Open Today’s agenda", exact: true })).toHaveAttribute("href", "/hub?date=2026-10-18");
       await page.getByLabel("Plan date").fill("2027-01-04");
       await expect(page.getByTestId("germany-roadmap")).toContainText(
         "Continue the hiring cycle",

@@ -18,7 +18,8 @@ test("task deletion and completed cleanup offer undo, and dates are editable", a
   await page
     .getByLabel("Due date for Build the shipping feature")
     .fill("2026-12-01");
-  await page.getByRole("button", { name: "Upcoming", exact: true }).click();
+  await page.getByText("Filters", { exact: true }).click();
+  await page.getByLabel("Task dates").selectOption("upcoming");
   await expect(page.getByText(task.text, { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Delete task", exact: true }).click();
   await expect(page.getByText(task.text, { exact: true })).toBeHidden();
@@ -125,11 +126,14 @@ test("Review includes saved study, water, movement and body records without inve
     page.getByRole("heading", { name: "Daily reflection" }),
   ).toBeVisible();
   await page.goto("/dashboard?view=work&metric=learning");
-  await expect(page.locator("#learning")).toContainText("18 min");
+  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("study");
+  await page.getByText("View dated readings", { exact: true }).click();
+  await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(todayKey()) })).toContainText("18");
   await page.goto("/dashboard?view=health&metric=wellbeing");
-  await expect(page.locator("#wellbeing")).toContainText("3");
-  await page.getByLabel("Progress metric").selectOption("body");
-  await expect(page.locator("#body")).toContainText("70 kg");
+  await page.getByText("View dated readings", { exact: true }).click();
+  await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(todayKey()) })).toContainText("3");
+  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("weight");
+  await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(todayKey()) })).toContainText("70");
 });
 
 test("invalid active-session backups fail before changing any records", async ({
@@ -198,6 +202,7 @@ test("task capture uses the device calendar date at an IST day boundary", async 
   await page.clock.install({ time: new Date("2026-10-03T20:00:00Z") });
   await seed(page);
   await page.goto("/todo");
+  await page.getByRole("button", { name: "Add task", exact: true }).click();
   await page
     .getByRole("textbox", { name: "New task", exact: true })
     .fill("Local calendar task");
@@ -220,7 +225,7 @@ test("Library keeps the old archive URL and goal planning links directly to Moti
     page.getByRole("heading", { name: "Library", exact: true }),
   ).toBeVisible();
   await page.goto("/goal");
-  await page.getByRole("link", { name: "Motivation", exact: true }).click();
+  await page.locator(".personal-content").getByRole("link", { name: "Motivation", exact: true }).click();
   await expect(page).toHaveURL(/\/motivation$/);
 });
 

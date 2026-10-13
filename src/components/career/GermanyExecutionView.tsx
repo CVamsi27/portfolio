@@ -16,12 +16,11 @@ import type {
   CareerExecutionState,
 } from "@/lib/career-roadmap";
 import { isCalendarDate } from "@/lib/personal-timetable";
-import DailyTimetable, {
-  type DailySchedule,
-} from "@/components/trackers/DailyTimetable";
+import type { DailySchedule } from "@/components/trackers/DailyTimetable";
 import RoadmapGuide from "./RoadmapGuide";
 import EvidenceItem from "./RoadmapEvidenceItem";
-import GermanyExamForm from "./GermanyExamForm";
+import GermanyExams from "./GermanyExams";
+import Link from "next/link";
 import GermanyCompanyForm from "./GermanyCompanyForm";
 const panels = ["Today", "This week", "Exams", "Companies", "Guides"] as const;
 type Panel = (typeof panels)[number];
@@ -35,7 +34,9 @@ export default function GermanyExecutionView({
   onEvidence,
   onAttempt,
   onCompany,
+  careerView=false,
 }: {
+  careerView?: boolean;
   plan: GermanyRoadmap;
   date: string;
   setDate: (date: string) => void;
@@ -61,13 +62,13 @@ export default function GermanyExecutionView({
       );
       setPanel(
         panels.find((p) => p.toLowerCase().replace(" ", "-") === candidate) ??
-          "Today",
+          (careerView ? "This week" : "Today"),
       );
     };
     sync();
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
-  }, []);
+  }, [careerView]);
   useEffect(() => {
     const task = new URLSearchParams(window.location.search).get("task");
     if (panel === "Today" && task === `germany:2026:day:${date}`) {
@@ -172,9 +173,10 @@ export default function GermanyExecutionView({
       </ul>
     </div>
   );
+  if (panel === "Exams") return <GermanyExams execution={e} attempts={attempts} onAttempt={onAttempt} onBack={()=>choose("This week")} />;
   return (
     <div className="space-y-6 min-w-0" data-testid="germany-roadmap">
-      <section className="border-l-4 border-primary bg-card p-4 sm:p-6 space-y-3 rounded-r-xl">
+      <details className="workspace-disclosure"><summary>Campaign context · Week {week.number}</summary><section className="py-3 space-y-3">
         <p className="font-utility text-xs uppercase tracking-widest text-primary">
           Germany campaign · 50 hours/week
         </p>
@@ -194,7 +196,7 @@ export default function GermanyExecutionView({
               ? "Continue the hiring cycle. Use the January 4–7 study ending, actual interview feedback and current eligible roles to choose the next two weeks."
               : `Week ${week.number}: ${week.deliverable}`}
         </p>
-      </section>
+      </section></details>
       <div className="flex flex-wrap gap-3 items-end justify-between">
         <label className="text-sm">
           Plan date
@@ -219,7 +221,7 @@ export default function GermanyExecutionView({
         aria-label="Germany roadmap sections"
         className="flex flex-wrap gap-2"
       >
-        {panels.map((p) => (
+        {(careerView ? panels.filter(p=>p!=="Today") : []).map((p) => (
           <button
             key={p}
             aria-pressed={panel === p}
@@ -240,7 +242,7 @@ export default function GermanyExecutionView({
                   <p className="text-sm">
                     {nextExam.id} · {nextExam.date} · {nextExam.time} IST
                   </p>
-                  <RoadmapGuide content={nextExam.content} />
+                  <details><summary className="min-h-11">Assessment brief</summary><RoadmapGuide content={nextExam.content} /></details>
                   <button
                     className="inline-action min-h-11"
                     onClick={() => choose("Exams")}
@@ -257,7 +259,7 @@ export default function GermanyExecutionView({
             </section>
             <section className="rounded-xl border border-border p-4 space-y-2">
               <h3 className="font-semibold">Campaign action</h3>
-              <RoadmapGuide content={campaign.application} />
+              <details><summary className="min-h-11">Campaign brief</summary><RoadmapGuide content={campaign.application} /></details>
               <button
                 className="inline-action min-h-11"
                 onClick={() => choose("Companies")}
@@ -297,13 +299,11 @@ export default function GermanyExecutionView({
                 hours.
               </p>
               {Object.entries(assignments).map(([range, content]) => (
-                <article
+                <details
                   key={range}
                   className="border-t border-border pt-4 space-y-3"
                 >
-                  <h3 className="font-utility text-sm font-semibold text-primary">
-                    {range.replace("-", "–")}
-                  </h3>
+                  <summary className="min-h-11 cursor-pointer font-semibold">{({"08:30-10:00":"Study & retrieval", "10:15-12:15":"Project & verification", "14:30-16:00":"Career action", "16:15-17:15":"Practice & assessment", "17:30-18:00":"Speaking practice"} as Record<string,string>)[range] || "Assignment details"}</summary>
                   <RoadmapGuide content={content} context={context} />
                   {range === "16:15-17:15" &&
                     !day?.blocks.assessment &&
@@ -368,7 +368,7 @@ export default function GermanyExecutionView({
                       before adding topics.
                     </p>
                   )}
-                </article>
+                </details>
               ))}
               <ul>
                 <EvidenceItem
@@ -400,13 +400,7 @@ export default function GermanyExecutionView({
               )}
             </section>
           )}
-          <DailyTimetable
-            schedule={schedule}
-            date={date}
-            timeZone="Asia/Kolkata"
-            title="Today's timetable"
-            initiallyExpanded={false}
-          />
+          <Link className="inline-action" href={`/hub?date=${date}`}>Open Today’s agenda</Link>
         </div>
       )}
       {panel === "This week" && (
@@ -471,138 +465,6 @@ export default function GermanyExecutionView({
               />
             ))}
           </ul>
-        </section>
-      )}
-      {panel === "Exams" && (
-        <section className="space-y-4">
-          <h2 className="font-display text-xl">Interview exams and retakes</h2>
-          <p className="text-sm">
-            Two passes on different prompts establish preparation readiness.
-            Both practical tracks are required for full-stack readiness.
-            Self-assessment stays labeled; actual employer stages and tool rules
-            take precedence.
-          </p>
-          <button
-            className="inline-action min-h-11"
-            onClick={() => openGuide("exams")}
-          >
-            Open full exam guide and task fixtures
-          </button>
-          {e.rounds.map((round) => (
-            <details
-              key={round.id}
-              className="rounded-xl border border-border p-4"
-            >
-              <summary className="min-h-11 cursor-pointer font-semibold text-sm">
-                {round.title}
-              </summary>
-              <div className="space-y-4 pt-3">
-                <p className="text-sm">
-                  Pass ≥{round.passTotal}/{round.dimensions.length * 4}; every
-                  dimension ≥2;{" "}
-                  {round.minimum3.map((i) => round.dimensions[i]).join(" and ")}{" "}
-                  ≥3. Any critical failure or overtime requires repair.
-                </p>
-                {(round.id === "R2"
-                  ? ["frontend", "backend"]
-                  : ["general"]
-                ).map((track) => (
-                  <p key={track} className="text-sm font-medium">
-                    {track === "general" ? "Readiness" : track + " readiness"}:{" "}
-                    {examReadiness(round, attempts, e.assessmentVersion, track)}
-                  </p>
-                ))}
-                <RoadmapGuide content={round.content} context={context} />
-                {onAttempt && (
-                  <GermanyExamForm
-                    round={round}
-                    version={e.assessmentVersion}
-                    onSave={onAttempt}
-                  />
-                )}
-                <h4 className="font-semibold text-sm">Attempt history</h4>
-                {attempts.filter((a) => a.roundId === round.id).length ? (
-                  attempts
-                    .filter((a) => a.roundId === round.id)
-                    .map((a) => {
-                      const result = scoreExam(round, a);
-                      return (
-                        <article
-                          key={a.id}
-                          className="rounded-lg bg-muted/30 p-3 space-y-2 text-sm"
-                        >
-                          <p className="font-semibold">
-                            {a.promptVersion !== e.assessmentVersion
-                              ? "Criteria changed · needs review"
-                              : result.status === "passed"
-                                ? `Passed · ${a.reviewerType === "self" ? "self-assessed" : "human reviewed"}${result.eligible ? "" : " · assisted practice"}`
-                                : result.status === "repair"
-                                  ? "Repair needed"
-                                  : "Attempt recorded · unscored"}
-                          </p>
-                          <p>
-                            {a.prompt} · {a.track} · {a.focusedMinutes} min ·{" "}
-                            {result.total}/{round.dimensions.length * 4}
-                          </p>
-                          <p>
-                            {new Date(a.startedAt).toLocaleString("en-GB", {
-                              timeZone: "Asia/Kolkata",
-                            })}{" "}
-                            IST · {a.reviewer}
-                          </p>
-                          <p>{a.evidence}</p>
-                          {a.criticalFailures && (
-                            <p>Critical failure: {a.criticalFailures}</p>
-                          )}
-                          <p>
-                            Next repair: {a.repair} · {a.retakeDate}
-                          </p>
-                          <details>
-                            <summary className="min-h-11 cursor-pointer">
-                              Dimension observations
-                            </summary>
-                            {round.dimensions.map((name, i) => (
-                              <p key={name}>
-                                {name}: {a.scores[i] ?? "unscored"} —{" "}
-                                {a.reasons[i]}
-                              </p>
-                            ))}
-                          </details>
-                        </article>
-                      );
-                    })
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No attempts recorded. A scheduled exam is pending until you
-                    run and score it.
-                  </p>
-                )}
-              </div>
-            </details>
-          ))}
-          <h3 className="font-semibold">Wednesday and Saturday calendar</h3>
-          <p className="text-sm">
-            After week 1, a failed-round retake takes priority over a Wednesday
-            checkpoint. Full loops use project and Friday practice blocks plus
-            Saturday R3/R5/R6; the exam guide specifies the split.
-          </p>
-          {e.assessments.map((a) => (
-            <details key={a.id} className="rounded-lg border border-border p-3">
-              <summary className="min-h-11 cursor-pointer text-sm">
-                {a.id} · {a.date} · {a.time} IST
-              </summary>
-              <RoadmapGuide content={a.content} />
-              <button
-                className="inline-action min-h-11 mt-2"
-                onClick={() => {
-                  navigate(a.date);
-                  choose("Today");
-                }}
-              >
-                Open this exam day
-              </button>
-            </details>
-          ))}
         </section>
       )}
       {panel === "Companies" && (

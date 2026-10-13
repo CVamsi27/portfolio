@@ -10,9 +10,8 @@ import type {
   CareerEvidence,
   CareerExecutionState,
 } from "@/lib/career-roadmap";
-import DailyTimetable, {
-  type DailySchedule,
-} from "@/components/trackers/DailyTimetable";
+import type { DailySchedule } from "@/components/trackers/DailyTimetable";
+import Link from "next/link";
 import RoadmapGuide from "./RoadmapGuide";
 import EvidenceItem from "./RoadmapEvidenceItem";
 import GermanyExecutionView from "./GermanyExecutionView";
@@ -30,7 +29,9 @@ export default function GermanyRoadmap({
   onEvidence,
   onAttempt,
   onCompany,
+  careerView=false,
 }: {
+  careerView?: boolean;
   plan: Plan;
   onAttempt?: (attempt: GermanyExamAttempt) => void;
   onCompany?: (id: string, record: GermanyCompanyRecord) => void;
@@ -75,6 +76,7 @@ export default function GermanyRoadmap({
     return (
       <GermanyExecutionView
         plan={plan}
+        careerView={careerView}
         date={date}
         setDate={setDate}
         today={today}
@@ -116,7 +118,7 @@ export default function GermanyRoadmap({
       <section className="space-y-3">
         <div className="flex flex-wrap justify-between items-end gap-3">
           <h2 className="font-display text-xl font-semibold">
-            Dated timetable
+            Campaign date
           </h2>
           <label className="text-sm">
             Plan date
@@ -143,13 +145,7 @@ export default function GermanyRoadmap({
             Curriculum for optional browsing.
           </p>
         )}
-        <DailyTimetable
-          schedule={schedule}
-          date={date}
-          timeZone="Asia/Kolkata"
-          title="Today's timetable"
-          initiallyExpanded={false}
-        />
+        <Link className="inline-action" href={`/hub?date=${date}`}>Open Today’s agenda</Link>
         <p className="text-xs text-muted-foreground">
           Mon/Wed/Fri: OSS. Tue/Thu: networking and technical writing. Weekdays
           9h · Saturday 5h · Sunday recovery. Meetings use Europe/Berlin; check

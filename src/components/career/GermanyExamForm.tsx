@@ -7,29 +7,41 @@ export default function GermanyExamForm({
   round,
   version,
   onSave,
+  initialTrack,
+  onDirtyChange,
+  onCancel,
 }: {
   round: GermanyRound;
   version: string;
   onSave: (attempt: GermanyExamAttempt) => void;
+  initialTrack?: string;
+  onDirtyChange?: (dirty: boolean) => void;
+  onCancel?: () => void;
 }) {
   const [open, setOpen] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
+  const [reviewerType, setReviewerType] = useState("self");
   return (
     <div className="space-y-3">
       <button
         className="inline-action min-h-11"
         onClick={() => {
+          if (open && onCancel) {
+            onCancel();
+            return;
+          }
           setOpen(!open);
           setMessage("");
         }}
       >
-        Record an attempt
+        {open ? "Cancel attempt" : "Record an attempt"}
       </button>
       {message && <p role="status">{message}</p>}
       {open && (
         <form
           className="space-y-4 rounded-lg border border-border p-3"
+          onChange={() => onDirtyChange?.(true)}
           onSubmit={(e) => {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
@@ -63,6 +75,7 @@ export default function GermanyExamForm({
                 retakeDate: val("retake"),
               };
               onSave(attempt);
+              onDirtyChange?.(false);
               setOpen(false);
               setError("");
               setMessage(
@@ -91,10 +104,17 @@ export default function GermanyExamForm({
               className={field}
             />
           </label>
-          {round.id === "R2" && (
+          {round.id === "R2" && initialTrack && (
+            <input type="hidden" name="track" value={initialTrack} />
+          )}
+          {round.id === "R2" && !initialTrack && (
             <label className="block text-sm">
               Practical track
-              <select name="track" className={field}>
+              <select
+                name="track"
+                className={field}
+                defaultValue="frontend"
+              >
                 <option value="frontend">Frontend</option>
                 <option value="backend">Backend</option>
               </select>
@@ -144,15 +164,27 @@ export default function GermanyExamForm({
           </label>
           <label className="block text-sm">
             Assessment reviewer
-            <select name="reviewerType" className={field}>
+            <select
+              name="reviewerType"
+              className={field}
+              value={reviewerType}
+              onChange={(event) => setReviewerType(event.target.value)}
+            >
               <option value="self">Self-assessed</option>
               <option value="human">Independent human review</option>
             </select>
           </label>
-          <label className="block text-sm">
-            Human reviewer and feedback reference
-            <input name="reviewer" maxLength={300} className={field} />
-          </label>
+          {reviewerType === "human" && (
+            <label className="block text-sm">
+              Human reviewer and feedback reference
+              <input
+                name="reviewer"
+                required
+                maxLength={300}
+                className={field}
+              />
+            </label>
+          )}
           <p className="text-sm">
             Scores: 0 no usable result · 1 major gaps · 2 basic case with
             gaps/hints · 3 correct boundaries in time · 4 handles a changed

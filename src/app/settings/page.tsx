@@ -1,9 +1,11 @@
 "use client";
 import ProtectionPreferences from "@/components/personal/ProtectionPreferences";
+import FocusPreferences from "@/components/personal/FocusPreferences";
 import ModulePreferences from "@/components/personal/ModulePreferences";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import {
   useNotificationPermission,
   refreshNotificationPermission,
@@ -74,6 +76,7 @@ export default function SettingsPage() {
   useMigrateTodos();
   useMigrateGoal();
   const { prefs, setPrefs, isSetup } = useUserPrefs();
+  const { theme, setTheme } = useTheme();
   const [settingsView, setSettingsView] = useState("profile");
   useEffect(() => {
     const sync = () => {
@@ -81,11 +84,11 @@ export default function SettingsPage() {
       setSettingsView(
         /backup|data/.test(hash)
           ? "data"
-          : /modules/.test(hash)
+          : /modules|appearance/.test(hash)
             ? "modules"
             : /reminder|notifications/.test(hash)
               ? "notifications"
-              : /bedtime|preferences|work/.test(hash)
+              : /bedtime|preferences|work|focus/.test(hash)
                 ? "work"
                 : "profile",
       );
@@ -253,45 +256,16 @@ export default function SettingsPage() {
       <TrackerShell
         icon="settings"
         title="Settings"
-        subtitle="Manage your account, appearance, reminders, and saved data."
+        subtitle={null}
         badge={<SyncBadge status={status} />}
-        actions={{
-          primary: (
-            <a
-              href="#backup-restore"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Open backup controls
-            </a>
-          ),
-          secondary: (
-            <a
-              href="#preferences"
-              className="text-xs font-semibold text-primary hover:underline"
-            >
-              Manage preferences →
-            </a>
-          ),
-        }}
+
       >
-        {user && (
-          <section className="rounded-xl border border-border p-4 text-sm">
-            <p>
-              Older unassigned local records stay on this device. They are not
-              automatically attached to your account. Export them separately if
-              they belong to you, then import into the correct account.
-            </p>
-            <Button variant="outline" onClick={exportLegacy} className="mt-2">
-              Export older local data
-            </Button>
-          </section>
-        )}
         <nav className="workspace-views" aria-label="Settings sections">
           {[
-            ["profile", "Profile"],
-            ["modules", "Modules"],
+            ["profile", "Account"],
+            ["modules", "Appearance"],
             ["notifications", "Notifications"],
-            ["work", "Work preferences"],
+            ["work", "Focus"],
             ["data", "Data"],
           ].map(([id, label]) => (
             <button
@@ -308,10 +282,12 @@ export default function SettingsPage() {
           ))}
         </nav>
         <div hidden={settingsView !== "modules"}>
+          <section className="workspace-panel space-y-3"><h2>Appearance</h2><label className="field-label">Theme<select value={theme || "system"} onChange={event=>setTheme(event.target.value)}><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></section>
           <ModulePreferences />
         </div>
         <div hidden={settingsView !== "work"}>
-          <ProtectionPreferences />
+          <FocusPreferences />
+          <details className="workspace-disclosure"><summary>Distraction protection</summary><ProtectionPreferences /></details>
         </div>
         <div hidden={settingsView !== "profile"} className="workspace-panel">
           <h2>Profile and calendar</h2>
@@ -475,7 +451,7 @@ export default function SettingsPage() {
           </Card>
         </div>
         <div hidden={settingsView !== "work"} className="space-y-5">
-          <Card variant="dossier" id="bedtime">
+          <details className="workspace-disclosure"><summary>Bedtime protection</summary><Card variant="dossier" id="bedtime">
             <CardContent className="space-y-4 p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -594,9 +570,22 @@ export default function SettingsPage() {
               </div>
               <DevicePreparation compact />
             </CardContent>
-          </Card>
+          </Card></details>
         </div>
         <div hidden={settingsView !== "data"} className="space-y-5">
+        {user && (
+          <section className="rounded-xl border border-border p-4 text-sm">
+            <p>
+              Older unassigned local records stay on this device. They are not
+              automatically attached to your account. Export them separately if
+              they belong to you, then import into the correct account.
+            </p>
+            <Button variant="outline" onClick={exportLegacy} className="mt-2">
+              Export older local data
+            </Button>
+          </section>
+        )}
+
           {/* ── Backup / restore ── */}
           <Card variant="dossier" id="backup-restore">
             <CardContent className="space-y-4 p-5">
@@ -694,9 +683,9 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </div>
-        <div hidden={settingsView !== "work"} className="space-y-5">
+        <div hidden={settingsView !== "modules"} className="space-y-5">
           {/* ── Preferences ── */}
-          <Card variant="dossier">
+          <details className="workspace-disclosure"><summary>Workout preferences</summary><Card variant="dossier">
             <CardContent className="space-y-4 p-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -740,7 +729,7 @@ export default function SettingsPage() {
                 used. Re-run the full questionnaire from the hub.
               </p>
             </CardContent>
-          </Card>
+          </Card></details>
         </div>
         <div hidden={settingsView !== "data"} className="space-y-5">
           {/* ── Danger zone ── */}

@@ -10,7 +10,7 @@ export default function HealthPage() {
         showBack={false}
         title="Health"
         icon="scale"
-        subtitle="Record what happened, inspect your history and adjust your routine."
+        subtitle={null}
       >
         <Suspense fallback={<p>Loading health records…</p>}>
           <HealthWorkspace />

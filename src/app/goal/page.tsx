@@ -8,8 +8,6 @@ import TrackerShell from "@/components/trackers/TrackerShell";
 import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
-import TrendChart from "@/components/progress/TrendChart";
-import { progressDates } from "@/lib/personal-progress";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -331,13 +329,14 @@ export default function GoalPage() {
     <RequireAuth>
       <TrackerShell
         icon="flag"
-        title={displayGoalTitle(prefs)}
-        subtitle={`${goalMeta.desc}. Log your daily metric, manage milestones, and watch the trajectory.`}
+        title="Goals"
+        subtitle={null}
         badge={<SyncBadge status={status} />}
         actions={{
           primary: (
             <a
               href="#daily-metric"
+              onClick={()=>setView("metrics")}
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Log today&apos;s progress
@@ -670,24 +669,6 @@ export default function GoalPage() {
                 )}
               </div>
 
-              <div className="mt-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Last 30 days
-                </p>
-                <TrendChart
-                  label={metric.label}
-                  unit={metric.label.toLowerCase()}
-                  points={progressDates(today, 30).map((date) => ({
-                    date,
-                    value:
-                      typeof metricByDay[date] === "number" &&
-                      Number.isFinite(metricByDay[date]) &&
-                      metricByDay[date] >= 0
-                        ? metricByDay[date]
-                        : null,
-                  }))}
-                />
-              </div>
             </CardContent>
           </Card>
         </section>

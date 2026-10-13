@@ -12,7 +12,7 @@ function CapturePage() {
       <PersonalShell
         icon="log"
         title={params.get("view") === "journal" ? "Journal" : "Add a record"}
-        subtitle="Choose one activity and record it for the right day."
+        subtitle={null}
       >
         {params.get("view") === "journal" ? (
           <JournalWorkspace />
