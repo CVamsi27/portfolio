@@ -225,7 +225,7 @@ test("Library keeps the old archive URL and goal planning links directly to Moti
     page.getByRole("heading", { name: "Library", exact: true }),
   ).toBeVisible();
   await page.goto("/goal");
-  await page.getByRole("link", { name: "Motivation", exact: true }).click();
+  await page.locator(".personal-content").getByRole("link", { name: "Motivation", exact: true }).click();
   await expect(page).toHaveURL(/\/motivation$/);
 });
 

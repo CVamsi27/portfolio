@@ -18,6 +18,7 @@ test("long archive content remains readable without mobile overflow", async ({
   await seed(page, { "vk:archive:items": [{ ...entry, body }] });
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto("/archive");
+  await page.locator(".nova-library-list summary").click();
   await expect(page.getByText(body, { exact: true })).toBeVisible();
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
@@ -35,7 +36,7 @@ test("invalid archive links keep the draft and valid links announce saving", asy
 }) => {
   await seed(page);
   await page.goto("/archive");
-  await page.getByRole("button", { name: "Add item", exact: true }).click();
+  await page.getByRole("button", { name: "New item", exact: true }).click();
   await page.getByRole("button", { name: "Link", exact: true }).click();
   const draft = page.getByRole("textbox", { name: "Capture", exact: true });
   const source = page.getByRole("textbox", { name: "Source URL", exact: true });
@@ -72,6 +73,8 @@ test("an empty goal filter offers access to existing items", async ({
     "vk:archive:items": [{ ...entry, goalCategory: "general" }],
   });
   await page.goto("/archive");
+  await expect(page.getByText(entry.body, { exact: true })).toBeVisible();
+  await page.getByRole("group", { name: "Library scope" }).getByRole("button", { name: "Relocation", exact: true }).click();
   await expect(
     page.getByText("No items for this goal", { exact: true }),
   ).toBeVisible();

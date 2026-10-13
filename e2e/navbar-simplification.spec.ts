@@ -10,8 +10,9 @@ for (const width of [320, 768, 1440]) {
     await expect(rail.getByRole("button")).toHaveCount(1);
     await rail.getByRole("button", { name: "Tools menu", exact: true }).click();
     const menu = page.getByRole("menu");
-    await expect(menu.getByRole("menuitem", { name: "All tools", exact: true })).toBeVisible();
-    await expect(menu.getByRole("menuitem", { name: "Account & settings", exact: true })).toHaveAttribute("href", "/settings");
+    await expect(menu.getByRole("menuitem", { name: "Motivation", exact: true })).toHaveAttribute("href", "/motivation");
+    await expect(menu.getByRole("menuitem", { name: "Settings", exact: true })).toHaveAttribute("href", "/settings");
+    await expect(menu.getByRole("menuitem", { name: "All tools", exact: true })).toHaveCount(0);
     await menu.getByRole("menuitem", { name: "Search or run command" }).click();
     const palette = page.getByRole("dialog", { name: "Command Palette", exact: true });
     await expect(palette).toBeVisible();

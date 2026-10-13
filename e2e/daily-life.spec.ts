@@ -29,6 +29,7 @@ test("Plan schedules a task and Today opens the exact task without duplicating i
   await page.reload();
   await expect(page.getByTestId("day-agenda")).toContainText("Practice APIs");
   await page.goto("/hub");
+  await page.getByTestId("day-agenda").locator("summary").filter({ hasText: "Practice APIs" }).click();
   await page
     .getByTestId("day-agenda")
     .getByRole("link", { name: "Start", exact: true })
@@ -217,6 +218,7 @@ test("water needs one action, supports undo and leaves other dated records alone
 }) => {
   await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
   await page.goto("/hub?date=2026-10-02");
+  await page.getByText("Daily records & quick capture", { exact: true }).click();
   await page.getByRole("button", { name: "Water +1", exact: true }).click();
   expect(
     await page.evaluate(() =>
@@ -419,6 +421,7 @@ test("water undo never corrects a different selected day", async ({ page }) => {
   await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
   await page.goto("/hub?date=2026-10-02");
   await page.getByText("Daily records & quick capture", { exact: true }).click();
+  await page.getByText("Daily records & quick capture", { exact: true }).click();
   await page.getByRole("button", { name: "Water +1", exact: true }).click();
   await page.getByLabel("Selected date", { exact: true }).fill("2026-10-01");
   await expect(page).toHaveURL(/date=2026-10-01/);
@@ -441,6 +444,6 @@ test("mobile capture preserves the selected day and returns to its planning view
   await page.getByRole("button", { name: "Save task", exact: true }).click();
   const records = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:todos")!));
   expect(records[0].date).toBe("2026-10-03");
-  await page.getByRole("link", { name: "Return to Plan", exact: true }).click();
+  await page.getByRole("link", { name: "Return to previous page", exact: true }).click();
   await expect(page).toHaveURL(/\/plan\?date=2026-10-03&view=week$/);
 });

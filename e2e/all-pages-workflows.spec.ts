@@ -22,23 +22,22 @@ test("workout session controls are immediate and History and Plan survive reload
   await expect(page).toHaveURL(/date=2026-10-03.*view=plan/);
 });
 
-test("Library leads with retrieval and Add item opens a focused capture", async ({
+test("Library leads with retrieval and New item opens a focused capture", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seed(page);
   await page.goto("/archive");
-  await expect(page.getByLabel("Search library")).toBeInViewport();
+  await expect(page.getByLabel("Search library")).toHaveCount(0);
   await expect(page.getByLabel("Capture", { exact: true })).toBeHidden();
-  await page.getByRole("button", { name: "Add item", exact: true }).click();
+  await page.getByRole("button", { name: "New item", exact: true }).click();
   await page.getByLabel("Capture", { exact: true }).fill("A useful saved note");
   await page
     .getByRole("button", { name: "Save to library", exact: true })
     .click();
   await expect(page.getByLabel("Capture", { exact: true })).toBeHidden();
-  await expect(
-    page.getByText("A useful saved note", { exact: true }).first(),
-  ).toBeVisible();
+  await expect(page.getByText("A useful saved note", { exact: true }).first()).toBeVisible();
+  await expect(page.getByLabel("Search library")).toBeVisible();
 });
 
 test("Water is the default and meal window/history are deliberate views", async ({
@@ -148,12 +147,12 @@ test("discarding a Library draft starts the next capture empty", async ({
 }) => {
   await seed(page);
   await page.goto("/archive");
-  await page.getByRole("button", { name: "Add item", exact: true }).click();
+  await page.getByRole("button", { name: "New item", exact: true }).click();
   await page.getByLabel("Capture", { exact: true }).fill("Discard this draft");
   page.once("dialog", (dialog) => dialog.accept());
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
-  await page.getByRole("button", { name: "Add item", exact: true }).click();
+  await page.getByRole("button", { name: "New item", exact: true }).click();
   await expect(page.getByLabel("Capture", { exact: true })).toHaveValue("");
 });
 

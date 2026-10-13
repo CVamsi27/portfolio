@@ -138,11 +138,9 @@ test("dated assignments open contextual study links and retain a scored attempt 
 }) => {
   await setup(page);
   const roadmap = page.getByTestId("germany-roadmap");
-  await expect(
-    roadmap.getByText(
-      "Trace a synthetic request and test the authorization boundary.",
-    ),
-  ).toBeVisible();
+  await roadmap.getByText("Project & verification", { exact: true }).click();
+  await expect(roadmap.getByText("Trace a synthetic request and test the authorization boundary.").first()).toBeVisible();
+  await roadmap.getByText("Study & retrieval", { exact: true }).click();
   const study = roadmap
     .getByRole("link", { name: "Scope", exact: true })
     .first();
@@ -150,46 +148,48 @@ test("dated assignments open contextual study links and retain a scored attempt 
     "href",
     /roadmapDate=2026-10-12.*roadmapTask=/,
   );
-  await roadmap.getByRole("button", { name: "Exams", exact: true }).click();
-  await roadmap.getByText("R2 — interview practice", { exact: true }).click();
-  await roadmap
+  await roadmap.getByRole("button", { name: "Open prompts and rubrics", exact: true }).click();
+  const exams = page.getByTestId("germany-exams");
+  await exams.getByRole("button", { name: "R2", exact: true }).click();
+  await exams.getByLabel("Track", { exact: true }).selectOption("frontend");
+  await exams
     .getByRole("button", { name: "Record an attempt", exact: true })
     .click();
-  await roadmap
+  await exams
     .getByLabel("Prompt/form and changed constraint")
     .fill("Frontend stale responses form A");
-  await roadmap.getByLabel("Start time (IST)").fill("2026-10-24T10:15");
-  await roadmap.getByLabel("End time (IST)").fill("2026-10-24T11:15");
-  await roadmap.getByLabel("Focused minutes").fill("60");
-  await roadmap.getByLabel("Practical track").selectOption("frontend");
+  await exams.getByLabel("Start time (IST)").fill("2026-10-24T10:15");
+  await exams.getByLabel("End time (IST)").fill("2026-10-24T11:15");
+  await exams.getByLabel("Focused minutes").fill("60");
   for (const name of execution.rounds[2].dimensions) {
-    await roadmap
+    await exams
       .getByRole("combobox", { name: name + " score", exact: true })
       .selectOption("4");
-    await roadmap
+    await exams
       .getByLabel(name + " observation", { exact: true })
       .fill("Observed correct behavior with meaningful edge-case tests.");
   }
-  await roadmap
+  await exams
     .getByLabel("Saved artifact and checks")
     .fill(
       "The frozen revision and test command establish latest-request correctness and the tenant boundary.",
     );
-  await roadmap
+  await exams
     .getByLabel("Next repair")
     .fill("Change to duplicate-submit and uncertain-write constraints.");
-  await roadmap.getByLabel("Next practice/retake date").fill("2026-10-28");
-  await roadmap
+  await exams.getByLabel("Next practice/retake date").fill("2026-10-28");
+  await exams
     .getByRole("button", { name: "Save attempt", exact: true })
     .click();
-  await expect(roadmap).toContainText("Passed · self-assessed");
+  await exams.getByText("Attempt history · 1", { exact: true }).click();
+  await expect(exams).toContainText("Passed · Self-assessed");
   await page.reload();
-  await page.getByRole("button", { name: "Exams", exact: true }).click();
-  await page.getByText("R2 — interview practice", { exact: true }).click();
-  await expect(page.getByTestId("germany-roadmap")).toContainText(
+  await expect(page.getByRole("heading", { name: "Exams", exact: true })).toBeVisible();
+  await page.getByText("Attempt history · 1", { exact: true }).click();
+  await expect(page.getByTestId("germany-exams")).toContainText(
     "Frontend stale responses form A",
   );
-  await expect(page.getByTestId("germany-roadmap")).toContainText(
+  await expect(page.getByTestId("germany-exams")).toContainText(
     "1 of 2 changed-prompt passes",
   );
 });
@@ -200,6 +200,7 @@ for (const theme of ["light", "dark"])
     await page.setViewportSize({ width: 320, height: 900 });
     await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
     await setup(page);
+    await page.getByRole("button", { name: "Career", exact: true }).click();
     const roadmap = page.getByTestId("germany-roadmap");
     await roadmap
       .getByRole("button", { name: "Companies", exact: true })

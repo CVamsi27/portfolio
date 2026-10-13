@@ -6,8 +6,8 @@ test("editorial foundation exposes semantic surfaces and an action hierarchy", a
   await page.goto("/trackers");
   await expect(page.locator('section.editorial-frame[data-surface="archive"]')).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, exact: true, name: "Today" })).toBeVisible();
-  await expect(page.locator("[data-editorial-action]").first()).toBeVisible();
-  await expect(page.locator("[data-editorial-telemetry]").first()).toBeVisible();
+  await expect(page.getByTestId("today-header").locator(".nova-primary-action")).toBeVisible();
+  await expect(page.getByTestId("progress-lead")).toBeVisible();
 });
 
 test("portfolio uses the personal paper editorial surface", async ({ page }) => {
@@ -36,10 +36,10 @@ test("tracker shell reads as one editorial chapter", async ({ page }) => {
 test("desktop and mobile shells keep the primary action visible", async ({ page }) => {
   await seed(page);
   await page.goto("/trackers");
-  await expect(page.locator("[data-editorial-action]").first()).toBeVisible();
+  await expect(page.getByTestId("today-header").locator(".nova-primary-action")).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
-  await expect(page.locator("[data-editorial-action]").first()).toBeVisible();
+  await expect(page.getByTestId("today-header").locator(".nova-primary-action")).toBeVisible();
 });
 
   test("product routes use distinct editorial chapters", async ({ page }) => {
@@ -62,19 +62,20 @@ test("desktop and mobile shells keep the primary action visible", async ({ page 
     await expect(page.getByTestId("mobile-command-dock")).toHaveCount(0);
   });
 
-test("share limits remain visible near the dispatch action", async ({ page }) => {
+test("Sharing keeps limits available and dispatch in a contextual editor", async ({ page }) => {
   await seed(page);
   await page.goto("/share");
-  await expect(page.getByText("Storage limits")).toBeVisible();
-  await expect(page.locator("[data-editorial-action]").first()).toBeVisible();
+  await page.getByText(/^Storage limits/).click();
   await expect(page.locator("body")).toContainText("50");
+  await page.getByRole("button", { name: "New drop", exact: true }).click();
+  await expect(page.getByRole("dialog").locator("[data-editorial-action]")).toBeVisible();
 });
 
 test("editorial shell remains readable at mobile width", async ({ page }) => {
   await seed(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/trackers");
-  await expect(page.locator("[data-editorial-action]").first()).toBeVisible();
+  await expect(page.getByTestId("today-header").locator(".nova-primary-action")).toBeVisible();
   await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
   await expect(page.locator("body")).not.toHaveCSS("overflow-x", "visible");
 });
