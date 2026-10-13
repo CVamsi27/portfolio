@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { ArrowRight, Bookmark, Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { MotivationMedia } from "@/lib/motivation-media";
+import GermanyGallery from "./GermanyGallery";
 
 type Props = {
   goalTitle: string;
-  goalLabel: string;
   why: string;
   reminder: string;
   nextMilestone?: string;
@@ -17,7 +15,6 @@ type Props = {
   actionHref: string;
   saved: boolean;
   copied: boolean;
-  media: MotivationMedia;
   onNextReminder: () => void;
   onSave: () => void;
   onCopy: () => void;
@@ -25,7 +22,6 @@ type Props = {
 
 export default function FocusScene({
   goalTitle,
-  goalLabel,
   why,
   reminder,
   nextMilestone,
@@ -34,13 +30,10 @@ export default function FocusScene({
   actionHref,
   saved,
   copied,
-  media,
   onNextReminder,
   onSave,
   onCopy,
 }: Props) {
-  const [failedImage, setFailedImage] = useState<string>();
-  const imageVisible = media.imageUrl && failedImage !== media.imageUrl;
   const complete = total > 0 && completed === total;
   return (
     <section
@@ -51,6 +44,7 @@ export default function FocusScene({
       aria-label="Your goal and motivation"
       className="goal-inspiration"
     >
+      <GermanyGallery />
       <div className="goal-inspiration__story">
         <h2 data-testid="focus-goal">{goalTitle}</h2>
         <p className="goal-inspiration__why" data-testid="goal-why">
@@ -100,42 +94,25 @@ export default function FocusScene({
           <div className="flex flex-wrap items-center gap-3 mt-4">
             <Button asChild>
               <Link href={complete ? "/log" : actionHref}>
-                {complete ? "Reflect on my progress" : actionHref === "/goal" ? "Review goal" : "Open Roadmap"}
+                {complete
+                  ? "Reflect on my progress"
+                  : actionHref === "/goal"
+                    ? "Review goal"
+                    : "Open Roadmap"}
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
               </Link>
             </Button>
-            {(complete || actionHref !== "/goal") && <Link
-              href="/goal"
-              className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4"
-            >
-              Review my goal
-            </Link>}
+            {(complete || actionHref !== "/goal") && (
+              <Link
+                href="/goal"
+                className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4"
+              >
+                Review my goal
+              </Link>
+            )}
           </div>
         </div>
       </div>
-      <details className="motivation-image"><summary>Supporting image</summary><figure className="goal-inspiration__visual">
-        {imageVisible ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            data-testid="focus-media"
-            src={`/api/motivation-image?url=${encodeURIComponent(media.imageUrl!)}`}
-            alt={media.imageAlt || `${goalLabel} inspiration`}
-            onError={() => setFailedImage(media.imageUrl)}
-          />
-        ) : (
-          <div className="goal-inspiration__horizon" aria-hidden />
-        )}
-        <figcaption>
-          <span data-testid="focus-scene-category">
-            {media.categoryLabel ?? goalLabel}
-          </span>
-          {imageVisible && media.sourceUrl ? (
-            <a href={media.sourceUrl} target="_blank" rel="noopener noreferrer">
-              {media.attribution ?? "Image source"}
-            </a>
-          ) : null}
-        </figcaption>
-      </figure></details>
     </section>
   );
 }

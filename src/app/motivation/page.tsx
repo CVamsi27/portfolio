@@ -1,17 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import FocusScene from "@/components/motivation/FocusScene";
 import Modal from "@/components/trackers/Modal";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  useUserPrefs,
-  GOAL_CATEGORIES,
-  displayGoalTitle,
-} from "@/lib/user-prefs";
+import { useUserPrefs, displayGoalTitle } from "@/lib/user-prefs";
 import { dateKey, milestonesFor } from "@/lib/trackers";
 import {
   useCustomQuotes,
@@ -20,10 +16,6 @@ import {
   newCustomQuote,
 } from "@/lib/tracker-store";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import {
-  fallbackMotivationMedia,
-  type MotivationMedia,
-} from "@/lib/motivation-media";
 import { goalEncouragement } from "@/lib/goal-motivation";
 
 export default function MotivationPage() {
@@ -35,9 +27,6 @@ export default function MotivationPage() {
     [],
   );
   const { value: custom, setValue: setCustom } = useCustomQuotes();
-  const { value: mediaCache, setValue: setMediaCache } = useSyncedStorage<
-    Record<string, MotivationMedia>
-  >("motivation:media", {});
   const [remindersOpen, setRemindersOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [offset, setOffset] = useState(0);
@@ -64,51 +53,6 @@ export default function MotivationPage() {
   );
   const completed = milestones.filter((item) => item.done).length;
   const next = milestones.find((item) => !item.done)?.title;
-  const country =
-    prefs.goalCategory === "relocation" ? prefs.goalCountry : undefined;
-  const mediaKey = `v2:goal:${prefs.goalCategory}:${country ?? "none"}`;
-  const fallback = useMemo(
-    () => fallbackMotivationMedia("goal", prefs.goalCategory, country),
-    [prefs.goalCategory, country],
-  );
-  const media = mediaCache?.[mediaKey] ?? fallback;
-
-  useEffect(() => {
-    if (!prefs.questionnaireDone) return;
-    const cached = mediaCache?.[mediaKey];
-    if (cached && Date.now() - cached.fetchedAt < 86_400_000) return;
-    const controller = new AbortController();
-    const params = new URLSearchParams({
-      source: "goal",
-      category: prefs.goalCategory,
-    });
-    if (country) params.set("country", country);
-    fetch(`/api/motivation-media?${params}`, { signal: controller.signal })
-      .then((response) =>
-        response.ok
-          ? response.json()
-          : Promise.reject(new Error("Unavailable")),
-      )
-      .then((result: MotivationMedia) => {
-        if (!controller.signal.aborted)
-          setMediaCache((previous) => ({
-            ...(previous ?? {}),
-            [mediaKey]: result,
-          }));
-      })
-      .catch(() => {
-        /* Local goal-aware scene stays usable without the service. */
-      });
-    return () => controller.abort();
-  }, [
-    prefs.questionnaireDone,
-    prefs.goalCategory,
-    country,
-    mediaKey,
-    mediaCache,
-    setMediaCache,
-  ]);
-
   const toggleSave = () => {
     setFavs((previous) =>
       (previous ?? []).includes(reminder)
@@ -131,9 +75,6 @@ export default function MotivationPage() {
     setDraft("");
     setNotice("Your reminder was added.");
   };
-  const label =
-    GOAL_CATEGORIES.find((item) => item.id === prefs.goalCategory)?.label ??
-    "Your goal";
   const actionHref = ["relocation", "career", "learning"].includes(
     prefs.goalCategory,
   )
@@ -150,7 +91,6 @@ export default function MotivationPage() {
       >
         <FocusScene
           goalTitle={displayGoalTitle(prefs)}
-          goalLabel={label}
           why={encouragement.why}
           reminder={reminder}
           nextMilestone={next}
@@ -159,7 +99,6 @@ export default function MotivationPage() {
           actionHref={actionHref}
           saved={(favs ?? []).includes(reminder)}
           copied={copyState === "copied"}
-          media={media}
           onNextReminder={() => {
             setOffset((value) => value + 1);
             setCopyState("idle");
