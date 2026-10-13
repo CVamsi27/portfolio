@@ -15,7 +15,7 @@ test("motivation media exposes destination-aware context", () => {
 });
 
 test.describe("motivation", () => {
-  test("legacy general preference still receives goal-aware inspiration without a preference rewrite", async ({
+  test("legacy general preference keeps the saved goal while showing Germany views", async ({
     page,
   }) => {
     const requests: string[] = [];
@@ -35,16 +35,19 @@ test.describe("motivation", () => {
       },
     });
     await page.goto("/motivation");
-    await expect.poll(() => requests.length).toBeGreaterThan(0);
-    expect(requests.at(-1)).toContain("source=goal");
-    expect(requests.at(-1)).toContain("country=Canada");
+    await expect(page.getByTestId("focus-media")).toHaveAttribute(
+      "src",
+      /germany-/,
+    );
+    await expect(page.getByTestId("goal-why")).toContainText("Canada");
+    expect(requests).toHaveLength(0);
     expect(
       JSON.parse((await page.evaluate(() => localStorage.getItem("vk:prefs")))!)
         .motivationPersonalization,
     ).toBe("general");
   });
 
-  test("relocation media uses safe destination terms without raw goal text", async ({
+  test("bundled Germany imagery never sends private goal text to the media service", async ({
     page,
   }) => {
     const requests: string[] = [];
@@ -84,12 +87,14 @@ test.describe("motivation", () => {
       },
     });
     await page.goto("/motivation");
-    await expect.poll(() => requests.length).toBeGreaterThan(0);
-    const url = requests.at(-1)!;
-    expect(url).toContain("category=relocation");
-    expect(url).toContain("country=Germany");
-    expect(url).not.toContain("Private%20title");
-    expect(url).not.toContain("Test%20User");
+    await expect(page.getByTestId("focus-media")).toHaveAttribute(
+      "src",
+      /germany-/,
+    );
+    await expect(page.getByTestId("focus-goal")).toHaveText(
+      "Private title that must never leave the browser",
+    );
+    expect(requests).toHaveLength(0);
   });
 
   test("saved and personal reminders remain available in a compact dialog", async ({

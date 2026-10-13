@@ -1,17 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
-const sceneMedia = {
-  imageUrl: "https://images.example.test/journey.jpg",
-  imageAlt: "A path toward a distant horizon",
-  attribution: "Public image source",
-  sourceUrl: "https://commons.wikimedia.org/wiki/File:Example.jpg",
-  categoryLabel: "Canada relocation",
-  quote: "A borrowed quote must not be attributed to original encouragement.",
-  quoteAuthor: "Someone else",
-  fetchedAt: Date.now(),
-};
-
 test.describe("goal motivation", () => {
   test("milestone action opens the plan without changing goal or focus data", async ({
     page,
@@ -46,83 +35,85 @@ test.describe("goal motivation", () => {
     ).toBeNull();
   });
 
-  test("goal-safe imagery retains attribution without misattributing original reminders", async ({
+  test("Germany imagery leads the page and retains its credit below the photo", async ({
     page,
   }) => {
-    await page.route("**/api/motivation-media**", (route) =>
-      route.fulfill({ json: sceneMedia }),
-    );
-    await page.route("**/api/motivation-image**", (route) =>
-      route.fulfill({
-        contentType: "image/svg+xml",
-        body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="#17343a"/></svg>',
-      }),
-    );
     await seed(page);
     await page.goto("/motivation");
-    await page.getByText("Supporting image", { exact: true }).click();
-    await expect(page.getByTestId("focus-media")).toHaveAttribute(
+    const image = page.getByTestId("focus-media");
+    await expect(image).toBeVisible();
+    await expect(image).toHaveAttribute(
       "src",
-      /journey.jpg/,
+      /\/images\/motivation\/germany-neuschwanstein\.webp$/,
     );
+    await expect(image).toHaveAttribute("alt", /Germany/);
     await expect(
-      page.getByRole("link", { name: "Public image source" }),
-    ).toHaveAttribute("href", sceneMedia.sourceUrl);
-    await expect(page.getByTestId("focus-scene-category")).toHaveText(
-      "Canada relocation",
-    );
-    await expect(page.locator("blockquote")).not.toContainText(
-      sceneMedia.quote,
-    );
-    await expect(page.getByTestId("focus-scene")).not.toContainText(
-      "Someone else",
+      page.getByRole("link", { name: "Polina Koroleva / Unsplash" }),
+    ).toHaveAttribute("href", "https://unsplash.com/photos/HIEnq8fXPhY");
+    const imageBounds = await image.boundingBox();
+    const goalBounds = await page.getByTestId("focus-goal").boundingBox();
+    expect(goalBounds!.y).toBeGreaterThan(imageBounds!.y + imageBounds!.height);
+    await expect(
+      page.getByText("Supporting image", { exact: true }),
+    ).toHaveCount(0);
+    await expect(page.getByTestId("focus-goal")).toHaveText(
+      "Relocate to Canada",
     );
   });
 
-  test("imagery stays still without automatic rotation", async ({ page }) => {
-    await page.route("**/api/motivation-media**", (route) =>
-      route.fulfill({
-        json: {
-          ...sceneMedia,
-          imageOptions: [
-            { imageUrl: "https://images.example.test/second.jpg" },
-          ],
-        },
-      }),
-    );
-    await page.route("**/api/motivation-image**", (route) =>
-      route.fulfill({
-        contentType: "image/svg+xml",
-        body: '<svg xmlns="http://www.w3.org/2000/svg"/>',
-      }),
-    );
+  test("views change only on request and do not change the reminder or saved goal", async ({
+    page,
+  }) => {
     await seed(page);
     await page.goto("/motivation");
-    await page.getByText("Supporting image", { exact: true }).click();
-    await expect(page.getByTestId("focus-media")).toHaveAttribute(
-      "src",
-      /journey.jpg/,
+    await expect(page.getByTestId("focus-goal")).toHaveText(
+      "Relocate to Canada",
+    );
+    const reminder = await page.locator("blockquote").textContent();
+    const originalPrefs = await page.evaluate(() =>
+      localStorage.getItem("vk:prefs"),
     );
     await page.clock.install();
     await page.clock.fastForward(30_000);
     await expect(page.getByTestId("focus-media")).toHaveAttribute(
       "src",
-      /journey.jpg/,
+      /neuschwanstein/,
     );
-    await expect(page.getByTestId("focus-media-pending")).toHaveCount(0);
+    await page.getByRole("button", { name: "Eibsee", exact: true }).click();
+    await expect(page.getByTestId("focus-media")).toHaveAttribute(
+      "src",
+      /eibsee/,
+    );
+    await expect(
+      page.getByRole("button", { name: "Eibsee", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("focus-scene-category")).toContainText(
+      "Bavarian Alps, Germany",
+    );
+    await page.getByRole("button", { name: "Berlin", exact: true }).click();
+    await expect(page.getByTestId("focus-media")).toHaveAttribute(
+      "src",
+      /berlin/,
+    );
+    await expect(
+      page.getByRole("link", { name: "Ricardo Gomez Angel / Unsplash" }),
+    ).toHaveAttribute("href", "https://unsplash.com/photos/fv0yV5-Pbjc");
+    await expect(page.locator("blockquote")).toHaveText(reminder!);
+    expect(await page.evaluate(() => localStorage.getItem("vk:prefs"))).toBe(
+      originalPrefs,
+    );
   });
 
-  test("failed imagery leaves goal, reminder and action readable", async ({
+  test("a failed photo keeps text readable and another view can recover", async ({
     page,
   }) => {
-    await page.route("**/api/motivation-media**", (route) =>
-      route.fulfill({ json: sceneMedia }),
+    await page.route(
+      "**/images/motivation/germany-neuschwanstein.webp",
+      (route) => route.abort(),
     );
-    await page.route("**/api/motivation-image**", (route) => route.abort());
     await seed(page);
     await page.goto("/motivation");
-    await page.getByText("Supporting image", { exact: true }).click();
-    await expect(page.getByTestId("focus-media")).toHaveCount(0);
+    await expect(page.getByRole("status")).toContainText("Choose another view");
     await expect(page.getByTestId("focus-goal")).toHaveText(
       "Relocate to Canada",
     );
@@ -131,23 +122,36 @@ test.describe("goal motivation", () => {
       page.getByRole("link", { name: "Open Roadmap", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Public image source" }),
+      page.getByRole("link", { name: "Polina Koroleva / Unsplash" }),
     ).toHaveCount(0);
+    await page.getByRole("button", { name: "Eibsee", exact: true }).click();
+    await expect(page.getByTestId("focus-media")).toBeVisible();
+    await expect
+      .poll(() =>
+        page
+          .getByTestId("focus-media")
+          .evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0);
   });
 
-  test("service failure keeps the goal-aware fallback without blocking actions", async ({
+  test("bundled Germany views remain available when the media service is unavailable", async ({
     page,
   }) => {
-    await page.route("**/api/motivation-media**", (route) =>
-      route.fulfill({ status: 503, body: "Unavailable" }),
-    );
+    await page.route("**/api/motivation-media**", (route) => route.abort());
     await seed(page);
     await page.goto("/motivation");
-    await page.getByText("Supporting image", { exact: true }).click();
     await expect(page.getByTestId("focus-scene-category")).toContainText(
-      "Canada relocation",
+      "Bavaria, Germany",
     );
     await expect(page.getByTestId("goal-why")).toContainText("Canada");
+    await expect
+      .poll(() =>
+        page
+          .getByTestId("focus-media")
+          .evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0);
     await expect(
       page.getByRole("link", { name: "Open Roadmap", exact: true }),
     ).toBeVisible();
@@ -190,12 +194,24 @@ test.describe("goal motivation", () => {
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),
       ).toBeLessThanOrEqual(width);
-      await page.getByText("Supporting image", { exact: true }).click();
-      const visual = page.locator(".goal-inspiration__visual");
+      const visual = page.locator(".germany-gallery__image");
       const bounds = await visual.boundingBox();
       const parent = await visual.locator("..").boundingBox();
       expect(bounds!.height).toBeGreaterThanOrEqual(180);
       expect(bounds!.width).toBeLessThanOrEqual(parent!.width);
+      if (width <= 390) {
+        const choices = await page
+          .getByRole("group", { name: "Choose a Germany view" })
+          .getByRole("button")
+          .all();
+        const rows = [];
+        for (const choice of choices) {
+          const button = await choice.boundingBox();
+          expect(button!.height).toBeGreaterThanOrEqual(44);
+          rows.push(button!.y);
+        }
+        expect(new Set(rows).size).toBe(1);
+      }
 
       const action = await page
         .getByRole("link", { name: "Open Roadmap", exact: true })

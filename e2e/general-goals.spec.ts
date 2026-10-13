@@ -2,7 +2,9 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test.describe("general momentum goal", () => {
-  test("renders neutral motivation without destination or job assumptions", async ({ page }) => {
+  test("keeps general goal text neutral alongside Germany scenery", async ({
+    page,
+  }) => {
     await seed(page, {
       "vk:prefs": {
         goalCategory: "general",
@@ -12,11 +14,21 @@ test.describe("general momentum goal", () => {
     });
     await page.goto("/motivation");
 
-    await expect(page.getByTestId("focus-scene")).toContainText("General momentum");
-    await expect(page.getByTestId("focus-scene")).not.toContainText(/Germany|Berlin|job search/i);
+    await expect(page.getByTestId("focus-scene")).toContainText(
+      "General momentum",
+    );
+    await expect(page.locator(".goal-inspiration__story")).not.toContainText(
+      /Germany|Berlin|job search/i,
+    );
+    await expect(page.getByTestId("focus-media")).toHaveAttribute(
+      "alt",
+      /Germany/,
+    );
   });
 
-  test("keeps the personal entry and hub neutral for a general goal", async ({ page }) => {
+  test("keeps the personal entry and hub neutral for a general goal", async ({
+    page,
+  }) => {
     await seed(page, {
       "vk:prefs": {
         goalCategory: "general",
@@ -26,11 +38,19 @@ test.describe("general momentum goal", () => {
     });
 
     await page.goto("/trackers/landing");
-    await expect(page.getByTestId("tracker-public-landing")).not.toContainText(/Germany|Berlin|job search/i);
+    await expect(page.getByTestId("tracker-public-landing")).not.toContainText(
+      /Germany|Berlin|job search/i,
+    );
 
     await page.goto("/hub");
-    await expect(page.getByTestId("today-header").getByRole("heading", { name: "Today", exact: true })).toBeVisible();
-    await expect(page.getByRole("main")).not.toContainText(/Germany|Berlin|job search/i);
+    await expect(
+      page
+        .getByTestId("today-header")
+        .getByRole("heading", { name: "Today", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("main")).not.toContainText(
+      /Germany|Berlin|job search/i,
+    );
   });
 
   test("offers General momentum in onboarding", async ({ page }) => {
@@ -38,11 +58,17 @@ test.describe("general momentum goal", () => {
     await page.goto("/trackers?setup=1");
     await page.getByRole("button", { name: "Next" }).click();
     await expect(page.getByText("General momentum")).toBeVisible();
-    await expect(page.getByPlaceholder("e.g. Build a steady weekly rhythm")).toBeVisible();
-    await expect(page.getByPlaceholder("e.g. Get promoted to senior")).toHaveCount(0);
+    await expect(
+      page.getByPlaceholder("e.g. Build a steady weekly rhythm"),
+    ).toBeVisible();
+    await expect(
+      page.getByPlaceholder("e.g. Get promoted to senior"),
+    ).toHaveCount(0);
   });
 
-  test("keeps the explicit Germany objective visible without forcing destination imagery", async ({ page }) => {
+  test("keeps the explicit Germany objective visible alongside Germany scenery", async ({
+    page,
+  }) => {
     await seed(page, {
       "vk:prefs": {
         goalCategory: "relocation",
@@ -53,6 +79,8 @@ test.describe("general momentum goal", () => {
     });
     await page.goto("/motivation");
 
-    await expect(page.getByTestId("focus-scene")).toContainText("Relocate to Germany");
+    await expect(page.getByTestId("focus-scene")).toContainText(
+      "Relocate to Germany",
+    );
   });
 });

@@ -185,3 +185,37 @@ CI publication follow-up: the complete 329-test run exposed a real narrow-phone 
 
 
 The final pass reproduced the Progress through-date issue in the in-app browser: the native date value changed but the period and URL did not. Handle both input and change with a captured, validated date. A fresh production build now changes the period to 6 August–4 September 2026, persists the date in the URL and restores 13 October via Back to today. Console is clean. The E2E test checks period, URL and restoration.
+
+## 2026-10-13 — Germany photographs above Motivation text
+
+User-directed refinement: “motivation should have beautiful Germany images, text below”. Source truth is the captured existing NOVA screen plus this scoped direction (`docs/superpowers/specs/2026-10-13-motivation-germany-images.md`). The optional supporting-image disclosure is intentionally replaced by a visible Germany gallery above all goal/reminder/action text.
+
+Evidence directory: `artifacts/ui-ux/germany-motivation-2026-10-13/`.
+
+- Full comparison: `before.png` (1280×878) and `desktop-final.png` (1280×1346), combined in `desktop-comparison.png` (2560×1346). Both captured at 1280×720 CSS pixels, density 1, light theme, default general goal, same dated reminder, /motivation. Full-page heights differ intentionally because the requested lead photograph adds a region; the shorter image is padded for comparison.
+- Focused responsive comparison: `phone-comparison.png` (640×844), initial and final 320×844 states, density 1. Final selector fits one row; all three buttons remain 44px tall. `phone-390-final.png` verifies the wider phone crop. Original full-page phone captures place the fixed dock within the expanded page image; final phone evidence uses viewport captures to avoid mistaking this capture behavior for overlap.
+- Failure comparison: `recovery-comparison.png`, captured at 1280×720 CSS pixels then normalized equally to half scale. Initial broken-image state, final recovery message, and successful selection of Eibsee were inspected. Asset was temporarily moved only for this local failure check, then restored and decoded again by the asset test.
+
+### Comparison history and findings
+
+1. [P2] The intrinsic image height exceeded its 460px container and clipped the photograph. Fixed by making the image fill its positioned container; final image bounds are 460px tall and the goal starts below the photograph/caption.
+2. [P2] The Berlin selector wrapped onto a second row at 320px. Reduced horizontal button padding on phones; final DOM bounds confirm all three share the same row with 44px height and scrollWidth equal to 320.
+3. [P2] An initial image failure before hydration left broken-image chrome. Switched to the existing Next Image component, whose mount behavior replays early errors. Final initial-load failure shows a readable recovery message, hides the missing-photo credit, and selecting Eibsee loads a full 1800px photograph. The goal, reminder and next-step controls remain usable.
+
+### Required fidelity surfaces
+
+- Typography: existing Inter/body and Space Grotesk/display hierarchy retained; existing goal and reminder wrapping remains consistent. Quiet 13px location and 11px source credit are below the photo. Selector labels remain readable at 320px.
+- Spacing/layout: existing rail, content gutters, story padding and card radius retained. Desktop image is a bounded panorama; phone image is 4:3 with the castle focal point retained. Text has no image overlay. No horizontal overflow at 320px or 390px.
+- Colors/tokens: existing NOVA light surfaces, borders and teal selection/focus tokens retained. No decorative chart or synthetic image fallback introduced.
+- Assets: three actual, verified Germany photographs, locally bundled WebP, direct photographer/source attribution, descriptive alt text. Castle default, Eibsee and Berlin manually selected; no timer or automatic transition. Source/license details are in `public/images/motivation/README.md`.
+- Copy/content: saved goal, purpose, reminder and milestone behavior preserved independently of the Germany visual selection. Existing saved/personal reminder dialog retained.
+
+### Verification
+
+Passed: production build including TypeScript; ESLint; bundled photo contract (demonstrated red before assets, green after); diff whitespace check. Browser verification covered all three photo choices, active selection/credit, desktop/320px/390px layouts, Another reminder, Save and the saved reminder dialog, and initial photo-failure recovery. The healthy final preview has no browser warning/error logs. Expected missing-image server errors were confined to the intentional recovery check.
+
+Regression specs updated for image-first ordering, manual-only switching, local image availability, private-goal preservation, recovery and responsive bounds. The complete Playwright suite has not been run for this local revision; it remains a CI verification step when published. No residual P0/P1/P2 visual findings.
+
+Publication follow-up: CI run 38403299321 passed 327 of 329 browser tests. Two assertions needed to follow the requested design and native image behavior: general-goal neutrality now applies to the story text while Germany photo captions remain visible; the exact bundled image path accepts the absolute URL written by Next Image during mount. Gallery actions, responsive bounds, failure recovery and other page tests passed. The corrected commit runs through the full CI suite again before merge.
+
+final result: passed

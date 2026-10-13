@@ -165,9 +165,9 @@
   .tracker-surface .workspace-views { flex-wrap:wrap; overflow:visible; gap:4px 24px; }
   .tracker-surface .workspace-views :is(a,button) { white-space:normal; text-align:left; }
   .tracker-surface .workspace-disclosure { padding-block:8px; border-top:1px solid var(--color-border); }
-  .tracker-surface :is(.workspace-disclosure,.motivation-image) > summary { display:flex; align-items:center; gap:8px; min-height:44px; cursor:pointer; font-size:14px; list-style:none; }
-  .tracker-surface :is(.workspace-disclosure,.motivation-image) > summary::after { content:'+'; margin-left:auto; color:var(--color-muted-foreground); }
-  .tracker-surface :is(.workspace-disclosure,.motivation-image)[open] > summary::after { content:'−'; }
+  .tracker-surface .workspace-disclosure > summary { display:flex; align-items:center; gap:8px; min-height:44px; cursor:pointer; font-size:14px; list-style:none; }
+  .tracker-surface .workspace-disclosure > summary::after { content:'+'; margin-left:auto; color:var(--color-muted-foreground); }
+  .tracker-surface .workspace-disclosure[open] > summary::after { content:'−'; }
   .tracker-surface .workspace-panel { border-radius:8px; background:var(--color-card); box-shadow:none; }
   .tracker-surface .progress-panel { border:0; border-radius:8px; background:var(--color-card); padding:20px; }
   .tracker-surface .personal-content > .dossier-card { box-shadow:none; }
@@ -179,8 +179,18 @@
   .tracker-surface .goal-inspiration__reminder { padding:24px 0; margin-top:24px; border-block:1px solid var(--color-border); }
   .tracker-surface .goal-inspiration__reminder blockquote { font-family:var(--font-display); font-size:26px; line-height:1.5; }
   .tracker-surface .goal-inspiration__next { margin-top:24px; }
-  .tracker-surface .motivation-image { border-top:1px solid var(--color-border); margin:0 24px 16px; }
-  .tracker-surface .motivation-image .goal-inspiration__visual { width:100%; aspect-ratio:16/9; min-height:180px; max-height:420px; margin-top:12px; border-radius:8px; }
+  .tracker-surface .germany-gallery { margin:0; border-bottom:1px solid var(--color-border); }
+  .tracker-surface .germany-gallery__image { position:relative; width:100%; aspect-ratio:2/1; max-height:460px; overflow:hidden; background:var(--color-muted); display:grid; place-items:center; }
+  .tracker-surface .germany-gallery__image img { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:cover; }
+  .tracker-surface .germany-gallery__image p { padding:24px; color:var(--color-muted-foreground); font-size:14px; }
+  .tracker-surface .germany-gallery figcaption { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:12px 24px; }
+  .tracker-surface .germany-gallery__caption { display:grid; gap:4px; font-size:13px; }
+  .tracker-surface .germany-gallery__caption a { width:fit-content; color:var(--color-muted-foreground); font-size:11px; text-decoration:underline; text-underline-offset:3px; }
+  .tracker-surface .germany-gallery__choices { display:flex; gap:4px; flex-wrap:wrap; }
+  .tracker-surface .germany-gallery__choices button { min-height:44px; padding:8px 12px; border:1px solid transparent; border-radius:6px; font-size:13px; color:var(--color-muted-foreground); cursor:pointer; }
+  .tracker-surface .germany-gallery__choices button:hover { background:var(--color-muted); }
+  .tracker-surface .germany-gallery__choices button[aria-pressed="true"] { border-color:var(--color-primary); color:var(--color-primary); background:color-mix(in srgb,var(--color-primary) 8%,transparent); }
+  .tracker-surface .germany-gallery__choices button:focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
   .tracker-surface .workspace-progress-lead:has(.progress-chart-empty) { margin-bottom:20px; padding-bottom:12px; }
   .tracker-surface .workspace-progress-lead .progress-chart-empty { min-height:0; padding:8px 0; }
   .tracker-surface .exam-rounds { display:flex; flex-wrap:wrap; gap:8px; }
@@ -210,7 +220,9 @@
     .tracker-surface .sharing-workspace ~ header, .tracker-surface header:has(>h1) { flex-wrap:wrap; }
     .tracker-surface .goal-inspiration__reminder blockquote { font-size:22px; }
     .tracker-surface .goal-inspiration__story { padding:20px; }
-    .tracker-surface .motivation-image { margin-inline:20px; }
+    .tracker-surface .germany-gallery__image { aspect-ratio:4/3; }
+    .tracker-surface .germany-gallery figcaption { padding:12px 20px; }
+    .tracker-surface .germany-gallery__choices button { padding-inline:6px; }
     .tracker-surface .body-workspace-grid { grid-template-columns:minmax(0,1fr); }
   }
 }

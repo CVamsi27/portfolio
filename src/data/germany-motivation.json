@@ -1,0 +1,32 @@
+[
+  {
+    "id": "neuschwanstein",
+    "label": "Neuschwanstein",
+    "location": "Neuschwanstein Castle · Bavaria, Germany",
+    "src": "/images/motivation/germany-neuschwanstein.webp",
+    "alt": "Neuschwanstein Castle above green countryside and a turquoise lake in Bavaria, Germany",
+    "photographer": "Polina Koroleva",
+    "sourceUrl": "https://unsplash.com/photos/HIEnq8fXPhY",
+    "position": "70% 40%"
+  },
+  {
+    "id": "eibsee",
+    "label": "Eibsee",
+    "location": "Eibsee · Bavarian Alps, Germany",
+    "src": "/images/motivation/germany-eibsee.webp",
+    "alt": "Turquoise water at Eibsee below the forested Bavarian Alps in Germany",
+    "photographer": "Sabikun Nahar Maharin",
+    "sourceUrl": "https://unsplash.com/photos/1Zdp31NDck0",
+    "position": "50% 60%"
+  },
+  {
+    "id": "berlin",
+    "label": "Berlin",
+    "location": "Brandenburg Gate · Berlin, Germany",
+    "src": "/images/motivation/germany-berlin.webp",
+    "alt": "Warm sunset light on Brandenburg Gate beneath a dramatic sky in Berlin, Germany",
+    "photographer": "Ricardo Gomez Angel",
+    "sourceUrl": "https://unsplash.com/photos/fv0yV5-Pbjc",
+    "position": "50% 35%"
+  }
+]
