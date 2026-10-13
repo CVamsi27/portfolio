@@ -203,14 +203,13 @@ test.describe("hub command center", () => {
     ).toBe(3);
   });
 
-  test("all clear state: fresh seed shows 0% momentum and empty activity", async ({
+  test("empty day shows no recorded focus or invented commitments", async ({
     page,
   }) => {
     await seed(page);
     await page.goto("/trackers");
     await expect(page.getByTestId("progress-rail")).toHaveCount(0);
-    await expect(
-      page.getByRole("heading", { name: "Make room for what matters today" }),
-    ).toBeVisible();
+    await expect(page.getByTestId("progress-lead")).toContainText("No readings in this range.");
+    await expect(page.getByText("No timed commitments for this day. Schedule an activity in Plan.", { exact: true })).toBeVisible();
   });
 });

@@ -53,18 +53,18 @@ test("dashboard charts saved dated records and portion totals across selectable 
   for (const [date, value] of [["2026-09-15", "84"], ["2026-10-01", "82"], ["2026-10-04", "80"]])
     await expect(lead.getByRole("row", { name: new RegExp(date) })).toContainText(value);
   await expect(lead.getByRole("table")).toContainText("Not recorded");
-  await page.getByLabel("Metric", { exact: true }).selectOption("energy");
+  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("energy");
   await expect(lead).toContainText("2/30 dated readings");
   // The chart uses portion-scaled daily totals, rather than inventing missing nutrients.
   await expect(lead.getByRole("row", { name: /2026-10-01/ })).toContainText("300");
   await expect(lead.getByRole("row", { name: /2026-10-04/ })).toContainText("150");
   await expect(lead.getByRole("row", { name: /2026-10-03/ })).toContainText("Not recorded");
-  await page.getByLabel("Range", { exact: true }).selectOption("7");
+  await page.getByRole("combobox", { name: "Range", exact: true }).selectOption("7");
   await expect(lead).toContainText("2/7 dated readings");
-  await page.getByLabel("Metric", { exact: true }).selectOption("weight");
+  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("weight");
   await expect(lead.getByRole("row", { name: /2026-09-15/ })).toHaveCount(0);
   await expect(lead.getByRole("row", { name: /2026-10-04/ })).toContainText("80");
-  await page.getByLabel("Metric", { exact: true }).selectOption("sets");
+  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("sets");
   await expect(lead).toContainText("1 sets in this range");
   await expect(lead.getByRole("row", { name: /2026-10-04/ })).toContainText("1");
 });
@@ -72,6 +72,7 @@ test("dashboard charts saved dated records and portion totals across selectable 
 test("through-date selection changes the period and returning to today restores it", async ({ page }) => {
   await records(page);
   await page.goto("/dashboard?view=health&metric=body");
+  await expect(page.getByTestId("progress-lead")).toContainText("3/30 dated readings");
   await page.getByLabel("Through date").fill("2026-09-04");
   await expect(page.getByLabel("Through date")).toHaveValue("2026-09-04");
   await expect(page.getByTestId("progress-lead")).toContainText("No readings in this range.");
@@ -103,7 +104,7 @@ for (const width of [320, 390, 768, 1440]) {
     await expect(page.getByRole("img", { name: /Weight, kg:/ })).toBeVisible();
     await expect(page.getByTestId("progress-lead")).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-    await page.getByLabel("Metric", { exact: true }).selectOption("energy");
+    await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("energy");
     await page.getByText("View dated readings", { exact: true }).click();
     await expect(page.getByRole("table")).toContainText("300");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);

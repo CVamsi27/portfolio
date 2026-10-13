@@ -88,6 +88,7 @@ test("daily recording retains selected-date capture and undo from its disclosure
     ),
   });
   await page.goto(`/hub?date=${date}`);
+  await expect(page.getByTestId("day-agenda")).toContainText("Commitment 10");
   await page
     .getByText("Daily records & quick capture", { exact: true })
     .click();
@@ -118,6 +119,7 @@ test("Today and Plan omit the queue while Tasks retains capture and scheduling",
   await page.getByRole("button", { name: "Add task", exact: true }).click();
   await page.getByRole("textbox", { name: "New task", exact: true }).fill("A clear first step");
   await page.getByRole("button", { name: "Save task", exact: true }).click();
+  await page.getByRole("button", { name: "Close", exact: true }).click();
   await expect(page.getByText("A clear first step", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Schedule", exact: true }).click();
   await expect(page.getByRole("combobox", { name: "Link task", exact: true }).locator("option:checked")).toHaveText("A clear first step");

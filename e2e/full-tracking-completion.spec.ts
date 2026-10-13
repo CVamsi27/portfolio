@@ -126,13 +126,13 @@ test("Review includes saved study, water, movement and body records without inve
     page.getByRole("heading", { name: "Daily reflection" }),
   ).toBeVisible();
   await page.goto("/dashboard?view=work&metric=learning");
-  await page.getByLabel("Metric", { exact: true }).selectOption("study");
+  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("study");
   await page.getByText("View dated readings", { exact: true }).click();
   await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(todayKey()) })).toContainText("18");
   await page.goto("/dashboard?view=health&metric=wellbeing");
   await page.getByText("View dated readings", { exact: true }).click();
   await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(todayKey()) })).toContainText("3");
-  await page.getByLabel("Metric", { exact: true }).selectOption("weight");
+  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("weight");
   await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(todayKey()) })).toContainText("70");
 });
 

@@ -151,7 +151,7 @@ test("dated assignments open contextual study links and retain a scored attempt 
   await roadmap.getByRole("button", { name: "Open prompts and rubrics", exact: true }).click();
   const exams = page.getByTestId("germany-exams");
   await exams.getByRole("button", { name: "R2", exact: true }).click();
-  await exams.getByLabel("Track", { exact: true }).selectOption("frontend");
+  await exams.getByRole("combobox", { name: "Track", exact: true }).selectOption("frontend");
   await exams
     .getByRole("button", { name: "Record an attempt", exact: true })
     .click();

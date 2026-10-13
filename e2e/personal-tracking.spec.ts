@@ -330,6 +330,7 @@ test("habit Add submits by click and completion survives reload", async ({
     },
   });
   await page.goto("/hub");
+  await page.getByText("Habits", { exact: true }).click();
   await page.getByLabel("New habit").fill("Read for ten minutes");
   const habits = page
     .getByRole("heading", { name: "Small habits" })
@@ -337,6 +338,7 @@ test("habit Add submits by click and completion survives reload", async ({
   await habits.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByLabel("Read for ten minutes", { exact: true }).check();
   await page.reload();
+  await page.getByText("Habits", { exact: true }).click();
   await expect(
     page.getByLabel("Read for ten minutes", { exact: true }),
   ).toBeChecked();

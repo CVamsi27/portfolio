@@ -91,7 +91,7 @@ test.describe("personal today cockpit", () => {
     await seed(page);
     await page.goto("/more");
     await expect(page.getByTestId("more-links")).toBeVisible();
-    await expect(page.getByRole("link", { name: /Motivation/ })).toHaveCount(0);
+    await expect(page.getByTestId("more-links").getByRole("link", { name: /Motivation/ })).toHaveAttribute("href", "/motivation");
     await expect(page.getByTestId("more-links").getByRole("link", { name: /Library/ })).toHaveAttribute(
       "href",
       "/archive",

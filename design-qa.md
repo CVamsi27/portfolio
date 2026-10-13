@@ -179,3 +179,6 @@ The user authorized final pass, commit, push and merge. Final rendered checks re
 
 
 The final publication pass also updates older E2E expectations to the approved layout: Tasks owns scheduling; the dashboard displays selected daily readings; task date/tag filters are under Filters; optional imagery is explicitly opened; Motivation links say Open Roadmap. Numeric record and persistence checks remain, with a phone image-container-bounds regression added. Full-suite verification runs in repository CI.
+
+
+CI publication follow-up: the complete 329-test run exposed a real narrow-phone dock-label issue with web fonts unavailable (Roadmap label 63px inside a 58px slot). Preserve 72px slots for the longer Roadmap/Progress names; other destinations retain their touch targets. Update stale contextual-flow expectations and use semantic combobox selectors. Date-based tests wait for their mocked client date/seeded readings before interacting, rather than clicking the server-rendered version during hydration. No test is skipped or removed.
