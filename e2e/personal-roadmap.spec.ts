@@ -15,7 +15,7 @@ test.describe("personal roadmap", () => {
 
     await page.goto("/todo");
     await expect(
-      page.getByTestId("chapter-header").getByRole("link", { name: "Plan" }),
+      page.getByTestId("tracker-primary-nav").getByRole("link", { name: "Plan" }),
     ).toHaveAttribute("href", "/plan");
 
     await page.goto("/trackers");
