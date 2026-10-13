@@ -182,3 +182,6 @@ The final publication pass also updates older E2E expectations to the approved l
 
 
 CI publication follow-up: the complete 329-test run exposed a real narrow-phone dock-label issue with web fonts unavailable (Roadmap label 63px inside a 58px slot). Preserve 72px slots for the longer Roadmap/Progress names; other destinations retain their touch targets. Update stale contextual-flow expectations and use semantic combobox selectors. Date-based tests wait for their mocked client date/seeded readings before interacting, rather than clicking the server-rendered version during hydration. No test is skipped or removed.
+
+
+The final pass reproduced the Progress through-date issue in the in-app browser: the native date value changed but the period and URL did not. Handle both input and change with a captured, validated date. A fresh production build now changes the period to 6 August–4 September 2026, persists the date in the URL and restores 13 October via Back to today. Console is clean. The E2E test checks period, URL and restoration.

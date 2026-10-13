@@ -73,6 +73,13 @@ export default function ProgressDashboard() {
         : view === "work"
           ? "focus"
           : "weight";
+  const changeThrough = (date: string) => {
+    if (!validDay(date)) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("date", date);
+    window.history.replaceState(null, "", url);
+    setThrough(date);
+  };
   return (
     <div className="progress-workspace" data-testid="progress-dashboard">
       <ProgressLead
@@ -114,13 +121,8 @@ export default function ProgressDashboard() {
           <Input
             type="date"
             value={data.end}
-            onChange={(event) => {
-              if (!validDay(event.target.value)) return;
-              setThrough(event.target.value);
-              const url = new URL(window.location.href);
-              url.searchParams.set("date", event.target.value);
-              window.history.replaceState(null, "", url);
-            }}
+            onInput={(event) => changeThrough(event.currentTarget.value)}
+            onChange={(event) => changeThrough(event.currentTarget.value)}
           />
         </label>
         {through && (

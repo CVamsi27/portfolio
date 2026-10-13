@@ -75,6 +75,7 @@ test("through-date selection changes the period and returning to today restores 
   await expect(page.getByTestId("progress-lead")).toContainText("3/30 dated readings");
   await page.getByLabel("Through date").fill("2026-09-04");
   await expect(page.getByLabel("Through date")).toHaveValue("2026-09-04");
+  await expect(page).toHaveURL(/[?&]date=2026-09-04(?:&|$)/);
   await expect(page.getByTestId("progress-lead")).toContainText("No readings in this range.");
   await page.getByRole("button", { name: "Back to today", exact: true }).click();
   await expect(page.getByLabel("Through date")).toHaveValue("2026-10-04");
