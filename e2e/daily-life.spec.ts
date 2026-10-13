@@ -156,10 +156,10 @@ test("Progress opens one metric at a time and historical reflection is editable"
 }) => {
   await seed(page);
   await page.goto("/dashboard");
-  await expect(page.locator(".progress-summary-button")).toHaveCount(6);
-  await expect(page.locator(".progress-panel")).toHaveCount(0);
-  await page.getByRole("button", { name: /Weight.*Explore dated/ }).click();
-  await expect(page.locator(".progress-panel")).toHaveCount(1);
+  await expect(page.locator(".progress-summary-button")).toHaveCount(0);
+  await expect(page.getByTestId("progress-lead")).toHaveCount(1);
+  await page.getByLabel("Metric", { exact: true }).selectOption("water");
+  await expect(page.getByTestId("progress-lead")).toContainText("Recorded water");
   await page.getByRole("button", { name: "Reflection", exact: true }).click();
   await page
     .getByLabel("What went well?", { exact: true })

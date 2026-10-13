@@ -41,12 +41,12 @@ test("Today leads with a task action and preserves goal records", async ({ page 
   await page.goto("/motivation");
   await expect(page.getByTestId("focus-scene")).toContainText("Relocate to Canada");
   await page.goto("/plan");
-  await expect(
-    page.getByRole("heading", { name: "Unscheduled tasks", exact: true }),
-  ).toBeVisible();
-  await expect(page.locator(".unscheduled-list")).toContainText("Choose a neighborhood");
+  await expect(page.locator(".task-queue-panel")).toHaveCount(0);
+  await page.getByRole("link", { name: "Tasks", exact: true }).click();
+  await expect(page.getByText("Choose a neighborhood", { exact: true })).toBeVisible();
   await page.goto("/dashboard?view=work&metric=learning");
-  await expect(page.getByText("25 min", { exact: true })).toBeVisible();
+  await page.getByText("View dated readings", { exact: true }).click();
+  await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(today) })).toContainText("25");
   await page.goto("/plan?view=focus");
   await expect(
     page.getByRole("button", { name: /start focus sprint/i }),

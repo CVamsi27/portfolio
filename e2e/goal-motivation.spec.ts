@@ -59,7 +59,7 @@ test("motivation stays devoted to the saved goal and preserves removed-section d
     page.getByRole("button", { name: "General inspiration" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("link", { name: "Open my plan", exact: true }),
+    page.getByRole("link", { name: "Open Roadmap", exact: true }),
   ).toHaveAttribute("href", "/roadmap");
   const stored = await page.evaluate(() => ({
     journal: JSON.parse(localStorage.getItem("vk:journal")!),

@@ -107,43 +107,20 @@ test("daily recording retains selected-date capture and undo from its disclosure
   ).toBe(0);
 });
 
-test("Today omits the task queue while Plan retains captured unscheduled tasks", async ({
-  page,
-}) => {
+test("Today and Plan omit the queue while Tasks retains capture and scheduling", async ({ page }) => {
   await seed(page);
-  await page.goto("/hub");
-  await expect(
-    page.getByRole("heading", { name: "Unscheduled tasks", exact: true }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByText("No unscheduled tasks. Add one when you need it."),
-  ).toHaveCount(0);
-  await page.goto("/plan");
-  await expect(
-    page.getByRole("heading", { name: "Unscheduled tasks", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("link", { name: "Add task", exact: true }).click();
-  await page
-    .getByLabel("Task name", { exact: true })
-    .fill("A clear first step");
+  for (const route of ["/hub", "/plan"]) {
+    await page.goto(route);
+    await expect(page.getByRole("heading", { name: "Unscheduled tasks", exact: true })).toHaveCount(0);
+    await expect(page.locator(".task-queue-panel")).toHaveCount(0);
+  }
+  await page.getByRole("link", { name: "Tasks", exact: true }).click();
+  await page.getByRole("button", { name: "Add task", exact: true }).click();
+  await page.getByRole("textbox", { name: "New task", exact: true }).fill("A clear first step");
   await page.getByRole("button", { name: "Save task", exact: true }).click();
-  await page.goto("/hub");
-  await expect(page.locator(".task-queue-panel")).toHaveCount(0);
-  await expect(
-    page.getByRole("link", { name: "Start focused work", exact: true }),
-  ).toBeVisible();
-  await page.goto("/plan");
-  const queue = page.locator(".task-queue-panel");
-  await expect(
-    queue.getByRole("heading", { name: "Unscheduled tasks", exact: true }),
-  ).toBeVisible();
-  await expect(queue).toContainText(
-    "A clear first step",
-  );
-  await queue.getByRole("button", { name: "Schedule", exact: true }).click();
-  await expect(
-    page.getByLabel("Link task").locator("option:checked"),
-  ).toHaveText("A clear first step");
+  await expect(page.getByText("A clear first step", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Schedule", exact: true }).click();
+  await expect(page.getByRole("combobox", { name: "Link task", exact: true }).locator("option:checked")).toHaveText("A clear first step");
 });
 
 test("Health keeps food capture beside its record with the selected date and return path", async ({

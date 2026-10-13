@@ -132,12 +132,13 @@ test.describe("todo manager", () => {
     await expect(page.getByText("Work item")).toBeVisible();
     await expect(page.getByText("Health item")).toBeVisible();
 
+    await page.getByText("Filters", { exact: true }).click();
     await page.getByLabel("Filter by tag").selectOption("Work");
     await expect(page.getByText("Work item")).toBeVisible();
     await expect(page.getByText("Health item")).toHaveCount(0);
   });
 
-  test("tomorrow view shows tasks scheduled ahead", async ({ page }) => {
+  test("date filter narrows open tasks and Open retains future tasks", async ({ page }) => {
     const tomorrow = daysAgoKey(-1);
     await seed(page, {
       "vk:todos": [
@@ -153,17 +154,15 @@ test.describe("todo manager", () => {
       ],
     });
     await page.goto("/todo");
+    await page.getByText("Filters", { exact: true }).click();
+    await page.getByLabel("Task dates").selectOption("tomorrow");
+    await expect(page.getByText("Plan tomorrow")).toBeVisible();
+    // Open retains pending work across all dates.
     await page
       .getByRole("group", { name: "Task view" })
-      .getByRole("button", { name: "Tomorrow" })
+      .getByRole("button", { name: "Open", exact: true })
       .click();
     await expect(page.getByText("Plan tomorrow")).toBeVisible();
-    // Not in Today view.
-    await page
-      .getByRole("group", { name: "Task view" })
-      .getByRole("button", { name: /^Today/ })
-      .click();
-    await expect(page.getByText("Plan tomorrow")).toHaveCount(0);
   });
 
   test("completed history preserves prior days without an execution streak", async ({ page }) => {

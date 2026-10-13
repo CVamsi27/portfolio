@@ -176,3 +176,6 @@ final result: passed
 ## Publication verification — 13 October 2026
 
 The user authorized final pass, commit, push and merge. Final rendered checks reconfirm Motivation image bounds (420px tall on desktop, within its container) and Library contextual-editor open/close; console is clean. TypeScript, lint and 58 focused Node regressions pass. The last production build and responsive captures cover the exact refinement code. Repository CI will verify the complete branch, including its full E2E suite, before merging.
+
+
+The final publication pass also updates older E2E expectations to the approved layout: Tasks owns scheduling; the dashboard displays selected daily readings; task date/tag filters are under Filters; optional imagery is explicitly opened; Motivation links say Open Roadmap. Numeric record and persistence checks remain, with a phone image-container-bounds regression added. Full-suite verification runs in repository CI.

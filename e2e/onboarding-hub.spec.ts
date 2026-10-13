@@ -173,12 +173,9 @@ test.describe("hub command center", () => {
       page.getByRole("link", { name: "Start focused work", exact: true }),
     ).toHaveAttribute("href", "/plan?view=focus&task=t2");
     await page.goto("/plan");
-    await expect(
-      page.getByRole("heading", { name: "Unscheduled tasks", exact: true }),
-    ).toBeVisible();
-    await expect(page.locator(".unscheduled-list")).toContainText(
-      "Seed open task",
-    );
+    await expect(page.locator(".task-queue-panel")).toHaveCount(0);
+    await page.getByRole("link", { name: "Tasks", exact: true }).click();
+    await expect(page.getByText("Seed open task", { exact: true })).toBeVisible();
 
     // Quick action: add a task from the hub → lands in todo store.
     await page.goto("/trackers");

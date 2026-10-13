@@ -32,8 +32,10 @@ test.describe("goal tracker", () => {
 
     // Today's counter reflects the log; the dated 30-day chart section is present.
     await expect(page.getByText("3 / 3")).toBeVisible();
-    await expect(page.getByText("Last 30 days")).toBeVisible();
-    await expect(page.locator("#daily-metric svg[role=img]")).toBeVisible();
+    await expect(page.getByLabel("Range", { exact: true })).toHaveValue("30");
+    await expect(page.getByTestId("progress-lead").locator("svg[role=img]")).toBeVisible();
+    await page.getByText("View dated readings", { exact: true }).click();
+    await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(daysAgoKey(0)) })).toContainText("3");
   });
 
   test("milestone CRUD: add, complete, and delete a milestone", async ({
