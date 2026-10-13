@@ -44,7 +44,7 @@ test.describe("goal motivation", () => {
     await expect(image).toBeVisible();
     await expect(image).toHaveAttribute(
       "src",
-      "/images/motivation/germany-neuschwanstein.webp",
+      /\/images\/motivation\/germany-neuschwanstein\.webp$/,
     );
     await expect(image).toHaveAttribute("alt", /Germany/);
     await expect(

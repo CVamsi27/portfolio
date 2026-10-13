@@ -216,4 +216,6 @@ Passed: production build including TypeScript; ESLint; bundled photo contract (d
 
 Regression specs updated for image-first ordering, manual-only switching, local image availability, private-goal preservation, recovery and responsive bounds. The complete Playwright suite has not been run for this local revision; it remains a CI verification step when published. No residual P0/P1/P2 visual findings.
 
+Publication follow-up: CI run 38403299321 passed 327 of 329 browser tests. Two assertions needed to follow the requested design and native image behavior: general-goal neutrality now applies to the story text while Germany photo captions remain visible; the exact bundled image path accepts the absolute URL written by Next Image during mount. Gallery actions, responsive bounds, failure recovery and other page tests passed. The corrected commit runs through the full CI suite again before merge.
+
 final result: passed
