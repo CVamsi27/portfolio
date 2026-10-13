@@ -14,7 +14,7 @@
 - Today is the only timetable surface. Plan edits user-created activities; remove Unscheduled tasks and Learning shortcut.
 - One relevant chart leads progress pages; no fake personal data or decorative charts on content/settings pages.
 - Preserve account boundaries, two-account access policy, immutable exam attempts, evidence gates, history, sync and draft/error recovery.
-- Preserve earlier uncommitted Sharing changes; do not push, merge or deploy in this implementation turn.
+- Preserve the earlier Sharing changes. Initial implementation excluded Git publication; the user subsequently authorized commit, push and merge during the final pass on 13 October 2026.
 
 ### Task 1: Navigation, frame and chart presentation
 
@@ -71,3 +71,11 @@
 - [x] Run local preview with cloud configuration empty; check desktop and narrow-phone core actions in the in-app browser.
 - [x] Compare the selected design reference with rendered screens, record findings in `design-qa.md`, and fix material layout issues.
 - [x] Record completed tasks and implementation status; leave a reviewable diff and local preview.
+
+## Completion evidence — 13 October 2026
+
+D01–D13 are implemented. The focused Node suite passes 58/58; TypeScript, ESLint and the production build pass. Final in-app browser checks use an isolated local build with all Supabase public configuration empty. The preview is `http://127.0.0.1:4198/hub`.
+
+Desktop and 320px phone checks cover navigation, leading charts, content-page chart exclusions, contextual editors, activity week/date preservation, Settings defaults and Exams draft protection. Exams use the actual reviewed schema in an isolated in-memory harness, not either owner's cloud account. Full screenshot comparisons and limitations are recorded in the appended full-workspace section of `design-qa.md`. The standalone Playwright suite and authenticated production writes were not run.
+
+At continuation, the branch already contained implementation commit `c1146ee` and plan commit `6b405af`. The final refinement pass updates presentation and QA/status documentation. The user has now authorized committing, pushing and merging the branch; the repository CI is the release verification gate.

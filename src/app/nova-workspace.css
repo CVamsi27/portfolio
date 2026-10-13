@@ -172,14 +172,16 @@
   .tracker-surface .personal-content > .dossier-card { box-shadow:none; }
   .tracker-surface .sharing-workspace { display:block; }
   .tracker-surface .sharing-workspace > * + * { margin-top:24px; }
-  .tracker-surface .goal-inspiration { display:block; }
-  .tracker-surface .goal-inspiration__story { padding:0; }
+  .tracker-surface .goal-inspiration { display:block; border-radius:8px; }
+  .tracker-surface .goal-inspiration__story { padding:24px; }
   .tracker-surface .goal-inspiration__story h2 { font-family:var(--font-display); font-size:28px; line-height:1.3; font-weight:600; }
   .tracker-surface .goal-inspiration__reminder { padding:24px 0; margin-top:24px; border-block:1px solid var(--color-border); }
   .tracker-surface .goal-inspiration__reminder blockquote { font-family:var(--font-display); font-size:26px; line-height:1.5; }
   .tracker-surface .goal-inspiration__next { margin-top:24px; }
-  .tracker-surface .motivation-image { border-top:1px solid var(--color-border); margin-top:24px; }
-  .tracker-surface .motivation-image .goal-inspiration__visual { min-height:0; max-height:420px; margin-top:12px; border-radius:8px; }
+  .tracker-surface .motivation-image { border-top:1px solid var(--color-border); margin:0 24px 16px; }
+  .tracker-surface .motivation-image .goal-inspiration__visual { width:100%; aspect-ratio:16/9; min-height:180px; max-height:420px; margin-top:12px; border-radius:8px; }
+  .tracker-surface .workspace-progress-lead:has(.progress-chart-empty) { margin-bottom:20px; padding-bottom:12px; }
+  .tracker-surface .workspace-progress-lead .progress-chart-empty { min-height:0; padding:8px 0; }
   .tracker-surface .exam-rounds { display:flex; flex-wrap:wrap; gap:8px; }
   .tracker-surface .exam-rounds button { min-width:44px; min-height:44px; border:1px solid var(--color-border); border-radius:6px; padding:8px 12px; font-size:14px; }
   .tracker-surface .exam-rounds button[aria-pressed=true] { background:var(--color-primary); color:var(--color-primary-foreground); border-color:var(--color-primary); }
@@ -206,6 +208,8 @@
     .tracker-surface .nova-calendar-row { order:2; }
     .tracker-surface .sharing-workspace ~ header, .tracker-surface header:has(>h1) { flex-wrap:wrap; }
     .tracker-surface .goal-inspiration__reminder blockquote { font-size:22px; }
+    .tracker-surface .goal-inspiration__story { padding:20px; }
+    .tracker-surface .motivation-image { margin-inline:20px; }
     .tracker-surface .body-workspace-grid { grid-template-columns:minmax(0,1fr); }
   }
 }

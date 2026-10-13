@@ -146,7 +146,7 @@ export default function MotivationPage() {
         icon="flame"
         title="Motivation"
         eyebrow="Your purpose"
-        subtitle="Keep your goal close. Take one meaningful step today."
+        subtitle={null}
       >
         <FocusScene
           goalTitle={displayGoalTitle(prefs)}

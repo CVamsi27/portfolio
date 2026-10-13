@@ -1,6 +1,6 @@
 # NOVA — full layout review v2
 
-Status: approved design; no implementation authorization. Date: 12 October 2026, Asia/Kolkata. The user approved all revised decisions D01–D13, rejected none and requested no further changes. The user explicitly requested that this remain in the design stage.
+Status: implemented and locally verified. Design approved 12 October 2026; final QA completed 13 October 2026, Asia/Kolkata. The user approved D01–D13 and subsequently instructed “implement the changes”.
 
 Direction: retain the selected Open agenda visual system. Make the default page smaller and clearer; keep real work, records, history and occasional tools reachable. The interactive review contains 23 page/view layouts and 13 independent decisions. Its charts and records are illustrative layout content, not saved personal data.
 
@@ -8,7 +8,7 @@ Accepted feedback: Today is the only timetable surface. Remove the Unscheduled t
 
 ## Review decisions
 
-All decisions below are approved. There are no rejected or pending decisions. This approval covers the design proposal only; application implementation, deployment and Git operations require a subsequent instruction.
+All decisions below are approved. There are no rejected or pending decisions. The subsequent implementation instruction authorizes application changes. The user subsequently authorized commit, push and merge during the final pass on 13 October 2026.
 
 | ID | Approved decision |
 | --- | --- |
@@ -141,7 +141,7 @@ The current review inspected local rendered Tools, Health, Roadmap, Progress, Mo
 
 The local Sharing surface includes earlier uncommitted experiments. Local data and default curriculum views are not proof of either owner's signed-in production layout or cloud operations. The 23 proposed views illustrate structure rather than claiming every workflow was audited in every state. No accessibility-compliance claim is made from these captures.
 
-This design turn changes only review material. Existing application code, local Sharing experiments, records, authentication and deployed behavior remain unchanged until the user approves implementation scope.
+Implementation follows the plan in `docs/superpowers/plans/2026-10-12-nova-full-layout.md`. It reuses existing stores, preserves the earlier Sharing work, and adds no illustrative personal records to production. See the full-workspace section in `design-qa.md` for rendered evidence and verification limits.
 
 The revised preview was checked across all 23 views at desktop width 1024px and a narrow-phone viewport of 320px. No horizontal overflow or clipped chart labels was found. All 17 progress views place their chart directly after the title; the other six omit it. The phone keeps five primary destinations and sign-in has none.
 

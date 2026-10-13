@@ -571,8 +571,9 @@ export default function ArchivePage() {
                 })}
               </ul>
             ) : (
-              <div className="mt-4">
+              <div className={items.length ? "mt-4" : undefined}>
                 <EmptyState
+                  appearance="plain"
                   icon={Archive}
                   title={
                     query
@@ -586,7 +587,7 @@ export default function ArchivePage() {
                       ? "Try another phrase, tag, or use tag:word to filter by tag."
                       : items.length
                         ? "Your saved items are available in other scopes."
-                        : "Capture a note, link, image reference, or quote to make it retrievable later."
+                        : "Save a note, link, image reference, or quote with New item."
                   }
                   action={
                     items.length && (query || goalFilter !== "all") ? (
