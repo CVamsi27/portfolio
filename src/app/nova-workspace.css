@@ -226,3 +226,39 @@
     .tracker-surface .body-workspace-grid { grid-template-columns:minmax(0,1fr); }
   }
 }
+
+/* Clean-workspace hierarchy: compact context, one working surface. */
+@media screen {
+  .tracker-surface .workspace-progress-lead.is-empty { padding:8px 0; margin-block:8px 12px; }
+  .tracker-surface .workspace-progress-lead.is-empty .workspace-progress-heading { margin-bottom:0; }
+  .tracker-surface .workspace-progress-lead.is-empty h2 { font-size:14px; line-height:1.5; font-weight:500; color:var(--color-muted-foreground); }
+  .tracker-surface .workspace-progress-controls { gap:8px; }
+  .tracker-surface .workspace-progress-controls label { min-width:0; }
+  .tracker-surface .workspace-progress-controls select { width:auto; max-width:180px; min-height:44px; font-size:13px; padding:6px 10px; }
+  .tracker-surface .workspace-progress-heading { align-items:center; gap:8px; }
+  .tracker-surface .workspace-action-menu { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:8px 10px; color:var(--color-muted-foreground); font-size:13px; border-radius:6px; }
+  .tracker-surface .workspace-action-menu:hover { background:var(--color-muted); }
+  .tracker-surface .workspace-action-menu:focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+  .tracker-surface .workspace-child-links { display:flex; flex-wrap:wrap; gap:16px; font-size:14px; }
+  .tracker-surface .workspace-child-links a { display:inline-flex; align-items:center; min-height:44px; color:var(--color-primary); }
+  .tracker-surface .nova-tools-trigger { display:none; }
+  @media(max-width:1023px) { .tracker-surface .nova-tools-trigger { display:inline-flex; } }
+  @media(max-width:767px) {
+    .tracker-surface .workspace-progress-heading { flex-direction:row; flex-wrap:wrap; }
+    .tracker-surface .workspace-progress-controls { flex-direction:row; flex-wrap:wrap; flex-basis:auto; width:auto; }
+    .tracker-surface .nova-today-header { flex-direction:row; flex-wrap:wrap; align-items:center; }
+    .tracker-surface .nova-today-header .nova-primary-action { width:auto; }
+  }
+}
+@media screen {
+  .tracker-surface .goal-inspiration__reminder { margin-top:0; padding:0 0 20px; border-top:0; }
+  .tracker-surface .goal-inspiration__story > h2 { margin-top:20px; }
+  .tracker-surface .milestone-actions { opacity:1; }
+  .tracker-surface .task-list-row { border-radius:0; }
+}
+
+/* Expanded assignments show the full brief once; the compact outcome belongs to closed rows. */
+.job-assignment-row[open] > summary .job-assignment-outcome,
+.nova-agenda-details[open] > summary .nova-agenda-outcome { display: none; }
+
+.job-assignment-row { scroll-margin-top: 6rem; }

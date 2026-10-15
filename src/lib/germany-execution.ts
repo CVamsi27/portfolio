@@ -1,5 +1,11 @@
 import type { CareerExecutionState } from "./career-roadmap.ts";
 import { isCalendarDate } from "./personal-timetable.ts";
+import {
+  isJobPlan,
+  jobAssignments,
+  assignmentMarkdown,
+  type JobPlan,
+} from "./job-plan.ts";
 export interface GermanyRound {
   id: string;
   title: string;
@@ -27,6 +33,7 @@ export interface GermanyCampaignWeek {
   relocation: string;
 }
 export interface GermanyExecution {
+  jobPlan?: JobPlan;
   version: 1;
   assessmentVersion: string;
   days: GermanyDay[];
@@ -83,18 +90,43 @@ const limits: Record<string, number> = {
   R5: 30,
   R6: 45,
 };
-export function examTimeLimit(roundId: string): number { return limits[roundId] ?? 60; }
+export function examTimeLimit(roundId: string): number {
+  return limits[roundId] ?? 60;
+}
 
-export function examTrend(round: GermanyRound, attempts: GermanyExamAttempt[], version: string, track: string) {
-  const byDate=new Map<string,{date:string;value:number}>();
-  for (const attempt of [...attempts].sort((a,b)=>a.finishedAt.localeCompare(b.finishedAt))) {
-    if (attempt.roundId!==round.id || attempt.track!==track || attempt.promptVersion!==version || !Number.isFinite(Date.parse(attempt.finishedAt))) continue;
-    const result=scoreExam(round,attempt);
-    if (!result.eligible || attempt.scores.length!==round.dimensions.length || attempt.scores.some(score=>score===null)) continue;
-    const date=new Intl.DateTimeFormat("en-CA",{year:"numeric",month:"2-digit",day:"2-digit",timeZone:"Asia/Kolkata"}).format(new Date(attempt.finishedAt));
-    byDate.set(date,{date,value:result.total});
+export function examTrend(
+  round: GermanyRound,
+  attempts: GermanyExamAttempt[],
+  version: string,
+  track: string,
+) {
+  const byDate = new Map<string, { date: string; value: number }>();
+  for (const attempt of [...attempts].sort((a, b) =>
+    a.finishedAt.localeCompare(b.finishedAt),
+  )) {
+    if (
+      attempt.roundId !== round.id ||
+      attempt.track !== track ||
+      attempt.promptVersion !== version ||
+      !Number.isFinite(Date.parse(attempt.finishedAt))
+    )
+      continue;
+    const result = scoreExam(round, attempt);
+    if (
+      !result.eligible ||
+      attempt.scores.length !== round.dimensions.length ||
+      attempt.scores.some((score) => score === null)
+    )
+      continue;
+    const date = new Intl.DateTimeFormat("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "Asia/Kolkata",
+    }).format(new Date(attempt.finishedAt));
+    byDate.set(date, { date, value: result.total });
   }
-  return [...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date));
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 export function scoreExam(
   round: GermanyRound,
@@ -247,6 +279,7 @@ export function isGermanyExecution(value: unknown): value is GermanyExecution {
   try {
     return (
       e.version === 1 &&
+      (e.jobPlan === undefined || isJobPlan(e.jobPlan)) &&
       hash(e.assessmentVersion) &&
       e.days.length === 60 &&
       new Set(e.days.map((d) => d.id)).size === 60 &&
@@ -349,6 +382,11 @@ export function datedAssignments(
   date: string,
 ): Record<string, string> {
   if (!isCalendarDate(date)) return {};
+  const detailed = jobAssignments(execution.jobPlan, date);
+  if (detailed.length)
+    return Object.fromEntries(
+      detailed.map((a) => [a.range, assignmentMarkdown(a)]),
+    );
   const weekday = new Date(date + "T12:00:00Z").getUTCDay();
   if (weekday === 0) return {};
   const offset = Math.floor(
@@ -475,6 +513,27 @@ export function annotateGermanySchedule<
     | { label: string; minutes?: number; work?: boolean; output?: string }
   >,
 >(execution: GermanyExecution, date: string, schedule: T): T {
+  if (
+    execution.jobPlan &&
+    isCalendarDate(date) &&
+    date >= execution.jobPlan.effectiveOn &&
+    date <= "2027-01-03" &&
+    new Date(date + "T12:00:00Z").getUTCDay() === 0
+  )
+    return {} as T;
+  const detailed = jobAssignments(execution.jobPlan, date);
+  if (detailed.length)
+    return Object.fromEntries(
+      detailed.map((a) => [
+        a.range,
+        {
+          label: a.title,
+          minutes: a.minutes,
+          work: true,
+          output: assignmentMarkdown(a),
+        },
+      ]),
+    ) as T;
   const assignments = datedAssignments(execution, date),
     assessment = execution.days.find((d) => d.date === date)?.blocks.assessment;
   const labels: Record<string, string> = assessment

@@ -14,7 +14,11 @@ export default function MorePage() {
         <div data-testid="more-links">
           <SectionLinks
             items={[
-              { href: "/motivation", label: "Motivation", description: "Your purpose, reminders and next step." },
+              {
+                href: "/motivation",
+                label: "Motivation",
+                description: "Your purpose, reminders and next step.",
+              },
               {
                 href: "/archive",
                 label: "Library",
@@ -31,24 +35,9 @@ export default function MorePage() {
                 description:
                   "Modules, optional protection, sync and data backup.",
               },
-              {
-                href: "/routine",
-                label: "Reminder settings",
-                description:
-                  "Edit meals, supplements and notification preferences.",
-              },
             ]}
           />
         </div>
-        <a
-          href="https://study.buildora.work/"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="personal-study-link"
-          className="inline-flex min-h-11 items-center text-sm text-primary underline"
-        >
-          Open Software Developer Bible ↗
-        </a>
       </PersonalShell>
     </RequireAuth>
   );

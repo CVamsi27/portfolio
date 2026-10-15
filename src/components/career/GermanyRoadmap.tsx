@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   type GermanyRoadmap as Plan,
   campaignPosition,
@@ -29,7 +30,7 @@ export default function GermanyRoadmap({
   onEvidence,
   onAttempt,
   onCompany,
-  careerView=false,
+  careerView = false,
 }: {
   careerView?: boolean;
   plan: Plan;
@@ -46,6 +47,7 @@ export default function GermanyRoadmap({
   ) => void;
 }) {
   const [date, setDate] = useState(today);
+  const query = useSearchParams().toString();
   useEffect(() => {
     const update = () => {
       const q = new URLSearchParams(window.location.search).get("date");
@@ -54,7 +56,7 @@ export default function GermanyRoadmap({
     update();
     window.addEventListener("popstate", update);
     return () => window.removeEventListener("popstate", update);
-  }, [today]);
+  }, [today, query]);
   const position = campaignPosition(plan, date),
     week = plan.weeks[position.week - 1];
   const schedule =
@@ -117,9 +119,7 @@ export default function GermanyRoadmap({
       </section>
       <section className="space-y-3">
         <div className="flex flex-wrap justify-between items-end gap-3">
-          <h2 className="font-display text-xl font-semibold">
-            Campaign date
-          </h2>
+          <h2 className="font-display text-xl font-semibold">Campaign date</h2>
           <label className="text-sm">
             Plan date
             <input
@@ -145,7 +145,9 @@ export default function GermanyRoadmap({
             Curriculum for optional browsing.
           </p>
         )}
-        <Link className="inline-action" href={`/hub?date=${date}`}>Open Today’s agenda</Link>
+        <Link className="inline-action" href={`/hub?date=${date}`}>
+          Open Today’s agenda
+        </Link>
         <p className="text-xs text-muted-foreground">
           Mon/Wed/Fri: OSS. Tue/Thu: networking and technical writing. Weekdays
           9h · Saturday 5h · Sunday recovery. Meetings use Europe/Berlin; check

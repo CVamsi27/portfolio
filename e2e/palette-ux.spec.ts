@@ -4,10 +4,22 @@ import { seed } from "./helpers";
 async function open(page: import("@playwright/test").Page, route: string) {
   await page.goto(route);
   if (route === "/") {
-    await page.getByRole("button", { name: "Command Palette (⌘K)", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Command Palette (⌘K)", exact: true })
+      .click();
   } else {
-    await page.getByRole("button", { name: "Tools menu", exact: true }).click();
-    await page.getByRole("menuitem", { name: "Search or run command" }).click();
+    const direct = page
+      .getByTestId("command-rail")
+      .getByRole("button", { name: "Search", exact: true });
+    if (await direct.isVisible()) await direct.click();
+    else {
+      await page
+        .getByRole("button", { name: "Tools menu", exact: true })
+        .click();
+      await page
+        .getByRole("menuitem", { name: "Search or run command", exact: true })
+        .click();
+    }
   }
   return page.getByRole("dialog", { name: "Command Palette", exact: true });
 }

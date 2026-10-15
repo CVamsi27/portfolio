@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Fragment } from "react";
 import { studyTaskUrl } from "@/lib/germany-execution";
 type Context = { date?: string; task?: string; onGuide?: (id: string) => void };
@@ -65,6 +66,16 @@ function Inline({ text, context = {} }: { text: string; context?: Context }) {
               >
                 {link[1]}
               </button>
+            );
+          if (guide)
+            return (
+              <Link
+                key={i}
+                className="text-primary underline underline-offset-4"
+                href={`/roadmap?view=execution&panel=guides&guide=${guide}${context.date ? `&date=${context.date}` : ""}`}
+              >
+                {link[1]}
+              </Link>
             );
           return <span key={i}>{link[1]} (canonical personal document)</span>;
         }

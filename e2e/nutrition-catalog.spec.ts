@@ -20,7 +20,8 @@ test("saved food aliases and declared portions remain usable when database searc
     r.fulfill({ status: 503, json: { error: "Food database unavailable" } }),
   );
   await page.goto("/food?date=2026-10-07");
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   const modal = page.getByRole("dialog", { name: "Log meal", exact: true });
   await modal
     .getByRole("button", { name: "Search database", exact: true })
@@ -56,7 +57,8 @@ test("downloaded snapshots can be searched offline after reload without a live p
     r.fulfill({ json: { food: yogurt } }),
   );
   await page.goto("/food");
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   let modal = page.getByRole("dialog", { name: "Log meal", exact: true });
   await modal
     .getByRole("button", { name: "Search database", exact: true })
@@ -71,7 +73,8 @@ test("downloaded snapshots can be searched offline after reload without a live p
   await expect(modal.getByText(/Available offline/).first()).toBeVisible();
   await page.reload();
   await page.context().setOffline(true);
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   modal = page.getByRole("dialog", { name: "Log meal", exact: true });
   await modal
     .getByRole("button", { name: "Search database", exact: true })

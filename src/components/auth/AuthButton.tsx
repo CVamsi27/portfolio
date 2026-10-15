@@ -14,7 +14,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserRound, Settings, BookOpen, LogOut, ChevronDown, CheckCircle2 } from "lucide-react";
+import {
+  UserRound,
+  Settings,
+  BookOpen,
+  LogOut,
+  ChevronDown,
+  CheckCircle2,
+} from "lucide-react";
 
 export function SyncBadge({ status }: { status: SyncStatus }) {
   const map: Record<SyncStatus, { dot: string; label: string }> = {
@@ -23,6 +30,7 @@ export function SyncBadge({ status }: { status: SyncStatus }) {
     synced: { dot: "bg-emerald-500", label: "Synced" },
     error: { dot: "bg-red-500", label: "Sync error" },
   };
+  if (status === "local-only" || status === "synced") return null;
   const s = map[status];
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
@@ -32,7 +40,9 @@ export function SyncBadge({ status }: { status: SyncStatus }) {
   );
 }
 
-export default function AuthButton({ showEmail = false }: { showEmail?: boolean } = {}) {
+export default function AuthButton({
+  showEmail = false,
+}: { showEmail?: boolean } = {}) {
   const { user, loading, configured } = useAuth();
   const pathname = usePathname();
 
@@ -53,7 +63,9 @@ export default function AuthButton({ showEmail = false }: { showEmail?: boolean 
     // The /login page has its own sign-in card — don't duplicate it in nav.
     if (pathname === "/login") return null;
     return (
-      <Button asChild size="sm" variant="outline"><Link href="/login">Sign in with Google</Link></Button>
+      <Button asChild size="sm" variant="outline">
+        <Link href="/login">Sign in with Google</Link>
+      </Button>
     );
   }
 
@@ -92,13 +104,19 @@ export default function AuthButton({ showEmail = false }: { showEmail?: boolean 
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/settings" className="flex items-center gap-2 px-2 py-1.5 text-xs cursor-pointer">
+            <Link
+              href="/settings"
+              className="flex items-center gap-2 px-2 py-1.5 text-xs cursor-pointer"
+            >
               <Settings className="h-3.5 w-3.5 text-muted-foreground" />
               <span>Account & Settings</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/roadmap" className="flex items-center gap-2 px-2 py-1.5 text-xs cursor-pointer">
+            <Link
+              href="/roadmap"
+              className="flex items-center gap-2 px-2 py-1.5 text-xs cursor-pointer"
+            >
               <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
               <span>Career Roadmap</span>
             </Link>

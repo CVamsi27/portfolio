@@ -1,15 +1,25 @@
 import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
+async function openBreak(page: import("@playwright/test").Page) {
+  await page.getByRole("button", { name: "Curriculum", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Curriculum actions", exact: true })
+    .click();
+  await page
+    .getByRole("menuitem", { name: "Audio break", exact: true })
+    .click();
+}
 
 test("audio break opens honest YouTube Music destinations and closes cleanly", async ({
   page,
 }) => {
   await seed(page);
   await page.goto("/roadmap");
-  const opener = page
-    .getByRole("button", { name: "Audio break", exact: true })
-    .first();
-  await opener.click();
+  const opener = page.getByRole("button", {
+    name: "Curriculum actions",
+    exact: true,
+  });
+  await openBreak(page);
   const dialog = page.getByRole("dialog", { name: "Listen on YouTube Music" });
   await expect(dialog).toBeVisible();
   const links = dialog.getByRole("link", {
@@ -37,10 +47,7 @@ test("break timer survives hidden time and pause without changing focus records"
   await page.setViewportSize({ width: 320, height: 750 });
   await seed(page);
   await page.goto("/roadmap");
-  await page
-    .getByRole("button", { name: "Audio break", exact: true })
-    .first()
-    .click();
+  await openBreak(page);
   const dialog = page.getByRole("dialog", { name: "Listen on YouTube Music" });
   await page.clock.install();
   await dialog
@@ -58,10 +65,7 @@ test("break timer survives hidden time and pause without changing focus records"
     .click();
   await page.keyboard.press("Escape");
   await page.clock.fastForward(240_000);
-  await page
-    .getByRole("button", { name: "Audio break", exact: true })
-    .first()
-    .click();
+  await openBreak(page);
   await expect(
     dialog.getByText("Break finished. Return to study when you’re ready."),
   ).toBeVisible();
@@ -75,7 +79,9 @@ test("break timer survives hidden time and pause without changing focus records"
     ),
   ).toBe(true);
   expect(
-    await page.evaluate(() => JSON.parse(localStorage.getItem("vk:focus:active") ?? "null")),
+    await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("vk:focus:active") ?? "null"),
+    ),
   ).toBeNull();
 });
 
@@ -96,10 +102,7 @@ test("saved YouTube blocklists permit the exact Music destination", async ({
     route.fulfill({ body: "Podcast destination" }),
   );
   await page.goto("/roadmap");
-  await page
-    .getByRole("button", { name: "Audio break", exact: true })
-    .first()
-    .click();
+  await openBreak(page);
   const popupPromise = page.waitForEvent("popup");
   await page
     .getByRole("link", {

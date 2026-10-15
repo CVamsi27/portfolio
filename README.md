@@ -182,19 +182,24 @@ No cross-repository scheduled sync is configured. A new Bible push requires rege
 
 `/roadmap` is a primary personal navigation destination. Its account-scoped Germany campaign is separate from the public study catalogue. It shows the current week, three next actions, a dated shared timetable and evidence that requires an explicit verification step. Existing Curriculum, Revision and resource deep links remain available.
 
-The owner schedule switches on 12 October 2026: weekdays 540 minutes, Saturday 300, Sunday recovery. It continues as a weekly hiring routine after the twelve-week campaign. Clock placements are movable IST examples; actual meetings use their date-aware invitation time.
+The current urgent campaign uses 60 focused hours per full week: weekdays 660 minutes, Saturday 300, Sunday recovery. Its versioned assignments take effect on 15 October 2026; earlier timetable entries remain historical. The allocation covers applications, hiring conversations, interviews, project delivery, OSS, targeted study, German and review. Clock placements are movable IST examples; actual meetings use their date-aware invitation time.
 
-Private content has one source: the reviewed plan under the private Bible's `personal/reports/100-day-job-roadmap.md`. Generate and release it from this checkout; the JSON output and release backups must stay under that private directory:
+Current authoring sources live in the private Bible's `personal/reports/` directory. The reviewed urgent campaign extends the retained 60-hour baseline without overwriting the baseline, original teaching guides or assessment definitions. Generate the new account payload and matching human calendar from this checkout; inputs, output and release backups stay under the canonical private personal directory:
 
 ```bash
-node scripts/generate-germany-roadmap.mjs \
-  ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/100-day-job-roadmap.md \
-  ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap.json
+node --experimental-strip-types scripts/generate-urgent-job-plan.mjs \
+  --baseline ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap-60h.json \
+  --campaign ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/2026-10-15-urgent-remote-germany-campaign.md \
+  --learning-plan ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/2026-10-15-measured-project-interview-plan.md \
+  --output ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap-urgent-60h.json \
+  --calendar-output ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/2026-10-15-urgent-job-plan-calendar.md
 node --env-file=.env --experimental-strip-types scripts/sync-germany-roadmap.ts \
-  --payload=../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap.json
-# Add --apply only after reviewing the dry-run and passing the release checks.
+  --payload=../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap-urgent-60h.json
+# After the release gates pass, inspect the dry-run and repeat its exact payload with --apply.
 ```
 
-The release resolves the exact configured timetable owner and updates only the career/timetable rows using each row's expected timestamp. Each compare-and-swap is atomic; the two-row release is not a transaction. A conflict stops work and reports any applied keys. A private mode-0600 backup and an exact readback of every owner row protect tasks, reminders, study history and evidence. No external communication or reminder opt-in occurs.
+The generator creates new mode-0600 files and refuses existing outputs. For a later revision choose fresh output names, review the generated calendar, and pass that exact JSON path to the release script. Do not substitute the historical 50-hour payload or general seed when releasing this campaign. Private content is account data and must never be imported into the public application bundle.
+
+Publish the matching frontend through the Git-connected production deployment before importing the new assignment schema; deployment and account-data release are separate checks. The release resolves the exact configured timetable owner and updates only the career/timetable rows using each row's expected timestamp. Each compare-and-swap is atomic; the two-row release is not a transaction. A conflict stops work and reports any applied keys. Re-read and reconcile current data before another attempt rather than blindly restoring the backup. A private mode-0600 backup and an exact readback of every owner row protect tasks, reminders, study history and evidence. Repeat the same dry-run after a successful apply and expect no changed keys. No external communication or reminder opt-in occurs.
 
 Run the generator, schedule/navigation/evidence unit tests and `e2e/germany-roadmap.spec.ts` alongside the existing navigation, Bible-sync and timetable suites. Verify the authenticated account and Git-connected deployment separately; a successful local-mode render does not prove either.

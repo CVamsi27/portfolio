@@ -103,13 +103,23 @@ test.describe("motivation", () => {
     await seed(page);
     await page.goto("/motivation");
     await page
-      .getByRole("button", { name: "Save reminder", exact: true })
+      .getByRole("button", { name: "Reminder actions", exact: true })
+      .click();
+    await page
+      .getByRole("menuitem", { name: "Save reminder", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Reminder actions", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Unsave reminder", exact: true }),
+      page.getByRole("menuitem", { name: "Unsave reminder", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
+    if (!(await page.getByRole("menu").isVisible()))
+      await page
+        .getByRole("button", { name: "Reminder actions", exact: true })
+        .click();
     await page
-      .getByRole("button", { name: "Personal reminders", exact: true })
+      .getByRole("menuitem", { name: "Personal reminders", exact: true })
       .click();
     const dialog = page.getByRole("dialog", { name: "Personal reminders" });
     await dialog
@@ -128,8 +138,12 @@ test.describe("motivation", () => {
     expect(values.favs).toHaveLength(1);
     expect(values.custom[0].text).toBe("I am building a future I believe in.");
     await page.reload();
+    if (!(await page.getByRole("menu").isVisible()))
+      await page
+        .getByRole("button", { name: "Reminder actions", exact: true })
+        .click();
     await page
-      .getByRole("button", { name: "Personal reminders", exact: true })
+      .getByRole("menuitem", { name: "Personal reminders", exact: true })
       .click();
     await expect(
       dialog.getByText("I am building a future I believe in.", { exact: true }),

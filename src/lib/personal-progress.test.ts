@@ -210,3 +210,32 @@ test("goal readings keep zero and unknown distinct, and journal counts actual no
   assert.equal(p.days[0].goalMetric, null);
   assert.equal(p.journalDays, 1);
 });
+
+test("meal window trend uses the saved meal date and leaves missing days unknown", () => {
+  const p = buildProgress({
+    end: "2026-10-04",
+    days: 3,
+    fasting: [
+      {
+        id: "window",
+        start: Date.parse("2026-10-04T18:00:00Z"),
+        end: Date.parse("2026-10-05T10:00:00Z"),
+        mealDate: "2026-10-04",
+        protocolId: "16-8",
+        source: "meal-window",
+      },
+      {
+        id: "bad",
+        start: 200,
+        end: 100,
+        mealDate: "2026-10-03",
+        protocolId: "16-8",
+        source: "meal-window",
+      },
+    ],
+  });
+  assert.deepEqual(
+    p.days.map((day) => day.fastHours),
+    [null, null, 16],
+  );
+});

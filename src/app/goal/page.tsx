@@ -4,6 +4,7 @@ import { useWorkspaceView } from "@/lib/use-workspace-view";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ActionMenu from "@/components/trackers/ActionMenu";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
@@ -336,7 +337,7 @@ export default function GoalPage() {
           primary: (
             <a
               href="#daily-metric"
-              onClick={()=>setView("metrics")}
+              onClick={() => setView("metrics")}
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Log today&apos;s progress
@@ -357,36 +358,14 @@ export default function GoalPage() {
           value={view}
           onChange={setView}
           views={[
-            { id: "purpose", label: "Purpose" },
-            { id: "milestones", label: "Milestones" },
+            { id: "purpose", label: "Goal & milestones" },
             { id: "metrics", label: "Metric" },
           ]}
         />
-        <div className="workspace-section-stack" hidden={view !== "purpose"}>
-          <Link
-            href="/motivation"
-            className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline"
-          >
-            Motivation
-          </Link>
-          <Card variant="dossier">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">
-                Next milestone · {doneCount}/{milestones.length} complete
-              </p>
-              <a
-                href="#milestones"
-                onClick={() => setView("milestones")}
-                className="inline-flex min-h-11 items-center font-semibold text-primary"
-              >
-                {milestones.find((m) => !m.done)?.title ??
-                  (milestones.length
-                    ? "All milestones complete"
-                    : "Add your first milestone")}{" "}
-                →
-              </a>
-            </CardContent>
-          </Card>
+        <div className="workspace-section-stack" hidden={view === "metrics"}>
+          <h2 className="font-display text-xl font-semibold">
+            {displayGoalTitle(prefs)}
+          </h2>
           {previousPending ? (
             <div data-testid="weekly-review">
               <Card variant="dossier">
@@ -414,136 +393,6 @@ export default function GoalPage() {
               {weeklyReviewNotice}
             </p>
           ) : null}
-          <Card variant="dossier" id="weekly-commitment">
-            <CardContent className="p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="dossier-kicker">This week / one commitment</p>
-                  <h2 className="mt-1 font-display text-xl font-bold">
-                    {weeklyCommitment?.text ??
-                      "Choose the one outcome worth protecting"}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    A weekly commitment gives today&apos;s next action a useful
-                    direction.
-                  </p>
-                </div>
-                {weeklyCommitment ? (
-                  <Button
-                    variant={
-                      weeklyCommitment.status === "completed"
-                        ? "secondary"
-                        : "outline"
-                    }
-                    size="sm"
-                    onClick={toggleWeeklyCommitment}
-                  >
-                    {weeklyCommitment.status === "completed"
-                      ? "Completed this week"
-                      : "Mark complete"}
-                  </Button>
-                ) : null}
-              </div>
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                <Input
-                  aria-label="Weekly commitment"
-                  value={commitmentText}
-                  onChange={(event) => setCommitmentInput(event.target.value)}
-                  placeholder="e.g. Contact three hiring managers"
-                  onKeyDown={(event) =>
-                    event.key === "Enter" && saveWeeklyCommitment()
-                  }
-                />
-                <Button
-                  onClick={saveWeeklyCommitment}
-                  disabled={!commitmentText.trim()}
-                >
-                  Save weekly commitment
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          <details className="workspace-panel">
-            <summary>Edit goal and category</summary>
-            {/* ── Category selector ── */}
-            <Card variant="dossier" id="milestones">
-              <CardContent className="p-5">
-                <p className="text-sm font-medium">Goal Category</p>
-                <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
-                  {GOAL_CATEGORIES.map((gc) => (
-                    <button
-                      key={gc.id}
-                      onClick={() => changeCategory(gc.id)}
-                      className={cn(
-                        "rounded-xl border p-2 text-center text-xs transition-all",
-                        goalCat === gc.id
-                          ? "border-primary bg-primary/10 font-semibold shadow-sm"
-                          : "border-border/60 hover:bg-accent",
-                      )}
-                    >
-                      <TrackerIcon
-                        name={gc.iconName}
-                        className="mx-auto h-5 w-5 text-primary"
-                      />
-                      <p className="mt-0.5 font-medium">{gc.label}</p>
-                    </button>
-                  ))}
-                </div>
-                {relocationMode && (
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label
-                        htmlFor="destination-country"
-                        className="text-xs font-medium text-muted-foreground"
-                      >
-                        Destination country
-                      </label>
-                      <div className="mt-1.5">
-                        <select
-                          id="destination-country"
-                          className="flex h-10 w-full rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          value={prefs.goalCountry ?? ""}
-                          onChange={(event) =>
-                            setPrefs({
-                              ...prefs,
-                              goalCountry: event.target.value || undefined,
-                            })
-                          }
-                        >
-                          <option value="">Choose a destination</option>
-                          {RELOCATION_COUNTRIES.map((country) => (
-                            <option key={country} value={country}>
-                              {country}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">
-                        Visa Pathway
-                      </p>
-                      <div className="mt-1.5">
-                        <Segmented
-                          label="Visa pathway"
-                          variant="soft"
-                          options={[
-                            { value: "EU Blue Card", label: "EU Blue Card" },
-                            {
-                              value: "IT Specialist Fast-Track",
-                              label: "IT Specialist",
-                            },
-                          ]}
-                          value={safe.visa ?? "EU Blue Card"}
-                          onChange={(visa) => setG({ ...safe, visa })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </details>
         </div>
         {/* ── Daily metric ── */}
         <section
@@ -668,17 +517,10 @@ export default function GoalPage() {
                   </Button>
                 )}
               </div>
-
             </CardContent>
           </Card>
         </section>
-        <Link
-          href="/dashboard?view=work&metric=goals"
-          className="capture-return"
-        >
-          Goal progress and dated trends →
-        </Link>
-        <div hidden={view !== "purpose"}>
+        <div hidden={view === "metrics"}>
           {/* Weekly commitment progress */}
           {weeklyCommitment && (
             <div className="rounded-xl border border-border/70 bg-card/50 px-4 py-3">
@@ -725,9 +567,9 @@ export default function GoalPage() {
             </div>
           )}
         </div>
-        <div hidden={view !== "milestones"}>
+        <div hidden={view === "metrics"}>
           {/* ── Milestones with CRUD ── */}
-          <Card variant="dossier">
+          <Card variant="dossier" id="milestones">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -786,10 +628,10 @@ export default function GoalPage() {
                         </p>
                       )}
                     </div>
-                    <div className="milestone-actions flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                    <ActionMenu label={`Actions for ${m.title}`}>
                       {!m.done && (
                         <Link
-                          href={`/focus?task=${encodeURIComponent(m.title)}`}
+                          href={`/plan?view=focus&label=${encodeURIComponent(m.title)}`}
                           title={`Launch focus sprint for ${m.title}`}
                           aria-label={`Focus sprint for ${m.title}`}
                           className="rounded-lg p-1 text-primary/80 transition-colors hover:text-primary"
@@ -830,7 +672,7 @@ export default function GoalPage() {
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
-                    </div>
+                    </ActionMenu>
                   </li>
                 ))}
               </ul>
@@ -849,39 +691,189 @@ export default function GoalPage() {
             </CardContent>
           </Card>
         </div>
-        <details className="workspace-panel">
-          <summary>
-            {relocationMode
-              ? "Optional outreach template"
-              : "Reflection prompt"}
-          </summary>
-          {/* ── Outreach / reflection generator ── */}
-          <Card variant="dossier">
-            <CardContent className="p-5">
-              <h2 className="font-display font-bold">
-                {relocationMode ? "Outreach generator" : "Daily reflection"}
-              </h2>
-              <p className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-4 text-sm leading-relaxed">
-                {snippet}
-              </p>
-              <div className="mt-3 flex justify-end">
-                <Button variant="secondary" size="sm" onClick={copy}>
-                  {copied ? (
-                    <>
-                      <Check className="mr-1.5 h-4 w-4" /> Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="mr-1.5 h-4 w-4" /> Copy
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* ── Milestone modal ── */}
-        </details>
+        <section
+          hidden={view === "metrics"}
+          className="workspace-section-stack"
+        >
+          {" "}
+          <details className="workspace-panel">
+            <summary>Edit goal and category</summary>
+            <Card variant="dossier" id="weekly-commitment">
+              <CardContent className="p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="dossier-kicker">This week / one commitment</p>
+                    <h2 className="mt-1 font-display text-xl font-bold">
+                      {weeklyCommitment?.text ??
+                        "Choose the one outcome worth protecting"}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      A weekly commitment gives today&apos;s next action a
+                      useful direction.
+                    </p>
+                  </div>
+                  {weeklyCommitment ? (
+                    <Button
+                      variant={
+                        weeklyCommitment.status === "completed"
+                          ? "secondary"
+                          : "outline"
+                      }
+                      size="sm"
+                      onClick={toggleWeeklyCommitment}
+                    >
+                      {weeklyCommitment.status === "completed"
+                        ? "Completed this week"
+                        : "Mark complete"}
+                    </Button>
+                  ) : null}
+                </div>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Input
+                    aria-label="Weekly commitment"
+                    value={commitmentText}
+                    onChange={(event) => setCommitmentInput(event.target.value)}
+                    placeholder="e.g. Contact three hiring managers"
+                    onKeyDown={(event) =>
+                      event.key === "Enter" && saveWeeklyCommitment()
+                    }
+                  />
+                  <Button
+                    onClick={saveWeeklyCommitment}
+                    disabled={!commitmentText.trim()}
+                  >
+                    Save weekly commitment
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            {/* ── Category selector ── */}
+            <Card variant="dossier" id="goal-category">
+              <CardContent className="p-5">
+                <p className="text-sm font-medium">Goal Category</p>
+                <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                  {GOAL_CATEGORIES.map((gc) => (
+                    <button
+                      key={gc.id}
+                      onClick={() => changeCategory(gc.id)}
+                      className={cn(
+                        "rounded-xl border p-2 text-center text-xs transition-all",
+                        goalCat === gc.id
+                          ? "border-primary bg-primary/10 font-semibold shadow-sm"
+                          : "border-border/60 hover:bg-accent",
+                      )}
+                    >
+                      <TrackerIcon
+                        name={gc.iconName}
+                        className="mx-auto h-5 w-5 text-primary"
+                      />
+                      <p className="mt-0.5 font-medium">{gc.label}</p>
+                    </button>
+                  ))}
+                </div>
+                {relocationMode && (
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="destination-country"
+                        className="text-xs font-medium text-muted-foreground"
+                      >
+                        Destination country
+                      </label>
+                      <div className="mt-1.5">
+                        <select
+                          id="destination-country"
+                          className="flex h-10 w-full rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          value={prefs.goalCountry ?? ""}
+                          onChange={(event) =>
+                            setPrefs({
+                              ...prefs,
+                              goalCountry: event.target.value || undefined,
+                            })
+                          }
+                        >
+                          <option value="">Choose a destination</option>
+                          {RELOCATION_COUNTRIES.map((country) => (
+                            <option key={country} value={country}>
+                              {country}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Visa Pathway
+                      </p>
+                      <div className="mt-1.5">
+                        <Segmented
+                          label="Visa pathway"
+                          variant="soft"
+                          options={[
+                            { value: "EU Blue Card", label: "EU Blue Card" },
+                            {
+                              value: "IT Specialist Fast-Track",
+                              label: "IT Specialist",
+                            },
+                          ]}
+                          value={safe.visa ?? "EU Blue Card"}
+                          onChange={(visa) => setG({ ...safe, visa })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <details className="workspace-panel">
+              <summary>
+                {relocationMode
+                  ? "Optional outreach template"
+                  : "Reflection prompt"}
+              </summary>
+              {/* ── Outreach / reflection generator ── */}
+              <Card variant="dossier">
+                <CardContent className="p-5">
+                  <h2 className="font-display font-bold">
+                    {relocationMode ? "Outreach generator" : "Daily reflection"}
+                  </h2>
+                  <p className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-4 text-sm leading-relaxed">
+                    {snippet}
+                  </p>
+                  <div className="mt-3 flex justify-end">
+                    <Button variant="secondary" size="sm" onClick={copy}>
+                      {copied ? (
+                        <>
+                          <Check className="mr-1.5 h-4 w-4" /> Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-1.5 h-4 w-4" /> Copy
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* ── Milestone modal ── */}
+            </details>{" "}
+          </details>{" "}
+          <Link
+            href="/motivation"
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline"
+          >
+            Motivation
+          </Link>
+          <Link
+            href="/dashboard?view=work&metric=goals"
+            className="capture-return"
+          >
+            Goal progress and dated trends →
+          </Link>
+        </section>
+
         <Modal
           open={msModal !== null}
           onClose={() => setMsModal(null)}

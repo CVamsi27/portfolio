@@ -44,7 +44,6 @@ export default function HealthWorkspace() {
           today={today}
           onChange={(day) => router.replace(`/health?view=${view}&date=${day}`)}
         />
-        <Link href="/routine">Manage reminders →</Link>
       </div>
       {fasting.value.startedAt !== null && (
         <section className="workspace-panel">
@@ -82,7 +81,6 @@ export default function HealthWorkspace() {
           ["today", "Today"],
           ["history", "History"],
           ["recovery", "Sleep & recovery"],
-          ["connections", "Connections"],
         ].map(([id, label]) => (
           <Link
             key={id}
@@ -103,6 +101,7 @@ export default function HealthWorkspace() {
           key={date}
           initialType="sleep"
           initialDate={date}
+          fixedDate
           returnTo={back}
         />
       ) : view === "history" ? (
@@ -146,7 +145,9 @@ export default function HealthWorkspace() {
               {modules.value.food && (
                 <li>
                   <span>
-                    <strong>Food</strong>
+                    <strong>
+                      <Link href={`/food?date=${date}`}>Food</Link>
+                    </strong>
                     <small>
                       {d.foodCount
                         ? `${d.foodCount} entries · ${d.nutrients.energy.total === null ? "Calories unavailable" : Math.round(d.nutrients.energy.total) + " known kcal"}`
@@ -157,14 +158,19 @@ export default function HealthWorkspace() {
                     <Link className="inline-action" href={add("food")}>
                       Add food
                     </Link>
-                    <Link href={`/food?date=${date}`}>Open diary →</Link>
                   </div>
                 </li>
               )}
               {modules.value.movement && (
                 <li>
                   <span>
-                    <strong>Exercise</strong>
+                    <strong>
+                      <Link
+                        href={`/workout-tracking?date=${date}&returnTo=${encodeURIComponent(back)}`}
+                      >
+                        Exercise
+                      </Link>
+                    </strong>
                     <small>
                       {d.exerciseCount
                         ? `${d.exerciseCount} exercises · ${d.setCount} sets`
@@ -172,18 +178,20 @@ export default function HealthWorkspace() {
                     </small>
                   </span>
                   <div className="health-record-actions">
-                    <Link className="inline-action" href={add("exercise")}>
+                    <Link
+                      className="inline-action"
+                      href={`/workout-tracking?date=${date}&returnTo=${encodeURIComponent(back)}`}
+                    >
                       Record exercise
-                    </Link>
-                    <Link href={`/workout-tracking?date=${date}`}>
-                      Open session →
                     </Link>
                   </div>
                 </li>
               )}
               <li>
                 <span>
-                  <strong>Body</strong>
+                  <strong>
+                    <Link href={`/weight-loss?date=${date}`}>Body</Link>
+                  </strong>
                   <small>
                     {d.latestWeight
                       ? displayWeight(d.latestWeight.value, prefs.weightUnit)
@@ -193,9 +201,6 @@ export default function HealthWorkspace() {
                 <div className="health-record-actions">
                   <Link className="inline-action" href={add("weight")}>
                     Weigh in
-                  </Link>
-                  <Link href={`/weight-loss?date=${date}`}>
-                    Weight history →
                   </Link>
                 </div>
               </li>
@@ -218,7 +223,11 @@ export default function HealthWorkspace() {
               <li>
                 <span>
                   <strong>Water</strong>
-                  <small>{water.value[date] ?? 0} glasses recorded</small>
+                  <small>
+                    {water.value[date] == null
+                      ? "No water recorded"
+                      : `${water.value[date]} glasses recorded`}
+                  </small>
                 </span>
                 <div className="flex gap-2">
                   <Button
@@ -251,9 +260,6 @@ export default function HealthWorkspace() {
               </li>
             </ul>
           </section>
-          <Link className="capture-return" href="/dashboard?view=health">
-            Explore health trends →
-          </Link>
         </>
       )}
     </div>

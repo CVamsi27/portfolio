@@ -15,7 +15,9 @@ test.describe("personal roadmap", () => {
 
     await page.goto("/todo");
     await expect(
-      page.getByTestId("tracker-primary-nav").getByRole("link", { name: "Plan" }),
+      page
+        .getByTestId("tracker-primary-nav")
+        .getByRole("link", { name: "Plan" }),
     ).toHaveAttribute("href", "/plan");
 
     await page.goto("/trackers");
@@ -59,10 +61,9 @@ test.describe("personal roadmap", () => {
 
     await page.goto("/hub");
     await page.goto("/health");
-    await expect(page.getByRole("link", { name: /Weight/ })).toHaveAttribute(
-      "href",
-      /\/weight-loss\?date=\d{4}-\d{2}-\d{2}/,
-    );
+    await expect(
+      page.getByRole("link", { name: "Body", exact: true }),
+    ).toHaveAttribute("href", /\/weight-loss\?date=\d{4}-\d{2}-\d{2}/);
     expect(
       await page.evaluate(
         () =>
@@ -73,25 +74,25 @@ test.describe("personal roadmap", () => {
     ).toMatchObject({ weightKg: 82.4 });
   });
 
-  test("keeps the mobile hub focused with compact clocks and a progress rail", async ({
+  test("keeps the mobile hub focused without clocks or a progress rail", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await seed(page);
     await page.goto("/hub");
 
-    await page.getByText("Time zones & reminders", { exact: true }).click();
-    await expect(page.getByTestId("world-clock-strip")).toContainText("Munich");
-    await expect(page.getByTestId("world-clock-strip")).toContainText(
-      "San Francisco",
-    );
+    await expect(page.getByTestId("world-clock-strip")).toHaveCount(0);
     await expect(page.getByTestId("progress-rail")).toHaveCount(0);
-    await expect(page.getByTestId("today-header").locator(".nova-primary-action")).toBeVisible();
+    await expect(
+      page.getByTestId("today-header").locator(".nova-primary-action"),
+    ).toBeVisible();
     await expect(page.getByTestId("up-next-lane")).toHaveCount(0);
-    await expect(page.getByTestId("today-header").locator(".nova-primary-action")).not.toContainText(
-      /meal window|concrete job offer|about 10 min/i,
-    );
-    await expect(page.getByText("Time zones & reminders", { exact: true })).toBeVisible();
+    await expect(
+      page.getByTestId("today-header").locator(".nova-primary-action"),
+    ).not.toContainText(/meal window|concrete job offer|about 10 min/i);
+    await expect(
+      page.getByText("Time zones & reminders", { exact: true }),
+    ).toHaveCount(0);
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
     ).toHaveCount(5);
@@ -265,12 +266,11 @@ test.describe("personal roadmap", () => {
     await page.goto("/roadmap");
     await expect(page.getByText("Study in this order")).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Execution Context" }),
-    ).toHaveAttribute(
-      "href",
-      /study\.buildora\.work\/10-frontend\/10\.1-javascript/,
-    );
+      page.getByRole("button", { name: /^Execution Context Role:/ }),
+    ).toBeVisible();
     await page.getByRole("button", { name: "Curriculum", exact: true }).click();
+    await page.getByRole("button", { name: /Execution Context/ }).click();
+    await page.getByLabel("Day details").first().selectOption("checklist");
     await page.getByText("How to complete this task").first().click();
     await expect(
       page.getByText(
@@ -350,6 +350,7 @@ test.describe("personal roadmap", () => {
     await seed(page);
     await page.goto("/goal");
 
+    await page.getByText("Edit goal and category", { exact: true }).click();
     await page
       .getByLabel("Weekly commitment")
       .fill("Contact three Berlin hiring managers");

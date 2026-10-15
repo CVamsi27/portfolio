@@ -31,6 +31,7 @@ test("save and repeat an immutable meal with reviewed portions", async ({
   await seed(page, { "vk:nutrition:entries": { "rice-log": entry } });
   await page.goto("/food?view=saved&date=2026-10-07");
   const library = page.getByRole("region", { name: "Meal library" });
+  await library.getByText("Save a meal template", { exact: true }).click();
   await library
     .getByLabel("Meal template name", { exact: true })
     .fill("Usual lunch");

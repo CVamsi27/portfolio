@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Modal from "@/components/trackers/Modal";
 import RequireAuth from "@/components/auth/RequireAuth";
+import ActionMenu from "@/components/trackers/ActionMenu";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import EmptyState from "@/components/trackers/EmptyState";
 import Segmented from "@/components/trackers/Segmented";
@@ -276,7 +277,11 @@ export default function ArchivePage() {
       <TrackerShell
         icon="archive"
         title="Library"
-        actions={{primary:<Button onClick={() => setCaptureOpen(true)}>New item</Button>}}
+        actions={{
+          primary: (
+            <Button onClick={() => setCaptureOpen(true)}>New item</Button>
+          ),
+        }}
         subtitle={null}
       >
         {feedback ? (
@@ -411,61 +416,64 @@ export default function ArchivePage() {
         </Modal>
         <Card variant="dossier" className="nova-library-list">
           <CardContent className="p-5">
-            {items.length > 0 && <>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <label className="relative flex-1 block">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  aria-label="Search library"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  className="pl-9"
-                  placeholder="Search notes, links, tags… or tag:work"
-                />
-              </label>
-              {items.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={exportToMarkdown}
-                  className="shrink-0"
-                >
-                  <Download className="mr-1.5 h-3.5 w-3.5" /> Export Markdown
-                </Button>
-              )}
-            </div>
-            <div className="mt-3">
-              <Segmented
-                label="Library scope"
-                options={[
-                  { value: "current", label: currentGoalLabel },
-                  { value: "all", label: "All items" },
-                  { value: "unlinked", label: "Unlinked" },
-                ]}
-                value={goalFilter}
-                onChange={setGoalFilter}
-              />
-            </div>
-            {/* Tag filter chips */}
-            {allDistinctTags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {allDistinctTags.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => handleTagChip(tag)}
-                    className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors ${
-                      activeTagFilter === tag
-                        ? "border-primary/60 bg-primary/15 text-primary"
-                        : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                    }`}
-                    aria-pressed={activeTagFilter === tag}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
+            {items.length > 0 && (
+              <>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <label className="relative flex-1 block">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      aria-label="Search library"
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      className="pl-9"
+                      placeholder="Search notes, links, tags… or tag:work"
+                    />
+                  </label>
+                  {items.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportToMarkdown}
+                      className="shrink-0"
+                    >
+                      <Download className="mr-1.5 h-3.5 w-3.5" /> Export
+                      Markdown
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-3">
+                  <Segmented
+                    label="Library scope"
+                    options={[
+                      { value: "current", label: currentGoalLabel },
+                      { value: "all", label: "All items" },
+                      { value: "unlinked", label: "Unlinked" },
+                    ]}
+                    value={goalFilter}
+                    onChange={setGoalFilter}
+                  />
+                </div>
+                {/* Tag filter chips */}
+                {allDistinctTags.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {allDistinctTags.map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={() => handleTagChip(tag)}
+                        className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors ${
+                          activeTagFilter === tag
+                            ? "border-primary/60 bg-primary/15 text-primary"
+                            : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        }`}
+                        aria-pressed={activeTagFilter === tag}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
-            </>}
             {matches.length ? (
               <ul className="mt-4 space-y-2">
                 {matches.map((item) => {
@@ -491,7 +499,18 @@ export default function ArchivePage() {
                               </span>
                             ) : null}
                           </p>
-                          {item.body.length > 240 ? <details><summary>{item.body.slice(0,180)}…</summary><p className="mt-2 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm">{item.body}</p></details> : <p className="mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm">{item.body}</p>}
+                          {item.body.length > 240 ? (
+                            <details>
+                              <summary>{item.body.slice(0, 180)}…</summary>
+                              <p className="mt-2 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm">
+                                {item.body}
+                              </p>
+                            </details>
+                          ) : (
+                            <p className="mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm">
+                              {item.body}
+                            </p>
+                          )}
                           {item.kind === "image" && item.sourceUrl ? (
                             <ArchiveImage
                               src={item.sourceUrl}
@@ -523,7 +542,8 @@ export default function ArchivePage() {
                             </div>
                           ) : null}
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <ActionMenu label="Library item actions">
+                          {" "}
                           <button
                             type="button"
                             aria-label="Copy archive text"
@@ -564,7 +584,7 @@ export default function ArchivePage() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
-                        </div>
+                        </ActionMenu>
                       </div>
                     </li>
                   );

@@ -57,7 +57,6 @@ test.describe("navigation & shell", () => {
       "/share",
       "/shared-with-me",
       "/motivation",
-      "/log",
       "/more",
     ]) {
       await page.goto(route);
@@ -73,10 +72,11 @@ test.describe("navigation & shell", () => {
     await expect(page.locator('a[href="/study"]')).toHaveCount(0);
   });
 
-  test("links to the Study Bible from Tools menu and the Tools page", async ({
+  test("links to the Study Bible from phone Tools and the study curriculum", async ({
     page,
   }) => {
     await seed(page);
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/hub");
     await page.getByRole("button", { name: "Tools menu", exact: true }).click();
     const desktopLink = page.getByTestId("personal-study-link");
@@ -92,9 +92,12 @@ test.describe("navigation & shell", () => {
     await expect(
       page.getByTestId("mobile-command-dock").getByRole("link"),
     ).toHaveCount(5);
-    await page.goto("/more");
+    await page.goto("/roadmap?view=curriculum");
+    await page
+      .getByRole("button", { name: "Curriculum actions", exact: true })
+      .click();
     await expect(
-      page.getByRole("link", { name: /Software Developer Bible/ }),
+      page.getByRole("menuitem", { name: "Open Study Bible", exact: true }),
     ).toHaveAttribute("href", "https://study.buildora.work/");
   });
 
@@ -150,10 +153,14 @@ test.describe("navigation & shell", () => {
         .getByTestId("tracker-primary-nav")
         .getByRole("link", { name: "Health" }),
     ).toHaveAttribute("href", "/health");
-    await expect(rail.getByTestId("tracker-primary-nav").getByRole("link", { name: "Roadmap", exact: true })).toHaveAttribute("href", "/roadmap");
+    await expect(
+      rail
+        .getByTestId("tracker-primary-nav")
+        .getByRole("link", { name: "Roadmap", exact: true }),
+    ).toHaveAttribute("href", "/roadmap");
     await expect(
       rail.getByRole("button", { name: "Tools menu", exact: true }),
-    ).toBeVisible();
+    ).toBeHidden();
     await expect(
       rail.getByRole("button", { name: "Quick capture" }),
     ).toHaveCount(0);
@@ -204,7 +211,7 @@ test.describe("navigation & shell", () => {
     await expect(trackerSurface.getByText("Account & sync")).toBeVisible();
     await expect(
       trackerSurface
-        .getByText("Local mode", { exact: true })
+        .getByText("Records are stored on this device.", { exact: true })
         .or(trackerSurface.getByRole("button", { name: /Sign in|Sign out/ })),
     ).toBeVisible();
   });

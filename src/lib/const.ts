@@ -33,22 +33,22 @@ export const MENU_LIST = [
 
 export const WORK_EXPERIENCE: WorkExperience[] = [
   {
-    title: "Full Stack Engineer",
-    description: "Healthcare SaaS",
+    title: "Full Stack Engineer (Independent SaaS venture)",
+    description: "Independent healthcare SaaS",
     tech: "React, Vite, TanStack Query, Zod, NestJS, Prisma, PostgreSQL, TypeScript, Jest, Vitest, Playwright, GitHub Actions, Docker",
     duration: "Aug 2025 - Present",
     company: "Docita",
     URL: "https://docita.work",
     details: [
-      "Own end-to-end development across 5 core workflows in a multi-tenant healthcare SaaS: scheduling, patient records, prescriptions, billing and inventory, delivered through a TypeScript monorepo.",
-      "Build React/Vite clinical forms and server-state updates with TanStack Query, React Hook Form and shared Zod contracts, handling validation, pending submissions and API errors.",
-      "Develop NestJS, Prisma and PostgreSQL APIs with tenant-scoped authorization, resource-level access policies and transactional writes; implement Row-Level Security policies, field encryption and sensitive-data audit logging.",
+      "Built a multi-tenant healthcare SaaS end to end, spanning scheduling, patient records, prescriptions, billing and inventory in a TypeScript monorepo.",
+      "Build React/Vite clinical forms with shared Zod validation, React Hook Form and TanStack Query, handling pending submissions, API errors and server-state updates.",
+      "Develop NestJS, Prisma and PostgreSQL APIs with clinic-scoped authorization, resource policies and transactional writes; implement Row-Level Security policies, field encryption and sensitive-data audit logging.",
       "Implement PostgreSQL-backed background jobs and a transactional outbox with bounded retries and dead-letter replay; integrate HMAC-verified payment webhooks and asynchronous document workflows.",
-      "Built an internal operational dashboard for clinic activity, API latency percentiles and error rates; maintain Jest/Vitest/Playwright checks and deliver API, worker and frontend releases with Docker, Fly.io, AWS RDS and Cloudflare."
+      "Built an internal operational dashboard for clinic activity, API latency percentiles and error rates; maintain Jest/Vitest/Playwright checks for API, worker and frontend changes."
     ]
   },
   {
-    title: "Senior Software Engineer / Software Engineer",
+    title: "Software Engineer → Senior Software Engineer (Mar 2025)",
     description: "Full Stack Developer",
     tech: "TypeScript, React, Node.js, Express, NestJS, PostgreSQL, GitHub Actions, Jest",
     duration: "Oct 2021 - Jul 2025",
@@ -78,8 +78,8 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 export const PROJECTS: Projects[] = [
   {
     title: "Docita",
-    description: "Production healthcare SaaS for Indian clinics — patient records, OPD queue, consultations, prescriptions, billing, and follow-ups",
-    tech: "Next.js 15, NestJS, TypeScript, PostgreSQL, Prisma ORM, Node.js, Express",
+    description: "Independent healthcare SaaS venture — scheduling, patient records, prescriptions, billing, inventory and operational tooling",
+    tech: "React, Vite, TypeScript, TanStack Query, Zod, NestJS, PostgreSQL, Prisma",
     gitLink: "",
     URL: "https://docita.work",
   },

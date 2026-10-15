@@ -219,3 +219,91 @@ Regression specs updated for image-first ordering, manual-only switching, local 
 Publication follow-up: CI run 38403299321 passed 327 of 329 browser tests. Two assertions needed to follow the requested design and native image behavior: general-goal neutrality now applies to the story text while Germany photo captions remain visible; the exact bundled image path accepts the absolute URL written by Next Image during mount. Gallery actions, responsive bounds, failure recovery and other page tests passed. The corrected commit runs through the full CI suite again before merge.
 
 final result: passed
+
+
+## 2026-10-15 — Full workspace cleanup, local handoff
+
+Scope: the approved C01–C16 design in `docs/superpowers/specs/2026-10-14-nova-clean-app-design.md`, implemented on `fix/nova-clean-app`. This pass gives each page a primary task, removes duplicate date/navigation/empty-stat scaffolds, and moves optional configuration and row operations behind contextual controls. Saved records, curricula, assessment rules, sharing boundaries and the Germany gallery are preserved. The separate 60-hour career timetable remains a review draft in the private Bible workspace; it is not bundled into this public repository or imported into an account.
+
+### Visual evidence and findings
+
+Baseline: `artifacts/ui-ux/clean-app-audit-2026-10-14/`. Final evidence: `artifacts/ui-ux/clean-app-implementation-2026-10-14/`. The baseline and final local empty states span the 14–15 October date rollover. They are layout comparisons, not identical dated-data snapshots.
+
+- Opened and inspected the primary, health, tools and phone overview images. The scan covers 19 default desktop routes plus Motivation, and 18 default routes at both 320px and 390px. No document horizontal overflow was observed.
+- Opened `food-before-after.png` and `hub-before-after.png`: normalized 390px phone viewport comparisons with the surrounding application context. Food now has three primary views, one capture action, a compact empty summary and contextual review controls. Today now has one date control, week dates and the day's agenda without the repeated date and empty chart scaffold.
+- Inspected populated dark-mode Food, Goals, Tasks and Motivation at desktop and 390px. `food-populated-390-final.png` verifies the compact calories/protein summary above actual meal rows, including the recorded 195 kcal chart. Full nutrient detail remains in Nutrients.
+- Existing Inter/Space Grotesk typography, NOVA surfaces, teal selection/focus tokens and Germany image assets are retained. No new palette or generated artwork was added. Optional controls retain readable labels and touch targets. This is scoped layout/focus evidence, not a complete accessibility certification.
+- Fixed a real menu/dialog focus-return defect: closing Personal reminders now returns focus to Reminder actions. Fixed Settings query/hash navigation so history settings opens Data. Reflection history selection updates the date URL and reloads the same entry; its regression failed before the correction and passed afterward.
+
+### Verification and limitations
+
+- Latest production build: passed, 47 routes. TypeScript and ESLint passed; external baseline-browser-mapping/pnpm metadata notices remain. Diff whitespace check passed.
+- Focused Node domain tests: 50/50 passed, covering progress metrics/date gaps, fasting, nutrition reuse, record merging, timetable, navigation and Germany execution contracts.
+- Full local browser suite: 329/329 passed in 2.0 minutes before the final Food and reflection refinements. After those refinements, all 45 affected nutrition/personal-tracking tests passed and the final editor/progress/daily/workspace group passed 43/43 in 13.5 seconds, including the new reflection history/reload regression. The complete 330-test suite has not been rerun at the final revision.
+- Browser regressions use isolated local storage and local mode. Responsive regression coverage includes 320px, 390px, 768px and 1440px in both themes. Manual captures include empty and populated states; interaction checks cover recording, dates, menus, dialog return, reminders and contextual navigation.
+- Owner-authenticated campaign data, live cloud sharing and connected-device operations were not verified. No account records were migrated or deleted. No commit, push, merge or production deployment occurred in this pass. The final local preview remains available at `http://127.0.0.1:4221/hub`; the temporary viewport override was reset.
+
+Final local result: passed for the scoped cleanup and recorded checks. Production/account-specific gates remain unverified.
+
+
+## 2026-10-15 — Detailed career timetable
+
+The full-stack / 60-hour design was approved through “continue”. The implementation adds an optional validated private assignment extension, shared detail presentation in Today/Plan/Roadmap, per-assignment evidence and weekly groups. Existing 50-hour plans remain usable. Source readings retain the dated study return context; internal guide links restore the same guide after reload. Past dates, weekly evidence and exam criteria/attempt IDs are preserved. No personal payload is bundled in the app.
+
+The generator rejects incomplete dates, wrong budgets, overlaps, missing steps and unsafe links before writing a new private artifact. The actual output contains 72 workdays/526 assignments; all 86 distinct study links resolve locally. Calendar authoring fixes remove accidental next-week headings from assignment text and handle the two full-loop Fridays. Extra repeated timing prose is removed from the brief because the numbered steps already show it.
+
+### Visual evidence
+
+Evidence is kept in the canonical private Bible reports directory (`80-lanes-abroad-full-stack/personal/reports/`), rather than duplicating personal timetable content in this public repository:
+
+- `detailed-job-timetable-plan-desktop.png`: collapsed assignment rows with time, title, outcome and aligned chevron.
+- `detailed-job-timetable-assignment-phone.png` and `detailed-job-timetable-assignment-phone-detail.png`: 390px context plus the expanded real Type Narrowing/Zod assignment, clickable chapters, numbered steps and saved artifact.
+- `detailed-job-timetable-week-phone.png` and `detailed-job-timetable-week-320.png`: compact date groups and the 60-hour weekly budget. Sunday has no required assignment.
+
+Opened the desktop and expanded phone screenshots. The existing typography, palette, page gutters, navigation and progress placement are retained. The phone review uses the real plan in disposable local storage; the fixture encoding was corrected before the final captures. Rows have clear touch targets and no native disclosure marker on a separate line. The empty personal-activity panel is hidden beside a full job timetable. Document bounds match 390px and 320px; healthy preview logs contain no warnings/errors. The viewport override was reset.
+
+### Final checks
+
+Production build, TypeScript, ESLint and diff whitespace checks passed. `pnpm test:germany-roadmap` passed 9 authoring and 30 domain cases. The **complete final browser suite passed 334/334 in 2.0 minutes**, covering the earlier cleanup and this timetable implementation. The prior 332/333 run exposed a legacy row-label selector after adding a time label; keeping that label in its own span restores the full existing study/exam workflow. The new Week behavior was also demonstrated failing before implementation. No browser cases were skipped or removed.
+
+Local preview only. The canonical baseline and saved account timetable have not been replaced; no cloud import, message, application, post, OSS submission, commit, push, merge or production deployment occurred. Live cloud/account-specific operations remain unverified.
+
+
+## 2026-10-15 — Timetable refinement and resume consistency
+
+Continued within the approved clean-app and detailed-assignment design. Replaced clipped, mid-word outcome strings with complete action sentences. Expanded rows hide the repeated compact outcome. Saved evidence and verified evidence now have distinct labels across Today/Plan/Roadmap, with small actual per-day progress on the week view and an explicit displayed date range. No zero-progress panel or new configuration surface was added. Application instructions link to claim preparation and identify the correct private EU CV; the existing 60-hour allocation is unchanged.
+
+The source walkthrough and a red browser test exposed same-route week-to-assignment navigation not opening its evidence form. Query observers now respond to client navigation, and the selected valid assignment receives keyboard focus and a scroll offset below the phone header. The test verifies form visibility, focus, viewport position and reload restoration. No unrelated record is used as completion evidence; editing a verified note returns it to saved.
+
+Private evidence directory: Bible `80-lanes-abroad-full-stack/personal/reports/ui-refinement-2026-10-15/`. Opened `assignment-phone-final.png`, `plan-phone-final.png` and `week-phone-final.png`. The captures retain the NOVA shell, original typography, palette, gutters and navigation. `week-320-final.png` and `week-desktop-final.png` provide additional bounds/context evidence. The local saved note explicitly says it is a QA sample, not completion of the user's study assignment. Browser bounds match 390px and 320px with no horizontal overflow. Healthy preview logs contain no warnings/errors. The temporary viewport override was reset.
+
+Resume source/PDFs are canonical in the private Bible and accessed by resume-generator symlinks. Candidate confirmation establishes March 2025 promotion. The PDF role lines now show Senior Software Engineer (Mar–Jul 2025) and Software Engineer (Oct 2021–Feb 2025), retaining shared MAQ bullets and all existing truthful claim boundaries. All three final rendered PDFs were inspected; no font/margin reduction or clipping. The phone-free public export matches `public/VamsiKrishna_Resume.pdf`, and the local portfolio role text reflects the same promotion month. The active private profile no longer feeds unsupported historical performance percentages into new generated material. No historical sent application was rewritten.
+
+Final checks: production build, TypeScript, lint and whitespace checks passed. **336/336 browser tests passed in 1.7 minutes** at the final application revision. **41 career/authoring checks**, **8 resume generator/cover-letter tests**, **4 claim/synchronization tests**, and the three final PDF structural verifications passed. Private personal-data doctor passed. All 87 distinct study links in the new private payload resolve to canonical files. These checks establish local behavior/artifact consistency, not independent employment verification, universal production guarantees or account-specific cloud readiness. No cloud import, outbound communication, commit, push, merge or deployment occurred.
+
+## 2026-10-15 — Final audit
+
+Opened the remaining desktop and 320px week screenshots, checked Sunday recovery and the post-campaign next-cycle message, and rechecked the public resume SHA-256 against its canonical phone-free export. Found one authoring conflict: the generic mock steps compressed scoring into the full R3/R5 interview block on 19 December and 2 January. Corrected the three relevant assignments on each date to match the existing exam guide: R3/R5 attempts at 10:15–11:45; R6 plus its scoring at 14:30–15:30; ten minutes each for R3 scoring, R5 scoring and planning at 15:30–16:00. Titles, brief, steps and deliverables agree, with one exam-guide link per relevant assignment. IDs, times, budgets and existing assessment rubrics remain unchanged.
+
+New regression failed before the fix and passed afterward. **42/42 career/authoring tests passed** (11 authoring, 31 domain). Generator syntax and whitespace checks passed. The private payload remains 72 workdays/526 assignments with 87 resolving local study targets. Application source and resume PDFs were unchanged in this bounded audit; the prior 336/336 browser run and build/type/lint evidence still apply to that application revision and were not repeated.
+
+Inspected the updated actual assignment at 390px; final capture is private Bible `personal/reports/ui-refinement-2026-10-15/full-loop-phone-final-pass.png`. Disposable local preview storage was refreshed, removing the earlier QA-only evidence note. Viewport reset and preview retained. All changes remain local and uncommitted; no production account import or deployment occurred.
+
+## 2026-10-15 — Hiring plan and independent-venture resume
+
+The new user request strengthens the existing approved Germany/full-stack/60-hour design. Future application briefs now start with actual employer stages/replies and a suitable live, eligible, unsubmitted requisition; historical employer pairs are optional leads. First-week project blocks package supported Docita/NOVA evidence immediately. Workstream-specific prerequisites and blocked actions replace the generic repeated instruction. The generated campaign guide states current capacity before the retained historical source. All 72 workdays, 526 assignment IDs, slot durations and original assessment definitions remain intact; 87 study targets resolve locally.
+
+Candidate confirmation establishes full Docita application ownership and the attempted commercial venture. The CV/portfolio now label it an independent SaaS venture, with current React/Vite implementation wording. All three one-page A4 exports were regenerated, structurally verified and visually inspected; body type and margins remain unchanged. The canonical public export omits phone contact and matches the portfolio bytes. MAQ's March 2025 promotion stays scoped correctly. Active private profile/Markdown/mode inputs agree; historical application documents remain snapshots.
+
+Fresh Docita source inspection and 104 passing focused tests support the technical stories and expose stale claim-fencing prose in two Bible chapters, now corrected. These are implementation/test checks, not production database/concurrency or commercial-outcome verification. The Docita checkout remains unchanged.
+
+Final production build, TypeScript, lint, syntax and whitespace checks passed. **336/336 full browser tests passed in 2.4 minutes** on the final portfolio revision. **43 career/authoring tests** and **13 resume generator/cover-letter/claim tests** passed. Private personal-data doctor and YAML parsing passed; Bible internal link checks passed with external probes skipped. Known Node/pnpm/baseline-browser-mapping notices remain.
+
+Manual phone inspection covers the regenerated real application assignment, safe linked sources, readable steps and supported draft/submitted status boundaries. Final private capture: `personal/reports/ui-refinement-2026-10-15/hiring-application-phone.png`. Viewport reset, local preview retained. All work remains local and uncommitted. No cloud account import, application/message/post/PR submission, production deployment, push or merge.
+## 2026-10-15 — Urgent campaign synchronization release
+
+The user requested synchronization of the active private Bible campaign with personal.buildora.work. This release includes the previously approved cleanup and detailed-assignment refinements above. The new version-two timetable preserves older assignments and assessment definitions, adds dated applications/outreach/OSS and focused practice, derives career targets from the reviewed allocation, and labels the retained weekly brief historical. Current assignment links open the current campaign and full learning commands. Personal content and generated payloads remain outside this public repository.
+
+Final local release gates passed: **340/340 browser cases**, **52 career/authoring cases**, **18 curriculum/sync cases**, **24 access/service-worker cases**, production build, TypeScript, ESLint and whitespace checks. The generated curriculum matches the current canonical Bible and includes no personal chapters. The private output validates with 72 workdays and 572 assignments; regular and assessment-exception weeks retain the 60-hour budget. Historical days, IDs, forms, versions and practices remain intact.
+
+The owner-only release script makes a private backup, applies two compare-and-swap updates and verifies every owner row. Actual deployment/import evidence is recorded in the canonical private synchronization report; local browser tests do not establish an authenticated production visual check.

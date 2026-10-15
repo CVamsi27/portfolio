@@ -1,16 +1,16 @@
 import { test, expect } from "@playwright/test";
 import { seed } from "./helpers";
 
-test("workout session controls are immediate and History and Plan survive reload", async ({
+test("workout controls are contextual and History and Plan survive reload", async ({
   page,
 }) => {
   await seed(page);
   await page.goto("/workout-tracking?date=2026-10-03");
-  await expect(page.getByRole("group", { name: "Weight unit" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Weight unit" })).toBeHidden();
   await page.getByRole("button", { name: "History", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Personal records", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await page.reload();
   await expect(
     page.getByRole("button", { name: "History", exact: true }),
@@ -18,6 +18,9 @@ test("workout session controls are immediate and History and Plan survive reload
   await page.getByRole("button", { name: "Plan", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Workout plan", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("group", { name: "Weight unit", exact: true }),
   ).toBeVisible();
   await expect(page).toHaveURL(/date=2026-10-03.*view=plan/);
 });
@@ -36,7 +39,9 @@ test("Library leads with retrieval and New item opens a focused capture", async 
     .getByRole("button", { name: "Save to library", exact: true })
     .click();
   await expect(page.getByLabel("Capture", { exact: true })).toBeHidden();
-  await expect(page.getByText("A useful saved note", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("A useful saved note", { exact: true }).first(),
+  ).toBeVisible();
   await expect(page.getByLabel("Search library")).toBeVisible();
 });
 
@@ -61,12 +66,10 @@ test("Water is the default and meal window/history are deliberate views", async 
 test("Routine and Tasks retain the selected view", async ({ page }) => {
   await seed(page);
   await page.goto("/routine");
-  await page
-    .getByRole("button", { name: "Notifications", exact: true })
-    .click();
+  await page.getByRole("button", { name: "History", exact: true }).click();
   await page.reload();
   await expect(
-    page.getByRole("button", { name: "Notifications", exact: true }),
+    page.getByRole("button", { name: "History", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await page.goto("/todo");
   await page.getByRole("button", { name: /^Completed/ }).click();
@@ -91,15 +94,17 @@ test("login continues to the intended personal day and rejects external destinat
   ).toHaveAttribute("href", "/hub");
 });
 
-test("Goal separates its purpose from milestone editing and keeps the selected view", async ({
+test("Goal shows milestones with its purpose and keeps the selected view", async ({
   page,
 }) => {
   await seed(page);
   await page.goto("/goal");
   await expect(
     page.getByRole("button", { name: "Add milestone", exact: true }),
-  ).toBeHidden();
-  await page.getByRole("button", { name: "Milestones", exact: true }).click();
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Goal & milestones", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Add milestone", exact: true })
     .click();
@@ -109,7 +114,7 @@ test("Goal separates its purpose from milestone editing and keeps the selected v
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.reload();
   await expect(
-    page.getByRole("button", { name: "Milestones", exact: true }),
+    page.getByRole("button", { name: "Goal & milestones", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
 });
 

@@ -39,6 +39,14 @@ export const PROGRESS_METRICS = {
     key: "exerciseMinutes",
     bars: true,
   },
+  fasting: {
+    label: "Recorded fasting",
+    unit: "hours",
+    href: "/intermittent-fasting?view=window",
+    action: "Record eating window",
+    key: "fastHours",
+    bars: false,
+  },
   water: {
     label: "Recorded water",
     unit: "glasses",
@@ -116,7 +124,19 @@ export function progressMetric(
   path: string,
   view?: string | null,
 ): ProgressMetric | null {
-  if (path === "/log") return view === "journal" ? "reflection" : null;
+  if (
+    path === "/food" &&
+    ["saved", "strategy", "insights"].includes(view ?? "")
+  )
+    return null;
+  if (path === "/workout-tracking" && view === "plan") return null;
+  if (path === "/routine" && view === "notifications") return null;
+  if (
+    path === "/intermittent-fasting" &&
+    ["window", "history"].includes(view ?? "")
+  )
+    return "fasting";
+  if (path === "/log") return null;
   if (path === "/health" && view === "connections") return null;
   if (path === "/health" && view === "recovery") return "sleep";
   const routes: Record<string, ProgressMetric> = {

@@ -175,12 +175,16 @@ test.describe("hub command center", () => {
     await page.goto("/plan");
     await expect(page.locator(".task-queue-panel")).toHaveCount(0);
     await page.getByRole("link", { name: "Tasks", exact: true }).click();
-    await expect(page.getByText("Seed open task", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Seed open task", { exact: true }),
+    ).toBeVisible();
 
     // Quick action: add a task from the hub → lands in todo store.
     await page.goto("/trackers");
-    await page.getByRole("button", { name: "Tools menu", exact: true }).click();
-    await page.getByRole("menuitem", { name: "Add a record", exact: true }).click();
+    await page
+      .getByTestId("command-rail")
+      .getByRole("button", { name: "Add a record", exact: true })
+      .click();
     const dialog = page.getByRole("dialog");
     await dialog.getByRole("button", { name: "Task", exact: true }).click();
     await dialog.getByLabel("Task name").fill("From the hub");
@@ -209,7 +213,14 @@ test.describe("hub command center", () => {
     await seed(page);
     await page.goto("/trackers");
     await expect(page.getByTestId("progress-rail")).toHaveCount(0);
-    await expect(page.getByTestId("progress-lead")).toContainText("No readings in this range.");
-    await expect(page.getByText("No timed commitments for this day. Schedule an activity in Plan.", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("progress-lead")).toContainText(
+      "No completed focus",
+    );
+    await expect(
+      page.getByText(
+        "No timed commitments for this day. Schedule an activity in Plan.",
+        { exact: true },
+      ),
+    ).toBeVisible();
   });
 });

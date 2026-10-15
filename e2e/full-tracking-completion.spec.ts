@@ -21,7 +21,10 @@ test("task deletion and completed cleanup offer undo, and dates are editable", a
   await page.getByText("Filters", { exact: true }).click();
   await page.getByLabel("Task dates").selectOption("upcoming");
   await expect(page.getByText(task.text, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Delete task", exact: true }).click();
+  await page.locator(".workspace-action-menu").first().click();
+  await page
+    .getByRole("menuitem", { name: "Delete task", exact: true })
+    .click();
   await expect(page.getByText(task.text, { exact: true })).toBeHidden();
   await page.getByRole("button", { name: "Undo task deletion" }).click();
   await expect(page.getByText(task.text, { exact: true })).toBeVisible();
@@ -122,18 +125,37 @@ test("Review includes saved study, water, movement and body records without inve
   });
   await page.goto("/review");
   await expect(page).toHaveURL(/view=reflection/);
+  await page
+    .getByRole("link", { name: "Write or edit reflection", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Daily reflection" }),
   ).toBeVisible();
   await page.goto("/dashboard?view=work&metric=learning");
-  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("study");
+  await page
+    .getByRole("combobox", { name: "Metric", exact: true })
+    .selectOption("study");
   await page.getByText("View dated readings", { exact: true }).click();
-  await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(todayKey()) })).toContainText("18");
+  await expect(
+    page
+      .getByTestId("progress-lead")
+      .getByRole("row", { name: new RegExp(todayKey()) }),
+  ).toContainText("18");
   await page.goto("/dashboard?view=health&metric=wellbeing");
   await page.getByText("View dated readings", { exact: true }).click();
-  await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(todayKey()) })).toContainText("3");
-  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("weight");
-  await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(todayKey()) })).toContainText("70");
+  await expect(
+    page
+      .getByTestId("progress-lead")
+      .getByRole("row", { name: new RegExp(todayKey()) }),
+  ).toContainText("3");
+  await page
+    .getByRole("combobox", { name: "Metric", exact: true })
+    .selectOption("weight");
+  await expect(
+    page
+      .getByTestId("progress-lead")
+      .getByRole("row", { name: new RegExp(todayKey()) }),
+  ).toContainText("70");
 });
 
 test("invalid active-session backups fail before changing any records", async ({
@@ -185,10 +207,7 @@ test("Today keeps the routine compact while all schedule items remain reachable"
   const routine = page.getByTestId("day-agenda");
   await expect(routine).toContainText("Omega-3 with lunch");
   await expect(routine.getByRole("listitem")).toHaveCount(7);
-  await page.getByText("Time zones & reminders", { exact: true }).click();
-  await page
-    .getByRole("link", { name: "Manage reminders", exact: true })
-    .click();
+  await page.goto("/routine");
   await expect(
     page.getByText("Omega-3 with lunch", { exact: true }).first(),
   ).toBeVisible();
@@ -225,7 +244,10 @@ test("Library keeps the old archive URL and goal planning links directly to Moti
     page.getByRole("heading", { name: "Library", exact: true }),
   ).toBeVisible();
   await page.goto("/goal");
-  await page.locator(".personal-content").getByRole("link", { name: "Motivation", exact: true }).click();
+  await page
+    .locator(".personal-content")
+    .getByRole("link", { name: "Motivation", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/motivation$/);
 });
 
@@ -238,7 +260,8 @@ test("phone task date editing does not overlap action controls", async ({
   await page.getByText(task.text, { exact: true }).click();
   const date = await page.getByLabel(`Due date for ${task.text}`).boundingBox();
   const priority = await page
-    .getByRole("button", { name: "Cycle priority", exact: true })
+    .locator(".workspace-action-menu")
+    .first()
     .boundingBox();
   expect(
     date &&

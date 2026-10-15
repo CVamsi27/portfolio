@@ -179,52 +179,57 @@ export default function MealLibrary(props: MealLibraryProps) {
           {message}
         </p>
       )}
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Save a meal from {date}</h3>
-        <div className="flex flex-wrap gap-2">
-          <label className="min-w-0 flex-1 text-sm">
-            Meal template name
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={300}
-            />
-          </label>
-          <label className="text-sm">
-            Source meal
-            <select
-              className="block rounded border bg-background p-2"
-              value={sourceMeal}
-              onChange={(e) => setSourceMeal(e.target.value)}
+      {active.length > 0 && (
+        <details className="workspace-disclosure">
+          <summary>Save a meal template</summary>{" "}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Save a meal from {date}</h3>
+            <div className="flex flex-wrap gap-2">
+              <label className="min-w-0 flex-1 text-sm">
+                Meal template name
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={300}
+                />
+              </label>
+              <label className="text-sm">
+                Source meal
+                <select
+                  className="block rounded border bg-background p-2"
+                  value={sourceMeal}
+                  onChange={(e) => setSourceMeal(e.target.value)}
+                >
+                  {MEALS.map((m) => (
+                    <option key={m}>{m}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <Button
+              variant="outline"
+              disabled={!enabled}
+              onClick={() =>
+                run(() => {
+                  const template = createMealTemplate(
+                    crypto.randomUUID(),
+                    name,
+                    active.filter((e) => e.meal === sourceMeal),
+                    Date.now(),
+                  );
+                  onTemplatesChange({ ...templates, [template.id]: template });
+                  setName("");
+                  setMessage(
+                    "Meal template saved with its original food snapshots.",
+                  );
+                })
+              }
             >
-              {MEALS.map((m) => (
-                <option key={m}>{m}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <Button
-          variant="outline"
-          disabled={!enabled}
-          onClick={() =>
-            run(() => {
-              const template = createMealTemplate(
-                crypto.randomUUID(),
-                name,
-                active.filter((e) => e.meal === sourceMeal),
-                Date.now(),
-              );
-              onTemplatesChange({ ...templates, [template.id]: template });
-              setName("");
-              setMessage(
-                "Meal template saved with its original food snapshots.",
-              );
-            })
-          }
-        >
-          Save meal template
-        </Button>
-      </div>
+              Save meal template
+            </Button>
+          </div>
+        </details>
+      )}
       <div className="space-y-2">
         {Object.values(templates)
           .filter((t) => !t.deleted)
@@ -272,47 +277,50 @@ export default function MealLibrary(props: MealLibraryProps) {
               </div>
             </div>
           ))}
-        {!Object.values(templates).some((t) => !t.deleted) && (
-          <p className="text-sm text-muted-foreground">
-            Save a consumed meal above to repeat it with one review.
-          </p>
-        )}
+        {active.length > 0 &&
+          !Object.values(templates).some((t) => !t.deleted) && (
+            <p className="text-sm text-muted-foreground">
+              Save a consumed meal above to repeat it with one review.
+            </p>
+          )}
       </div>
-      <div className="space-y-2">
-        <h3 className="font-medium text-sm">Prepare a recipe</h3>
-        <div className="flex flex-wrap gap-2">
-          {recipes
-            .filter((r) => !r.deleted)
-            .map((r) => (
-              <Button
-                key={r.id}
-                disabled={!enabled}
-                className="h-auto min-h-9 max-w-full whitespace-normal break-words"
-                variant="outline"
-                onClick={() => {
-                  begin();
-                  setPreparing(JSON.parse(JSON.stringify(r)));
-                  const yields = recipeMetrics(r);
-                  setPreparedServings(
-                    yields.servings === null ? "" : String(yields.servings),
-                  );
-                  setPreparedWeight(
-                    yields.cookedWeightGrams === null
-                      ? ""
-                      : String(yields.cookedWeightGrams),
-                  );
-                }}
-              >
-                Prepare {r.name}
-              </Button>
-            ))}
+      {recipes.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="font-medium text-sm">Prepare a recipe</h3>
+          <div className="flex flex-wrap gap-2">
+            {recipes
+              .filter((r) => !r.deleted)
+              .map((r) => (
+                <Button
+                  key={r.id}
+                  disabled={!enabled}
+                  className="h-auto min-h-9 max-w-full whitespace-normal break-words"
+                  variant="outline"
+                  onClick={() => {
+                    begin();
+                    setPreparing(JSON.parse(JSON.stringify(r)));
+                    const yields = recipeMetrics(r);
+                    setPreparedServings(
+                      yields.servings === null ? "" : String(yields.servings),
+                    );
+                    setPreparedWeight(
+                      yields.cookedWeightGrams === null
+                        ? ""
+                        : String(yields.cookedWeightGrams),
+                    );
+                  }}
+                >
+                  Prepare {r.name}
+                </Button>
+              ))}
+          </div>
+          {!recipes.some((r) => !r.deleted) && (
+            <p className="text-sm text-muted-foreground">
+              Create a recipe first to record a prepared batch.
+            </p>
+          )}
         </div>
-        {!recipes.some((r) => !r.deleted) && (
-          <p className="text-sm text-muted-foreground">
-            Create a recipe first to record a prepared batch.
-          </p>
-        )}
-      </div>
+      )}
       <div className="space-y-2">
         {Object.values(batches)
           .filter((b) => !b.deleted)

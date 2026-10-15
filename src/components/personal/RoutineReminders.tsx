@@ -20,7 +20,10 @@ export default function RoutineReminders({
 }: {
   configure?: boolean;
 }) {
-  const [view, setView] = useWorkspaceView(["schedule", "history", "notifications"], "schedule");
+  const [view, setView] = useWorkspaceView(
+    ["schedule", "history", "notifications"],
+    "schedule",
+  );
   const [drafts, setDrafts] = useState<Record<string, RoutineSchedule>>({});
   const [preview, setPreview] = useState<RoutineSchedule | null>(null);
   const { schedules, history, items } = useRoutine();
@@ -111,7 +114,6 @@ export default function RoutineReminders({
           {[
             ["schedule", "Schedule"],
             ["history", "History"],
-            ["notifications", "Notifications"],
           ].map(([id, label]) => (
             <Button
               key={id}

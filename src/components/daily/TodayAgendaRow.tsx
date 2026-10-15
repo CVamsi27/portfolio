@@ -15,11 +15,15 @@ export default function TodayAgendaRow({
   row,
   timeZone,
   status,
+  outcome,
+  evidenceStatus,
   children,
 }: {
   row: AgendaItem;
   timeZone: string;
   status: string;
+  outcome?: string;
+  evidenceStatus?: "planned" | "saved" | "verified";
   children: ReactNode;
 }) {
   const formatTime = (at: number) =>
@@ -42,12 +46,17 @@ export default function TodayAgendaRow({
           <Circle className="nova-agenda-marker" aria-hidden />
           <span className="nova-agenda-label">
             <strong>{row.title}</strong>
-            <small>
-              {labels[row.kind]} · {status}
+            <small className={outcome ? "nova-agenda-outcome" : undefined}>
+              {outcome ?? `${labels[row.kind]} · ${status}`}
               {row.block?.id.startsWith("owner:")
                 ? " · Bible timetable (IST)"
                 : ""}
             </small>
+            {evidenceStatus && evidenceStatus !== "planned" && (
+              <small className="text-primary">
+                {evidenceStatus === "verified" ? "Verified" : "Evidence saved"}
+              </small>
+            )}
           </span>
           <ChevronDown className="nova-agenda-chevron" aria-hidden />
         </summary>

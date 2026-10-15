@@ -363,7 +363,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
       className={cn(
         "dossier-command-rail sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg",
         isTracker && "nova-personal-nav",
-        isTracker && pathname === "/login" && "nova-login-nav",
+        isTracker && ["/login", "/log"].includes(pathname) && "nova-login-nav",
       )}
     >
       {!isTracker && (
@@ -477,13 +477,29 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                   </Link>
                 ))}
               </div>
+              <div className="hidden lg:flex flex-col gap-1 mt-3">
+                <button
+                  type="button"
+                  className="dossier-rail-link text-left min-h-11"
+                  onClick={openCapture}
+                >
+                  Add a record
+                </button>
+                <button
+                  type="button"
+                  className="dossier-rail-link text-left min-h-11"
+                  onClick={() => setPaletteOpen(true)}
+                >
+                  Search
+                </button>
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     ref={toolsTriggerRef}
                     type="button"
                     aria-label="Tools menu"
-                    className="nova-tools-trigger inline-flex h-11 items-center gap-1.5 rounded-xl px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                    className="nova-tools-trigger lg:hidden inline-flex h-11 items-center gap-1.5 rounded-xl px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
                   >
                     <span>Tools</span>
                     <MoreHorizontal className="h-4 w-4" aria-hidden />

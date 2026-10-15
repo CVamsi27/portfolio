@@ -70,7 +70,11 @@ async function run() {
     },
     {
       key: timetable.key,
-      value: alignCampaignTimetable(TIMETABLE_OWNER_EMAIL, timetable.value),
+      value: alignCampaignTimetable(
+        TIMETABLE_OWNER_EMAIL,
+        timetable.value,
+        plan,
+      ),
       version: timetable.updated_at,
     },
   ].filter((r) => !isDeepStrictEqual(r.value, prior.get(r.key)!.value));
@@ -95,7 +99,7 @@ async function run() {
   if (!apply) return;
   const backup = resolve(
     dirname(absolute),
-    `2026-10-10-germany-roadmap-before-${Date.now()}.json`,
+    `germany-roadmap-before-${Date.now()}.json`,
   );
   writeFileSync(backup, JSON.stringify(before, null, 2) + "\n", {
     mode: 0o600,

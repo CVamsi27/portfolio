@@ -38,7 +38,8 @@ test.describe("general momentum goal", () => {
     });
 
     await page.goto("/trackers/landing");
-    await expect(page.getByTestId("tracker-public-landing")).not.toContainText(
+    await expect(page).toHaveURL(/\/hub$/);
+    await expect(page.getByRole("main")).not.toContainText(
       /Germany|Berlin|job search/i,
     );
 

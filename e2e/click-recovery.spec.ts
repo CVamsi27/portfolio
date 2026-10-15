@@ -6,8 +6,14 @@ test("tracker backdrop dismisses the modal and restores navigation clicks", asyn
 }) => {
   await seed(page);
   await page.goto("/motivation");
-  const opener = page.getByRole("button", { name: "Personal reminders", exact: true });
+  const opener = page.getByRole("button", {
+    name: "Reminder actions",
+    exact: true,
+  });
   await opener.click();
+  await page
+    .getByRole("menuitem", { name: "Personal reminders", exact: true })
+    .click();
   const dialog = page.getByRole("dialog", { name: "Personal reminders" });
   await expect(dialog).toBeVisible();
   await page.mouse.click(5, 5);

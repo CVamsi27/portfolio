@@ -18,9 +18,7 @@ test("Plan schedules a task and Today opens the exact task without duplicating i
     ],
   });
   await page.goto("/plan");
-  await page
-    .getByRole("button", { name: "Add activity", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Add activity", exact: true }).click();
   await page.getByLabel("Link task").selectOption("api");
   await page.getByLabel("Start time", { exact: true }).fill("09:00");
   await page
@@ -29,7 +27,11 @@ test("Plan schedules a task and Today opens the exact task without duplicating i
   await page.reload();
   await expect(page.getByTestId("day-agenda")).toContainText("Practice APIs");
   await page.goto("/hub");
-  await page.getByTestId("day-agenda").locator("summary").filter({ hasText: "Practice APIs" }).click();
+  await page
+    .getByTestId("day-agenda")
+    .locator("summary")
+    .filter({ hasText: "Practice APIs" })
+    .click();
   await page
     .getByTestId("day-agenda")
     .getByRole("link", { name: "Start", exact: true })
@@ -159,9 +161,16 @@ test("Progress opens one metric at a time and historical reflection is editable"
   await page.goto("/dashboard");
   await expect(page.locator(".progress-summary-button")).toHaveCount(0);
   await expect(page.getByTestId("progress-lead")).toHaveCount(1);
-  await page.getByRole("combobox", { name: "Metric", exact: true }).selectOption("water");
-  await expect(page.getByTestId("progress-lead")).toContainText("Recorded water");
+  await page
+    .getByRole("combobox", { name: "Metric", exact: true })
+    .selectOption("water");
+  await expect(page.getByTestId("progress-lead")).toContainText(
+    "Recorded water",
+  );
   await page.getByRole("button", { name: "Reflection", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Write or edit reflection", exact: true })
+    .click();
   await page
     .getByLabel("What went well?", { exact: true })
     .fill("Completed a useful step");
@@ -218,7 +227,10 @@ test("water needs one action, supports undo and leaves other dated records alone
 }) => {
   await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
   await page.goto("/hub?date=2026-10-02");
-  await page.getByText("Daily records & quick capture", { exact: true }).click();
+  await page
+    .locator("summary")
+    .filter({ hasText: /^Add a record$/ })
+    .click();
   await page.getByRole("button", { name: "Water +1", exact: true }).click();
   expect(
     await page.evaluate(() =>
@@ -309,7 +321,8 @@ test("task scheduling opens its exact ID and an overlap requires review before s
   };
   await seed(page, { "vk:todos": [task], "vk:plan:blocks": { event: block } });
   await page.goto("/todo");
-  await page.getByRole("link", { name: "Schedule", exact: true }).click();
+  await page.locator(".workspace-action-menu").first().click();
+  await page.getByRole("menuitem", { name: "Schedule", exact: true }).click();
   await expect(page.getByLabel("Link task")).toHaveValue("task");
   await page
     .getByRole("button", { name: "Save activity", exact: true })
@@ -420,8 +433,12 @@ test("routine editing previews a draft and preserves occurrence history", async 
 test("water undo never corrects a different selected day", async ({ page }) => {
   await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
   await page.goto("/hub?date=2026-10-02");
-  await page.getByText("Daily records & quick capture", { exact: true }).click();
+  await page
+    .locator("summary")
+    .filter({ hasText: /^Add a record$/ })
+    .click();
   await page.getByRole("button", { name: "Water +1", exact: true }).click();
+  await page.getByRole("button", { name: "Choose date", exact: true }).click();
   await page.getByLabel("Selected date", { exact: true }).fill("2026-10-01");
   await expect(page).toHaveURL(/date=2026-10-01/);
   await expect(page.getByRole("button", { name: "Undo water" })).toHaveCount(0);
@@ -432,17 +449,61 @@ test("water undo never corrects a different selected day", async ({ page }) => {
   ).toBe(4);
 });
 
-test("mobile capture preserves the selected day and returns to its planning view", async ({ page }) => {
+test("mobile capture preserves the selected day and returns to its planning view", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seed(page);
   await page.goto("/plan?date=2026-10-03&view=week");
   await page.getByRole("button", { name: "Tools menu", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Add a record", exact: true }).click();
+  await page
+    .getByRole("menuitem", { name: "Add a record", exact: true })
+    .click();
   await page.getByRole("button", { name: "Task", exact: true }).click();
-  await page.getByLabel("Task name", { exact: true }).fill("Historical capture");
+  await page
+    .getByLabel("Task name", { exact: true })
+    .fill("Historical capture");
   await page.getByRole("button", { name: "Save task", exact: true }).click();
-  const records = await page.evaluate(() => JSON.parse(localStorage.getItem("vk:todos")!));
+  const records = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("vk:todos")!),
+  );
   expect(records[0].date).toBe("2026-10-03");
-  await page.getByRole("link", { name: "Return to previous page", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Return to previous page", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/plan\?date=2026-10-03&view=week$/);
+});
+
+test("reflection history keeps the selected entry date through reload", async ({
+  page,
+}) => {
+  await seed(page, {
+    "vk:journal": {
+      "2026-10-14": {
+        win: "Earlier reflection",
+        learned: "",
+        focus: "",
+        updatedAt: 1,
+      },
+      "2026-10-15": {
+        win: "Later reflection",
+        learned: "",
+        focus: "",
+        updatedAt: 2,
+      },
+    },
+  });
+  await page.goto("/log?view=journal&date=2026-10-15");
+  await page.getByText("Past entries", { exact: true }).click();
+  await page
+    .getByRole("button", { name: /2026-10-14 Earlier reflection/ })
+    .click();
+  await expect(page).toHaveURL(/date=2026-10-14/);
+  await page.reload();
+  await expect(page.getByLabel("Date", { exact: true })).toHaveValue(
+    "2026-10-14",
+  );
+  await expect(page.getByRole("textbox", {name:"What went well?", exact:true})).toHaveValue(
+    "Earlier reflection",
+  );
 });

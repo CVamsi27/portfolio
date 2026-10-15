@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { roadmapFixture } from "../../scripts/fixtures/job-plan.mjs";
 import {
   campaignPosition,
   mergeGermanyCareer,
   alignCampaignTimetable,
+  type GermanyRoadmap,
 } from "./germany-roadmap.ts";
 const plan = {
   version: 1 as const,
@@ -182,4 +184,120 @@ test('a requirement reviewed against the current wording stays reviewed on resee
  const reviewed={...refreshed,germanyChecklist:rows.map(row=>({...row,reviewRequired:false}))};
  const repeated=mergeGermanyCareer(reviewed,plan);
  assert.equal((repeated.germanyChecklist as Array<Record<string,unknown>>)[0].reviewRequired,false);
+});
+
+const urgentAllocations = [
+  { label: "Applications and qualification", hours: 16 },
+  { label: "Hiring conversations and outreach", hours: 7 },
+  { label: "Interviews and practical preparation", hours: 12 },
+  { label: "Project proof or paid delivery", hours: 10 },
+  { label: "OSS contribution", hours: 4 },
+  { label: "Targeted study", hours: 3 },
+  { label: "German", hours: 5 },
+  { label: "Documents, review and planning", hours: 3 },
+];
+
+function urgentMetadataPlan(allocations = urgentAllocations): GermanyRoadmap {
+  const value = roadmapFixture();
+  value.execution.jobPlan.version = 2;
+  value.allocations = allocations;
+  return value as GermanyRoadmap;
+}
+
+test("urgent campaign targets follow its reviewed allocation and preserve custom and historical counters", () => {
+  const previous = {
+    weeklyTargets: {
+      applicationHours: 8.5,
+      relocationHours: 1,
+      tailoredApplications: 10,
+      mockInterviews: 2,
+      publicProof: 2,
+      qualityOutreach: 5,
+      substantiveComments: 10,
+      practiceArtifacts: 1,
+      customCounter: 17,
+    },
+    extra: { unchanged: true },
+  };
+  const snapshot = structuredClone(previous);
+  const next = mergeGermanyCareer(previous, urgentMetadataPlan());
+  assert.deepEqual(next.weeklyTargets, {
+    applicationHours: 16,
+    networkingHours: 7,
+    interviewHours: 12,
+    projectHours: 10,
+    ossHours: 4,
+    focusedStudyHours: 3,
+    germanPracticeMinutes: 300,
+    reviewHours: 3,
+    customCounter: 17,
+  });
+  assert.deepEqual(next.legacyWeeklyTargets, previous.weeklyTargets);
+  assert.equal(next.extra, previous.extra);
+  assert.deepEqual(previous, snapshot);
+  assert.deepEqual(
+    mergeGermanyCareer(next, urgentMetadataPlan()).legacyWeeklyTargets,
+    previous.weeklyTargets,
+  );
+});
+
+test("urgent metadata derives hours from the payload rather than a second fixed budget", () => {
+  const changed = urgentAllocations.map((allocation) => ({
+    ...allocation,
+    hours:
+      allocation.label === "Applications and qualification"
+        ? 15
+        : allocation.label === "Hiring conversations and outreach"
+          ? 8
+          : allocation.label === "German"
+            ? 4
+            : allocation.label === "Targeted study"
+              ? 4
+              : allocation.hours,
+  }));
+  const next = mergeGermanyCareer({}, urgentMetadataPlan(changed));
+  const targets = next.weeklyTargets as Record<string, number>;
+  assert.equal(targets.applicationHours, 15);
+  assert.equal(targets.networkingHours, 8);
+  assert.equal(targets.focusedStudyHours, 4);
+  assert.equal(targets.germanPracticeMinutes, 240);
+});
+
+test("urgent German guidance matches its five weekday blocks without completing the existing checklist", () => {
+  const previous = {
+    germanyChecklist: [
+      { id: "germany-language", text: "Practice for 45 minutes", done: true },
+      { id: "custom", text: "My own requirement", done: true },
+    ],
+  };
+  const next = mergeGermanyCareer(previous, urgentMetadataPlan());
+  const checklist = next.germanyChecklist as Array<Record<string, unknown>>;
+  assert.match(String(checklist[0].text), /60 minutes each weekday/);
+  assert.equal(checklist[0].done, true);
+  assert.equal(checklist[0].reviewRequired, true);
+  assert.deepEqual(checklist[1], previous.germanyChecklist[1]);
+  const changed = urgentAllocations.map((allocation) => ({
+    ...allocation,
+    hours: allocation.label === "German" ? 2.5 : allocation.hours,
+  }));
+  const adjusted = mergeGermanyCareer(previous, urgentMetadataPlan(changed));
+  assert.match(
+    String((adjusted.germanyChecklist as Array<Record<string, unknown>>)[0].text),
+    /30 minutes each weekday/,
+  );
+});
+
+test("urgent metadata rejects missing or ambiguous allocation labels before producing planner values", () => {
+  assert.throws(
+    () => mergeGermanyCareer({}, urgentMetadataPlan(urgentAllocations.slice(1))),
+    /allocation/i,
+  );
+  assert.throws(
+    () =>
+      mergeGermanyCareer(
+        {},
+        urgentMetadataPlan([...urgentAllocations, urgentAllocations[0]]),
+      ),
+    /allocation/i,
+  );
 });

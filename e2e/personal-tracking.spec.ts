@@ -5,7 +5,7 @@ test("manual portions, immutable snapshots, unknown nutrients and undo survive r
 }) => {
   await seed(page);
   await page.goto("/food");
-  await page.getByRole("button", { name: "Log food", exact: true }).click();
+  await page.getByRole("button", { name: "Add food", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Log food", exact: true });
   await dialog.getByLabel("Food name").fill("Measured meal");
   await dialog.getByLabel("Calories (kcal)", { exact: true }).fill("200");
@@ -117,7 +117,7 @@ test("disabled Today modules disappear without deleting their records", async ({
   ).toBeHidden();
   await page.goto("/food");
   await expect(
-    page.getByRole("button", { name: "Log food", exact: true }),
+    page.getByRole("button", { name: "Add food", exact: true }),
   ).toBeVisible();
 });
 
@@ -135,10 +135,11 @@ test("recipe portions use the declared yield and edits leave meal snapshots unch
   };
   await seed(page, { "vk:nutrition:foods": { ingredient: food } });
   await page.goto("/food");
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
   await page
-    .getByRole("button", { name: "Saved foods & recipes", exact: true })
+    .getByRole("menuitem", { name: "Create recipe", exact: true })
     .click();
-  await page.getByRole("button", { name: "Create recipe" }).click();
   const recipe = page.getByRole("dialog", { name: "Create recipe" });
   await recipe.getByLabel("Recipe name").fill("Batch meal");
   await recipe.getByLabel("Saved ingredient").selectOption("ingredient");
@@ -149,7 +150,7 @@ test("recipe portions use the declared yield and edits leave meal snapshots unch
   await recipe.getByLabel("Final batch yield").fill("4");
   await recipe.getByRole("button", { name: "Save recipe" }).click();
   await page.getByRole("button", { name: "Diary", exact: true }).click();
-  await page.getByRole("button", { name: "Log food", exact: true }).click();
+  await page.getByRole("button", { name: "Add food", exact: true }).click();
   const log = page.getByRole("dialog", { name: "Log food", exact: true });
   const id = await page.evaluate(
     () =>
@@ -160,9 +161,7 @@ test("recipe portions use the declared yield and edits leave meal snapshots unch
   await expect(log).toContainText("This portion: 100 kcal");
   await log.getByRole("button", { name: "Save food", exact: true }).click();
   await expect(page.getByText("1 serving · 100 kcal")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Saved foods & recipes", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
   await page.getByText("Saved recipes", { exact: true }).click();
   await page.getByRole("button", { name: "Edit recipe", exact: true }).click();
   const edit = page.getByRole("dialog", { name: "Edit recipe" });
@@ -259,7 +258,7 @@ test("new pages and food dialog fit a narrow phone in light and dark themes", as
         .toBeLessThanOrEqual(320);
     }
     await page.goto("/food");
-    await page.getByRole("button", { name: "Log food", exact: true }).click();
+    await page.getByRole("button", { name: "Add food", exact: true }).click();
     await expect(
       page.getByRole("dialog", { name: "Log food", exact: true }),
     ).toBeVisible();
@@ -361,7 +360,7 @@ test("changing a source portion unit requires newly declared nutrient values", a
     },
   });
   await page.goto("/food");
-  await page.getByRole("button", { name: "Log food", exact: true }).click();
+  await page.getByRole("button", { name: "Add food", exact: true }).click();
   const form = page.getByRole("dialog", { name: "Log food", exact: true });
   await form.getByLabel("Saved foods and recipes").selectOption("source");
   await form.getByLabel("Portion unit").selectOption("ml");

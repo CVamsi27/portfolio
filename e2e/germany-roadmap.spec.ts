@@ -162,8 +162,12 @@ for (const width of [320, 390, 768, 1440])
       await expect(page.getByTestId("germany-roadmap")).toContainText(
         "Recovery Sunday. No required work.",
       );
-      await expect(page.getByRole("region", { name: "Today's timetable" })).toHaveCount(0);
-      await expect(page.getByRole("link", { name: "Open Today’s agenda", exact: true })).toHaveAttribute("href", "/hub?date=2026-10-18");
+      await expect(
+        page.getByRole("region", { name: "Today's timetable" }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByRole("link", { name: "Open Today’s agenda", exact: true }),
+      ).toHaveAttribute("href", "/hub?date=2026-10-18");
       await page.getByLabel("Plan date").fill("2027-01-04");
       await expect(page.getByTestId("germany-roadmap")).toContainText(
         "Continue the hiring cycle",
@@ -174,14 +178,12 @@ test("missing campaign data gives a useful empty state and keeps legacy views", 
   page,
 }) => {
   await seed(page);
-  await page.goto("/roadmap");
+  await page.goto("/roadmap?view=execution");
   await expect(
-    page.getByText("Germany campaign is not available in this account yet."),
+    page.getByRole("heading", { name: "Career plan unavailable", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Curriculum", exact: true }).click();
-  await expect(
-    page.getByText("Study catalogue and history", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByPlaceholder("Search topic…")).toBeVisible();
 });
 
 test("mobile dock stays readable when web fonts are unavailable", async ({

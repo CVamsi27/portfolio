@@ -7,7 +7,6 @@ import { safeReturn } from "@/components/daily/CaptureWorkspace";
 
 import { useEffect, useMemo, useState } from "react";
 import TrackerShell from "@/components/trackers/TrackerShell";
-import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -269,10 +268,6 @@ export default function WorkoutPage() {
   };
 
   // ── stats ──
-  const weekSessions = useMemo(
-    () => weeklyWorkoutStats(safeLogs, 1)[0]?.sessions ?? 0,
-    [safeLogs],
-  );
   const volumeBars = useMemo(
     () =>
       weeklyWorkoutStats(safeLogs, 4).map((w) => ({
@@ -313,25 +308,6 @@ export default function WorkoutPage() {
         title="Workouts"
         subtitle={null}
         badge={<SyncBadge status={status} />}
-        actions={{
-          primary: (
-            <a
-              href="#exercise-logger"
-              onClick={()=>setView("session")}
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Open session
-            </a>
-          ),
-          secondary: (
-            <a
-              href="#exercise-logger"
-              className="text-xs font-semibold text-primary hover:underline"
-            >
-              Open exercise logger →
-            </a>
-          ),
-        }}
       >
         <WorkspaceViews
           label="Workout views"
@@ -349,13 +325,46 @@ export default function WorkoutPage() {
             Choose your split in Settings. Session lets you choose a training
             day and record sets.
           </p>
-          <Link className="inline-action" href="/settings#profile">
+          <Link className="inline-action" href="/settings#modules">
             Change workout split
           </Link>
-          {prefs.workoutSplit === "custom" && (
-            <Button variant="outline" onClick={() => setDayBuilderOpen(true)}>
-              Manage training days
+          <div className="flex flex-wrap items-center gap-2">
+            {prefs.workoutSplit === "custom" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDayBuilderOpen(true)}
+              >
+                <Dumbbell className="mr-1 h-3.5 w-3.5" /> Days
+              </Button>
+            )}
+            <Button
+              variant={plateCalcOpen ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPlateCalcOpen((prev) => !prev)}
+              className="h-8 text-xs font-medium"
+            >
+              <Calculator className="mr-1.5 h-3.5 w-3.5" />
+              Plates
             </Button>
+            <Segmented
+              label="Weight unit"
+              variant="soft"
+              options={[
+                { value: "kg", label: "kg" },
+                { value: "lbs", label: "lbs" },
+              ]}
+              value={unit}
+              onChange={(u) =>
+                setPrefs({ ...prefs, weightUnit: u as WeightUnit })
+              }
+            />
+          </div>{" "}
+          {plateCalcOpen && (
+            <PlateCalculator
+              unit={unit}
+              onClose={() => setPlateCalcOpen(false)}
+            />
           )}
         </section>
         <div className="workspace-section-stack" hidden={view !== "session"}>
@@ -373,72 +382,36 @@ export default function WorkoutPage() {
                         ? "Custom split"
                         : "Full Body"}
                 </p>
-                <div className="flex items-center gap-2">
-                  {prefs.workoutSplit === "custom" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDayBuilderOpen(true)}
+              </div>
+              {tabs.length > 1 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {tabs.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setActiveDay(t.id)}
+                      className={cn(
+                        "rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all",
+                        dayId === t.id
+                          ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                          : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                        t.id === suggested &&
+                          dayId !== t.id &&
+                          "ring-1 ring-primary/40",
+                      )}
+                      title={t.label}
                     >
-                      <Dumbbell className="mr-1 h-3.5 w-3.5" /> Days
-                    </Button>
-                  )}
-                  <Button
-                    variant={plateCalcOpen ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setPlateCalcOpen((prev) => !prev)}
-                    className="h-8 text-xs font-medium"
-                  >
-                    <Calculator className="mr-1.5 h-3.5 w-3.5" />
-                    Plates
-                  </Button>
-                  <Segmented
-                    label="Weight unit"
-                    variant="soft"
-                    options={[
-                      { value: "kg", label: "kg" },
-                      { value: "lbs", label: "lbs" },
-                    ]}
-                    value={unit}
-                    onChange={(u) =>
-                      setPrefs({ ...prefs, weightUnit: u as WeightUnit })
-                    }
-                  />
+                      {t.short}
+                    </button>
+                  ))}
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {tabs.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setActiveDay(t.id)}
-                    className={cn(
-                      "rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all",
-                      dayId === t.id
-                        ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                        : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                      t.id === suggested &&
-                        dayId !== t.id &&
-                        "ring-1 ring-primary/40",
-                    )}
-                    title={t.label}
-                  >
-                    {t.short}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {tabs.find((t) => t.id === dayId)?.label} · ring marks
-                today&apos;s suggestion
-              </p>
+              )}
+              {tabs.length > 1 && (
+                <p className="text-xs text-muted-foreground">
+                  {tabs.find((t) => t.id === dayId)?.label}
+                </p>
+              )}
             </CardContent>
           </Card>
-
-          {plateCalcOpen ? (
-            <PlateCalculator
-              unit={unit}
-              onClose={() => setPlateCalcOpen(false)}
-            />
-          ) : null}
 
           {/* ── Exercise logger ── */}
           <Card variant="dossier">
@@ -607,81 +580,69 @@ export default function WorkoutPage() {
                   );
                 })}
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <Stat
-                  label="Done today"
-                  value={`${doneCount}/${exercises.length}`}
-                />
-                <Stat label="Sessions wk" value={`${weekSessions}`} />
-                <Stat label="Complete" value={`${dayPct}%`} accent />
-              </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full bg-[var(--color-dossier-lime)] transition-all"
-                  style={{ width: `${dayPct}%` }}
-                />
-              </div>
             </CardContent>
           </Card>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Card variant="dossier">
-              <CardContent className="p-5">
-                <h2 className="font-display font-bold">Personal records</h2>
-                {prs.length === 0 ? (
-                  <div className="mt-3">
-                    <EmptyState
-                      icon={History}
-                      title="No PRs yet"
-                      hint="Log weighted sets — your best lift per exercise shows up here."
-                    />
-                  </div>
-                ) : (
-                  <ul className="mt-3 space-y-2">
-                    {prs.slice(0, 6).map(({ ex, pr }) => (
-                      <li
-                        key={ex.id}
-                        className="flex items-center justify-between rounded-xl border border-border/60 px-3 py-2 text-sm"
-                      >
-                        <span className="min-w-0 truncate font-medium">
-                          {ex.name}
-                        </span>
-                        <span className="shrink-0 text-right">
-                          <span className="font-display font-bold tabular-nums text-primary">
-                            {formatWeight(pr!.weightKg, unit)}
+          {(prs.length > 0 || volumeBars.some((point) => point.value > 0)) && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Card variant="dossier">
+                <CardContent className="p-5">
+                  <h2 className="font-display font-bold">Personal records</h2>
+                  {prs.length === 0 ? (
+                    <div className="mt-3">
+                      <EmptyState
+                        icon={History}
+                        title="No PRs yet"
+                        hint="Log weighted sets — your best lift per exercise shows up here."
+                      />
+                    </div>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {prs.slice(0, 6).map(({ ex, pr }) => (
+                        <li
+                          key={ex.id}
+                          className="flex items-center justify-between rounded-xl border border-border/60 px-3 py-2 text-sm"
+                        >
+                          <span className="min-w-0 truncate font-medium">
+                            {ex.name}
                           </span>
-                          <span className="ml-2 text-xs tabular-nums text-muted-foreground">
-                            ×{pr!.reps} · e1RM{" "}
-                            {Math.round(kgToDisplay(pr!.e1rm, unit))}
+                          <span className="shrink-0 text-right">
+                            <span className="font-display font-bold tabular-nums text-primary">
+                              {formatWeight(pr!.weightKg, unit)}
+                            </span>
+                            <span className="ml-2 text-xs tabular-nums text-muted-foreground">
+                              ×{pr!.reps} · e1RM{" "}
+                              {Math.round(kgToDisplay(pr!.e1rm, unit))}
+                            </span>
                           </span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-            <Card variant="dossier">
-              <CardContent className="p-5">
-                <h2 className="font-display font-bold">Weekly volume</h2>
-                <p className="text-xs text-muted-foreground">
-                  Total kg lifted per week (reps count for bodyweight)
-                </p>
-                <MiniBars
-                  className="mt-3"
-                  data={volumeBars}
-                  height={72}
-                  highlightLast
-                />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {formatWeight(volumeBars[3]?.value ?? 0, unit)
-                    .replace(" kg", " kg total")
-                    .replace(" lbs", " lbs total")}{" "}
-                  this week
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+              <Card variant="dossier">
+                <CardContent className="p-5">
+                  <h2 className="font-display font-bold">Weekly volume</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Total kg lifted per week (reps count for bodyweight)
+                  </p>
+                  <MiniBars
+                    className="mt-3"
+                    data={volumeBars}
+                    height={72}
+                    highlightLast
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {formatWeight(volumeBars[3]?.value ?? 0, unit)
+                      .replace(" kg", " kg total")
+                      .replace(" lbs", " lbs total")}{" "}
+                    this week
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </section>
         {/* ── Exercise add/edit modal ── */}
         {exModal && (
@@ -852,9 +813,6 @@ function ExerciseCard({
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-sm font-semibold">
             <span className="truncate">{ex.name}</span>
-            <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              {ex.tag}
-            </span>
           </p>
           <p className="text-xs text-muted-foreground">
             {isMinutes
