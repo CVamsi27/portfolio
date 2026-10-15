@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { containingWeek } from "@/lib/day-presentation";
-import DaySelector from "./DaySelector";
 
 export default function WeekDateStrip({
   date,
@@ -48,6 +47,7 @@ export default function WeekDateStrip({
               key={day}
               ref={day === date ? selectedRef : undefined}
               type="button"
+              data-today={day === today || undefined}
               aria-pressed={day === date}
               aria-label={new Intl.DateTimeFormat("en", {
                 weekday: "long",
@@ -69,7 +69,6 @@ export default function WeekDateStrip({
           );
         })}
       </nav>
-      <DaySelector date={date} today={today} onChange={onChange} />
     </div>
   );
 }

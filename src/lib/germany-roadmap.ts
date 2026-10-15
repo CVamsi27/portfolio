@@ -11,6 +11,7 @@ import {
 } from "./career-roadmap.ts";
 import {
   isGermanyExecution,
+  annotateGermanySchedule,
   type GermanyExecution,
 } from "./germany-execution.ts";
 export interface GermanyWeek {
@@ -52,15 +53,52 @@ export function campaignPosition(
       ) + 1,
   };
 }
+
+function urgentWeeklyTargets(plan: GermanyRoadmap): Record<string, number> {
+  const hours = (label: string) => {
+    const matches = plan.allocations.filter(
+      (allocation) => allocation.label === label,
+    );
+    if (
+      matches.length !== 1 ||
+      !Number.isFinite(matches[0].hours) ||
+      matches[0].hours < 0
+    )
+      throw new Error(`Urgent campaign requires one valid allocation for ${label}`);
+    return matches[0].hours;
+  };
+  return {
+    applicationHours: hours("Applications and qualification"),
+    networkingHours: hours("Hiring conversations and outreach"),
+    interviewHours: hours("Interviews and practical preparation"),
+    projectHours: hours("Project proof or paid delivery"),
+    ossHours: hours("OSS contribution"),
+    focusedStudyHours: hours("Targeted study"),
+    germanPracticeMinutes: hours("German") * 60,
+    reviewHours: hours("Documents, review and planning"),
+  };
+}
+
 export function mergeGermanyCareer(
   previous: Record<string, unknown>,
   plan: GermanyRoadmap,
 ): Record<string, unknown> {
+  const urgent = plan.execution?.jobPlan?.version === 2;
+  const targets = urgent ? urgentWeeklyTargets(plan) : GERMANY_WEEKLY_TARGETS;
+  const checklistUpdates = urgent
+    ? {
+        ...GERMANY_CHECKLIST_UPDATES,
+        "germany-language": {
+          ...GERMANY_CHECKLIST_UPDATES["germany-language"],
+          text: `Practice German for ${targets.germanPracticeMinutes / 5} minutes each weekday; record listening, speaking and writing. Claim a certified level only after earning it.`,
+        },
+      }
+    : GERMANY_CHECKLIST_UPDATES;
   const checklist = Array.isArray(previous.germanyChecklist)
     ? previous.germanyChecklist.map((item) => {
         if (!item || typeof item !== "object") return item;
         const record = item as Record<string, unknown>;
-        const replacement = GERMANY_CHECKLIST_UPDATES[String(record.id)];
+        const replacement = checklistUpdates[String(record.id)];
         return replacement
           ? {
               ...record,
@@ -83,6 +121,7 @@ export function mergeGermanyCareer(
     "studyHours",
     "germanHours",
     "applications",
+    ...(urgent ? Object.keys(GERMANY_WEEKLY_TARGETS) : []),
   ]);
   const verification = previous.verificationChecklist as
     | { items?: Array<{ id: string; text: string }> }
@@ -97,7 +136,7 @@ export function mergeGermanyCareer(
       ...Object.fromEntries(
         Object.entries(previousTargets).filter(([key]) => !superseded.has(key)),
       ),
-      ...GERMANY_WEEKLY_TARGETS,
+      ...targets,
     },
     ...(verification?.items
       ? {
@@ -112,17 +151,62 @@ export function mergeGermanyCareer(
       : {}),
     daySchedule: {
       timezone: "Asia/Kolkata",
-      effectiveOn: "2026-10-12",
+      effectiveOn: plan.execution?.jobPlan?.effectiveOn ?? "2026-10-12",
       note: "Date-aware weekday rotation, Saturday and recovery Sunday; use the shared timetable.",
       blocks: Object.entries(
-        personalSchedule(TIMETABLE_OWNER_EMAIL, "2026-10-12")!,
+        plan.execution?.jobPlan
+          ? annotateGermanySchedule(
+              plan.execution,
+              plan.execution.jobPlan.effectiveOn,
+              personalSchedule(
+                TIMETABLE_OWNER_EMAIL,
+                plan.execution.jobPlan.effectiveOn,
+              )!,
+            )
+          : personalSchedule(TIMETABLE_OWNER_EMAIL, "2026-10-12")!,
       ).map(([time, block]) => ({ time, ...block, type: "work" })),
     },
   };
 }
 export function alignCampaignTimetable<
   T extends { days: Array<{ date: string; schedule?: unknown }> },
->(email: string | null | undefined, timetable: T): T {
+>(email: string | null | undefined, timetable: T, plan?: GermanyRoadmap): T {
+  if (plan?.execution?.jobPlan) {
+    if (email?.trim().toLowerCase() !== TIMETABLE_OWNER_EMAIL) return timetable;
+    const e = plan.execution,
+      job = e.jobPlan!;
+    return {
+      ...timetable,
+      scheduleReviewedOn: plan.reviewedOn,
+      scheduleEffectiveOn: job.effectiveOn,
+      scheduleTimezone: job.timezone,
+      scheduleBudgetMinutes: {
+        weekday: 660,
+        saturday: 300,
+        sunday: 0,
+        week: 3600,
+      },
+      scheduleBudget: {
+        weekdayFocusedMinutes: 660,
+        saturdayFocusedMinutes: 300,
+        sundayFocusedMinutes: 0,
+        weeklyFocusedMinutes: 3600,
+        effectiveOn: job.effectiveOn,
+      },
+      days: timetable.days.map((day) =>
+        day.date < job.effectiveOn || day.date > plan.endDate
+          ? day
+          : {
+              ...day,
+              schedule: annotateGermanySchedule(
+                e,
+                day.date,
+                personalSchedule(email, day.date) ?? {},
+              ),
+            },
+      ),
+    };
+  }
   if (
     !timetable.days.some(
       (day) =>
@@ -200,7 +284,8 @@ export function isGermanyRoadmap(value: unknown): value is GermanyRoadmap {
       (a) =>
         typeof a.label === "string" && Number.isFinite(a.hours) && a.hours >= 0,
     ) &&
-    p.allocations.reduce((sum, a) => sum + a.hours, 0) === 50 &&
+    p.allocations.reduce((sum, a) => sum + a.hours, 0) ===
+      (p.execution?.jobPlan ? 60 : 50) &&
     Array.isArray(p.sections) &&
     p.sections.every(
       (s) => typeof s.title === "string" && typeof s.content === "string",

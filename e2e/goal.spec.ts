@@ -16,7 +16,9 @@ test.describe("goal tracker", () => {
 
     // Metric label resolves from the relocation default.
     await expect(
-      page.locator("#daily-metric").getByText("Applications & Outreach", { exact: true }),
+      page
+        .locator("#daily-metric")
+        .getByText("Applications & Outreach", { exact: true }),
     ).toBeVisible();
 
     // Log 3 today via the quick log input.
@@ -32,10 +34,18 @@ test.describe("goal tracker", () => {
 
     // Today's counter reflects the log; the dated 30-day chart section is present.
     await expect(page.getByText("3 / 3")).toBeVisible();
-    await expect(page.getByRole("combobox", { name: "Range", exact: true })).toHaveValue("30");
-    await expect(page.getByTestId("progress-lead").locator("svg[role=img]")).toBeVisible();
+    await expect(
+      page.getByRole("combobox", { name: "Range", exact: true }),
+    ).toHaveValue("30");
+    await expect(
+      page.getByTestId("progress-lead").locator("svg[role=img]"),
+    ).toBeVisible();
     await page.getByText("View dated readings", { exact: true }).click();
-    await expect(page.getByTestId("progress-lead").getByRole("row", { name: new RegExp(daysAgoKey(0)) })).toContainText("3");
+    await expect(
+      page
+        .getByTestId("progress-lead")
+        .getByRole("row", { name: new RegExp(daysAgoKey(0)) }),
+    ).toContainText("3");
   });
 
   test("milestone CRUD: add, complete, and delete a milestone", async ({
@@ -43,7 +53,9 @@ test.describe("goal tracker", () => {
   }) => {
     await seed(page);
     await page.goto("/goal");
-    await page.getByRole("button", { name: "Milestones", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Goal & milestones", exact: true })
+      .click();
 
     // Defaults for relocation exist.
     await expect(
@@ -51,7 +63,9 @@ test.describe("goal tracker", () => {
     ).toBeVisible();
 
     // Add via the milestone modal.
-    await page.getByRole("button", { name: "Milestones", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Goal & milestones", exact: true })
+      .click();
     await page.getByRole("button", { name: "Add milestone" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByPlaceholder(/Milestone — e\.g\./).fill("Sign the lease");
@@ -81,7 +95,10 @@ test.describe("goal tracker", () => {
     expect(lease?.doneAt).toBeTruthy();
 
     // Delete it (row-scoped — other milestones have the same aria-label).
-    await row.getByRole("button", { name: "Delete milestone" }).click();
+    await row.getByRole("button", { name: /Actions for/ }).click();
+    await page
+      .getByRole("menuitem", { name: "Delete milestone", exact: true })
+      .click();
     await expect(page.getByText("Sign the lease")).toHaveCount(0);
   });
 
@@ -95,7 +112,9 @@ test.describe("goal tracker", () => {
     await page.getByText("Learning").first().click();
     await page.getByRole("button", { name: "Metric", exact: true }).click();
     await expect(page.getByText("Deep Study").first()).toBeVisible();
-    await expect(page.locator("#daily-metric").getByText("Deep Study", { exact: true })).toBeVisible();
+    await expect(
+      page.locator("#daily-metric").getByText("Deep Study", { exact: true }),
+    ).toBeVisible();
 
     const goal = JSON.parse(
       (await page.evaluate(() => window.localStorage.getItem("vk:goal"))) ??
@@ -118,7 +137,11 @@ test.describe("goal tracker", () => {
     await page.getByLabel("Destination country").selectOption("Canada");
     await page.goto("/motivation");
     await expect(
-      page.getByRole("heading", { level: 2, name: "Relocate to Canada", exact: true }),
+      page.getByRole("heading", {
+        level: 2,
+        name: "Relocate to Canada",
+        exact: true,
+      }),
     ).toBeVisible();
   });
 
@@ -151,6 +174,8 @@ test.describe("goal tracker", () => {
     await page.getByRole("button", { name: "Metric", exact: true }).click();
     // 12 logged vs 30 total at 3/day → on-track ETA line present.
     await expect(page.getByText(/on track in about/i)).toHaveCount(0);
-    await expect(page.getByTestId("progress-lead").locator("svg[role=img]")).toBeVisible();
+    await expect(
+      page.getByTestId("progress-lead").locator("svg[role=img]"),
+    ).toBeVisible();
   });
 });

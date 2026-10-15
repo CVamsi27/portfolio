@@ -6,6 +6,7 @@ import Link from "next/link";
 import { planningCanEdit, validDay } from "@/lib/day-plan";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import Modal from "@/components/trackers/Modal";
+import ActionMenu from "@/components/trackers/ActionMenu";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -67,7 +68,10 @@ export default function TodoPage() {
   const [removedTasks, setRemovedTasks] = useState<Todo[]>([]);
   const [priority, setPriority] = useState<TodoPriority>("P2");
   const [tag, setTag] = useState<TodoTag>("Personal");
-  const [view, setView] = useWorkspaceView<View>(["today", "tomorrow", "upcoming", "done"], "today");
+  const [view, setView] = useWorkspaceView<View>(
+    ["today", "tomorrow", "upcoming", "done"],
+    "today",
+  );
   const [tagFilter, setTagFilter] = useState<TodoTag | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TodoPriority | "all">(
     "all",
@@ -88,10 +92,7 @@ export default function TodoPage() {
 
   const visible = useMemo(() => {
     let list: Todo[];
-    if (view === "today")
-      list = safe.filter(
-        (t) => !t.done,
-      );
+    if (view === "today") list = safe.filter((t) => !t.done);
     else if (view === "tomorrow")
       list = safe.filter((t) => t.date === tomorrow && !t.done);
     else if (view === "upcoming")
@@ -207,7 +208,18 @@ export default function TodoPage() {
         title="Tasks"
         subtitle={null}
         badge={<SyncBadge status={status} />}
-        actions={{primary:<Button onClick={()=>{setCaptureOpen(true);setCaptureMessage("");}}>Add task</Button>}}
+        actions={{
+          primary: (
+            <Button
+              onClick={() => {
+                setCaptureOpen(true);
+                setCaptureMessage("");
+              }}
+            >
+              Add task
+            </Button>
+          ),
+        }}
       >
         {removedTasks.length > 0 && (
           <p
@@ -250,49 +262,66 @@ export default function TodoPage() {
           </Button>
         </Modal>
         {/* ── Quick add ── */}
-        <Modal title="Add task" open={captureOpen} onClose={()=>{if(text.trim() && !window.confirm("Discard the unsaved task?"))return;setText("");setCaptureOpen(false);}}>
-        <Card variant="dossier" id="todo-list">
-          <CardContent className="space-y-3 p-5">
-            <div className="flex gap-2">
-              <Input
-                aria-label="New task"
-                placeholder="What needs to get done?"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && add()}
-              />
-              <Button onClick={add} disabled={!text.trim()}>
-                <Plus className="mr-1 h-4 w-4" /> Save task
-              </Button>
-            </div>
-            <label className="field-label">Due date<Input type="date" value={dueDate || today} onChange={event=>setDueDate(event.target.value)} /></label>
-            {captureMessage && <p role="status">{captureMessage}</p>}
-            <details className="task-options">
-              <summary>
-                Task options · {priority} · {tag}
-              </summary>
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <Segmented
-                  label="Priority"
-                  variant="soft"
-                  options={TODO_PRIORITIES.map((p) => ({
-                    value: p.id,
-                    label: p.id,
-                  }))}
-                  value={priority}
-                  onChange={setPriority}
+        <Modal
+          title="Add task"
+          open={captureOpen}
+          onClose={() => {
+            if (text.trim() && !window.confirm("Discard the unsaved task?"))
+              return;
+            setText("");
+            setCaptureOpen(false);
+          }}
+        >
+          <Card variant="dossier" id="todo-list">
+            <CardContent className="space-y-3 p-5">
+              <div className="flex gap-2">
+                <Input
+                  aria-label="New task"
+                  placeholder="What needs to get done?"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && add()}
                 />
-                <Segmented
-                  label="Tag"
-                  variant="soft"
-                  options={TODO_TAGS.map((t) => ({ value: t, label: t }))}
-                  value={tag}
-                  onChange={setTag}
-                />
+                <Button onClick={add} disabled={!text.trim()}>
+                  <Plus className="mr-1 h-4 w-4" /> Save task
+                </Button>
               </div>
-            </details>
-          </CardContent>
-        </Card>        </Modal>
+              <label className="field-label">
+                Due date
+                <Input
+                  type="date"
+                  value={dueDate || today}
+                  onChange={(event) => setDueDate(event.target.value)}
+                />
+              </label>
+              {captureMessage && <p role="status">{captureMessage}</p>}
+              <details className="task-options">
+                <summary>
+                  Task options · {priority} · {tag}
+                </summary>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <Segmented
+                    label="Priority"
+                    variant="soft"
+                    options={TODO_PRIORITIES.map((p) => ({
+                      value: p.id,
+                      label: p.id,
+                    }))}
+                    value={priority}
+                    onChange={setPriority}
+                  />
+                  <Segmented
+                    label="Tag"
+                    variant="soft"
+                    options={TODO_TAGS.map((t) => ({ value: t, label: t }))}
+                    value={tag}
+                    onChange={setTag}
+                  />
+                </div>
+              </details>
+            </CardContent>
+          </Card>{" "}
+        </Modal>
 
         {/* ── Views + tag filter ── */}
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
@@ -309,65 +338,80 @@ export default function TodoPage() {
             onChange={setView}
           />
         </div>
-        {safe.length > 0 && <details className="workspace-disclosure"><summary>Filters</summary>
-          <label className="field-label">Task dates<select value={view} onChange={event=>setView(event.target.value as View)}><option value="today">All open</option><option value="tomorrow">Tomorrow</option><option value="upcoming">Upcoming</option><option value="done">Completed</option></select></label>
-        <div className="task-filter-grid">
-          <label>
-            Search tasks
-            <Input
-              aria-label="Search tasks"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search this view"
-            />
-          </label>
-          <label>
-            Priority
-            <select
-              aria-label="Filter by priority"
-              value={priorityFilter}
-              onChange={(e) =>
-                setPriorityFilter(e.target.value as TodoPriority | "all")
-              }
-            >
-              <option value="all">All priorities</option>
-              {TODO_PRIORITIES.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.id}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Tag
-            <select
-              aria-label="Filter by tag"
-              value={tagFilter}
-              onChange={(e) => setTagFilter(e.target.value as TodoTag | "all")}
-            >
-              <option value="all">All tags</option>
-              {TODO_TAGS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </label>
-          {filtered && (
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearch("");
-                setTagFilter("all");
-                setPriorityFilter("all");
-              }}
-            >
-              Clear filters
-            </Button>
-          )}
-        </div>
-
-        </details>}
+        {safe.length > 0 && (
+          <details className="workspace-disclosure">
+            <summary>Filters</summary>
+            <label className="field-label">
+              Task dates
+              <select
+                value={view}
+                onChange={(event) => setView(event.target.value as View)}
+              >
+                <option value="today">All open</option>
+                <option value="tomorrow">Tomorrow</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="done">Completed</option>
+              </select>
+            </label>
+            <div className="task-filter-grid">
+              <label>
+                Search tasks
+                <Input
+                  aria-label="Search tasks"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search this view"
+                />
+              </label>
+              <label>
+                Priority
+                <select
+                  aria-label="Filter by priority"
+                  value={priorityFilter}
+                  onChange={(e) =>
+                    setPriorityFilter(e.target.value as TodoPriority | "all")
+                  }
+                >
+                  <option value="all">All priorities</option>
+                  {TODO_PRIORITIES.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.id}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Tag
+                <select
+                  aria-label="Filter by tag"
+                  value={tagFilter}
+                  onChange={(e) =>
+                    setTagFilter(e.target.value as TodoTag | "all")
+                  }
+                >
+                  <option value="all">All tags</option>
+                  {TODO_TAGS.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {filtered && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearch("");
+                    setTagFilter("all");
+                    setPriorityFilter("all");
+                  }}
+                >
+                  Clear filters
+                </Button>
+              )}
+            </div>
+          </details>
+        )}
         {/* ── Overdue rescue banner ── */}
         {view === "today" && overdueTasks.length > 0 && (
           <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3 py-2.5">
@@ -516,18 +560,6 @@ export default function TodoPage() {
                       </button>
                     )}
 
-                    {!t.done &&
-                      planningCanEdit(
-                        isSupabaseConfigured(),
-                        process.env.NEXT_PUBLIC_DAILY_PLAN_ENABLED,
-                      ) && (
-                        <Link
-                          className="inline-action task-schedule order-last w-full sm:order-none sm:w-auto"
-                          href={`/plan?schedule=${encodeURIComponent(t.id)}&date=${t.date < today ? today : t.date}`}
-                        >
-                          Schedule
-                        </Link>
-                      )}
                     {/* Overdue badge */}
                     {!t.done && t.date < today && (
                       <span className="shrink-0 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-xs font-semibold text-rose-500">
@@ -535,54 +567,59 @@ export default function TodoPage() {
                       </span>
                     )}
 
-                    <span className="hidden shrink-0 sm:block">
-                      <span
-                        className={cn(
-                          "rounded-full border px-2 py-0.5 text-xs font-semibold",
-                          TAG_COLORS[t.tag],
-                        )}
-                      >
-                        {t.tag}
-                      </span>
-                    </span>
-
-                    <button
-                      onClick={() => cyclePriority(t)}
-                      aria-label="Cycle priority"
-                      className="flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-bold transition-colors hover:bg-accent"
-                      title="Click to cycle priority"
-                    >
-                      <span
-                        className={cn(
-                          "h-1.5 w-1.5 rounded-full",
-                          TODO_PRIORITIES.find((p) => p.id === t.priority)?.dot,
-                        )}
-                      />
-                      {t.priority}
-                    </button>
-
                     <span className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
                       {t.date === today ? "" : t.date.slice(5)}
                     </span>
 
-                    {!t.done ? (
-                      <Link
-                        href={`/plan?task=${encodeURIComponent(t.id)}#focus-sprint`}
-                        title={`Focus on "${t.text}"`}
-                        aria-label={`Focus on "${t.text}"`}
-                        className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-primary sm:opacity-0 sm:group-hover:opacity-100"
-                      >
-                        <Play className="h-3.5 w-3.5" />
-                      </Link>
-                    ) : null}
+                    <ActionMenu label={`Actions for ${t.text}`}>
+                      {!t.done &&
+                        planningCanEdit(
+                          isSupabaseConfigured(),
+                          process.env.NEXT_PUBLIC_DAILY_PLAN_ENABLED,
+                        ) && (
+                          <Link
+                            className="inline-action task-schedule order-last w-full sm:order-none sm:w-auto"
+                            href={`/plan?schedule=${encodeURIComponent(t.id)}&date=${t.date < today ? today : t.date}`}
+                          >
+                            Schedule
+                          </Link>
+                        )}
 
-                    <button
-                      onClick={() => remove(t.id)}
-                      aria-label="Delete task"
-                      className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
+                      <button
+                        onClick={() => cyclePriority(t)}
+                        aria-label="Cycle priority"
+                        className="flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-bold transition-colors hover:bg-accent"
+                        title="Click to cycle priority"
+                      >
+                        <span
+                          className={cn(
+                            "h-1.5 w-1.5 rounded-full",
+                            TODO_PRIORITIES.find((p) => p.id === t.priority)
+                              ?.dot,
+                          )}
+                        />
+                        {t.priority}
+                      </button>
+
+                      {!t.done ? (
+                        <Link
+                          href={`/plan?task=${encodeURIComponent(t.id)}#focus-sprint`}
+                          title={`Focus on "${t.text}"`}
+                          aria-label={`Focus on "${t.text}"`}
+                          className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-primary sm:opacity-0 sm:group-hover:opacity-100"
+                        >
+                          <Play className="h-3.5 w-3.5" />
+                        </Link>
+                      ) : null}
+
+                      <button
+                        onClick={() => remove(t.id)}
+                        aria-label="Delete task"
+                        className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </ActionMenu>
                   </li>
                 ))}
               </ul>

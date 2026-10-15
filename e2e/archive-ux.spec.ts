@@ -26,7 +26,7 @@ test("long archive content remains readable without mobile overflow", async ({
   const item = page.locator("li").filter({ hasText: "reference_" });
   const content = (await page.getByText(body, { exact: true }).boundingBox())!;
   const actions = (await item
-    .getByRole("button", { name: "Delete archive item" })
+    .getByRole("button", { name: "Library item actions", exact: true })
     .boundingBox())!;
   expect(actions.y).toBeGreaterThanOrEqual(content.y + content.height);
 });
@@ -74,7 +74,10 @@ test("an empty goal filter offers access to existing items", async ({
   });
   await page.goto("/archive");
   await expect(page.getByText(entry.body, { exact: true })).toBeVisible();
-  await page.getByRole("group", { name: "Library scope" }).getByRole("button", { name: "Relocation", exact: true }).click();
+  await page
+    .getByRole("group", { name: "Library scope" })
+    .getByRole("button", { name: "Relocation", exact: true })
+    .click();
   await expect(
     page.getByText("No items for this goal", { exact: true }),
   ).toBeVisible();
@@ -89,7 +92,13 @@ test("archive deletion can be undone without losing item metadata", async ({
 }) => {
   await seed(page, { "vk:archive:items": [entry] });
   await page.goto("/archive");
-  await page.getByRole("button", { name: "Delete archive item" }).click();
+  await page
+    .getByRole("button", { name: "Library item actions", exact: true })
+    .first()
+    .click();
+  await page
+    .getByRole("menuitem", { name: "Delete archive item", exact: true })
+    .click();
   await expect(page.getByText(entry.body, { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Undo delete", exact: true }).click();
   await expect(page.getByText(entry.body, { exact: true })).toBeVisible();
@@ -114,7 +123,13 @@ test("archive copy failure explains how to recover", async ({ page }) => {
     });
   });
   await page.goto("/archive");
-  await page.getByRole("button", { name: "Copy archive text" }).click();
+  await page
+    .getByRole("button", { name: "Library item actions", exact: true })
+    .first()
+    .click();
+  await page
+    .getByRole("menuitem", { name: "Copy archive text", exact: true })
+    .click();
   await expect(page.locator("#archive-feedback")).toContainText(
     "Select the text and copy it manually",
   );

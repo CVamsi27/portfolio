@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -36,14 +37,17 @@ export function safeReturn(value: string | null | undefined) {
 export default function CaptureWorkspace({
   initialType = "",
   initialDate,
+  fixedDate = false,
   returnTo = "/hub",
   onDirty,
 }: {
   initialType?: string;
   initialDate?: string;
+  fixedDate?: boolean;
   returnTo?: string;
   onDirty?: (dirty: boolean) => void;
 }) {
+  const router = useRouter();
   const { prefs } = useUserPrefs();
   const [type, setType] = useState(
     types.some(([id]) => id === initialType) ? initialType : "",
@@ -195,6 +199,12 @@ export default function CaptureWorkspace({
                 key={id}
                 variant="outline"
                 onClick={() => {
+                  if (id === "exercise") {
+                    router.push(
+                      `/workout-tracking?date=${date}&returnTo=${encodeURIComponent(back)}`,
+                    );
+                    return;
+                  }
                   setType(id);
                   setMessage("");
                 }}
@@ -208,41 +218,45 @@ export default function CaptureWorkspace({
         <>
           <div className="workspace-heading">
             <h2>{types.find(([id]) => id === type)?.[1]}</h2>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                if (
-                  (text || amount || energy || mood || foodDirty) &&
-                  !window.confirm("Discard the unsaved entry?")
-                )
-                  return;
-                setType("");
-                setText("");
-                setAmount("");
-                setEnergy("");
-                setMood("");
-                setFoodDirty(false);
-                onDirty?.(false);
-              }}
-            >
-              Change type
-            </Button>
+            {!initialType && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  if (
+                    (text || amount || energy || mood || foodDirty) &&
+                    !window.confirm("Discard the unsaved entry?")
+                  )
+                    return;
+                  setType("");
+                  setText("");
+                  setAmount("");
+                  setEnergy("");
+                  setMood("");
+                  setFoodDirty(false);
+                  onDirty?.(false);
+                }}
+              >
+                Change type
+              </Button>
+            )}
           </div>
-          <label className="field-label">
-            Date
-            <Input
-              aria-label="Record date"
-              type="date"
-              value={date}
-              onChange={(e) => {
-                if (validDay(e.target.value)) {
-                  setDate(e.target.value);
-                  setUndoWater(false);
-                  setMessage("");
-                }
-              }}
-            />
-          </label>
+          {!fixedDate && (
+            <label className="field-label">
+              Date
+              <Input
+                aria-label="Record date"
+                type="date"
+                value={date}
+                onChange={(e) => {
+                  if (validDay(e.target.value)) {
+                    setDate(e.target.value);
+                    setUndoWater(false);
+                    setMessage("");
+                  }
+                }}
+              />
+            </label>
+          )}
           {type === "food" ? (
             <FoodQuickCapture
               date={date}

@@ -26,6 +26,7 @@ import { refreshBibleChapters, type BibleChapter } from "@/lib/bible-sync";
 import curriculum from "@/data/career-curriculum.json";
 import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
+import ActionMenu from "@/components/trackers/ActionMenu";
 import PersonalShell from "@/components/trackers/PersonalShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
@@ -449,7 +450,7 @@ function DayCard({
   ) => void;
   completedChapterIdSet?: Set<string>;
 }) {
-  const [open, setOpen] = useState(isToday);
+  const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<ChecklistItem | null>(null);
   const [evidenceValue, setEvidenceValue] = useState("");
   const [evidenceSourceUrl, setEvidenceSourceUrl] = useState("");
@@ -757,24 +758,20 @@ function DayCard({
             ))}
           </div>
 
-          {/* Tab bar */}
-          <div className="flex overflow-x-auto border-b border-border/40 mt-3 px-4 gap-0 scrollbar-none">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex shrink-0 items-center gap-1 border-b-2 px-2.5 pb-2 pt-1 text-xs font-medium transition-colors whitespace-nowrap ${tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-              >
-                {t.icon}
-                {t.label}
-                {t.id === "checklist" && doneCount > 0 && (
-                  <span className="rounded-full bg-primary/20 px-1 text-xs text-primary">
-                    {doneCount}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          <label className="field-label px-4 mt-3">
+            Day details
+            <select
+              aria-label="Day details"
+              value={tab}
+              onChange={(event) => setTab(event.target.value as typeof tab)}
+            >
+              {TABS.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <div className="px-4 py-4 space-y-3">
             {/* CHECKLIST */}
@@ -998,7 +995,11 @@ function DayCard({
             )}
 
             {/* SCHEDULE */}
-            {tab === "schedule" && <Link className="inline-action" href={`/hub?date=${plan.date}`}>Open Today’s agenda</Link>}
+            {tab === "schedule" && (
+              <Link className="inline-action" href={`/hub?date=${plan.date}`}>
+                Open Today’s agenda
+              </Link>
+            )}
 
             {/* STEPS */}
             {tab === "steps" && (
@@ -1335,7 +1336,7 @@ function WeeklyTargetsSection({
           <Target className="h-4 w-4 text-primary" />
           <h2 className="font-display font-bold">Weekly Targets</h2>
           <span className="ml-auto text-xs text-muted-foreground">
-            Adjust outputs to role fit; keep the 50-hour cap.
+            Adjust outputs to role fit and the current timetable budget.
           </span>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1984,7 +1985,9 @@ function MotivationHero({
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-function RoadmapTitle() { return useSearchParams().get("panel") === "exams" ? "Exams" : "Roadmap"; }
+function RoadmapTitle() {
+  return useSearchParams().get("panel") === "exams" ? "Exams" : "Roadmap";
+}
 export default function RoadmapPage() {
   const { user } = useAuth();
   const { value: timetable } = useSyncedStorage<Timetable | null>(
@@ -2004,11 +2007,19 @@ export default function RoadmapPage() {
       [],
     );
   const [filter, setFilter] = useState<"all" | "today" | "pending" | "done">(
-    "today",
+    "all",
   );
   const [search, setSearch] = useState("");
   const [section, setSection] = useWorkspaceView(
-    ["roadmap", "execution", "curriculum", "revision", "career", "germany", "outreach"],
+    [
+      "roadmap",
+      "execution",
+      "curriculum",
+      "revision",
+      "career",
+      "germany",
+      "outreach",
+    ],
     "roadmap",
   );
   const [revisionDeckOpen, setRevisionDeckOpen] = useState(false);
@@ -2153,7 +2164,6 @@ export default function RoadmapPage() {
   const overallPct =
     totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
   const todayPlan = days.find((d) => d.date === today);
-  const todayPct = todayPlan ? pct(todayPlan.checklist) : 0;
   const completedChapterIdSet = useMemo(
     () => new Set((completedChapters || []).map((c) => c.chapterId)),
     [completedChapters],
@@ -2167,7 +2177,13 @@ export default function RoadmapPage() {
     for (const d of days) {
       const c = getColor(d.topic);
       if (!groups[d.topic])
-        groups[d.topic] = { id:d.topic, label: c===DEF_COLOR?d.topic:c.short, ring: c.ring, done: 0, total: 0 };
+        groups[d.topic] = {
+          id: d.topic,
+          label: c === DEF_COLOR ? d.topic : c.short,
+          ring: c.ring,
+          done: 0,
+          total: 0,
+        };
       groups[d.topic].total++;
       if (pct(d.checklist) === 100) groups[d.topic].done++;
     }
@@ -2278,17 +2294,69 @@ export default function RoadmapPage() {
     <RequireAuth>
       <PersonalShell
         icon="book"
-        title={<Suspense fallback="Roadmap"><RoadmapTitle /></Suspense>}
+        title={
+          <Suspense fallback="Roadmap">
+            <RoadmapTitle />
+          </Suspense>
+        }
         subtitle={null}
         eyebrow="NOVA // Execution"
       >
         <nav className="workspace-views" aria-label="Roadmap views">
-          <button aria-pressed={section === "roadmap"} onClick={()=>{setSection("roadmap");const url=new URL(window.location.href);url.searchParams.set("panel","today");window.history.replaceState(null,"",url);window.dispatchEvent(new Event("popstate"));}}>Today</button>
-          <button aria-pressed={["curriculum","revision"].includes(section)} onClick={()=>setSection("curriculum")}>Curriculum</button>
-          <button aria-pressed={["execution","career","germany","outreach"].includes(section)} onClick={()=>{setSection("execution");const url=new URL(window.location.href);url.searchParams.set("panel","this-week");window.history.replaceState(null,"",url);window.dispatchEvent(new Event("popstate"));}}>Career</button>
+          <button
+            aria-pressed={section === "roadmap"}
+            onClick={() => {
+              setSection("roadmap");
+              const url = new URL(window.location.href);
+              url.searchParams.set("panel", "today");
+              window.history.replaceState(null, "", url);
+              window.dispatchEvent(new Event("popstate"));
+            }}
+          >
+            Today
+          </button>
+          <button
+            aria-pressed={["curriculum", "revision"].includes(section)}
+            onClick={() => setSection("curriculum")}
+          >
+            Curriculum
+          </button>
+          <button
+            aria-pressed={[
+              "execution",
+              "career",
+              "germany",
+              "outreach",
+            ].includes(section)}
+            onClick={() => {
+              setSection("execution");
+              const url = new URL(window.location.href);
+              url.searchParams.set("panel", "this-week");
+              window.history.replaceState(null, "", url);
+              window.dispatchEvent(new Event("popstate"));
+            }}
+          >
+            Career
+          </button>
         </nav>
-        {section === "curriculum" && <div className="workspace-views"><button onClick={()=>setSection("revision")}>Revision & recall</button></div>}
-        {["execution","career","germany","outreach"].includes(section) && <details className="workspace-disclosure"><summary>Career resources</summary><div className="workspace-views">{NAV.filter(n=>["career","germany","outreach"].includes(n.id)).map(n=><button key={n.id} onClick={()=>setSection(n.id)}>{n.label}</button>)}</div></details>}
+        {section === "curriculum" && (
+          <div className="workspace-views">
+            <button onClick={() => setSection("revision")}>
+              Revision & recall
+            </button>
+          </div>
+        )}
+        {["execution", "career", "germany", "outreach"].includes(section) && (
+          <ActionMenu label="Career resources">
+            {NAV.filter((n) =>
+              ["career", "germany", "outreach"].includes(n.id),
+            ).map((n) => (
+              <button key={n.id} onClick={() => setSection(n.id)}>
+                {n.label}
+              </button>
+            ))}
+          </ActionMenu>
+        )}
         {(section === "roadmap" || section === "execution") &&
           (germanyPlan ? (
             <GermanyRoadmapView
@@ -2323,38 +2391,40 @@ export default function RoadmapPage() {
                 );
               }}
             />
-          ) : (
-            <section className="rounded-xl border border-border p-4">
-              <h2 className="font-semibold">
-                Germany campaign is not available in this account yet.
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Sign in to the account containing your reviewed plan. Existing
-                study history and Curriculum remain available below.
+          ) : section === "execution" ? (
+            <section className="workspace-panel">
+              <h2>Career plan unavailable</h2>
+              <p className="text-sm text-muted-foreground">
+                Sign in to the account containing your plan.
               </p>
+              <button
+                className="inline-action"
+                onClick={() => setSection("curriculum")}
+              >
+                Open Curriculum
+              </button>
             </section>
-          ))}
+          ) : null)}
         {/* ── ROADMAP SECTION ── */}
         {(section === "roadmap" || section === "curriculum") && (
-          <details
-            className="workspace-panel"
-            open={section === "curriculum" || !germanyPlan}
-          >
-            <summary className="min-h-11">Study catalogue and history</summary>
+          <section className="workspace-section-stack">
             <>
               {/* Quick Actions: Audio Break Lounge, 10 PM Curfew & Opaque Recall Gate */}
               <div className="flex flex-wrap items-center justify-between gap-2.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setBreakLoungeOpen(true)}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all cursor-pointer shadow-xs"
-                    title="Find a developer podcast on YouTube Music"
-                  >
-                    <Headphones className="h-3.5 w-3.5 text-cyan-400" />
-                    <span>Audio break</span>
-                  </button>
-                </div>
+                {section === "curriculum" && (
+                  <ActionMenu label="Curriculum actions">
+                    <button onClick={() => setBreakLoungeOpen(true)}>
+                      Audio break
+                    </button>
+                    <a
+                      href="https://study.buildora.work/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open Study Bible
+                    </a>
+                  </ActionMenu>
+                )}
 
                 {dueRevisionList.length > 0 && (
                   <button
@@ -2398,20 +2468,6 @@ export default function RoadmapPage() {
                     >
                       <CardContent className="p-5">
                         <div className="flex items-start gap-4">
-                          <div className="relative shrink-0">
-                            <SimpleRing
-                              pct={todayPct}
-                              size={68}
-                              thickness={7}
-                              from={getColor(todayPlan.topic).ring}
-                              to="#a855f7"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-sm font-bold text-primary tabular-nums">
-                                {todayPct}%
-                              </span>
-                            </div>
-                          </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-xs font-bold uppercase tracking-wider text-primary">
@@ -2421,18 +2477,11 @@ export default function RoadmapPage() {
                             <p className="font-display font-bold">
                               {todayPlan.title}
                             </p>
-                            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                              {todayPlan.mission}
-                            </p>
                             <div className="mt-4 rounded-lg border border-border/60 bg-background/50 p-3">
                               <div className="flex items-center justify-between">
                                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                   Study in this order
                                 </p>
-                                <span className="text-xs font-mono text-primary flex items-center gap-1">
-                                  <ShieldCheck className="h-3 w-3" />{" "}
-                                  Anti-distraction guard enabled
-                                </span>
                               </div>
                               <ol className="mt-2 space-y-1.5">
                                 {todayPlan.chapters.map((chapter, index) => {
@@ -2478,49 +2527,11 @@ export default function RoadmapPage() {
                                           </span>
                                         )}
                                       </div>
-                                      <div className="flex items-center gap-2 shrink-0">
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            handleOpenStudy(
-                                              {
-                                                ...chapter,
-                                                stack: todayPlan.topic,
-                                              },
-                                              todayPlan.day,
-                                            )
-                                          }
-                                          className={cn(
-                                            "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold transition-colors cursor-pointer",
-                                            isMastered
-                                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                                              : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20",
-                                          )}
-                                        >
-                                          <ShieldCheck className="h-3 w-3" />
-                                          <span>
-                                            {isMastered
-                                              ? "Review Sprint"
-                                              : "Deep Study"}
-                                          </span>
-                                        </button>
-                                        <a
-                                          href={chapter.studyUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          aria-label={`Open ${chapter.title} in new tab`}
-                                          className="text-muted-foreground hover:text-primary"
-                                        >
-                                          <ExternalLink className="h-3 w-3" />
-                                        </a>
-                                      </div>
                                     </li>
                                   );
                                 })}
                               </ol>
                             </div>
-
-                            <Link className="inline-action" href={`/hub?date=${todayPlan.date}`}>Open Today’s agenda</Link>
 
                             <div className="mt-3 grid gap-2 sm:grid-cols-2">
                               <div className="rounded-lg bg-muted/35 p-3">
@@ -2559,31 +2570,32 @@ export default function RoadmapPage() {
                                 <ShieldCheck className="h-3.5 w-3.5" />
                                 Start study session
                               </button>
-                              <a
-                                href={todayPlan.studyLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
-                              >
-                                <BookOpen className="h-3 w-3" />
-                                Web tab
-                              </a>
+                              <ActionMenu label="Study actions">
+                                <a
+                                  href={todayPlan.studyLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  Open chapter in new tab
+                                </a>
+                                <Link href={`/hub?date=${todayPlan.date}`}>
+                                  Today’s agenda
+                                </Link>
+                                <a
+                                  href="https://micro1.ai"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  Practice interview
+                                </a>
+                              </ActionMenu>
                               <button
-                                onClick={() => setFilter("today")}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
+                                type="button"
+                                onClick={() => setSection("curriculum")}
+                                className="inline-action"
                               >
-                                <ListChecks className="h-3 w-3" />
                                 Verify today&apos;s work
                               </button>
-                              <a
-                                href="https://micro1.ai"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
-                              >
-                                <Users className="h-3 w-3" />
-                                Practice interview
-                              </a>
                             </div>
                           </div>
                         </div>
@@ -2591,7 +2603,9 @@ export default function RoadmapPage() {
                     </Card>
                   )}
 
-                <Link className="inline-action" href="/settings#notifications">Reminder settings</Link>
+                <Link className="inline-action" href="/settings#notifications">
+                  Reminder settings
+                </Link>
               </div>
               <div
                 hidden={section !== "curriculum"}
@@ -2599,39 +2613,42 @@ export default function RoadmapPage() {
               >
                 {/* Phase bars */}
                 {phaseGroups.length > 0 && (
-                  <details className="workspace-disclosure"><summary>Curriculum phases</summary><Card variant="dossier">
-                    <CardContent className="p-5">
-                      <div className="flex items-center gap-2 mb-4">
-                        <BarChart2 className="h-4 w-4 text-primary" />
-                        <h2 className="font-display font-bold">
-                          Phase Progress
-                        </h2>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {phaseGroups.map((g) => (
-                          <div key={g.id} className="space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span className="font-medium truncate">
-                                {g.label}
-                              </span>
-                              <span className="shrink-0 tabular-nums text-muted-foreground">
-                                {g.done}/{g.total}
-                              </span>
+                  <details className="workspace-disclosure">
+                    <summary>Curriculum phases</summary>
+                    <Card variant="dossier">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                          <BarChart2 className="h-4 w-4 text-primary" />
+                          <h2 className="font-display font-bold">
+                            Phase Progress
+                          </h2>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {phaseGroups.map((g) => (
+                            <div key={g.id} className="space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="font-medium truncate">
+                                  {g.label}
+                                </span>
+                                <span className="shrink-0 tabular-nums text-muted-foreground">
+                                  {g.done}/{g.total}
+                                </span>
+                              </div>
+                              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                                <div
+                                  className="h-full rounded-full transition-all duration-500"
+                                  style={{
+                                    width: `${g.total ? Math.round((g.done / g.total) * 100) : 0}%`,
+                                    background: g.ring,
+                                  }}
+                                />
+                              </div>
                             </div>
-                            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${g.total ? Math.round((g.done / g.total) * 100) : 0}%`,
-                                  background: g.ring,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card></details>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </details>
                 )}
 
                 {/* Filter + search */}
@@ -2709,7 +2726,7 @@ export default function RoadmapPage() {
                 </div>
               </div>
             </>
-          </details>
+          </section>
         )}
 
         {/* ── REVISION & RECALL SECTION ── */}
@@ -3090,7 +3107,9 @@ export default function RoadmapPage() {
             {career.weeklyTargets && (
               <WeeklyTargetsSection targets={career.weeklyTargets} />
             )}
-            <Link className="inline-action" href={`/hub?date=${today}`}>Open Today’s agenda</Link>
+            <Link className="inline-action" href={`/hub?date=${today}`}>
+              Open Today’s agenda
+            </Link>
             {career.motivationalResources && (
               <MotivationalResourcesSection
                 resources={career.motivationalResources}
@@ -3464,126 +3483,133 @@ export default function RoadmapPage() {
           open={breakLoungeOpen}
           onClose={() => setBreakLoungeOpen(false)}
         />
-        <details className="workspace-panel">
-          <summary>Study progress</summary>
-          {/* Stats */}
-          {days.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-              {[
-                {
-                  label: "Total Days",
-                  value: String(days.length),
-                  color: "text-foreground",
-                  note: "curriculum",
-                },
-                {
-                  label: "Mastered Chs",
-                  value: `${completedChapters?.length || 0}`,
-                  color: "text-cyan-400",
-                  note: "bible chapters",
-                },
-                {
-                  label: "Days Done",
-                  value: String(completedDays),
-                  color: "text-emerald-400",
-                  note: "100% complete",
-                },
-                {
-                  label: "Tasks Done",
-                  value: `${doneItems}/${totalItems}`,
-                  color: "text-amber-400",
-                  note: "checklist",
-                },
-                {
-                  label: "Overall",
-                  value: `${overallPct}%`,
-                  color: "text-primary",
-                  note: "progress",
-                },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    {s.label}
-                  </p>
-                  <p
-                    className={`mt-1 font-display text-2xl font-bold tabular-nums ${s.color}`}
-                  >
-                    {s.value}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{s.note}</p>
+        {section === "curriculum" && (
+          <details className="workspace-disclosure">
+            <summary>Catalogue details</summary>
+            <section className="workspace-panel">
+              <h2>Study progress</h2>
+              {/* Stats */}
+              {days.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                  {[
+                    {
+                      label: "Total Days",
+                      value: String(days.length),
+                      color: "text-foreground",
+                      note: "curriculum",
+                    },
+                    {
+                      label: "Mastered Chs",
+                      value: `${completedChapters?.length || 0}`,
+                      color: "text-cyan-400",
+                      note: "bible chapters",
+                    },
+                    {
+                      label: "Days Done",
+                      value: String(completedDays),
+                      color: "text-emerald-400",
+                      note: "100% complete",
+                    },
+                    {
+                      label: "Tasks Done",
+                      value: `${doneItems}/${totalItems}`,
+                      color: "text-amber-400",
+                      note: "checklist",
+                    },
+                    {
+                      label: "Overall",
+                      value: `${overallPct}%`,
+                      color: "text-primary",
+                      note: "progress",
+                    },
+                  ].map((s) => (
+                    <div
+                      key={s.label}
+                      className="rounded-xl border border-border/60 bg-card/40 p-3.5 text-center"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        {s.label}
+                      </p>
+                      <p
+                        className={`mt-1 font-display text-2xl font-bold tabular-nums ${s.color}`}
+                      >
+                        {s.value}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{s.note}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </details>
-        <details className="workspace-panel">
-          <summary>Curriculum source and study priorities</summary>
-          {/* Study Bible banner */}
-          <a
-            href="https://study.buildora.work"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary/10 px-5 py-3.5 hover:bg-primary/15 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <BookOpen className="h-5 w-5 text-primary shrink-0" />
-              <div>
-                <p className="font-display font-bold text-sm">
-                  Software Developer Bible
+              )}
+            </section>
+            <section className="workspace-panel">
+              <h2>Curriculum source and study priorities</h2>
+              {/* Study Bible banner */}
+              <a
+                href="https://study.buildora.work"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary/10 px-5 py-3.5 hover:bg-primary/15 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <BookOpen className="h-5 w-5 text-primary shrink-0" />
+                  <div>
+                    <p className="font-display font-bold text-sm">
+                      Software Developer Bible
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      study.buildora.work · {curriculum.chapterCount} chapters ·{" "}
+                      {(curriculum.totalStudyMinutes / 60).toFixed(1)}h
+                      estimated reading · {curriculum.days.length}-day
+                      navigation backlog
+                    </p>
+                  </div>
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-primary shrink-0" />
+              </a>
+
+              <div
+                className="rounded-xl border border-border px-4 py-3 text-sm"
+                data-testid="bible-sync-policy"
+              >
+                <p>
+                  Study Essential concepts first: JavaScript/TypeScript, core
+                  React, APIs, PostgreSQL, security and system design. HTML/CSS
+                  basics matter; animation and alternative libraries can wait.
+                  Java is deferred.
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  study.buildora.work · {curriculum.chapterCount} chapters ·{" "}
-                  {(curriculum.totalStudyMinutes / 60).toFixed(1)}h estimated
-                  reading · {curriculum.days.length}-day navigation backlog
+                <p className="mt-1 text-xs text-muted-foreground">
+                  This dated inventory is a navigation backlog, not a
+                  requirement to finish every page. Optional and Deferred
+                  chapters may be skipped. Keep applying while practising. Saved
+                  evidence is retained.
+                </p>
+                <a
+                  className="mt-2 inline-block text-primary underline"
+                  href="https://study.buildora.work/docs/topic-importance"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Bible importance guide
+                </a>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">
+                  Bible snapshot: {curriculum.sourceDigest.slice(0, 12)}
                 </p>
               </div>
-            </div>
-            <ArrowUpRight className="h-4 w-4 text-primary shrink-0" />
-          </a>
-
-          <div
-            className="rounded-xl border border-border px-4 py-3 text-sm"
-            data-testid="bible-sync-policy"
-          >
-            <p>
-              Study Essential concepts first: JavaScript/TypeScript, core React,
-              APIs, PostgreSQL, security and system design. HTML/CSS basics
-              matter; animation and alternative libraries can wait. Java is
-              deferred.
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              This dated inventory is a navigation backlog, not a requirement to
-              finish every page. Optional and Deferred chapters may be skipped.
-              Keep applying while practising. Saved evidence is retained.
-            </p>
-            <a
-              className="mt-2 inline-block text-primary underline"
-              href="https://study.buildora.work/docs/topic-importance"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Bible importance guide
-            </a>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
-              Bible snapshot: {curriculum.sourceDigest.slice(0, 12)}
-            </p>
-          </div>
-        </details>
-        <details className="rounded-2xl border border-border p-4">
-          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">
-            Progress and weekly overview
-          </summary>
-          <MotivationHero
-            days={days}
-            todayDate={today}
-            totalItems={totalItems}
-            doneItems={doneItems}
-            completedDays={completedDays}
-          />
-        </details>
+            </section>
+            <section className="workspace-panel">
+              <h2 className="text-sm font-semibold">
+                Progress and weekly overview
+              </h2>
+              <MotivationHero
+                days={days}
+                todayDate={today}
+                totalItems={totalItems}
+                doneItems={doneItems}
+                completedDays={completedDays}
+              />
+            </section>
+          </details>
+        )}
       </PersonalShell>
     </RequireAuth>
   );

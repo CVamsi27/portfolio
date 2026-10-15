@@ -7,7 +7,7 @@ import {
   PROGRESS_METRICS,
   type ProgressMetric,
 } from "@/lib/progress-presentation";
-import JournalWorkspace from "@/components/daily/JournalWorkspace";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { ProgressLead } from "./WorkspaceProgressLead";
 import ImportedHealthTrends from "./ImportedHealthTrends";
@@ -82,6 +82,30 @@ export default function ProgressDashboard() {
   };
   return (
     <div className="progress-workspace" data-testid="progress-dashboard">
+      <div className="progress-range-toolbar">
+        <label className="field-label">
+          Through date
+          <Input
+            type="date"
+            value={data.end}
+            onInput={(event) => changeThrough(event.currentTarget.value)}
+            onChange={(event) => changeThrough(event.currentTarget.value)}
+          />
+        </label>
+        {through && (
+          <button
+            className="inline-action"
+            onClick={() => {
+              setThrough(undefined);
+              const url = new URL(window.location.href);
+              url.searchParams.delete("date");
+              window.history.replaceState(null, "", url);
+            }}
+          >
+            Back to today
+          </button>
+        )}
+      </div>
       <ProgressLead
         metric={chosen}
         endDate={through}
@@ -115,42 +139,21 @@ export default function ProgressDashboard() {
           </button>
         ))}
       </nav>
-      <div className="progress-range-toolbar">
-        <label className="field-label">
-          Through date
-          <Input
-            type="date"
-            value={data.end}
-            onInput={(event) => changeThrough(event.currentTarget.value)}
-            onChange={(event) => changeThrough(event.currentTarget.value)}
-          />
-        </label>
-        {through && (
-          <button
+      {view === "reflection" && (
+        <section className="workspace-panel">
+          <Link
             className="inline-action"
-            onClick={() => {
-              setThrough(undefined);
-              const url = new URL(window.location.href);
-              url.searchParams.delete("date");
-              window.history.replaceState(null, "", url);
-            }}
+            href={`/log?view=journal&date=${data.end}&returnTo=${encodeURIComponent(`/dashboard?view=reflection&date=${data.end}`)}`}
           >
-            Back to today
-          </button>
-        )}
-      </div>
-      {view === "reflection" && <JournalWorkspace />}
+            Write or edit reflection
+          </Link>
+        </section>
+      )}
       {view === "health" && (
         <details className="workspace-disclosure">
           <summary>Imported health records & sources</summary>
           <ImportedHealthTrends from={data.first} to={data.end} />
         </details>
-      )}
-      {view === "work" && (
-        <p className="text-sm text-muted-foreground">
-          Completed work is separate from planned time. Each dated reading comes
-          from saved activity records.
-        </p>
       )}
     </div>
   );

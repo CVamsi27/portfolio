@@ -25,11 +25,20 @@ import {
   type RoutineHistory,
 } from "@/lib/routine-reminders";
 import { isGermanyRoadmap, type GermanyRoadmap } from "@/lib/germany-roadmap";
+import { jobAssignments, jobEvidenceStatus } from "@/lib/job-plan";
+import JobAssignmentDetail, {
+  JobAssignmentRow,
+  JobProgressLabel,
+} from "@/components/career/JobAssignmentDetail";
 import RoadmapGuide from "@/components/career/RoadmapGuide";
 import {
   datedAssignments,
   annotateGermanySchedule,
 } from "@/lib/germany-execution";
+import {
+  EMPTY_CAREER_EXECUTION_STATE,
+  type CareerExecutionState,
+} from "@/lib/career-roadmap";
 import { personalSchedule } from "@/lib/personal-timetable";
 import { useRoutine } from "@/lib/routine-store";
 import { usePersonalModules } from "@/lib/personal-modules";
@@ -47,7 +56,6 @@ import { ProgressLead } from "@/components/progress/WorkspaceProgressLead";
 import HabitChecklist from "@/components/personal/HabitChecklist";
 import FocusSprint from "@/components/trackers/FocusSprint";
 import { displayWeight } from "@/lib/health";
-import WorldClockStrip from "@/components/trackers/WorldClockStrip";
 import Modal from "@/components/trackers/Modal";
 const deviceZone = () =>
   Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
@@ -114,12 +122,31 @@ export default function DailyWorkspace({
     "career_command_center",
     null,
   );
+  const execution = useSyncedStorage<CareerExecutionState>(
+    "career_execution_state",
+    EMPTY_CAREER_EXECUTION_STATE,
+  );
   const germany = isGermanyRoadmap(career.value?.germanyRoadmap)
     ? career.value.germanyRoadmap
     : null;
   const germanyAssignments = germany?.execution
     ? datedAssignments(germany.execution, date)
     : {};
+  const detailedAssignments = modules.value.study
+    ? jobAssignments(germany?.execution?.jobPlan, date)
+    : [];
+  const jobDays = (
+    planning && view === "week"
+      ? Array.from({ length: 7 }, (_, i) => shiftDay(date, i))
+      : [date]
+  )
+    .map((d) => ({
+      date: d,
+      assignments: modules.value.study
+        ? jobAssignments(germany?.execution?.jobPlan, d)
+        : [],
+    }))
+    .filter((d) => d.assignments.length > 0);
   const prescribed = modules.value.study
     ? personalSchedule(user?.email, date)
     : undefined;
@@ -301,9 +328,19 @@ export default function DailyWorkspace({
     setMessage("Routine action undone.");
   };
   const renderRow = (row: AgendaItem) => {
+    const assignment =
+      row.id.startsWith("owner:") || row.id.startsWith("timetable:")
+        ? jobAssignments(
+            germany?.execution?.jobPlan,
+            row.block?.date ?? date,
+          ).find((a) => row.id.endsWith(":" + a.range))
+        : undefined;
     const content = (
       <>
-        {row.block?.description &&
+        {assignment ? (
+          <JobAssignmentDetail assignment={assignment} recordLink />
+        ) : (
+          row.block?.description &&
           (germany?.execution &&
           (row.id.startsWith("owner:") || row.id.startsWith("timetable:")) ? (
             <RoadmapGuide
@@ -312,7 +349,8 @@ export default function DailyWorkspace({
             />
           ) : (
             <p>{row.block.description}</p>
-          ))}
+          ))
+        )}
         {planning && (
           <small>
             {agendaStatus(row, date, today, now)}
@@ -441,6 +479,14 @@ export default function DailyWorkspace({
           key={row.id}
           row={row}
           timeZone={timeZone}
+          outcome={assignment?.outcome}
+          evidenceStatus={
+            assignment
+              ? jobEvidenceStatus(
+                  execution.value?.evidenceByItemId?.[assignment.id],
+                )
+              : undefined
+          }
           status={agendaStatus(row, date, today, now)}
         >
           {content}
@@ -527,7 +573,7 @@ export default function DailyWorkspace({
     : (actionableNext?.href ??
       (date === today && pending[0]
         ? `/plan?view=focus&task=${encodeURIComponent(pending[0].id)}`
-        : `/plan?date=${date === today && !incomplete.some((row) => row.at + (row.durationMinutes ?? 0) * 60000 > now) ? shiftDay(date, 1) : date}`));
+        : `/plan?date=${date === today && rows.length > 0 && !incomplete.some((row) => row.at + (row.durationMinutes ?? 0) * 60000 > now) ? shiftDay(date, 1) : date}`));
   const primaryLabel = activeSession
     ? "Resume session"
     : actionableNext
@@ -538,7 +584,9 @@ export default function DailyWorkspace({
           : "Open commitment"
       : date === today && pending[0]
         ? "Start focused work"
-        : date === today && !incomplete.some((row) => row.at >= now)
+        : date === today &&
+            rows.length > 0 &&
+            !incomplete.some((row) => row.at >= now)
           ? "Plan tomorrow"
           : "Plan this day";
   return (
@@ -547,10 +595,7 @@ export default function DailyWorkspace({
         <header className="nova-today-header">
           <div>
             <h1>Plan</h1>
-            <p>
-              {date} ·{" "}
-              {timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone}
-            </p>
+            <DaySelector date={date} today={today} onChange={setDate} />
           </div>
           {plan.enabled && (
             <Button className="nova-primary-action" onClick={() => begin()}>
@@ -596,14 +641,12 @@ export default function DailyWorkspace({
       {!planning && (
         <WeekDateStrip date={date} today={today} onChange={setDate} />
       )}
-      {planning && <DaySelector date={date} today={today} onChange={setDate} />}
+
       {planning && (
         <nav className="workspace-views" aria-label="Planning views">
           {[
             ["day", "Activities"],
             ["week", "Week"],
-            ["tasks", "Tasks"],
-            ["goal", "Goals"],
           ].map(([id, label]) => (
             <Link
               key={id}
@@ -628,16 +671,10 @@ export default function DailyWorkspace({
         </p>
       )}
       {planning && (
-        <div className="flex flex-wrap gap-2">
-          <Link className="inline-action" href={`/hub?date=${date}`}>
-            View timetable
-          </Link>
-          <details>
-            <summary className="min-h-11">Focus tools</summary>
-            <Link className="inline-action" href="/plan?view=focus">
-              Start open work
-            </Link>
-          </details>
+        <div className="workspace-child-links">
+          <Link href="/todo">Tasks</Link>
+          <Link href="/goal">Goals</Link>
+          <Link href={`/plan?view=focus&date=${date}`}>Focus</Link>
         </div>
       )}
       {message && <p role="status">{message}</p>}
@@ -670,103 +707,181 @@ export default function DailyWorkspace({
           Undo removed activity
         </Button>
       )}
-      <div className={`daily-agenda-layout${planning ? " is-planning" : ""}`}>
-        {planning && view === "week" ? (
-          <section className="workspace-panel">
-            <h2>
-              Your activities · {date}–{shiftDay(date, 6)}
-            </h2>
-            {editablePlanBlocks(plan.blocks.value, date, 7).length ? (
-              <ul>
-                {editablePlanBlocks(plan.blocks.value, date, 7).map((block) => (
-                  <li
-                    className="workspace-heading border-b border-border py-4"
-                    key={block.id}
-                  >
-                    <div>
-                      <strong>{block.title}</strong>
-                      <p className="text-sm text-muted-foreground">
-                        {block.date} · {block.startLocal} ·{" "}
-                        {block.durationMinutes} min
-                        {block.completedAt ? " · Completed" : ""}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        disabled={!plan.enabled}
-                        onClick={() => begin(block)}
+      {planning && jobDays.length > 0 && (
+        <section className="workspace-panel" aria-label="Job timetable">
+          <h2 className="font-display text-xl font-semibold">Job timetable</h2>
+          <p className="text-sm text-muted-foreground">
+            {jobDays.reduce(
+              (n, d) =>
+                n + d.assignments.reduce((sum, a) => sum + a.minutes, 0),
+              0,
+            ) / 60}{" "}
+            hours · IST · open an assignment for instructions and links
+          </p>
+          {view === "week" && (
+            <p
+              className="text-xs text-muted-foreground mb-3"
+              aria-label="Timetable dates"
+            >
+              {[date, shiftDay(date, 6)]
+                .map((d) =>
+                  new Intl.DateTimeFormat("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    timeZone: "UTC",
+                  }).format(new Date(d + "T12:00:00Z")),
+                )
+                .join(" – ")}
+            </p>
+          )}
+          {view === "week"
+            ? jobDays.map((d) => (
+                <details
+                  key={d.date}
+                  data-testid={`job-day-${d.date}`}
+                  open={d.date === date}
+                  className="border-t border-border py-3"
+                >
+                  <summary className="min-h-11 cursor-pointer font-semibold">
+                    {new Intl.DateTimeFormat("en-GB", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      timeZone: "UTC",
+                    }).format(new Date(d.date + "T12:00:00Z"))}{" "}
+                    · {d.assignments.reduce((n, a) => n + a.minutes, 0) / 60}{" "}
+                    hours
+                    <JobProgressLabel
+                      assignments={d.assignments}
+                      entries={execution.value?.evidenceByItemId}
+                    />
+                  </summary>
+                  {d.assignments.map((a) => (
+                    <JobAssignmentRow
+                      key={a.id}
+                      assignment={a}
+                      evidence={execution.value?.evidenceByItemId?.[a.id]}
+                      recordLink
+                    />
+                  ))}
+                </details>
+              ))
+            : detailedAssignments.map((a) => (
+                <JobAssignmentRow
+                  key={a.id}
+                  assignment={a}
+                  evidence={execution.value?.evidenceByItemId?.[a.id]}
+                  recordLink
+                />
+              ))}
+        </section>
+      )}
+      {(!planning ||
+        jobDays.length === 0 ||
+        (view === "week"
+          ? editablePlanBlocks(plan.blocks.value, date, 7).length > 0
+          : rows.length > 0)) && (
+        <div className={`daily-agenda-layout${planning ? " is-planning" : ""}`}>
+          {planning && view === "week" ? (
+            <section className="workspace-panel">
+              <h2>
+                Your activities · {date}–{shiftDay(date, 6)}
+              </h2>
+              {editablePlanBlocks(plan.blocks.value, date, 7).length ? (
+                <ul>
+                  {editablePlanBlocks(plan.blocks.value, date, 7).map(
+                    (block) => (
+                      <li
+                        className="workspace-heading border-b border-border py-4"
+                        key={block.id}
                       >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        disabled={!plan.enabled}
-                        onClick={() => remove(block)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="workspace-empty">
-                No activities in this week. Add an activity to begin.
-              </p>
-            )}
-          </section>
-        ) : (
-          <section className="workspace-panel" data-testid="day-agenda">
-            <div className={planning ? "workspace-heading" : "sr-only"}>
-              <h2>{planning ? "Your activities" : "Your day"}</h2>
-            </div>
-            {incomplete.length ? (
-              planning ? (
-                <ol className="agenda-list">{incomplete.map(renderRow)}</ol>
-              ) : (
-                <div className="nova-agenda-groups">
-                  {(["Morning", "Afternoon", "Evening"] as const).map(
-                    (period) => {
-                      const items = incomplete.filter(
-                        (row) => agendaPeriod(row.at, timeZone) === period,
-                      );
-                      return items.length ? (
-                        <section
-                          className="nova-agenda-group"
-                          key={period}
-                          aria-label={period}
-                        >
-                          <h3>{period}</h3>
-                          <ol className="agenda-list">
-                            {items.map(renderRow)}
-                          </ol>
-                        </section>
-                      ) : null;
-                    },
+                        <div>
+                          <strong>{block.title}</strong>
+                          <p className="text-sm text-muted-foreground">
+                            {block.date} · {block.startLocal} ·{" "}
+                            {block.durationMinutes} min
+                            {block.completedAt ? " · Completed" : ""}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            disabled={!plan.enabled}
+                            onClick={() => begin(block)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            disabled={!plan.enabled}
+                            onClick={() => remove(block)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </li>
+                    ),
                   )}
-                </div>
-              )
-            ) : (
-              <p className="workspace-empty">
-                {planning
-                  ? "No activities for this date. Add an activity to begin."
-                  : "No timed commitments for this day. Schedule an activity in Plan."}
-              </p>
-            )}
-            {completed.length > 0 && (
-              <details>
-                <summary>{completed.length} completed or skipped</summary>
-                <ol className="agenda-list">{completed.map(renderRow)}</ol>
-              </details>
-            )}
-          </section>
-        )}
-      </div>
+                </ul>
+              ) : (
+                <p className="workspace-empty">
+                  No activities in this week. Add an activity to begin.
+                </p>
+              )}
+            </section>
+          ) : (
+            <section className="workspace-panel" data-testid="day-agenda">
+              <div className={planning ? "workspace-heading" : "sr-only"}>
+                {planning && <h2>Your activities</h2>}
+              </div>
+              {incomplete.length ? (
+                planning ? (
+                  <ol className="agenda-list">{incomplete.map(renderRow)}</ol>
+                ) : (
+                  <div className="nova-agenda-groups">
+                    {(["Morning", "Afternoon", "Evening"] as const).map(
+                      (period) => {
+                        const items = incomplete.filter(
+                          (row) => agendaPeriod(row.at, timeZone) === period,
+                        );
+                        return items.length ? (
+                          <section
+                            className="nova-agenda-group"
+                            key={period}
+                            aria-label={period}
+                          >
+                            <h3>{period}</h3>
+                            <ol className="agenda-list">
+                              {items.map(renderRow)}
+                            </ol>
+                          </section>
+                        ) : null;
+                      },
+                    )}
+                  </div>
+                )
+              ) : (
+                <p className="workspace-empty">
+                  {planning
+                    ? "No activities for this date. Add an activity to begin."
+                    : "No timed commitments for this day. Schedule an activity in Plan."}
+                </p>
+              )}
+              {completed.length > 0 && (
+                <details>
+                  <summary>{completed.length} completed or skipped</summary>
+                  <ol className="agenda-list">{completed.map(renderRow)}</ol>
+                </details>
+              )}
+            </section>
+          )}
+        </div>
+      )}
       {!planning && (
         <>
           <details className="daily-utilities">
-            <summary>Daily records &amp; quick capture</summary>
+            <summary>Add a record</summary>
 
             <div
               className="daily-quick-actions"
@@ -849,13 +964,6 @@ export default function DailyWorkspace({
           >
             Review this day →
           </Link>
-          <details className="daily-utilities">
-            <summary>Time zones &amp; reminders</summary>
-            <WorldClockStrip />
-            <Link className="capture-return" href="/settings#reminders">
-              Manage reminders
-            </Link>
-          </details>
         </>
       )}
       <Modal

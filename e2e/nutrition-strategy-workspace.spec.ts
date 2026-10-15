@@ -76,6 +76,10 @@ test("reviewed complete intake becomes partial after editing a historical portio
     "vk:nutrition:entries": { "2026-10-07": entry("2026-10-07") },
   });
   await page.goto("/food?date=2026-10-07");
+  await page
+    .locator("summary")
+    .filter({ hasText: /^Review this day$/ })
+    .click();
   const review = page.getByRole("region", { name: "Nutrition day review" });
   await review
     .getByRole("button", { name: "Mark complete", exact: true })
@@ -106,6 +110,10 @@ test("an empty diary requires explicit fasting confirmation and records zero onl
 }) => {
   await seed(page);
   await page.goto("/food?date=2026-10-07");
+  await page
+    .locator("summary")
+    .filter({ hasText: /^Review this day$/ })
+    .click();
   const review = page.getByRole("region", { name: "Nutrition day review" });
   await expect(review).toContainText("Not logged");
   await expect(
@@ -121,6 +129,10 @@ test("an empty diary requires explicit fasting confirmation and records zero onl
   await expect(review).toContainText("Confirmed fasting");
   await expect(review).toContainText("0 kcal recorded");
   await page.reload();
+  await page
+    .locator("summary")
+    .filter({ hasText: /^Review this day$/ })
+    .click();
   await expect(review).toContainText("0 kcal recorded");
 });
 
@@ -129,8 +141,9 @@ test("custom recipe ingredients preserve cooked weight and serving yield indepen
 }) => {
   await seed(page);
   await page.goto("/food?date=2026-10-07&view=saved");
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
   await page
-    .getByRole("button", { name: "Create recipe", exact: true })
+    .getByRole("menuitem", { name: "Create recipe", exact: true })
     .click();
   const recipe = page.getByRole("dialog", {
     name: "Create recipe",
@@ -191,6 +204,10 @@ test("planned food never blocks explicit fasting or enables complete intake revi
     },
   });
   await page.goto("/food?date=2026-10-07");
+  await page
+    .locator("summary")
+    .filter({ hasText: /^Review this day$/ })
+    .click();
   const review = page.getByRole("region", { name: "Nutrition day review" });
   await expect(
     review.getByRole("button", { name: "Mark complete", exact: true }),
@@ -210,6 +227,10 @@ test("changing the diary date closes an unconfirmed fasting action", async ({
 }) => {
   await seed(page);
   await page.goto("/food?date=2026-10-07");
+  await page
+    .locator("summary")
+    .filter({ hasText: /^Review this day$/ })
+    .click();
   const review = page.getByRole("region", { name: "Nutrition day review" });
   await review
     .getByRole("button", { name: "Confirm fasting", exact: true })
@@ -242,7 +263,8 @@ test("meal retrieval uses the newest correction and repeating it does not consum
     },
   });
   await page.goto("/food?date=2026-10-08");
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   const modal = page.getByRole("dialog", { name: "Log meal", exact: true });
   await expect(
     modal.getByRole("button", { name: "Add Old rice", exact: true }),

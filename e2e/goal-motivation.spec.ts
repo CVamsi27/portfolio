@@ -44,7 +44,7 @@ test("motivation stays devoted to the saved goal and preserves removed-section d
   await expect(page.getByTestId("focus-next-action")).toContainText(
     "Publish my engineering portfolio",
   );
-  await expect(page.getByText("1 of 2 milestones complete")).toBeVisible();
+  await expect(page.getByText("1 of 2 milestones complete")).toHaveCount(0);
   await expect(page.getByTestId("focus-sprint")).toHaveCount(0);
   for (const name of [
     "Daily reflection",
@@ -113,10 +113,16 @@ test("clipboard failure is honest and never reports copied", async ({
   );
   await page.goto("/motivation");
   await page
-    .getByRole("button", { name: "Copy reminder", exact: true })
+    .getByRole("button", { name: "Reminder actions", exact: true })
+    .click();
+  await page
+    .getByRole("menuitem", { name: "Copy reminder", exact: true })
     .click();
   await expect(page.getByRole("status")).toContainText("Couldn’t copy");
+  await page
+    .getByRole("button", { name: "Reminder actions", exact: true })
+    .click();
   await expect(
-    page.getByRole("button", { name: "Copy reminder", exact: true }),
-  ).toHaveText("Copy");
+    page.getByRole("menuitem", { name: "Copy reminder", exact: true }),
+  ).toBeVisible();
 });

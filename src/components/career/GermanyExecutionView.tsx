@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { GermanyRoadmap } from "@/lib/germany-roadmap";
 import { campaignPosition } from "@/lib/germany-roadmap";
 import {
@@ -22,6 +23,8 @@ import EvidenceItem from "./RoadmapEvidenceItem";
 import GermanyExams from "./GermanyExams";
 import Link from "next/link";
 import GermanyCompanyForm from "./GermanyCompanyForm";
+import { jobAssignments } from "@/lib/job-plan";
+import { JobAssignmentRow } from "./JobAssignmentDetail";
 const panels = ["Today", "This week", "Exams", "Companies", "Guides"] as const;
 type Panel = (typeof panels)[number];
 export default function GermanyExecutionView({
@@ -34,7 +37,7 @@ export default function GermanyExecutionView({
   onEvidence,
   onAttempt,
   onCompany,
-  careerView=false,
+  careerView = false,
 }: {
   careerView?: boolean;
   plan: GermanyRoadmap;
@@ -52,13 +55,24 @@ export default function GermanyExecutionView({
   onCompany?: (id: string, record: GermanyCompanyRecord) => void;
 }) {
   const e = plan.execution!;
+  const query = useSearchParams().toString();
   const [panel, setPanel] = useState<Panel>("Today"),
     [search, setSearch] = useState(""),
-    [guide, setGuide] = useState("");
+    [guide, setGuide] = useState(""),
+    [selectedAssignment, setSelectedAssignment] = useState("");
   useEffect(() => {
     const sync = () => {
       const candidate = new URLSearchParams(window.location.search).get(
         "panel",
+      );
+      setSelectedAssignment(
+        new URLSearchParams(window.location.search).get("assignment") ?? "",
+      );
+      const selectedGuide = new URLSearchParams(window.location.search).get(
+        "guide",
+      );
+      setGuide(
+        e.guides.some((g) => g.id === selectedGuide) ? selectedGuide! : "",
       );
       setPanel(
         panels.find((p) => p.toLowerCase().replace(" ", "-") === candidate) ??
@@ -68,12 +82,15 @@ export default function GermanyExecutionView({
     sync();
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
-  }, [careerView]);
+  }, [careerView, e.guides, query]);
   useEffect(() => {
     const task = new URLSearchParams(window.location.search).get("task");
     if (panel === "Today" && task === `germany:2026:day:${date}`) {
       const frame = requestAnimationFrame(() => {
-        const target = document.getElementById(task);
+        const assignment = jobAssignments(e.jobPlan, date).find(
+          (a) => a.id === selectedAssignment,
+        );
+        const target = document.getElementById(assignment?.id ?? task);
         if (target) {
           target.setAttribute("tabindex", "-1");
           target.focus({ preventScroll: true });
@@ -82,7 +99,7 @@ export default function GermanyExecutionView({
       });
       return () => cancelAnimationFrame(frame);
     }
-  }, [date, panel]);
+  }, [date, panel, selectedAssignment, e.jobPlan, query]);
   const choose = (next: Panel) => {
     setPanel(next);
     const url = new URL(window.location.href);
@@ -100,12 +117,23 @@ export default function GermanyExecutionView({
   const openGuide = (id: string) => {
     setGuide(id);
     choose("Guides");
+    const url = new URL(window.location.href);
+    url.searchParams.set("guide", id);
+    window.history.replaceState({}, "", url);
   };
   const position = campaignPosition(plan, date),
     week = plan.weeks[position.week - 1],
     campaign = e.weeks[position.week - 1];
   const day = e.days.find((d) => d.date === date),
     assignments = datedAssignments(e, date);
+  const detailed = jobAssignments(e.jobPlan, date);
+  const urgentCampaign =
+    e.jobPlan?.version === 2 && date >= e.jobPlan.effectiveOn;
+  const campaignBrief = urgentCampaign
+    ? (detailed.find((a) => ["applications", "funnel"].includes(a.kind))
+        ?.brief ??
+      "Use the current campaign guide for India-eligible remote roles and Germany relocation. Follow the selected day's timetable; recovery days have no required campaign tasks.")
+    : campaign.application;
   const attempts = state.germanyExamAttempts ?? [];
   const retakes = attempts.filter((a) => {
     const round = e.rounds.find((r) => r.id === a.roundId);
@@ -145,58 +173,58 @@ export default function GermanyExecutionView({
   });
   const dayContent = (d: GermanyDay) => (
     <div className="space-y-4" id={d.id}>
-      <RoadmapGuide
-        content={
-          "**Study:** " +
-          d.blocks.study +
-          "\n\n**Project:** " +
-          d.blocks.project +
-          "\n\n" +
-          (d.blocks.assessment
-            ? "**Assessment:** " + d.blocks.assessment
-            : "**Practice:** " +
-              d.blocks.practice +
-              "\n\n**Speak:** " +
-              d.blocks.speak)
-        }
-        context={{ ...context, date: d.date, task: d.id }}
-      />
-      <ul>
-        <EvidenceItem
-          item={evidence(
-            d.id + ":result",
-            "Daily explanation, project check and practice result",
-          )}
-          state={state}
-          onEvidence={onEvidence}
-        />
-      </ul>
+      {jobAssignments(e.jobPlan, d.date).length ? (
+        jobAssignments(e.jobPlan, d.date).map((a) => (
+          <JobAssignmentRow
+            key={a.id}
+            assignment={a}
+            evidence={state.evidenceByItemId[a.id]}
+            recordLink
+          />
+        ))
+      ) : (
+        <>
+          <RoadmapGuide
+            content={
+              "**Study:** " +
+              d.blocks.study +
+              "\n\n**Project:** " +
+              d.blocks.project +
+              "\n\n" +
+              (d.blocks.assessment
+                ? "**Assessment:** " + d.blocks.assessment
+                : "**Practice:** " +
+                  d.blocks.practice +
+                  "\n\n**Speak:** " +
+                  d.blocks.speak)
+            }
+            context={{ ...context, date: d.date, task: d.id }}
+          />
+          <ul>
+            <EvidenceItem
+              item={evidence(
+                d.id + ":result",
+                "Daily explanation, project check and practice result",
+              )}
+              state={state}
+              onEvidence={onEvidence}
+            />
+          </ul>
+        </>
+      )}
     </div>
   );
-  if (panel === "Exams") return <GermanyExams execution={e} attempts={attempts} onAttempt={onAttempt} onBack={()=>choose("This week")} />;
+  if (panel === "Exams")
+    return (
+      <GermanyExams
+        execution={e}
+        attempts={attempts}
+        onAttempt={onAttempt}
+        onBack={() => choose("This week")}
+      />
+    );
   return (
     <div className="space-y-6 min-w-0" data-testid="germany-roadmap">
-      <details className="workspace-disclosure"><summary>Campaign context · Week {week.number}</summary><section className="py-3 space-y-3">
-        <p className="font-utility text-xs uppercase tracking-widest text-primary">
-          Germany campaign · 50 hours/week
-        </p>
-        <h2 className="font-display text-2xl sm:text-3xl font-bold">
-          Build proof. Apply every week.
-        </h2>
-        <p className="text-sm leading-relaxed">{plan.target.split(". ")[0]}.</p>
-        <p className="text-xs text-muted-foreground">
-          {plan.startDate} → {plan.endDate} · {verified}/
-          {plan.weeks.flatMap((w) => w.items).length} milestones verified ·
-          Reviewed {plan.reviewedOn}
-        </p>
-        <p className="text-sm">
-          {position.stage === "before"
-            ? "Prepare the launch packet; the dated campaign begins on 12 October."
-            : position.stage === "after"
-              ? "Continue the hiring cycle. Use the January 4–7 study ending, actual interview feedback and current eligible roles to choose the next two weeks."
-              : `Week ${week.number}: ${week.deliverable}`}
-        </p>
-      </section></details>
       <div className="flex flex-wrap gap-3 items-end justify-between">
         <label className="text-sm">
           Plan date
@@ -218,10 +246,14 @@ export default function GermanyExecutionView({
         </button>
       </div>
       <nav
-        aria-label="Germany roadmap sections"
+        aria-label={
+          e.jobPlan?.version === 2
+            ? "Career plan sections"
+            : "Germany roadmap sections"
+        }
         className="flex flex-wrap gap-2"
       >
-        {(careerView ? panels.filter(p=>p!=="Today") : []).map((p) => (
+        {(careerView ? panels.filter((p) => p !== "Today") : []).map((p) => (
           <button
             key={p}
             aria-pressed={panel === p}
@@ -242,7 +274,10 @@ export default function GermanyExecutionView({
                   <p className="text-sm">
                     {nextExam.id} · {nextExam.date} · {nextExam.time} IST
                   </p>
-                  <details><summary className="min-h-11">Assessment brief</summary><RoadmapGuide content={nextExam.content} /></details>
+                  <details>
+                    <summary className="min-h-11">Assessment brief</summary>
+                    <RoadmapGuide content={nextExam.content} />
+                  </details>
                   <button
                     className="inline-action min-h-11"
                     onClick={() => choose("Exams")}
@@ -259,12 +294,32 @@ export default function GermanyExecutionView({
             </section>
             <section className="rounded-xl border border-border p-4 space-y-2">
               <h3 className="font-semibold">Campaign action</h3>
-              <details><summary className="min-h-11">Campaign brief</summary><RoadmapGuide content={campaign.application} /></details>
+              <details>
+                <summary className="min-h-11">
+                  {urgentCampaign ? "Current campaign brief" : "Campaign brief"}
+                </summary>
+                <RoadmapGuide
+                  content={campaignBrief}
+                  context={urgentCampaign ? context : undefined}
+                />
+              </details>
+              {urgentCampaign && (
+                <details>
+                  <summary className="min-h-11">
+                    Historical weekly campaign source
+                  </summary>
+                  <RoadmapGuide content={campaign.application} />
+                </details>
+              )}
               <button
                 className="inline-action min-h-11"
-                onClick={() => choose("Companies")}
+                onClick={() =>
+                  urgentCampaign ? openGuide("campaign") : choose("Companies")
+                }
               >
-                Open company queue
+                {urgentCampaign
+                  ? "Open current campaign guide"
+                  : "Open company queue"}
               </button>
             </section>
           </div>
@@ -298,78 +353,122 @@ export default function GermanyExecutionView({
                 speaking. Actual interviews replace equal blocks; no extra
                 hours.
               </p>
-              {Object.entries(assignments).map(([range, content]) => (
-                <details
-                  key={range}
-                  className="border-t border-border pt-4 space-y-3"
-                >
-                  <summary className="min-h-11 cursor-pointer font-semibold">{({"08:30-10:00":"Study & retrieval", "10:15-12:15":"Project & verification", "14:30-16:00":"Career action", "16:15-17:15":"Practice & assessment", "17:30-18:00":"Speaking practice"} as Record<string,string>)[range] || "Assignment details"}</summary>
-                  <RoadmapGuide content={content} context={context} />
-                  {range === "16:15-17:15" &&
-                    !day?.blocks.assessment &&
-                    e.practices
-                      .filter((p) =>
-                        new RegExp("\\b" + p.id + "\\b").test(content),
-                      )
-                      .map((p) => (
-                        <div
-                          key={p.id}
-                          className="rounded-lg bg-muted/40 p-3 space-y-2"
-                        >
-                          <p className="font-semibold text-sm">
-                            {p.id}: {p.task}
-                          </p>
-                          <RoadmapGuide content={p.cases} />
-                        </div>
-                      ))}
-                  {range === "08:30-10:00" && day && (
-                    <div className="space-y-2">
-                      <p className="font-semibold text-sm">
-                        Revision questions for this reading
-                      </p>
-                      {[
-                        ...new Set(
-                          [
-                            ...day.blocks.study.matchAll(
-                              /https:\/\/study\.buildora\.work\/([^\s)]+)/g,
+              {detailed.length
+                ? detailed.map((a) => (
+                    <JobAssignmentRow
+                      key={a.id}
+                      assignment={a}
+                      evidence={state.evidenceByItemId[a.id]}
+                      onGuide={openGuide}
+                      open={selectedAssignment === a.id}
+                    >
+                      <ul>
+                        <EvidenceItem
+                          item={{
+                            ...evidence(
+                              a.id,
+                              "Evidence for " + a.title,
+                              a.minutes,
                             ),
-                          ].map((match) =>
-                            match[0].replace(/[^/]+$/, "REVISION.md"),
-                          ),
-                        ),
-                      ].map((url, index) => (
-                        <RoadmapGuide
-                          key={url}
-                          content={`[Revision companion ${index + 1}](${url})`}
-                          context={context}
+                            acceptanceCriteria:
+                              a.doneCheck + " " + a.deliverable,
+                          }}
+                          state={state}
+                          onEvidence={onEvidence}
                         />
-                      ))}
-                    </div>
-                  )}
-                  {range === "14:30-16:00" &&
-                    e.posts
-                      .filter((post) => post.date === date)
-                      .map((post) => (
-                        <details
-                          key={post.id}
-                          className="rounded-lg border border-border p-3"
-                        >
-                          <summary className="min-h-11 cursor-pointer font-semibold text-sm">
-                            {post.id}: {post.title} · prepare/review draft
-                          </summary>
-                          <RoadmapGuide content={post.content} />
-                        </details>
-                      ))}
-                  {range === "08:30-10:00" && (
-                    <p className="text-sm">
-                      15 min delayed recall → 40 min selected reading → 25 min
-                      closed-page trace → 10 min correction. Use the chapter’s
-                      See Also revision companion; repair unclear prerequisites
-                      before adding topics.
-                    </p>
-                  )}
-                </details>
-              ))}
+                      </ul>
+                    </JobAssignmentRow>
+                  ))
+                : Object.entries(assignments).map(([range, content]) => (
+                    <details
+                      key={range}
+                      className="border-t border-border pt-4 space-y-3"
+                    >
+                      <summary className="min-h-11 cursor-pointer font-semibold">
+                        <span className="block text-xs font-normal text-muted-foreground mb-1">
+                          {range.replace("-", "–")} IST
+                        </span>
+                        <span>
+                          {(
+                            {
+                              "08:30-10:00": "Study & retrieval",
+                              "10:15-12:15": "Project & verification",
+                              "14:30-16:00": "Career action",
+                              "16:15-17:15": "Practice & assessment",
+                              "17:15-17:45": "Speaking practice",
+                              "12:30-14:00": "Applications and replies",
+                              "20:30-21:15": "German practice",
+                              "21:15-21:30": "Recall and next action",
+                            } as Record<string, string>
+                          )[range] || "Assignment details"}
+                        </span>
+                      </summary>
+                      <RoadmapGuide content={content} context={context} />
+                      {range === "16:15-17:15" &&
+                        !day?.blocks.assessment &&
+                        e.practices
+                          .filter((p) =>
+                            new RegExp("\\b" + p.id + "\\b").test(content),
+                          )
+                          .map((p) => (
+                            <div
+                              key={p.id}
+                              className="rounded-lg bg-muted/40 p-3 space-y-2"
+                            >
+                              <p className="font-semibold text-sm">
+                                {p.id}: {p.task}
+                              </p>
+                              <RoadmapGuide content={p.cases} />
+                            </div>
+                          ))}
+                      {range === "08:30-10:00" && day && (
+                        <div className="space-y-2">
+                          <p className="font-semibold text-sm">
+                            Revision questions for this reading
+                          </p>
+                          {[
+                            ...new Set(
+                              [
+                                ...day.blocks.study.matchAll(
+                                  /https:\/\/study\.buildora\.work\/([^\s)]+)/g,
+                                ),
+                              ].map((match) =>
+                                match[0].replace(/[^/]+$/, "REVISION.md"),
+                              ),
+                            ),
+                          ].map((url, index) => (
+                            <RoadmapGuide
+                              key={url}
+                              content={`[Revision companion ${index + 1}](${url})`}
+                              context={context}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {range === "14:30-16:00" &&
+                        e.posts
+                          .filter((post) => post.date === date)
+                          .map((post) => (
+                            <details
+                              key={post.id}
+                              className="rounded-lg border border-border p-3"
+                            >
+                              <summary className="min-h-11 cursor-pointer font-semibold text-sm">
+                                {post.id}: {post.title} · prepare/review draft
+                              </summary>
+                              <RoadmapGuide content={post.content} />
+                            </details>
+                          ))}
+                      {range === "08:30-10:00" && (
+                        <p className="text-sm">
+                          15 min delayed recall → 40 min selected reading → 25
+                          min closed-page trace → 10 min correction. Use the
+                          chapter’s See Also revision companion; repair unclear
+                          prerequisites before adding topics.
+                        </p>
+                      )}
+                    </details>
+                  ))}
               <ul>
                 <EvidenceItem
                   item={evidence(
@@ -400,7 +499,9 @@ export default function GermanyExecutionView({
               )}
             </section>
           )}
-          <Link className="inline-action" href={`/hub?date=${date}`}>Open Today’s agenda</Link>
+          <Link className="inline-action" href={`/hub?date=${date}`}>
+            Open Today’s agenda
+          </Link>
         </div>
       )}
       {panel === "This week" && (
@@ -526,6 +627,41 @@ export default function GermanyExecutionView({
               </article>
             ))}
         </section>
+      )}
+      {panel === "Guides" && (
+        <div>
+          {" "}
+          <details className="workspace-disclosure">
+            <summary>Campaign context · Week {week.number}</summary>
+            <section className="py-3 space-y-3">
+              <p className="font-utility text-xs uppercase tracking-widest text-primary">
+                {e.jobPlan?.version === 2
+                  ? "Remote and Germany campaign"
+                  : "Germany campaign"}{" "}
+                · {plan.allocations.reduce((sum, a) => sum + a.hours, 0)}{" "}
+                hours/week
+              </p>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold">
+                Build proof. Apply every week.
+              </h2>
+              <p className="text-sm leading-relaxed">
+                {plan.target.split(". ")[0]}.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {plan.startDate} → {plan.endDate} · {verified}/
+                {plan.weeks.flatMap((w) => w.items).length} milestones verified
+                · Reviewed {plan.reviewedOn}
+              </p>
+              <p className="text-sm">
+                {position.stage === "before"
+                  ? "Prepare the launch packet; the dated campaign begins on 12 October."
+                  : position.stage === "after"
+                    ? "Continue the hiring cycle. Use the January 4–7 study ending, actual interview feedback and current eligible roles to choose the next two weeks."
+                    : `Week ${week.number}: ${week.deliverable}`}
+              </p>
+            </section>
+          </details>
+        </div>
       )}
       {panel === "Guides" && (
         <section className="space-y-4">

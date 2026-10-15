@@ -105,17 +105,13 @@ export default function MotivationPage() {
           }}
           onSave={toggleSave}
           onCopy={copy}
+          onPersonalReminders={() => setRemindersOpen(true)}
         />
         {copyState === "failed" && (
           <p role="status" className="text-sm text-muted-foreground">
             Couldn’t copy this reminder. You can select and copy its text.
           </p>
         )}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
-          <Button variant="ghost" onClick={() => setRemindersOpen(true)}>
-            Personal reminders
-          </Button>
-        </div>
         <Modal
           open={remindersOpen}
           onClose={() => setRemindersOpen(false)}

@@ -63,7 +63,11 @@ export function buildProgress(input: ProgressInput) {
   const inRange = (date: string) =>
     date >= dates[0] && date <= input.end && dates.includes(date);
   const food = Object.values(input.food ?? {}).filter(
-    (entry) => !entry.deleted && !entry.planned && validEntry(entry) && inRange(entry.date),
+    (entry) =>
+      !entry.deleted &&
+      !entry.planned &&
+      validEntry(entry) &&
+      inRange(entry.date),
   );
   const focus = (input.focus ?? []).filter(
     (item) =>
@@ -95,7 +99,7 @@ export function buildProgress(input: ProgressInput) {
       Number.isFinite(item.start) &&
       Number.isFinite(item.end) &&
       item.end > item.start &&
-      inRange(localDay(item.end)),
+      inRange(item.mealDate ?? localDay(item.end)),
   );
   const scaled = food.map((item) =>
     scaleNutrients(item.nutrients, item.quantity, item.basisAmount),
@@ -119,6 +123,9 @@ export function buildProgress(input: ProgressInput) {
       .filter((set) => known(set.reps) && set.reps > 0);
     const loaded = sets.filter((set) => known(set.weightKg));
     const minutes = exercises.map((item) => item.minutes).filter(known);
+    const windows = fasts.filter(
+      (item) => (item.mealDate ?? localDay(item.end)) === date,
+    );
     const sessions = focus.filter(
       (item) => localDay(item.endedAt ?? item.createdAt) === date,
     );
@@ -154,6 +161,12 @@ export function buildProgress(input: ProgressInput) {
         : null,
       exerciseMinutes: minutes.length
         ? minutes.reduce((a, b) => a + b, 0)
+        : null,
+      fastHours: windows.length
+        ? windows.reduce(
+            (sum, item) => sum + (item.end - item.start) / 3_600_000,
+            0,
+          )
         : null,
       water: known(input.water?.[date]) ? input.water![date] : null,
       sleep:

@@ -3,20 +3,24 @@
 import { Droplets, Minus, Plus } from "lucide-react";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { dateKey } from "@/lib/trackers";
-import { cn } from "@/lib/utils";
 
 const TARGET_GLASSES = 8;
 const ML_PER_GLASS = 250;
 
-export default function HydrationTracker() {
-  const today = dateKey();
-  const { value, setValue } = useSyncedStorage<Record<string, number>>("fasting:water", {});
+export default function HydrationTracker({ date }: { date?: string } = {}) {
+  const today = date ?? dateKey();
+  const { value, setValue } = useSyncedStorage<Record<string, number>>(
+    "fasting:water",
+    {},
+  );
   const logs = value ?? {};
   const currentGlasses = logs[today] ?? 0;
 
   const currentMl = currentGlasses * ML_PER_GLASS;
-  const targetMl = TARGET_GLASSES * ML_PER_GLASS;
-  const percent = Math.min(100, Math.round((currentGlasses / TARGET_GLASSES) * 100));
+  const percent = Math.min(
+    100,
+    Math.round((currentGlasses / TARGET_GLASSES) * 100),
+  );
 
   const addGlass = () => {
     setValue({
@@ -38,55 +42,57 @@ export default function HydrationTracker() {
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/50 pb-3">
         <div className="flex items-center gap-2">
           <Droplets className="h-4 w-4 text-primary" />
-          <h3 className="font-display text-base font-bold sm:text-lg">Daily Hydration</h3>
+          <h3 className="font-display text-base font-bold sm:text-lg">
+            Daily Hydration
+          </h3>
         </div>
         <span className="font-mono text-xs tabular-nums text-muted-foreground">
-          {currentMl} / {targetMl} ml ({currentGlasses}/{TARGET_GLASSES} glasses)
+          {logs[today] == null
+            ? "No water recorded"
+            : `${currentGlasses} glasses · ${currentMl} ml`}
         </span>
       </div>
 
       <div className="mt-4">
         <div className="flex items-center justify-between gap-4">
-          <div role="progressbar" aria-label="Water logged" aria-valuemin={0} aria-valuemax={Math.max(TARGET_GLASSES, currentGlasses)} aria-valuenow={currentGlasses} aria-valuetext={`${currentGlasses} glasses, ${currentMl} ml`} className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+          <div
+            role="progressbar"
+            aria-label="Water logged"
+            aria-valuemin={0}
+            aria-valuemax={Math.max(TARGET_GLASSES, currentGlasses)}
+            aria-valuenow={currentGlasses}
+            aria-valuetext={`${currentGlasses} glasses, ${currentMl} ml`}
+            className="h-2 flex-1 overflow-hidden rounded-full bg-muted"
+          >
             <div
               className="h-full rounded-full bg-primary transition-[width] duration-300"
               style={{ width: `${percent}%` }}
             />
           </div>
-          <span className="font-mono text-xs font-bold tabular-nums text-primary">
-            {percent}%
-          </span>
         </div>
 
-        {/* Visual glass dots */}
-        <div className="mt-3.5 grid grid-cols-4 gap-2 sm:grid-cols-8">
-          {Array.from({ length: TARGET_GLASSES }, (_, i) => {
-            const filled = i < currentGlasses;
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => {
-                  setValue({
-                    ...logs,
-                    [today]: i + 1,
-                  });
-                }}
-                className={cn(
-                  "flex h-11 min-w-11 items-center justify-center rounded-lg border text-xs font-mono transition-colors",
-                  filled
-                    ? "border-primary/70 bg-primary/20 text-primary font-bold"
-                    : "border-border/60 bg-muted/20 text-muted-foreground hover:border-primary/40",
-                )}
-                aria-pressed={currentGlasses === i + 1}
-                aria-label={`Set hydration to ${i + 1} glasses`}
-              >
-                {i + 1}
-              </button>
-            );
-          })}
-        </div>
-
+        <details className="workspace-disclosure mt-3">
+          <summary>Adjust total</summary>
+          <label className="field-label">
+            Glasses recorded
+            <select
+              aria-label="Glasses recorded"
+              value={currentGlasses}
+              onChange={(event) =>
+                setValue({ ...logs, [today]: Number(event.target.value) })
+              }
+            >
+              {Array.from(
+                { length: Math.max(TARGET_GLASSES, currentGlasses) + 1 },
+                (_, value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ),
+              )}
+            </select>
+          </label>
+        </details>
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
             type="button"

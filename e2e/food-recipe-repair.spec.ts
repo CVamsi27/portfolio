@@ -41,8 +41,9 @@ test("recipe ingredient selection gives visible feedback instead of silently fai
   page,
 }) => {
   await page.goto("/food?view=saved");
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
   await page
-    .getByRole("button", { name: "Create recipe", exact: true })
+    .getByRole("menuitem", { name: "Create recipe", exact: true })
     .click();
   await page
     .getByRole("dialog")
@@ -57,8 +58,9 @@ test("save an ingredient without a meal, create a recipe and review one serving 
   page,
 }) => {
   await page.goto("/food?view=saved&date=2026-10-07");
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
   await page
-    .getByRole("button", { name: "Add saved food", exact: true })
+    .getByRole("menuitem", { name: "Add saved food", exact: true })
     .click();
   const food = page.getByRole("dialog", {
     name: "Add saved food",
@@ -76,8 +78,9 @@ test("save an ingredient without a meal, create a recipe and review one serving 
       ),
     ),
   ).toHaveLength(0);
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
   await page
-    .getByRole("button", { name: "Create recipe", exact: true })
+    .getByRole("menuitem", { name: "Create recipe", exact: true })
     .click();
   const recipe = page.getByRole("dialog", {
     name: "Create recipe",

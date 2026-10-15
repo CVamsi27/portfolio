@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { validDay } from "@/lib/day-plan";
+import ActionMenu from "@/components/trackers/ActionMenu";
 import Modal from "@/components/trackers/Modal";
 import { useNutrition } from "@/lib/nutrition-store";
 import {
@@ -322,10 +324,8 @@ export default function FoodTracker() {
       <nav className="workspace-views" aria-label="Food views">
         {[
           ["diary", "Diary"],
-          ["saved", "Saved foods & recipes"],
+          ["saved", "Saved"],
           ["nutrients", "Nutrients"],
-          ["strategy", "Strategy"],
-          ["insights", "Progress"],
         ].map(([id, label]) => (
           <Button
             key={id}
@@ -352,6 +352,10 @@ export default function FoodTracker() {
             id="food-date"
             type="date"
             value={date}
+            onInput={(e) => {
+              if (validDay(e.currentTarget.value))
+                setDate(e.currentTarget.value);
+            }}
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
@@ -379,43 +383,67 @@ export default function FoodTracker() {
         >
           →
         </Button>
-        <Button onClick={() => setMealOpen(true)}>Log meal</Button>
-        <Button variant="outline" onClick={start}>
-          Log food
-        </Button>
-        {foodView === "saved" && (
+        {foodView === "diary" && <Button onClick={start}>Add food</Button>}
+        <ActionMenu label="Food actions">
+          <Button variant="ghost" onClick={() => setMealOpen(true)}>
+            Log meal
+          </Button>
+          {foodView === "saved" && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                start();
+                setIngredientOnly(true);
+              }}
+            >
+              Add saved food
+            </Button>
+          )}
+          {foodView === "saved" && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setRecipeEditing(null);
+                setError("");
+                setRecipeOpen(true);
+              }}
+            >
+              Create recipe
+            </Button>
+          )}
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={() => {
-              start();
-              setIngredientOnly(true);
+              setFoodView("strategy");
+              window.history.replaceState(
+                null,
+                "",
+                `/food?view=strategy&date=${date}`,
+              );
             }}
           >
-            Add saved food
+            Nutrition settings
           </Button>
-        )}
-        {foodView === "saved" && (
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={() => {
-              setRecipeEditing(null);
-              setError("");
-              setRecipeOpen(true);
+              setFoodView("insights");
+              window.history.replaceState(
+                null,
+                "",
+                `/food?view=insights&date=${date}`,
+              );
             }}
           >
-            Create recipe
+            Nutrition insights
           </Button>
-        )}
+        </ActionMenu>
       </div>
-      <p className="text-xs text-muted-foreground">
-        {syncStatus === "synced"
-          ? "Synced"
-          : syncStatus === "syncing"
-            ? "Syncing…"
-            : syncStatus === "error"
-              ? "Saved locally · sync needs retry on reconnect"
-              : "Saved on this device"}
-      </p>
+      {syncStatus === "error" && (
+        <p role="status" className="text-sm">
+          Saved locally · sync needs attention.
+        </p>
+      )}
       {message && (
         <p role="status" className="text-sm">
           {message}{" "}
@@ -426,20 +454,8 @@ export default function FoodTracker() {
           )}
         </p>
       )}
-      {foodView === "diary" && entries.length > 0 && (
-        <details>
-          <summary>Repeat a meal on another date</summary>
-          <label className="block text-sm">
-            Duplicate entries to date
-            <Input
-              type="date"
-              value={copyDate}
-              onChange={(e) => setCopyDate(e.target.value)}
-            />
-          </label>
-        </details>
-      )}
-      {((foodView === "diary" && entries.length > 0) || foodView === "nutrients") && (
+      {((foodView === "diary" && entries.length > 0) ||
+        foodView === "nutrients") && (
         <NutritionDailySummary
           date={date}
           programs={store.programs.value}
@@ -474,12 +490,6 @@ export default function FoodTracker() {
       {foodView === "strategy" && <NutritionStrategy date={date} />}
       {foodView === "insights" && (
         <NutritionInsights
-          date={date}
-          entries={Object.values(store.entries.value)}
-        />
-      )}
-      {foodView === "diary" && (
-        <NutritionDayQuality
           date={date}
           entries={Object.values(store.entries.value)}
         />
@@ -578,6 +588,31 @@ export default function FoodTracker() {
             );
           })}
       </div>
+      {foodView === "diary" && (
+        <details className="workspace-disclosure">
+          <summary>Review this day</summary>
+          <NutritionDayQuality
+            date={date}
+            entries={Object.values(store.entries.value)}
+          />
+        </details>
+      )}
+      {foodView === "diary" && entries.length === 0 && (
+        <p className="workspace-empty">No food logged for this date.</p>
+      )}
+      {foodView === "diary" && entries.length > 0 && (
+        <details>
+          <summary>Repeat a meal on another date</summary>
+          <label className="block text-sm">
+            Duplicate entries to date
+            <Input
+              type="date"
+              value={copyDate}
+              onChange={(e) => setCopyDate(e.target.value)}
+            />
+          </label>
+        </details>
+      )}
       {foodView === "saved" &&
         Object.values(store.foods.value).some((item) => !item.deleted) && (
           <details className="rounded-xl border border-border bg-card p-4">

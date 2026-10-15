@@ -19,7 +19,8 @@ test("a multi-food meal draft survives reload and saves once with reviewed porti
     },
   });
   await page.goto("/food?date=2026-10-07");
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   const modal = page.getByRole("dialog", { name: "Log meal", exact: true });
   await modal
     .getByRole("button", { name: "Add Cooked rice", exact: true })
@@ -33,7 +34,8 @@ test("a multi-food meal draft survives reload and saves once with reviewed porti
   await expect(modal).toContainText("311");
   await expect(modal.getByRole("status")).toContainText("Draft saved");
   await page.reload();
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   await expect(
     modal.getByLabel("Quantity for Cooked rice", { exact: true }),
   ).toHaveValue("150");
@@ -58,7 +60,8 @@ test("meal editor can create a custom food inside the same draft without logging
   page,
 }) => {
   await page.goto("/food?date=2026-10-07");
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   const modal = page.getByRole("dialog", { name: "Log meal", exact: true });
   await modal.getByRole("button", { name: "Quick add", exact: true }).click();
   await modal.getByLabel("Food name", { exact: true }).fill("Lunch estimate");
@@ -104,7 +107,8 @@ test("a corrupt stored draft is reported and retained until explicitly discarded
       };
     });
   });
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   const modal = page.getByRole("dialog", { name: "Log meal", exact: true });
   await expect(modal.getByRole("alert")).toContainText(
     "Stored meal draft is invalid",
@@ -131,7 +135,8 @@ test("a corrupt stored draft is reported and retained until explicitly discarded
     .getByRole("button", { name: "Discard draft", exact: true })
     .click();
   await expect(modal).toBeHidden();
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   await expect(modal.getByRole("alert")).toHaveCount(0);
   await expect(modal.getByRole("status")).toContainText("Draft saved");
 });
@@ -164,7 +169,8 @@ test("cooked recipe grams use declared cooked yield without scaling the batch tw
     },
   });
   await page.goto("/food?date=2026-10-07");
-  await page.getByRole("button", { name: "Log meal", exact: true }).click();
+  await page.getByRole("button", { name: "Food actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
   const modal = page.getByRole("dialog", { name: "Log meal", exact: true });
   await modal
     .getByRole("button", { name: "Add 100 g cooked", exact: true })
@@ -197,7 +203,10 @@ test("meal, recipe, strategy, nutrition progress and connection workflows fit a 
       localStorage.setItem("theme", theme);
       document.documentElement.classList.toggle("dark", theme === "dark");
     }, theme);
-    await page.getByRole("button", { name: "Log meal", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Food actions", exact: true })
+      .click();
+    await page.getByRole("menuitem", { name: "Log meal", exact: true }).click();
     await expect(
       page.getByRole("dialog", { name: "Log meal", exact: true }),
     ).toBeVisible();

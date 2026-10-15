@@ -29,7 +29,7 @@ export default function GermanyExams({
   onBack: () => void;
 }) {
   const params = useSearchParams();
-  const now=useNow(60_000);
+  const now = useNow(60_000);
   const [dirty, setDirty] = useState(false);
   const [editorRevision, setEditorRevision] = useState(0);
   const [pending, setPending] = useState<{
@@ -66,6 +66,7 @@ export default function GermanyExams({
       point.value,
     ]),
   );
+  const hasScores = dates.some((date) => readings.has(date));
   const applySelection = (id: string, nextTrack = selectedTrack) => {
     setRound(id);
     setTrack(nextTrack);
@@ -93,11 +94,15 @@ export default function GermanyExams({
   return (
     <section data-testid="germany-exams" className="space-y-5 min-w-0">
       <section
-        className="workspace-progress-lead"
+        className={`workspace-progress-lead${!hasScores ? " is-empty" : ""}`}
         aria-label="Exam score progress"
       >
         <div className="workspace-progress-heading">
-          <h2>{round.id} · Exam scores</h2>
+          <h2>
+            {!hasScores
+              ? `${round.id} · No eligible scores · ${range} days`
+              : `${round.id} · Exam scores`}
+          </h2>
           <div className="workspace-progress-controls">
             <span className="text-sm text-muted-foreground">
               {track} · Current rubric
@@ -117,19 +122,24 @@ export default function GermanyExams({
             </label>
           </div>
         </div>
-        <TrendChart
-          points={dates.map((date) => ({
-            date,
-            value: readings.get(date) ?? null,
-          }))}
-          label={`${round.id} ${track} score`}
-          unit={`points / ${round.dimensions.length * 4}`}
-          domain={{ min: 0, max: round.dimensions.length * 4 }}
-        />
-        <p className="text-sm text-muted-foreground">
-          Latest eligible score per date. Assisted practice and older rubrics
-          stay in history.
-        </p>
+        {hasScores && (
+          <>
+            {" "}
+            <TrendChart
+              points={dates.map((date) => ({
+                date,
+                value: readings.get(date) ?? null,
+              }))}
+              label={`${round.id} ${track} score`}
+              unit={`points / ${round.dimensions.length * 4}`}
+              domain={{ min: 0, max: round.dimensions.length * 4 }}
+            />
+            <p className="text-sm text-muted-foreground">
+              Latest eligible score per date. Assisted practice and older
+              rubrics stay in history.
+            </p>
+          </>
+        )}
       </section>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button

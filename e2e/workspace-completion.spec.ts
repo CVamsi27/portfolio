@@ -93,8 +93,14 @@ test("today completion does not count old completed tasks as today activity", as
   await page.goto("/todo");
   await page.getByText("View dated readings", { exact: true }).click();
   const readings = page.getByTestId("progress-lead");
-  await expect(readings.getByRole("row", { name: new RegExp(today) }).getByRole("cell")).toHaveText("1");
-  await expect(readings.getByRole("row", { name: new RegExp(yesterday) }).getByRole("cell")).toHaveText("1");
+  await expect(
+    readings.getByRole("row", { name: new RegExp(today) }).getByRole("cell"),
+  ).toHaveText("1");
+  await expect(
+    readings
+      .getByRole("row", { name: new RegExp(yesterday) })
+      .getByRole("cell"),
+  ).toHaveText("1");
 });
 test("secondary tracking pages keep their parent section active", async ({
   page,
@@ -138,12 +144,20 @@ test("progress includes journal coverage and goal readings without filling missi
   const lead = page.getByTestId("progress-lead");
   await expect(lead).toContainText("2/30 dated readings");
   await page.getByText("View dated readings", { exact: true }).click();
-  await expect(lead.getByRole("row", { name: /2026-10-03/ }).getByRole("cell")).toHaveText("0");
-  await expect(lead.getByRole("row", { name: /2026-10-04/ }).getByRole("cell")).toHaveText("5");
-  await expect(lead.getByRole("row", { name: /2026-10-02/ }).getByRole("cell")).toHaveText("Not recorded");
+  await expect(
+    lead.getByRole("row", { name: /2026-10-03/ }).getByRole("cell"),
+  ).toHaveText("0");
+  await expect(
+    lead.getByRole("row", { name: /2026-10-04/ }).getByRole("cell"),
+  ).toHaveText("5");
+  await expect(
+    lead.getByRole("row", { name: /2026-10-02/ }).getByRole("cell"),
+  ).toHaveText("Not recorded");
   await page.getByRole("button", { name: "Reflection", exact: true }).click();
   await expect(lead).toContainText("1 entries in this range");
-  await expect(lead.getByRole("row", { name: /2026-10-04/ }).getByRole("cell")).toHaveText("1");
+  await expect(
+    lead.getByRole("row", { name: /2026-10-04/ }).getByRole("cell"),
+  ).toHaveText("1");
 });
 
 for (const width of [320, 390]) {
@@ -181,7 +195,9 @@ test("mobile milestone names have room beside touch controls", async ({
   await page.setViewportSize({ width: 320, height: 900 });
   await seed(page);
   await page.goto("/goal");
-  await page.getByRole("button", { name: "Milestones", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Goal & milestones", exact: true })
+    .click();
   const name = page.locator(".milestone-name").first();
   await expect(name).toBeVisible();
   expect((await name.boundingBox())!.width).toBeGreaterThan(150);

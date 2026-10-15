@@ -46,18 +46,31 @@ export function ProgressLead({
   const recorded = points.filter((point) => point.value !== null);
   const counts = ["tasks", "routine", "reflection", "sets"].includes(metric);
   const count = recorded.reduce((sum, point) => sum + (point.value ?? 0), 0);
+  const empty = counts ? count === 0 : recorded.length === 0;
   return (
     <section
-      className="workspace-progress-lead"
+      className={`workspace-progress-lead${empty ? " is-empty" : ""}`}
       aria-label={`${definition.label} progress`}
       data-testid="progress-lead"
     >
       <div className="workspace-progress-heading">
-        <h2>{definition.label}</h2>
+        <h2>
+          {empty ? `No ${definition.label.toLowerCase()}` : definition.label}
+        </h2>
+        {empty &&
+          currentPath === "/dashboard" &&
+          definition.href.split("?")[0] !== currentPath && (
+            <Link
+              className="inline-action"
+              href={`${definition.href}${definition.href.includes("?") ? "&" : "?"}date=${data.end}`}
+            >
+              {definition.action}
+            </Link>
+          )}
         <div className="workspace-progress-controls">
           {options && onMetric && (
             <label>
-              Metric
+              <span className="sr-only">Metric</span>
               <select
                 value={metric}
                 onChange={(event) =>
@@ -73,7 +86,7 @@ export function ProgressLead({
             </label>
           )}
           <label>
-            Range
+            <span className="sr-only">Range</span>
             <select
               value={range}
               onChange={(event) => {
@@ -92,15 +105,13 @@ export function ProgressLead({
           </label>
         </div>
       </div>
-      <p className="workspace-progress-period">
-        {data.first} – {data.end}
-        {syncing ? " · Syncing…" : ""}
-      </p>
-      {counts && count === 0 ? (
-        <p className="progress-chart-empty">
-          No {definition.label.toLowerCase()} in this range.
+      {!empty && (
+        <p className="workspace-progress-period">
+          {data.first} – {data.end}
+          {syncing ? " · Syncing…" : ""}
         </p>
-      ) : (
+      )}
+      {!empty && (
         <TrendChart
           points={points}
           label={definition.label}
@@ -108,20 +119,27 @@ export function ProgressLead({
           bars={definition.bars}
         />
       )}
-      <div className="workspace-progress-footer">
-        <span>
-          {counts
-            ? `${count} ${unit} in this range`
-            : `${recorded.length}/${range} dated readings · ${unit}`}
-        </span>
-        {definition.href.split("?")[0] !== currentPath && (
-          <Link
-            href={`${definition.href}${definition.href.includes("?") ? "&" : "?"}date=${data.end}`}
-          >
-            {definition.action}
-          </Link>
-        )}
-      </div>
+      {!empty && (
+        <div className="workspace-progress-footer">
+          <span>
+            {counts
+              ? `${count} ${unit} in this range`
+              : `${recorded.length}/${range} dated readings · ${unit}`}
+          </span>
+          {definition.href.split("?")[0] !== currentPath && (
+            <Link
+              href={`${definition.href}${definition.href.includes("?") ? "&" : "?"}date=${data.end}`}
+            >
+              {definition.action}
+            </Link>
+          )}
+        </div>
+      )}
+      {empty && syncing && (
+        <p role="status" className="text-sm text-muted-foreground">
+          Syncing…
+        </p>
+      )}
       {syncError && (
         <p role="status" className="text-sm text-muted-foreground">
           Showing saved device records. Cloud sync needs attention.

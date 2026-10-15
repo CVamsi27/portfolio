@@ -1,3 +1,4 @@
+import ReturningWorkspace from "@/components/daily/ReturningWorkspace";
 import Link from "next/link";
 import EditorialFrame from "@/components/editorial/EditorialFrame";
 
@@ -9,6 +10,7 @@ export default async function TrackerLandingPage({
   const params = await searchParams;
   return (
     <EditorialFrame surface="archive">
+      {params?.study !== "access-denied" && <ReturningWorkspace />}
       <div
         data-testid="tracker-public-landing"
         className="nova-welcome mx-auto w-full max-w-5xl"

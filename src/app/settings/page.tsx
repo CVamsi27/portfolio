@@ -1,4 +1,9 @@
 "use client";
+import WorldClockStrip from "@/components/trackers/WorldClockStrip";
+import MealWindowRetention from "@/components/trackers/MealWindowRetention";
+import HealthConnections from "@/components/health/HealthConnections";
+import { dateKey } from "@/lib/trackers";
+import PushPreferences from "@/components/personal/PushPreferences";
 import ProtectionPreferences from "@/components/personal/ProtectionPreferences";
 import FocusPreferences from "@/components/personal/FocusPreferences";
 import ModulePreferences from "@/components/personal/ModulePreferences";
@@ -81,8 +86,9 @@ export default function SettingsPage() {
   useEffect(() => {
     const sync = () => {
       const hash = window.location.hash;
+      const query = new URLSearchParams(window.location.search).get("view");
       setSettingsView(
-        /backup|data/.test(hash)
+        /backup|data|meal-window-retention/.test(hash)
           ? "data"
           : /modules|appearance/.test(hash)
             ? "modules"
@@ -90,12 +96,24 @@ export default function SettingsPage() {
               ? "notifications"
               : /bedtime|preferences|work|focus/.test(hash)
                 ? "work"
-                : "profile",
+                : [
+                      "profile",
+                      "modules",
+                      "notifications",
+                      "work",
+                      "data",
+                    ].includes(query ?? "")
+                  ? query!
+                  : "profile",
       );
     };
     sync();
     window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
+    window.addEventListener("popstate", sync);
+    return () => {
+      window.removeEventListener("hashchange", sync);
+      window.removeEventListener("popstate", sync);
+    };
   }, []);
   const [profileName, setProfileName] = useState<string>();
   const [profileZone, setProfileZone] = useState<string>();
@@ -258,7 +276,6 @@ export default function SettingsPage() {
         title="Settings"
         subtitle={null}
         badge={<SyncBadge status={status} />}
-
       >
         <nav className="workspace-views" aria-label="Settings sections">
           {[
@@ -282,12 +299,28 @@ export default function SettingsPage() {
           ))}
         </nav>
         <div hidden={settingsView !== "modules"}>
-          <section className="workspace-panel space-y-3"><h2>Appearance</h2><label className="field-label">Theme<select value={theme || "system"} onChange={event=>setTheme(event.target.value)}><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></section>
+          <section className="workspace-panel space-y-3">
+            <h2>Appearance</h2>
+            <label className="field-label">
+              Theme
+              <select
+                value={theme || "system"}
+                onChange={(event) => setTheme(event.target.value)}
+              >
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+          </section>
           <ModulePreferences />
         </div>
         <div hidden={settingsView !== "work"}>
           <FocusPreferences />
-          <details className="workspace-disclosure"><summary>Distraction protection</summary><ProtectionPreferences /></details>
+          <details className="workspace-disclosure">
+            <summary>Distraction protection</summary>
+            <ProtectionPreferences />
+          </details>
         </div>
         <div hidden={settingsView !== "profile"} className="workspace-panel">
           <h2>Profile and calendar</h2>
@@ -352,17 +385,22 @@ export default function SettingsPage() {
                 <div>
                   <p className="text-sm font-semibold">Account & sync</p>
                   <p className="text-xs text-muted-foreground">
-                    {user
-                      ? user.email
-                      : "Local mode — data lives only in this browser"}
+                    {user ? user.email : "Records are stored on this device."}
                   </p>
                 </div>
               </div>
-              <AuthButton showEmail />
+              {user && <AuthButton showEmail />}
             </CardContent>
           </Card>
         </div>
         <div hidden={settingsView !== "notifications"} className="space-y-5">
+          <details className="workspace-disclosure">
+            <summary>Routine notification delivery</summary>
+            <PushPreferences />
+          </details>
+          <Link className="inline-action" href="/routine">
+            Edit routine schedules
+          </Link>
           <Card variant="dossier" id="reminders">
             <CardContent className="space-y-4 p-5">
               <div className="flex items-center gap-2">
@@ -451,140 +489,152 @@ export default function SettingsPage() {
           </Card>
         </div>
         <div hidden={settingsView !== "work"} className="space-y-5">
-          <details className="workspace-disclosure"><summary>Bedtime protection</summary><Card variant="dossier" id="bedtime">
-            <CardContent className="space-y-4 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="dossier-kicker">Bedtime boundary</p>
-                  <h2 className="mt-1 font-display font-bold">
-                    Protect the hours you chose.
-                  </h2>
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {lockdownStatus === "synced" ? "synced" : "local"}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                There is no active default. Choose a local-time window and days
-                before enabling the in-app lock.
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm font-medium">
-                  Bedtime start
-                  <Input
-                    aria-label="Bedtime start"
-                    className="mt-1.5 h-10"
-                    type="time"
-                    value={lockdown.bedtimeStart}
-                    onChange={(event) =>
-                      updateLockdown({ bedtimeStart: event.target.value })
-                    }
-                  />
-                </label>
-                <label className="text-sm font-medium">
-                  Bedtime end
-                  <Input
-                    aria-label="Bedtime end"
-                    className="mt-1.5 h-10"
-                    type="time"
-                    value={lockdown.bedtimeEnd}
-                    onChange={(event) =>
-                      updateLockdown({ bedtimeEnd: event.target.value })
-                    }
-                  />
-                </label>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Active days</p>
-                <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
-                  {[
-                    "Sunday",
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                    "Saturday",
-                  ].map((day, index) => (
-                    <label
-                      key={day}
-                      className="flex min-h-11 items-center justify-center gap-1.5 border border-border/60 px-2 text-xs font-semibold"
-                    >
-                      <input
-                        aria-label={`Bedtime ${day}`}
-                        type="checkbox"
-                        checked={lockdown.bedtimeDays.includes(index)}
-                        onChange={() =>
-                          updateLockdown({
-                            bedtimeDays: lockdown.bedtimeDays.includes(index)
-                              ? lockdown.bedtimeDays.filter(
-                                  (value) => value !== index,
-                                )
-                              : [...lockdown.bedtimeDays, index].sort(
-                                  (a, b) => a - b,
-                                ),
-                          })
-                        }
-                      />
-                      {day.slice(0, 3)}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <label className="flex min-h-11 items-center gap-3 border border-primary/30 bg-primary/5 px-3 text-sm font-semibold">
-                <input
-                  aria-label="Enable bedtime lock"
-                  type="checkbox"
-                  checked={lockdown.bedtimeEnabled}
-                  disabled={!bedtimeCanEnable && !lockdown.bedtimeEnabled}
-                  onChange={(event) =>
-                    updateLockdown({ bedtimeEnabled: event.target.checked })
-                  }
-                />
-                Enable bedtime lock inside NOVA
-              </label>
-              <p className="text-xs text-muted-foreground">
-                {bedtimeWindow
-                  ? `Next protected window ends at ${formatLockEnd(bedtimeWindow.end)} local time.`
-                  : "Choose a valid time and at least one day to preview the next window."}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button onClick={saveBedtime}>Save bedtime schedule</Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setManualBedtime(true)}
-                  className="border-indigo-500/40 text-indigo-400 hover:bg-indigo-500/10"
-                >
-                  <Moon className="mr-1.5 h-3.5 w-3.5" />
-                  Start bedtime mode
-                </Button>
-                {bedtimeSaved ? (
-                  <span
-                    role="status"
-                    className="text-xs font-semibold text-emerald-500"
-                  >
-                    Bedtime schedule saved
+          <details className="workspace-disclosure">
+            <summary>Bedtime protection</summary>
+            <Card variant="dossier" id="bedtime">
+              <CardContent className="space-y-4 p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="dossier-kicker">Bedtime boundary</p>
+                    <h2 className="mt-1 font-display font-bold">
+                      Protect the hours you chose.
+                    </h2>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {lockdownStatus === "synced" ? "synced" : "local"}
                   </span>
-                ) : null}
-              </div>
-              <DevicePreparation compact />
-            </CardContent>
-          </Card></details>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  There is no active default. Choose a local-time window and
+                  days before enabling the in-app lock.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="text-sm font-medium">
+                    Bedtime start
+                    <Input
+                      aria-label="Bedtime start"
+                      className="mt-1.5 h-10"
+                      type="time"
+                      value={lockdown.bedtimeStart}
+                      onChange={(event) =>
+                        updateLockdown({ bedtimeStart: event.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="text-sm font-medium">
+                    Bedtime end
+                    <Input
+                      aria-label="Bedtime end"
+                      className="mt-1.5 h-10"
+                      type="time"
+                      value={lockdown.bedtimeEnd}
+                      onChange={(event) =>
+                        updateLockdown({ bedtimeEnd: event.target.value })
+                      }
+                    />
+                  </label>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Active days</p>
+                  <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
+                    {[
+                      "Sunday",
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                      "Saturday",
+                    ].map((day, index) => (
+                      <label
+                        key={day}
+                        className="flex min-h-11 items-center justify-center gap-1.5 border border-border/60 px-2 text-xs font-semibold"
+                      >
+                        <input
+                          aria-label={`Bedtime ${day}`}
+                          type="checkbox"
+                          checked={lockdown.bedtimeDays.includes(index)}
+                          onChange={() =>
+                            updateLockdown({
+                              bedtimeDays: lockdown.bedtimeDays.includes(index)
+                                ? lockdown.bedtimeDays.filter(
+                                    (value) => value !== index,
+                                  )
+                                : [...lockdown.bedtimeDays, index].sort(
+                                    (a, b) => a - b,
+                                  ),
+                            })
+                          }
+                        />
+                        {day.slice(0, 3)}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <label className="flex min-h-11 items-center gap-3 border border-primary/30 bg-primary/5 px-3 text-sm font-semibold">
+                  <input
+                    aria-label="Enable bedtime lock"
+                    type="checkbox"
+                    checked={lockdown.bedtimeEnabled}
+                    disabled={!bedtimeCanEnable && !lockdown.bedtimeEnabled}
+                    onChange={(event) =>
+                      updateLockdown({ bedtimeEnabled: event.target.checked })
+                    }
+                  />
+                  Enable bedtime lock inside NOVA
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  {bedtimeWindow
+                    ? `Next protected window ends at ${formatLockEnd(bedtimeWindow.end)} local time.`
+                    : "Choose a valid time and at least one day to preview the next window."}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button onClick={saveBedtime}>Save bedtime schedule</Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setManualBedtime(true)}
+                    className="border-indigo-500/40 text-indigo-400 hover:bg-indigo-500/10"
+                  >
+                    <Moon className="mr-1.5 h-3.5 w-3.5" />
+                    Start bedtime mode
+                  </Button>
+                  {bedtimeSaved ? (
+                    <span
+                      role="status"
+                      className="text-xs font-semibold text-emerald-500"
+                    >
+                      Bedtime schedule saved
+                    </span>
+                  ) : null}
+                </div>
+                <DevicePreparation compact />
+              </CardContent>
+            </Card>
+          </details>
         </div>
         <div hidden={settingsView !== "data"} className="space-y-5">
-        {user && (
-          <section className="rounded-xl border border-border p-4 text-sm">
-            <p>
-              Older unassigned local records stay on this device. They are not
-              automatically attached to your account. Export them separately if
-              they belong to you, then import into the correct account.
-            </p>
-            <Button variant="outline" onClick={exportLegacy} className="mt-2">
-              Export older local data
-            </Button>
-          </section>
-        )}
+          <details className="workspace-disclosure">
+            <summary>World clocks</summary>
+            <WorldClockStrip />
+          </details>
+          <MealWindowRetention />
+          <details className="workspace-disclosure">
+            <summary>Health devices and imports</summary>
+            <HealthConnections date={dateKey()} />
+          </details>
+          {user && (
+            <section className="rounded-xl border border-border p-4 text-sm">
+              <p>
+                Older unassigned local records stay on this device. They are not
+                automatically attached to your account. Export them separately
+                if they belong to you, then import into the correct account.
+              </p>
+              <Button variant="outline" onClick={exportLegacy} className="mt-2">
+                Export older local data
+              </Button>
+            </section>
+          )}
 
           {/* ── Backup / restore ── */}
           <Card variant="dossier" id="backup-restore">
@@ -658,78 +708,123 @@ export default function SettingsPage() {
           </Card>
 
           {/* ── Storage breakdown ── */}
-          <Card variant="dossier">
-            <CardContent className="p-5">
-              <h2 className="font-display font-bold">Storage by tracker</h2>
-              {stats === null ? (
-                <p className="mt-2 text-sm text-muted-foreground">Measuring…</p>
-              ) : (
-                <ul className="mt-3 space-y-1.5">
-                  {stats.map((s) => (
-                    <li
-                      key={s.key}
-                      className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm"
-                    >
-                      <span className="font-mono text-xs">{s.key}</span>
-                      <span className="tabular-nums text-muted-foreground">
-                        {!s.exists
-                          ? "empty"
-                          : `${s.items !== null ? `${s.items} items · ` : ""}${fmtKB(s.bytes)}`}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
+          <details className="workspace-disclosure">
+            <summary>Storage details</summary>{" "}
+            <Card variant="dossier">
+              <CardContent className="p-5">
+                <h2 className="font-display font-bold">Storage details</h2>
+                {stats === null ? (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Measuring…
+                  </p>
+                ) : (
+                  <ul className="mt-3 space-y-1.5">
+                    {stats
+                      .filter((s) => s.exists && s.bytes > 0 && s.items !== 0)
+                      .map((s) => (
+                        <li
+                          key={s.key}
+                          className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm"
+                        >
+                          <span>
+                            {(
+                              {
+                                prefs: "Preferences",
+                                todos: "Tasks",
+                                goal: "Goals",
+                                fasting: "Water and eating window",
+                                workouts: "Workout records",
+                                workout: "Workout plans",
+                                journal: "Reflections",
+                                motivation: "Motivation",
+                                archive: "Library",
+                                share: "Sharing",
+                                nutrition: "Nutrition",
+                                backup: "Backups",
+                                "weight-loss": "Body measurements",
+                                reminders: "Reminders",
+                                work: "Work sessions",
+                                focus: "Focus",
+                                lockdown: "Focus protection",
+                                bedtime: "Bedtime",
+                                timetable_100_days: "Timetable",
+                                roadmap: "Study progress",
+                                study: "Study sessions",
+                                career_command_center: "Career plan",
+                                career_execution_state: "Career records",
+                                night_curfew_config: "Night schedule",
+                                distraction_shield_state: "Focus protection",
+                                plan: "Day plans",
+                                routine: "Routines",
+                                recovery: "Sleep and recovery",
+                                habits: "Habits",
+                                personal: "Workspace preferences",
+                              } as Record<string, string>
+                            )[s.key.split(":")[0]] ?? "Other workspace records"}
+                          </span>
+                          <span className="tabular-nums text-muted-foreground">
+                            {!s.exists
+                              ? "empty"
+                              : `${s.items !== null ? `${s.items} items · ` : ""}${fmtKB(s.bytes)}`}
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          </details>
         </div>
         <div hidden={settingsView !== "modules"} className="space-y-5">
           {/* ── Preferences ── */}
-          <details className="workspace-disclosure"><summary>Workout preferences</summary><Card variant="dossier">
-            <CardContent className="space-y-4 p-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <h2 id="preferences" className="font-display font-bold">
-                    Preferences
-                  </h2>
+          <details className="workspace-disclosure">
+            <summary>Workout preferences</summary>
+            <Card variant="dossier">
+              <CardContent className="space-y-4 p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <h2 id="preferences" className="font-display font-bold">
+                      Preferences
+                    </h2>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {isSetup ? "setup complete" : "setup pending"}
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {isSetup ? "setup complete" : "setup pending"}
-                </span>
-              </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium">Workout split</label>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {WORKOUT_SPLITS.map((s) => (
-                      <button
-                        key={s.id}
-                        onClick={() =>
-                          setPrefs({ ...prefs, workoutSplit: s.id })
-                        }
-                        className={cn(
-                          "rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all",
-                          prefs.workoutSplit === s.id
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border/60 text-muted-foreground hover:border-primary/40",
-                        )}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium">Workout split</label>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {WORKOUT_SPLITS.map((s) => (
+                        <button
+                          key={s.id}
+                          onClick={() =>
+                            setPrefs({ ...prefs, workoutSplit: s.id })
+                          }
+                          className={cn(
+                            "rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all",
+                            prefs.workoutSplit === s.id
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border/60 text-muted-foreground hover:border-primary/40",
+                          )}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <p className="text-xs text-muted-foreground">
-                Weight unit, goal category, metric label/target and fasting
-                protocol are edited on their tracker pages where they&apos;re
-                used. Re-run the full questionnaire from the hub.
-              </p>
-            </CardContent>
-          </Card></details>
+                <p className="text-xs text-muted-foreground">
+                  Weight unit, goal category, metric label/target and fasting
+                  protocol are edited on their tracker pages where they&apos;re
+                  used. Re-run the full questionnaire from the hub.
+                </p>
+              </CardContent>
+            </Card>
+          </details>
         </div>
         <div hidden={settingsView !== "data"} className="space-y-5">
           {/* ── Danger zone ── */}
@@ -764,20 +859,6 @@ export default function SettingsPage() {
                   Clear local data
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Want a safety net first?{" "}
-                <button
-                  onClick={doExport}
-                  className="text-primary hover:underline"
-                >
-                  Export a backup
-                </button>{" "}
-                — or visit{" "}
-                <Link href="/share" className="text-primary hover:underline">
-                  Sharing
-                </Link>{" "}
-                for per-drop exports.
-              </p>
             </CardContent>
           </Card>
         </div>

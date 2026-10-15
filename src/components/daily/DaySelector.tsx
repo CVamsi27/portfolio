@@ -31,8 +31,11 @@ export default function DaySelector({
         aria-label="Selected date"
         type="date"
         value={date}
+        onInput={(e) => {
+          if (validDay(e.currentTarget.value)) onChange(e.currentTarget.value);
+        }}
         onChange={(e) => {
-          if (validDay(e.target.value)) onChange(e.target.value);
+          if (validDay(e.currentTarget.value)) onChange(e.currentTarget.value);
         }}
       />
       <Button

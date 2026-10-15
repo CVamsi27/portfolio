@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, Bookmark, Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ActionMenu from "@/components/trackers/ActionMenu";
 import GermanyGallery from "./GermanyGallery";
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
   onNextReminder: () => void;
   onSave: () => void;
   onCopy: () => void;
+  onPersonalReminders: () => void;
 };
 
 export default function FocusScene({
@@ -33,6 +35,7 @@ export default function FocusScene({
   onNextReminder,
   onSave,
   onCopy,
+  onPersonalReminders,
 }: Props) {
   const complete = total > 0 && completed === total;
   return (
@@ -46,10 +49,6 @@ export default function FocusScene({
     >
       <GermanyGallery />
       <div className="goal-inspiration__story">
-        <h2 data-testid="focus-goal">{goalTitle}</h2>
-        <p className="goal-inspiration__why" data-testid="goal-why">
-          {why}
-        </p>
         <div className="goal-inspiration__reminder">
           <p className="goal-inspiration__eyebrow">A reminder for today</p>
           <blockquote>{reminder}</blockquote>
@@ -57,28 +56,45 @@ export default function FocusScene({
             <Button variant="ghost" onClick={onNextReminder}>
               Another reminder
             </Button>
-            <Button
-              variant="ghost"
-              onClick={onSave}
-              aria-pressed={saved}
-              aria-label={saved ? "Unsave reminder" : "Save reminder"}
-            >
-              <Bookmark
-                className={`mr-2 h-4 w-4 ${saved ? "fill-current" : ""}`}
-                aria-hidden
-              />
-              {saved ? "Saved" : "Save"}
-            </Button>
-            <Button variant="ghost" onClick={onCopy} aria-label="Copy reminder">
-              {copied ? (
-                <Check className="mr-2 h-4 w-4" aria-hidden />
-              ) : (
-                <Copy className="mr-2 h-4 w-4" aria-hidden />
-              )}
-              {copied ? "Copied" : "Copy"}
-            </Button>
+            <ActionMenu label="Reminder actions">
+              {" "}
+              <Button
+                variant="ghost"
+                onClick={onSave}
+                aria-pressed={saved}
+                aria-label={saved ? "Unsave reminder" : "Save reminder"}
+              >
+                <Bookmark
+                  className={`mr-2 h-4 w-4 ${saved ? "fill-current" : ""}`}
+                  aria-hidden
+                />
+                {saved ? "Saved" : "Save"}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={onCopy}
+                aria-label="Copy reminder"
+              >
+                {copied ? (
+                  <Check className="mr-2 h-4 w-4" aria-hidden />
+                ) : (
+                  <Copy className="mr-2 h-4 w-4" aria-hidden />
+                )}
+                {copied ? "Copied" : "Copy"}
+              </Button>
+              <Button variant="ghost" onClick={onPersonalReminders}>
+                Personal reminders
+              </Button>
+            </ActionMenu>
           </div>
         </div>
+        <h2 data-testid="focus-goal">{goalTitle}</h2>
+        <details className="workspace-disclosure">
+          <summary>Why this goal matters</summary>
+          <p className="goal-inspiration__why" data-testid="goal-why">
+            {why}
+          </p>
+        </details>
         <div data-testid="focus-next-action" className="goal-inspiration__next">
           <p className="goal-inspiration__eyebrow">
             {complete ? "Look how far you’ve come" : "Your next step"}
@@ -88,9 +104,7 @@ export default function FocusScene({
               ? "You completed every milestone. Take a moment to recognise what you’ve built."
               : (nextMilestone ?? "Choose one small step toward your goal.")}
           </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            {completed} of {total} milestones complete
-          </p>
+
           <div className="flex flex-wrap items-center gap-3 mt-4">
             <Button asChild>
               <Link href={complete ? "/log" : actionHref}>

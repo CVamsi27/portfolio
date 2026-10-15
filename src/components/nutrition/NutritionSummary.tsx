@@ -51,6 +51,17 @@ export default function NutritionSummary({
       )}
     </div>
   );
+  if (!details) {
+    return (
+      <section
+        aria-label="Daily nutrition"
+        className="grid grid-cols-2 gap-x-4"
+      >
+        <h2 className="sr-only">Daily nutrition</h2>
+        {(["energy", "protein"] as NutrientKey[]).map(row)}
+      </section>
+    );
+  }
   return (
     <section
       aria-label="Daily nutrition"

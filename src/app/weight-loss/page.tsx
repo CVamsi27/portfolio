@@ -135,11 +135,7 @@ export default function WeightLossPage() {
   };
   return (
     <RequireAuth>
-      <TrackerShell
-        icon="scale"
-        title="Body and weight"
-        subtitle={null}
-      >
+      <TrackerShell icon="scale" title="Body and weight" subtitle={null}>
         <div className="body-workspace-grid">
           <section id="weight-entry" className="progress-panel">
             <header>
@@ -201,13 +197,11 @@ export default function WeightLossPage() {
               </label>
               <Button type="submit">Save weigh-in</Button>
             </form>
-            <p className="progress-note">
-              {status === "synced"
-                ? "Synced to your account."
-                : status === "error"
-                  ? "Saved locally; sync needs attention."
-                  : "Records are saved on this device."}
-            </p>
+            {status === "error" && (
+              <p role="status" className="progress-note">
+                Saved locally; sync needs attention.
+              </p>
+            )}
             {message && (
               <p role="status" className="mt-3 text-sm text-primary">
                 {message}
@@ -250,68 +244,76 @@ export default function WeightLossPage() {
                 </Button>
               </form>
             </details>
-            <p className="progress-note">
-              {state.targetKg
-                ? `Saved target: ${displayWeight(state.targetKg, prefs.weightUnit)}`
-                : "No target set."}
-            </p>
+            {state.targetKg && (
+              <p className="progress-note">
+                Saved target: {displayWeight(state.targetKg, prefs.weightUnit)}
+              </p>
+            )}
           </section>
         </div>
-        <section className="progress-panel" data-testid="weight-history">
-          <header>
-            <h2>Weigh-in history</h2>
-            <span className="text-sm text-muted-foreground">
-              {readings.length} readings
-            </span>
-          </header>
-          {readings.length ? (
-            <ul className="weight-history-list">
-              {(all ? readings : readings.slice(0, 20)).map(([day, entry]) => (
-                <li key={day}>
-                  <div>
-                    <p className="font-medium">
-                      {day} · {displayWeight(entry.weightKg, prefs.weightUnit)}
-                    </p>
-                    {entry.note && (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {entry.note}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setDate(day);
-                        setDraft(undefined);
-                        document
-                          .getElementById("weight-entry")
-                          ?.scrollIntoView({ block: "start" });
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button variant="ghost" onClick={() => remove(day, entry)}>
-                      Remove
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="progress-note">
-              Your first saved reading will appear here.
-            </p>
-          )}
-          {readings.length > 20 && (
-            <Button
-              variant="ghost"
-              onClick={() => setAll((previous) => !previous)}
-            >
-              {all ? "Show recent readings" : "Show all readings"}
-            </Button>
-          )}
-        </section>
+        {readings.length > 0 && (
+          <section className="progress-panel" data-testid="weight-history">
+            <header>
+              <h2>Weigh-in history</h2>
+              <span className="text-sm text-muted-foreground">
+                {readings.length} readings
+              </span>
+            </header>
+            {readings.length ? (
+              <ul className="weight-history-list">
+                {(all ? readings : readings.slice(0, 20)).map(
+                  ([day, entry]) => (
+                    <li key={day}>
+                      <div>
+                        <p className="font-medium">
+                          {day} ·{" "}
+                          {displayWeight(entry.weightKg, prefs.weightUnit)}
+                        </p>
+                        {entry.note && (
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {entry.note}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 gap-1">
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setDate(day);
+                            setDraft(undefined);
+                            document
+                              .getElementById("weight-entry")
+                              ?.scrollIntoView({ block: "start" });
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => remove(day, entry)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </li>
+                  ),
+                )}
+              </ul>
+            ) : (
+              <p className="progress-note">
+                Your first saved reading will appear here.
+              </p>
+            )}
+            {readings.length > 20 && (
+              <Button
+                variant="ghost"
+                onClick={() => setAll((previous) => !previous)}
+              >
+                {all ? "Show recent readings" : "Show all readings"}
+              </Button>
+            )}
+          </section>
+        )}
         <details className="progress-panel">
           <summary>Recovery and previous check-ins</summary>
           <p className="progress-note">

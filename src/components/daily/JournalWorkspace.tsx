@@ -6,6 +6,7 @@ import { useJournal } from "@/lib/tracker-store";
 import { dateKey } from "@/lib/trackers";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { safeReturn } from "./CaptureWorkspace";
 import { validDay } from "@/lib/day-plan";
 export default function JournalWorkspace() {
   const params = useSearchParams();
@@ -25,8 +26,17 @@ export default function JournalWorkspace() {
   return (
     <section className="workspace-panel">
       <div className="workspace-heading">
-        <h2>Daily reflection</h2>
-        <Link href="/dashboard?view=reflection">Progress reflection →</Link>
+        <Link
+          href={safeReturn(
+            params.get("returnTo") ?? `/dashboard?view=reflection&date=${date}`,
+          )}
+          onClick={(event) => {
+            if (draft && !window.confirm("Discard the unsaved reflection?"))
+              event.preventDefault();
+          }}
+        >
+          Done
+        </Link>
       </div>
       <label className="field-label">
         Date
@@ -37,6 +47,9 @@ export default function JournalWorkspace() {
             if (validDay(e.target.value)) {
               if (draft && !window.confirm("Discard the unsaved reflection?"))
                 return;
+              const url = new URL(window.location.href);
+              url.searchParams.set("date", e.target.value);
+              window.history.replaceState(null, "", url);
               setDate(e.target.value);
               setDraft(null);
             }
@@ -83,8 +96,12 @@ export default function JournalWorkspace() {
               onClick={() => {
                 if (draft && !window.confirm("Discard the unsaved reflection?"))
                   return;
+                const url = new URL(window.location.href);
+                url.searchParams.set("date", day);
+                window.history.replaceState(null, "", url);
                 setDate(day);
                 setDraft(null);
+                setMessage("");
               }}
             >
               <strong>{day}</strong>
