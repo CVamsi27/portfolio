@@ -314,4 +314,6 @@ The weekly Saturday view now uses the shared expandable assignment rows, saved e
 
 Today's primary commitment now reuses the same dated career assignment as its agenda row, with focus and evidence navigation. A regression first reproduced the incorrect general-curriculum destination; generic study retains its original destination. Saturday's expanded assignment and evidence form also fit within a 390px viewport.
 
-Focused checks passed: 25 related browser cases, 54 career/authoring cases, production build, TypeScript, ESLint and whitespace. Real-plan visual evidence and actual deployment/import results are recorded in the private Bible final-pass report. No personal payload or screenshot is added to this public repository.
+The full regression exposed selected-date clipping after a rapid 320→390→320px resize: the browser reset horizontal scroll while ResizeObserver saw the original final size. The existing reveal handler now also listens for window resize, with matching cleanup. The unchanged strict regression failed four of five isolated pre-fix attempts, then passed all five after the repair.
+
+Focused checks passed: 30 related browser cases, 54 career/authoring cases, production build, TypeScript, ESLint and whitespace. Real-plan visual evidence and actual deployment/import results are recorded in the private Bible final-pass report. No personal payload or screenshot is added to this public repository.
