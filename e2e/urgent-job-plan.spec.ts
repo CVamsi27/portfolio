@@ -49,6 +49,48 @@ async function setup(page: Page, plan = roadmap) {
   });
 }
 
+test("Today opens the active career commitment at its dated assignment and evidence form", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto(`/hub?date=${date}`);
+  const commitment = page.getByRole("link", { name: "Open commitment", exact: true });
+  await expect(commitment).toHaveAttribute(
+    "href",
+    /\/roadmap\?view=execution&panel=today&date=2026-10-16&task=germany:2026:day:2026-10-16&assignment=germany%3A2026%3Aday%3A2026-10-16%3Aassignment%3Aapplications/,
+  );
+  await commitment.click();
+  const row = page.getByTestId(`assignment-${appId}`);
+  await expect(row).toHaveAttribute("open", "");
+  await expect(row).toBeFocused();
+  await row.getByRole("button", { name: "Add evidence", exact: true }).click();
+  await expect(row.getByRole("textbox", { name: "Result and checks" })).toBeVisible();
+});
+
+test("Today retains the generic study commitment destination without a career assignment", async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date("2026-10-16T04:00:00Z") });
+  await seed(page, {
+    "vk:plan:blocks": {
+      "generic-study": {
+        id: "generic-study",
+        date,
+        startLocal: "09:00",
+        durationMinutes: 60,
+        kind: "study",
+        title: "Independent reading",
+        timeZone: "Asia/Kolkata",
+        updatedAt: 1,
+      },
+    },
+  });
+  await page.goto(`/hub?date=${date}`);
+  await expect(
+    page.getByRole("link", { name: "Open commitment", exact: true }),
+  ).toHaveAttribute("href", "/roadmap?view=today");
+});
+
 test("urgent assignments agree across Today and Plan and retain evidence after reload", async ({
   page,
 }) => {
@@ -181,6 +223,7 @@ test("urgent campaign action uses current qualification and labels the retained 
 test("Saturday study links and evidence keep Saturday's date when another weekday is selected", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await setup(page);
   const saturdayId = "germany:2026:day:2026-10-17:assignment:study";
   await page.goto(`/roadmap?view=execution&panel=this-week&date=${date}`);
@@ -201,6 +244,9 @@ test("Saturday study links and evidence keep Saturday's date when another weekda
   );
   const assignment = saturday.getByTestId(`assignment-${saturdayId}`);
   await assignment.locator("summary").click();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
   const record = assignment.getByRole("link", {
     name: "Record assignment evidence",
   });
@@ -210,6 +256,9 @@ test("Saturday study links and evidence keep Saturday's date when another weekda
   await todayAssignment
     .getByRole("button", { name: "Add evidence", exact: true })
     .click();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
   await todayAssignment
     .getByRole("textbox", { name: "Result and checks" })
     .fill(
