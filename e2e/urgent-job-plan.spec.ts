@@ -20,14 +20,18 @@ const roadmap = JSON.parse(
     process.stdout.write(JSON.stringify(generateUrgentJobPlan(roadmapFixture(), urgentCampaignFixture, urgentLearningFixture).roadmap));
   `,
     ],
-    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 8 * 1024 * 1024 },
+    {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 8 * 1024 * 1024,
+    },
   ),
 );
 
-async function setup(page: Page) {
+async function setup(page: Page, plan = roadmap) {
   await page.clock.install({ time: new Date("2026-10-16T04:00:00Z") });
   await seed(page, {
-    "vk:career_command_center": { germanyRoadmap: roadmap },
+    "vk:career_command_center": { germanyRoadmap: plan },
     "vk:timetable_100_days": {
       timezone: "Asia/Kolkata",
       days: ["2026-10-14", "2026-10-15", date, "2026-10-17", "2026-10-18"].map(
@@ -151,14 +155,99 @@ test("urgent campaign action uses current qualification and labels the retained 
   await expect(historical).not.toHaveAttribute("open", "");
   await historical.locator("summary").click();
   await expect(
-    historical.getByText(roadmap.execution.weeks[0].application, { exact: true }),
+    historical.getByText(roadmap.execution.weeks[0].application, {
+      exact: true,
+    }),
   ).toBeVisible();
-  await action.getByRole("button", { name: "Open current campaign guide", exact: true }).click();
-  await expect(page.locator("#germany-guide-campaign")).toHaveAttribute("open", "");
+  await action
+    .getByRole("button", { name: "Open current campaign guide", exact: true })
+    .click();
+  await expect(page.locator("#germany-guide-campaign")).toHaveAttribute(
+    "open",
+    "",
+  );
   await page.goto("/roadmap?view=execution&panel=today&date=2026-10-14");
   const previous = page
     .getByRole("heading", { name: "Campaign action", exact: true })
     .locator("..");
-  await expect(previous.getByText("Campaign brief", { exact: true })).toBeVisible();
-  await expect(previous.getByText("Historical weekly campaign source", { exact: true })).toHaveCount(0);
+  await expect(
+    previous.getByText("Campaign brief", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    previous.getByText("Historical weekly campaign source", { exact: true }),
+  ).toHaveCount(0);
+});
+
+test("Saturday study links and evidence keep Saturday's date when another weekday is selected", async ({
+  page,
+}) => {
+  await setup(page);
+  const saturdayId = "germany:2026:day:2026-10-17:assignment:study";
+  await page.goto(`/roadmap?view=execution&panel=this-week&date=${date}`);
+  const saturday = page
+    .getByText("Saturday: exam, funnel, relocation and review", { exact: true })
+    .locator("..");
+  await saturday.locator(":scope > summary").click();
+  const studyLink = saturday
+    .locator('a[href^="https://study.buildora.work/"]')
+    .first();
+  await expect(studyLink).toHaveAttribute(
+    "href",
+    /[?&]roadmapDate=2026-10-17(?:&|$)/,
+  );
+  await expect(studyLink).toHaveAttribute(
+    "href",
+    /[?&]roadmapTask=germany%3A2026%3Aday%3A2026-10-17(?:&|$)/,
+  );
+  const assignment = saturday.getByTestId(`assignment-${saturdayId}`);
+  await assignment.locator("summary").click();
+  const record = assignment.getByRole("link", {
+    name: "Record assignment evidence",
+  });
+  await expect(record).toHaveAttribute("href", /[?&]date=2026-10-17(?:&|$)/);
+  await record.click();
+  const todayAssignment = page.getByTestId(`assignment-${saturdayId}`);
+  await todayAssignment
+    .getByRole("button", { name: "Add evidence", exact: true })
+    .click();
+  await todayAssignment
+    .getByRole("textbox", { name: "Result and checks" })
+    .fill(
+      "Traced the Saturday source using a changed invalid input. Saved the observed validation failure, corrected explanation and the remaining gap for review.",
+    );
+  await todayAssignment
+    .getByRole("button", { name: "Save evidence", exact: true })
+    .click();
+  await page.goto(`/roadmap?view=execution&panel=this-week&date=${date}`);
+  await saturday.locator(":scope > summary").click();
+  await expect(
+    assignment.locator("summary").getByText("Evidence saved", { exact: true }),
+  ).toBeVisible();
+});
+
+test("the legacy Saturday fallback also keeps its own study return date", async ({
+  page,
+}) => {
+  const legacyPlan = structuredClone(roadmap);
+  delete legacyPlan.execution.jobPlan;
+  legacyPlan.allocations = [{ label: "Historical campaign", hours: 50 }];
+  legacyPlan.execution.assessments.find(
+    (assessment: { id: string }) => assessment.id === "E01",
+  ).content +=
+    " [Legacy Saturday study](https://study.buildora.work/10-frontend/10.2-typescript/01-foundations/10.2.1.03-type-narrowing.md).";
+  await setup(page, legacyPlan);
+  await page.goto("/roadmap?view=execution&panel=this-week&date=2026-10-14");
+  const saturday = page
+    .getByText("Saturday: exam, funnel, relocation and review", { exact: true })
+    .locator("..");
+  await saturday.locator(":scope > summary").click();
+  const study = saturday.getByRole("link", { name: "Legacy Saturday study" });
+  await expect(study).toHaveAttribute(
+    "href",
+    /[?&]roadmapDate=2026-10-17(?:&|$)/,
+  );
+  await expect(study).toHaveAttribute(
+    "href",
+    /[?&]roadmapTask=germany%3A2026%3Aday%3A2026-10-17(?:&|$)/,
+  );
 });
