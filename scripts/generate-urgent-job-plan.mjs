@@ -53,41 +53,57 @@ const sprint = [
     "2026-10-15",
     "project",
     "Run and interpret the original query benchmark without overwriting historical results.",
+    "Environment and source revision, exact command, fresh output path, fixture/sample counts and exit status; retain historical outputs and label any blocker.",
+    "Read lab preflight, inspect the original query script and confirm the disposable local setup before choosing a fresh output path.",
   ],
   [
     "2026-10-16",
     "project",
     "Trace the benchmark query and both representative plans; explain the composite index mechanism, sort/limit behavior and one index-maintenance cost.",
+    "Annotated control/candidate query plans, the index column order and traversal explanation, actual row populations and one index-maintenance cost; identify whether observations came from your run or the dated reference.",
+    "Use the benchmark query and representative plans from session 1; if your run is unavailable, label a source/reference-plan trace and retain the actual setup blocker.",
   ],
   [
     "2026-10-19",
     "project",
     "Recompute p50/p95 from raw samples and trace actual pagination; explain deterministic ordering and endpoint costs excluded by the server-only benchmark.",
+    "Recomputed p50/p95 with sample counts, a trace of actual pagination/tie ordering and at least four endpoint costs excluded by the reduced benchmark; save exact inputs, command and limitations.",
+    "Open retained raw observations, command B and the real pagination repository; keep a reference-data calculation separate from your own benchmark run.",
   ],
   [
     "2026-10-20",
     "coding",
     "Run the named booking tests and reduced SQL correctness model; explain competing overlaps, accepted adjacency and a different clinician without claiming API integration.",
+    "Booking test/model commands and actual results for competing overlap, adjacency and another clinician, with source revision and the difference between mock tests, the SQL model and application integration; continue the explanation in the same session's speaking block.",
+    "Open commands C/F, lab preflight and the actual overlap migration; use a fresh model output and preserve the observed test/setup status.",
   ],
   [
     "2026-10-22",
     "project",
     "Run the named payment tests, inspect recorded correctness cases and trace actual settlement; explain under-limit, rollback and duplicate behavior while distinguishing model from Docita.",
+    "Payment commands/results and an actual-service trace covering under-limit settlement, rollback and duplicate-request handling; distinguish the reduced model's unique request ID from Docita's implementation.",
+    "Open command D, actual settlement source and command F's retained payment observations; rerun F only when needed with a fresh output path and its preflight.",
   ],
   [
     "2026-10-23",
     "project",
     "Run the named queue tests and inspect correctness results; explain stale/new acknowledgement tokens, fake duplicate effects and the actual recovery boundary.",
+    "Queue test commands/results and the stale/new claim-token trace, old/new acknowledgement outcomes and fake-effect deduplication observations; keep provider simulation and application integration limits explicit.",
+    "Open command E, the actual acknowledgment predicate and command F's retained queue observations; identify the current revision and simulated provider boundary.",
   ],
   [
     "2026-10-26",
     "project",
     "Change one benchmark workload in a copy and compare actual plans and recorded measurements.",
+    "Changed workload, prediction, preserved exercise copy, fresh output and per-trial comparison, ordered-result equivalence check and one reproducible evidence card with its limitation.",
+    "Open the changed-workload exercise, retained baseline observations and a separate script/output; preserve original benchmark sources and historical results.",
   ],
   [
     "2026-10-27",
     "coding",
     "Rehearse the 90-second, five-minute and ten-minute explanations and repair one observed weakness.",
+    "Timed explanations and answers to changed constraints, scored against your actual results, supported contribution and evidence limits; save one observed weakness and corrected answer, continuing the same session in its speaking block.",
+    "Open your retained outputs/evidence card, the three timed explanation prompts, follow-up questions and current truthful CV; explain a reference run as reference evidence when your own run is incomplete.",
   ],
 ];
 function payFromCampaign(campaign) {
@@ -335,11 +351,26 @@ export function generateUrgentJobPlan(base, campaign, learningPlan) {
         brief = `Proof sprint session ${session + 1} of 8. ${sprint[session][2]} Use the private eight-session learning route and its exact commands through the current campaign guide. Keep observed synthetic results separate from historical employment/customer impact. These sixteen hours replace six project plus two interview hours in each rolling working week; actual paid work or employer stages may replace them and move completion.\n\n${campaignLink}`;
       if (interviewSession >= 0 && kind === "speaking")
         brief = `Continue proof sprint session ${interviewSession + 1}: use the final 30 minutes to explain the same operation, score the explanation and record its limitation. This is the same two-hour interview session, not another lab.\n\n${campaignLink}`;
-      const deliverable =
+      let deliverable =
         kind === "applications" || kind === "network" || kind === "funnel"
           ? "Exact role/contact, pay and eligibility evidence or named question, versioned material, actual draft/sent/submitted stage, confirmation when available and dated next action."
           : (source?.deliverable ??
             "A dated artifact with revision or source, exact observed check, actual review/stage, remaining limitation and next action.");
+      let dependency = ["applications", "network", "funnel"].includes(kind)
+        ? `Open the exact live role or real conversation, current global/EU CV and actual tracker; verify duplicate contact, pay, location and hours. ${campaignLink}`
+        : (source?.dependency ??
+          `Open the dated source or current campaign, actual repository/issue status and last observed gap. ${campaignLink}`);
+      if (session >= 0) {
+        deliverable = sprint[session][3];
+        dependency = `Open session ${session + 1} of the complete learning reference in the campaign guide. ${sprint[session][4]} Start with the first unfinished prerequisite inside this time budget; preserve its actual status rather than backfilling completion. ${campaignLink}`;
+      } else if (interviewSession >= 0 && kind === "speaking") {
+        deliverable = `Private recording for session ${interviewSession + 1}, scored explanation of the same operation, actual result/limitation and one corrected answer. Keep the recording with the first 90 minutes of this session's evidence.`;
+        dependency = `Use the actual source/output and notes from the first 90 minutes of the same session ${interviewSession + 1}. Explain the observed result or precise blocker, keeping reference evidence and your own run separate. ${campaignLink}`;
+      } else if (full && kind === "mock") {
+        deliverable =
+          "Saved R3 and R5 attempts, their actual per-dimension scores from 11:45–12:05, tool/help records and the observed 12:05–12:15 repair; retain each original attempt separately.";
+        dependency = `Open the dated R3 and R5 forms, rubric versions and permitted tool rules, plus the frozen take-home revision for defense. Score both saved attempts inside this mock block. ${examsLink}`;
+      }
       return {
         id: `germany:2026:day:${day.date}:assignment:${kind}`,
         date: day.date,
@@ -373,10 +404,7 @@ export function generateUrgentJobPlan(base, campaign, learningPlan) {
         doneCheck: ["applications", "network", "oss", "funnel"].includes(kind)
           ? "The record identifies the actual stage and next action; prepared material is not a submission, send, accepted delivery or merged contribution."
           : "The named artifact has an observed check, remaining limitation and next action. An elapsed block is not evidence of completion.",
-        dependency: ["applications", "network", "funnel"].includes(kind)
-          ? `Open the exact live role or real conversation, current global/EU CV and actual tracker; verify duplicate contact, pay, location and hours. ${campaignLink}`
-          : (source?.dependency ??
-            `Open the dated source or current campaign, actual repository/issue status and last observed gap. ${campaignLink}`),
+        dependency,
         blocked: ["applications", "network", "funnel"].includes(kind)
           ? "Retain unresolved pay, India eligibility or relocation questions explicitly; use the next suitable lead without lowering the floor, bulk messaging or forcing a count."
           : (source?.blocked ??

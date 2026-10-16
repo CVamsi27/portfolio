@@ -307,3 +307,13 @@ The user requested synchronization of the active private Bible campaign with per
 Final local release gates passed: **340/340 browser cases**, **52 career/authoring cases**, **18 curriculum/sync cases**, **24 access/service-worker cases**, production build, TypeScript, ESLint and whitespace checks. The generated curriculum matches the current canonical Bible and includes no personal chapters. The private output validates with 72 workdays and 572 assignments; regular and assessment-exception weeks retain the 60-hour budget. Historical days, IDs, forms, versions and practices remain intact.
 
 The owner-only release script makes a private backup, applies two compare-and-swap updates and verifies every owner row. Actual deployment/import evidence is recorded in the canonical private synchronization report; local browser tests do not establish an authenticated production visual check.
+
+## 2026-10-16 — Timetable final pass
+
+The weekly Saturday view now uses the shared expandable assignment rows, saved evidence status and evidence links. Study return links use Saturday's date even when another weekday is selected; legacy Saturday rendering also carries its own date. Both browser regressions failed on the wrong date before the fix and pass afterward. The authoring correction replaces inherited task deliverables and prerequisites in the one-time practice sprint and aligns full-loop scoring instructions with the existing time block. Assignment IDs, ranges, minutes, budgets, assessment definitions and historical assignments remain intact.
+
+Today's primary commitment now reuses the same dated career assignment as its agenda row, with focus and evidence navigation. A regression first reproduced the incorrect general-curriculum destination; generic study retains its original destination. Saturday's expanded assignment and evidence form also fit within a 390px viewport.
+
+The full regression exposed selected-date clipping after a rapid 320→390→320px resize: the browser reset horizontal scroll while ResizeObserver saw the original final size. The existing reveal handler now also listens for window resize, with matching cleanup. The unchanged strict regression failed four of five isolated pre-fix attempts, then passed all five after the repair.
+
+Focused checks passed: 30 related browser cases, 54 career/authoring cases, production build, TypeScript, ESLint and whitespace. Real-plan visual evidence and actual deployment/import results are recorded in the private Bible final-pass report. No personal payload or screenshot is added to this public repository.

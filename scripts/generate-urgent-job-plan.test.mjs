@@ -206,6 +206,86 @@ test("the proof sprint runs once and later work follows dated themes and actual 
     rmSync(f.temp, { recursive: true, force: true });
   }
 });
+test("replaced proof sessions require evidence and prerequisites from their new work rather than baseline exercises", () => {
+  const f = setup();
+  try {
+    const cases = [
+      ["2026-10-15", "project", /environment.*revision.*output/i],
+      ["2026-10-16", "project", /query plans.*index/i],
+      ["2026-10-19", "project", /p50.*p95.*pagination/i],
+      ["2026-10-20", "coding", /booking.*overlap/i],
+      ["2026-10-20", "speaking", /recording.*session 4/i],
+      ["2026-10-22", "project", /payment.*rollback/i],
+      ["2026-10-23", "project", /queue.*token/i],
+      ["2026-10-26", "project", /changed workload.*prediction/i],
+      ["2026-10-27", "coding", /timed explanations.*answers/i],
+      ["2026-10-27", "speaking", /recording.*session 8/i],
+    ];
+    for (const [date, kind] of cases) {
+      const a = f.base.execution.jobPlan.days
+        .find((d) => d.date === date)
+        .assignments.find((a) => a.kind === kind);
+      a.deliverable =
+        "Superseded baseline deliverable: frontend packet or coding complexity.";
+      a.dependency =
+        "Superseded baseline prerequisite: unrelated coding prompt.";
+    }
+    writeFileSync(join(f.dir, "base.json"), JSON.stringify(f.base));
+    const r = run(f);
+    assert.equal(r.status, 0, r.stderr);
+    const p = JSON.parse(readFileSync(join(f.dir, "urgent.json"), "utf8"));
+    for (const [date, kind, artifact] of cases) {
+      const a = p.execution.jobPlan.days
+        .find((d) => d.date === date)
+        .assignments.find((a) => a.kind === kind);
+      assert.match(
+        a.deliverable,
+        artifact,
+        `${date}/${kind} saves the actual new task`,
+      );
+      assert.match(a.dependency, /session [1-8]|same session/i);
+      assert.match(a.dependency, /2026-10-10-germany-campaign.md/);
+      assert.doesNotMatch(a.deliverable + a.dependency, /Superseded baseline/);
+      assert.equal(a.id, `germany:2026:day:${date}:assignment:${kind}`);
+    }
+    assert.deepEqual(
+      p.execution.jobPlan.days.slice(0, 3),
+      f.base.execution.jobPlan.days.slice(0, 3),
+    );
+  } finally {
+    rmSync(f.temp, { recursive: true, force: true });
+  }
+});
+test("full-loop evidence is scored inside the mock window instead of inheriting the old planning instruction", () => {
+  const f = setup();
+  try {
+    for (const date of ["2026-12-19", "2027-01-02"]) {
+      const a = f.base.execution.jobPlan.days
+        .find((d) => d.date === date)
+        .assignments.find((a) => a.kind === "mock");
+      a.deliverable =
+        "Save design and defense; scoring belongs to the planning block.";
+    }
+    writeFileSync(join(f.dir, "base.json"), JSON.stringify(f.base));
+    const r = run(f);
+    assert.equal(r.status, 0, r.stderr);
+    const p = JSON.parse(readFileSync(join(f.dir, "urgent.json"), "utf8"));
+    for (const date of ["2026-12-19", "2027-01-02"]) {
+      const a = p.execution.jobPlan.days
+        .find((d) => d.date === date)
+        .assignments.find((a) => a.kind === "mock");
+      assert.match(a.deliverable, /R3.*R5.*11:45–12:05/);
+      assert.doesNotMatch(
+        a.deliverable,
+        /scoring belongs to the planning block/,
+      );
+      assert.match(a.dependency, /dated R3.*R5.*rubric/i);
+      assert.match(a.dependency, /2026-10-10-germany-exams.md/);
+    }
+  } finally {
+    rmSync(f.temp, { recursive: true, force: true });
+  }
+});
 test("CLI refuses ambiguous pay inputs and existing outputs without overwriting sources", () => {
   const f = setup();
   try {

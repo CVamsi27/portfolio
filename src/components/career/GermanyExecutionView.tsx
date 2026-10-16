@@ -151,6 +151,11 @@ export default function GermanyExecutionView({
     );
   });
   const nextExam = e.assessments.find((a) => a.date >= date);
+  const saturdayDate = e.assessments.find(
+    (assessment) =>
+      assessment.id === "E" + String(week.number).padStart(2, "0"),
+  )!.date;
+  const saturdayAssignments = jobAssignments(e.jobPlan, saturdayDate);
   const verified = plan.weeks
     .flatMap((w) => w.items)
     .filter((i) => state.evidenceByItemId[i.id]?.verifiedAt).length;
@@ -540,19 +545,30 @@ export default function GermanyExecutionView({
               Saturday: exam, funnel, relocation and review
             </summary>
             <div className="space-y-4 pt-3">
-              {Object.entries(
-                datedAssignments(
-                  e,
-                  e.assessments.find(
-                    (a) => a.id === "E" + String(week.number).padStart(2, "0"),
-                  )!.date,
-                ),
-              ).map(([time, content]) => (
-                <div key={time}>
-                  <p className="font-semibold text-sm">{time} IST</p>
-                  <RoadmapGuide content={content} context={context} />
-                </div>
-              ))}
+              {saturdayAssignments.length
+                ? saturdayAssignments.map((assignment) => (
+                    <JobAssignmentRow
+                      key={assignment.id}
+                      assignment={assignment}
+                      evidence={state.evidenceByItemId[assignment.id]}
+                      recordLink
+                    />
+                  ))
+                : Object.entries(datedAssignments(e, saturdayDate)).map(
+                    ([time, content]) => (
+                      <div key={time}>
+                        <p className="font-semibold text-sm">{time} IST</p>
+                        <RoadmapGuide
+                          content={content}
+                          context={{
+                            ...context,
+                            date: saturdayDate,
+                            task: `germany:2026:day:${saturdayDate}`,
+                          }}
+                        />
+                      </div>
+                    ),
+                  )}
             </div>
           </details>
           <h3 className="font-semibold">Weekly acceptance evidence</h3>

@@ -34,7 +34,12 @@ export default function WeekDateStrip({
     revealSelectedDate();
     const observer = new ResizeObserver(revealSelectedDate);
     observer.observe(strip);
-    return () => observer.disconnect();
+    // A rapid viewport round trip can reset scroll without changing the final observed size.
+    window.addEventListener("resize", revealSelectedDate);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", revealSelectedDate);
+    };
   }, [date]);
 
   return (

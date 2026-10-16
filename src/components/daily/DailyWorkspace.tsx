@@ -27,6 +27,7 @@ import {
 import { isGermanyRoadmap, type GermanyRoadmap } from "@/lib/germany-roadmap";
 import { jobAssignments, jobEvidenceStatus } from "@/lib/job-plan";
 import JobAssignmentDetail, {
+  assignmentHref,
   JobAssignmentRow,
   JobProgressLabel,
 } from "@/components/career/JobAssignmentDetail";
@@ -327,14 +328,15 @@ export default function DailyWorkspace({
     }));
     setMessage("Routine action undone.");
   };
+  const assignmentForRow = (row?: AgendaItem) =>
+    row && (row.id.startsWith("owner:") || row.id.startsWith("timetable:"))
+      ? jobAssignments(
+          germany?.execution?.jobPlan,
+          row.block?.date ?? date,
+        ).find((a) => row.id.endsWith(":" + a.range))
+      : undefined;
   const renderRow = (row: AgendaItem) => {
-    const assignment =
-      row.id.startsWith("owner:") || row.id.startsWith("timetable:")
-        ? jobAssignments(
-            germany?.execution?.jobPlan,
-            row.block?.date ?? date,
-          ).find((a) => row.id.endsWith(":" + a.range))
-        : undefined;
+    const assignment = assignmentForRow(row);
     const content = (
       <>
         {assignment ? (
@@ -566,11 +568,12 @@ export default function DailyWorkspace({
     );
   const activeSession = Boolean(work.focus || work.study);
   const actionableNext = date === today ? next : undefined;
+  const nextAssignment = assignmentForRow(actionableNext);
   const primaryHref = activeSession
     ? work.study
       ? "/roadmap"
       : "/plan?view=focus"
-    : (actionableNext?.href ??
+    : ((nextAssignment ? assignmentHref(nextAssignment) : actionableNext?.href) ??
       (date === today && pending[0]
         ? `/plan?view=focus&task=${encodeURIComponent(pending[0].id)}`
         : `/plan?date=${date === today && rows.length > 0 && !incomplete.some((row) => row.at + (row.durationMinutes ?? 0) * 60000 > now) ? shiftDay(date, 1) : date}`));
