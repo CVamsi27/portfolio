@@ -332,11 +332,11 @@ export const GERMANY_CHECKLIST_UPDATES: Record<
   { text: string; link?: string }
 > = {
   "germany-degree": {
-    text: "Verify both the institution and degree result in anabin, or request ZAB comparability when required; save the actual evidence.",
+    text: "KL University (Koneru Lakshmaiah Education Foundation, Guntur) is H+ in Anabin (checked 17 October 2026) — the institution is recognized. Confirm the degree-level Anabin entry for the B.Tech and order a ZAB Statement of Comparability if it is not clearly equivalent; keep the certificate, transcripts and Anabin printouts together.",
     link: "https://zab.kmk.org/en/statement-comparability",
   },
   "germany-blue-card": {
-    text: "Check the actual offer against 2026 Blue Card rules: standard EUR 50,700 or qualifying reduced EUR 45,934.20, required approvals and qualification conditions. Recheck annual figures for 2027.",
+    text: "Blue Card rules verified 17 October 2026: standard EUR 50,700 or qualifying reduced EUR 45,934.20, with required approvals and qualification conditions. Check the actual offer against the current rules and recheck annual figures for 2027.",
     link: "https://www.make-it-in-germany.com/en/visa-residence/types/eu-blue-card",
   },
   "germany-documents": {

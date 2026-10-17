@@ -17,6 +17,7 @@ import {
   recordGermanyCompany,
 } from "@/lib/germany-execution";
 import GermanyRoadmapView from "@/components/career/GermanyRoadmap";
+import RoadmapGuide from "@/components/career/RoadmapGuide";
 import {
   isGermanyRoadmap,
   recordGermanyEvidence,
@@ -93,9 +94,11 @@ import {
 import {
   canCompleteEvidence,
   EMPTY_CAREER_EXECUTION_STATE,
+  isCareerPlan,
   type CareerChecklistItem,
   type CareerEvidence,
   type CareerExecutionState,
+  type CareerPlan,
 } from "@/lib/career-roadmap";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -139,6 +142,7 @@ interface Timetable {
 
 interface CareerData {
   germanyRoadmap?: GermanyRoadmap;
+  plan?: CareerPlan;
   version?: number;
   reviewedOn?: string;
   profile?: {
@@ -2013,6 +2017,7 @@ export default function RoadmapPage() {
   const [section, setSection] = useWorkspaceView(
     [
       "roadmap",
+      "plan",
       "execution",
       "curriculum",
       "revision",
@@ -2314,6 +2319,12 @@ export default function RoadmapPage() {
             }}
           >
             Today
+          </button>
+          <button
+            aria-pressed={section === "plan"}
+            onClick={() => setSection("plan")}
+          >
+            Plan
           </button>
           <button
             aria-pressed={["curriculum", "revision"].includes(section)}
@@ -3094,6 +3105,45 @@ export default function RoadmapPage() {
               );
             })()}
           </>
+        )}
+
+        {/* ── TAILORED PLAN SECTION ── */}
+        {section === "plan" && career && isCareerPlan(career.plan) && (
+          <section className="space-y-3" data-testid="career-plan">
+            <p className="text-sm text-muted-foreground">
+              Tailored career plan · updated {career.plan.updated} · search window{" "}
+              {career.plan.window}
+            </p>
+            {career.plan.intro && (
+              <div className="workspace-panel">
+                <RoadmapGuide content={career.plan.intro} />
+              </div>
+            )}
+            {career.plan.sections.map((planSection) => (
+              <details key={planSection.id} className="workspace-panel">
+                <summary className="min-h-11 text-sm font-semibold">
+                  {planSection.title}
+                </summary>
+                <div className="mt-3">
+                  <RoadmapGuide content={planSection.markdown} />
+                </div>
+              </details>
+            ))}
+          </section>
+        )}
+        {section === "plan" && !career && (
+          <div className="rounded-xl border border-dashed border-border/60 py-12 text-center">
+            <Target className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+            <p className="font-display font-bold">Plan data loading…</p>
+          </div>
+        )}
+        {section === "plan" && career && !isCareerPlan(career.plan) && (
+          <div className="rounded-xl border border-dashed border-border/60 py-12 text-center">
+            <Target className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+            <p className="font-display font-bold">
+              The tailored career plan is private to the owner account.
+            </p>
+          </div>
         )}
 
         {/* ── CAREER SECTION ── */}

@@ -475,10 +475,14 @@ export function generateUrgentJobPlan(base, campaign, learningPlan) {
   const calendar = `# Active detailed remote/Germany calendar\n\nEffective ${effectiveOn}. Generated from the explicit private baseline and current confirmed campaign. Historical assignment objects before this date are unchanged. No account data changes merely by creating these files.\n\n${design.replace(/^# /, "## ")}\n\n${days.map((d) => `### ${d.date}${d.date < effectiveOn ? " — historical reference; preserve actual evidence" : ""}\n\n${d.assignments.map((a) => `#### ${a.range.replace("-", "–")} · ${a.minutes}m — ${a.title}\n\n${assignmentMarkdown(a)}\n\nAssignment ID: \`${a.id}\``).join("\n\n")}`).join("\n\n")}\n`;
   return { roadmap, calendar };
 }
+const PRIVATE_PERSONAL_ROOTS = [
+  `${sep}80-lanes-abroad-full-stack${sep}personal${sep}`,
+  `${sep}repos${sep}personal${sep}`,
+];
 function privatePath(path, output = false) {
   const resolved = resolve(path);
   const actual = realpathSync(output ? dirname(resolved) : resolved);
-  if (!actual.includes(`${sep}80-lanes-abroad-full-stack${sep}personal${sep}`))
+  if (!PRIVATE_PERSONAL_ROOTS.some((root) => actual.includes(root)))
     throw new Error(
       "All authoring inputs and outputs must remain in the canonical private personal directory",
     );

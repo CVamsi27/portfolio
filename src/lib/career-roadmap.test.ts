@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildPlannerTodos, canCompleteEvidence, mergeCareerReminders, mergeExecutionState, validateSeedPayload } from "./career-roadmap.ts";
+import { buildPlannerTodos, canCompleteEvidence, isCareerPlan, mergeCareerPlan, mergeCareerReminders, mergeExecutionState, validateSeedPayload } from "./career-roadmap.ts";
 import type { CareerCurriculum } from "./career-roadmap.ts";
 
 describe("career roadmap state", () => {
@@ -88,5 +88,42 @@ describe("career roadmap state", () => {
     assert.throws(() => validateSeedPayload({ ...payload, ownerEmail: "someone@example.invalid" }, "roadmap-test@example.invalid"), /owner/i);
     const duplicate = { ...curriculum, days: [...curriculum.days.slice(0, 99), { ...curriculum.days[99], id: curriculum.days[0].id }] };
     assert.throws(() => validateSeedPayload({ ...payload, curriculum: duplicate }, "roadmap-test@example.invalid"), /duplicate/i);
+  });
+});
+
+describe("career plan payload", () => {
+  const plan = {
+    version: 1 as const,
+    generatedAt: "2026-10-17T12:00:00.000Z",
+    updated: "17 October 2026 (IST)",
+    window: "12 October 2026 → 3 January 2027, then a 4–7 January review.",
+    title: "Career Roadmap — start here",
+    intro: "> **What this is:** the orientation layer for the job search.",
+    sourceDigest: "a".repeat(64),
+    sections: [
+      {
+        id: "1-will-companies-hire-this-profile-the-honest-answer",
+        title: "1. Will companies hire this profile? — the honest answer",
+        markdown: "Targeted batches convert.",
+      },
+    ],
+  };
+  it("accepts a generated plan and rejects malformed payloads", () => {
+    assert.equal(isCareerPlan(plan), true);
+    assert.equal(isCareerPlan({ ...plan, version: 2 }), false);
+    assert.equal(isCareerPlan({ ...plan, sourceDigest: "short" }), false);
+    assert.equal(isCareerPlan({ ...plan, sections: [] }), false);
+    assert.equal(isCareerPlan({ ...plan, sections: [{ id: "x", title: "X" }] }), false);
+    assert.equal(isCareerPlan(null), false);
+  });
+  it("merges the plan while preserving existing career fields", () => {
+    const previous = {
+      reviewedOn: "2026-10-10",
+      germanyChecklist: [{ id: "germany-degree", done: true }],
+    };
+    const merged = mergeCareerPlan(previous, plan);
+    assert.equal(merged.reviewedOn, "2026-10-10");
+    assert.deepEqual(merged.germanyChecklist, previous.germanyChecklist);
+    assert.deepEqual(merged.plan, plan);
   });
 });

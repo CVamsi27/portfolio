@@ -410,11 +410,17 @@ if (
       "Usage: node --experimental-strip-types scripts/generate-job-plan.mjs PRIVATE_BASELINE PRIVATE_CALENDAR PRIVATE_DESIGN PRIVATE_OUTPUT",
     );
   const [baseline, calendar, design, output] = paths;
-  for (const path of [baseline, calendar, design, dirname(output)])
-    if (!realpathSync(path).includes("/80-lanes-abroad-full-stack/personal/"))
+  for (const path of [baseline, calendar, design, dirname(output)]) {
+    const actual = realpathSync(path);
+    if (
+      !["/80-lanes-abroad-full-stack/personal/", "/repos/personal/"].some(
+        (root) => actual.includes(root),
+      )
+    )
       throw new Error(
         "All inputs/output must remain in the canonical private personal directory",
       );
+  }
   if (paths.slice(0, 3).includes(output))
     throw new Error("Output must not overwrite authoring sources");
   const result = generateJobPlan(

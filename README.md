@@ -184,17 +184,17 @@ No cross-repository scheduled sync is configured. A new Bible push requires rege
 
 The current urgent campaign uses 60 focused hours per full week: weekdays 660 minutes, Saturday 300, Sunday recovery. Its versioned assignments take effect on 15 October 2026; earlier timetable entries remain historical. The allocation covers applications, hiring conversations, interviews, project delivery, OSS, targeted study, German and review. Clock placements are movable IST examples; actual meetings use their date-aware invitation time.
 
-Current authoring sources live in the private Bible's `personal/reports/` directory. The reviewed urgent campaign extends the retained 60-hour baseline without overwriting the baseline, original teaching guides or assessment definitions. Generate the new account payload and matching human calendar from this checkout; inputs, output and release backups stay under the canonical private personal directory:
+Current authoring sources live in the private personal workspace (`../personal/reports/`). The reviewed urgent campaign extends the retained 60-hour baseline without overwriting the baseline, original teaching guides or assessment definitions. Generate the new account payload and matching human calendar from this checkout; inputs, output and release backups stay under the canonical private personal directory:
 
 ```bash
 node --experimental-strip-types scripts/generate-urgent-job-plan.mjs \
-  --baseline ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap-60h.json \
-  --campaign ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/2026-10-15-urgent-remote-germany-campaign.md \
-  --learning-plan ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/2026-10-15-measured-project-interview-plan.md \
-  --output ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap-urgent-60h.json \
-  --calendar-output ../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/2026-10-15-urgent-job-plan-calendar.md
+  --baseline ../personal/reports/germany-job-roadmap-60h.json \
+  --campaign ../personal/reports/2026-10-15-urgent-remote-germany-campaign.md \
+  --learning-plan ../personal/reports/2026-10-15-measured-project-interview-plan.md \
+  --output ../personal/reports/germany-job-roadmap-urgent-60h.json \
+  --calendar-output ../personal/reports/2026-10-15-urgent-job-plan-calendar.md
 node --env-file=.env --experimental-strip-types scripts/sync-germany-roadmap.ts \
-  --payload=../software-developer-bible/80-lanes-abroad-full-stack/personal/reports/germany-job-roadmap-urgent-60h.json
+  --payload=../personal/reports/germany-job-roadmap-urgent-60h.json
 # After the release gates pass, inspect the dry-run and repeat its exact payload with --apply.
 ```
 
@@ -203,3 +203,18 @@ The generator creates new mode-0600 files and refuses existing outputs. For a la
 Publish the matching frontend through the Git-connected production deployment before importing the new assignment schema; deployment and account-data release are separate checks. The release resolves the exact configured timetable owner and updates only the career/timetable rows using each row's expected timestamp. Each compare-and-swap is atomic; the two-row release is not a transaction. A conflict stops work and reports any applied keys. Re-read and reconcile current data before another attempt rather than blindly restoring the backup. A private mode-0600 backup and an exact readback of every owner row protect tasks, reminders, study history and evidence. Repeat the same dry-run after a successful apply and expect no changed keys. No external communication or reminder opt-in occurs.
 
 Run the generator, schedule/navigation/evidence unit tests and `e2e/germany-roadmap.spec.ts` alongside the existing navigation, Bible-sync and timetable suites. Verify the authenticated account and Git-connected deployment separately; a successful local-mode render does not prove either.
+
+### Tailored career-plan release
+
+The `/roadmap` Plan view carries the owner-only orientation layer — the private `CAREER-ROADMAP.md` (honest assessment, active loop, two lanes, weekly rhythm, risks) rendered through the roadmap guide. The generator drops the "map of everything" appendix, strips relative private links (https study links stay) and refuses anything outside the canonical private personal workspace. Generate, dry-run, then repeat the exact payload with `--apply`:
+
+```bash
+node scripts/generate-career-plan.mjs \
+  ../personal/CAREER-ROADMAP.md \
+  ../personal/reports/career-plan.json
+node --env-file=.env --experimental-strip-types scripts/sync-career-plan.ts \
+  --payload=../personal/reports/career-plan.json
+# After the dry-run matches, repeat its exact payload with --apply.
+```
+
+The owner-only sync merges the payload into the existing `career_command_center` row as `plan`, makes a private mode-0600 backup and verifies every owner row; the compare-and-swap update stops on a missing or conflicting owner row without overwriting data. Other accounts see a private notice instead of the plan. The plan is account data and must never be imported into the public application bundle.
