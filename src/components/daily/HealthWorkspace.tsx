@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import DaySelector from "./DaySelector";
 import CaptureWorkspace from "./CaptureWorkspace";
 import HealthConnections from "@/components/health/HealthConnections";
+import ChapterHeader from "@/components/trackers/ChapterHeader";
+import WorkspaceProgressLead from "@/components/progress/WorkspaceProgressLead";
 export default function HealthWorkspace() {
   const params = useSearchParams(),
     router = useRouter();
@@ -38,13 +40,22 @@ export default function HealthWorkspace() {
     `/log?type=${type}&date=${date}&returnTo=${encodeURIComponent(back)}`;
   return (
     <div className="daily-workspace">
-      <div className="workspace-heading">
-        <DaySelector
-          date={date}
-          today={today}
-          onChange={(day) => router.replace(`/health?view=${view}&date=${day}`)}
-        />
-      </div>
+      <ChapterHeader
+        compact
+        eyebrow="Health"
+        title="Health"
+        subtitle={null}
+        context={
+          <DaySelector
+            date={date}
+            today={today}
+            onChange={(day) =>
+              router.replace(`/health?view=${view}&date=${day}`)
+            }
+          />
+        }
+      />
+      <WorkspaceProgressLead />
       {fasting.value.startedAt !== null && (
         <section className="workspace-panel">
           <h2>Active fasting timer</h2>

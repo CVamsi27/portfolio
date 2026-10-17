@@ -5,6 +5,7 @@ import { useWorkspaceView } from "@/lib/use-workspace-view";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ActionMenu from "@/components/trackers/ActionMenu";
+import CompletionToggle from "@/components/trackers/CompletionToggle";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
@@ -592,28 +593,14 @@ export default function GoalPage() {
                   <li
                     key={m.id}
                     className={cn(
-                      "milestone-row group flex flex-wrap items-start gap-3 rounded-xl border px-3 py-2.5 text-sm transition-all",
+                      "milestone-row workspace-milestone-row group flex flex-wrap items-center gap-3 text-sm transition-colors",
                       m.done
                         ? "border-emerald-500/40 bg-emerald-500/10"
                         : "border-border/60 hover:bg-accent",
                     )}
                   >
-                    <button
-                      onClick={() => toggleMilestone(m.id)}
-                      aria-label={
-                        m.done
-                          ? `Mark ${m.title} incomplete`
-                          : `Mark ${m.title} complete`
-                      }
-                      className={cn(
-                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-xs transition-all active:scale-90",
-                        m.done
-                          ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-muted-foreground",
-                      )}
-                    >
-                      {m.done ? <Check className="h-3 w-3" /> : ""}
-                    </button>
+                    <CompletionToggle checked={m.done} onClick={() => toggleMilestone(m.id)}
+                      label={m.done ? `Mark ${m.title} incomplete` : `Mark ${m.title} complete`} />
                     <div className="milestone-name min-w-0 flex-1">
                       <p className={cn(m.done && "line-through opacity-70")}>
                         {m.title}

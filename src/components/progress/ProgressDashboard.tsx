@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { ProgressLead } from "./WorkspaceProgressLead";
 import ImportedHealthTrends from "./ImportedHealthTrends";
+import ChapterHeader from "@/components/trackers/ChapterHeader";
 const health: ProgressMetric[] = [
   "weight",
   "energy",
@@ -82,30 +83,38 @@ export default function ProgressDashboard() {
   };
   return (
     <div className="progress-workspace" data-testid="progress-dashboard">
-      <div className="progress-range-toolbar">
-        <label className="field-label">
-          Through date
-          <Input
-            type="date"
-            value={data.end}
-            onInput={(event) => changeThrough(event.currentTarget.value)}
-            onChange={(event) => changeThrough(event.currentTarget.value)}
-          />
-        </label>
-        {through && (
-          <button
-            className="inline-action"
-            onClick={() => {
-              setThrough(undefined);
-              const url = new URL(window.location.href);
-              url.searchParams.delete("date");
-              window.history.replaceState(null, "", url);
-            }}
-          >
-            Back to today
-          </button>
-        )}
-      </div>
+      <ChapterHeader
+        compact
+        eyebrow="Progress"
+        title="Progress"
+        subtitle={null}
+        context={
+          <div className="progress-range-toolbar">
+            <label className="field-label">
+              Through date
+              <Input
+                type="date"
+                value={data.end}
+                onInput={(event) => changeThrough(event.currentTarget.value)}
+                onChange={(event) => changeThrough(event.currentTarget.value)}
+              />
+            </label>
+            {through && (
+              <button
+                className="inline-action"
+                onClick={() => {
+                  setThrough(undefined);
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete("date");
+                  window.history.replaceState(null, "", url);
+                }}
+              >
+                Back to today
+              </button>
+            )}
+          </div>
+        }
+      />
       <ProgressLead
         metric={chosen}
         endDate={through}

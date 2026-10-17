@@ -32,13 +32,15 @@
   .tracker-surface .dossier-command-link [data-dock-label] { font-size: 12px; letter-spacing: 0; }
   .tracker-surface .dossier-command-dock > div { padding: 6px; }
   .tracker-surface .personal-content { min-width: 0; }
+  .tracker-surface .personal-shell .personal-content { margin-top:0; }
+  .tracker-surface .personal-shell:has(> div > .dossier-chapter-header) .personal-content { margin-top:24px; }
   .nova-today { gap: 0; min-width: 0; grid-template-columns: minmax(0, 1fr); }
-  .nova-today-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 24px; }
-  .nova-today-header h1 { font-family: var(--font-display); font-size: 48px; font-weight: 600; letter-spacing: -.035em; line-height: 1.15; }
+  .nova-today-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 0; }
+  .nova-today-header h1 { font-family: var(--font-display); font-size: 36px; font-weight: 600; letter-spacing: -.035em; line-height: 1.15; }
   .nova-today-header p { margin-top: 8px; font-size: 14px; color: var(--color-muted-foreground); }
   .nova-date-context { text-align: left; min-height: 44px; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; }
   .nova-date-context:hover { text-decoration-color: currentColor; }
-  .nova-primary-action { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; padding: 12px 20px; border-radius: 8px; color: var(--color-primary-foreground); background: var(--color-primary); font-size: 16px; font-weight: 600; white-space: nowrap; }
+  .nova-primary-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border-radius: 8px; color: var(--color-primary-foreground); background: var(--color-primary); font-size: 14px; font-weight: 600; white-space: nowrap; }
   .nova-primary-action:hover { opacity: .92; }
   .nova-calendar-row { display: flex; min-width: 0; align-items: center; gap: 24px; padding-block: 16px; border-block: 1px solid var(--color-border); }
   .nova-week-strip { display: flex; min-width: 0; flex: 1; gap: 4px; overflow-x: auto; }
@@ -94,12 +96,12 @@
     .tracker-surface .nova-personal-nav:not(.nova-login-nav) ~ .flex-1 { margin-left: 224px; }
     .tracker-surface .editorial-frame.dossier-frame { padding: 32px; }
     .tracker-surface .personal-shell .personal-content { margin-top: 0; }
-    .tracker-surface .personal-shell:has(.dossier-chapter-header) .personal-content { margin-top: 24px; }
+    .tracker-surface .personal-shell:has(> div > .dossier-chapter-header) .personal-content { margin-top: 24px; }
   }
   @media (max-width: 767px) {
     .tracker-surface .editorial-frame.dossier-frame { padding: 8px 20px 20px; }
     .tracker-surface .personal-shell .personal-content { margin-top: 0; }
-    .tracker-surface .personal-shell:has(.dossier-chapter-header) .personal-content { margin-top: 20px; }
+    .tracker-surface .personal-shell:has(> div > .dossier-chapter-header) .personal-content { margin-top: 20px; }
     .nova-today > * { order: 3; }
     .nova-today-header { display: contents; }
     .nova-today-header > div { order: 0; padding-bottom: 8px; }
@@ -207,8 +209,7 @@
     .tracker-surface .nova-page-header { flex-wrap:wrap; gap:16px; }
     .tracker-surface .nova-page-header h1 { font-size:28px; }
     .tracker-surface .nova-today-header h1 { font-size:28px; }
-    .tracker-surface .nova-page-action { flex-basis:100%; }
-    .tracker-surface .nova-page-action > * { width:100%; }
+    .tracker-surface .nova-page-action { max-width:100%; }
     .tracker-surface .workspace-progress-controls { flex-basis:100%; gap:8px; }
     .tracker-surface .workspace-progress-controls label { display:grid; gap:4px; flex:1; min-width:0; }
     .tracker-surface .workspace-progress-controls select { width:100%; min-width:0; }
@@ -234,7 +235,7 @@
   .tracker-surface .workspace-progress-lead.is-empty h2 { font-size:14px; line-height:1.5; font-weight:500; color:var(--color-muted-foreground); }
   .tracker-surface .workspace-progress-controls { gap:8px; }
   .tracker-surface .workspace-progress-controls label { min-width:0; }
-  .tracker-surface .workspace-progress-controls select { width:auto; max-width:180px; min-height:44px; font-size:13px; padding:6px 10px; }
+  .tracker-surface .workspace-progress-controls select { width:auto; max-width:180px; min-height:44px; font-size:16px; padding:6px 10px; }
   .tracker-surface .workspace-progress-heading { align-items:center; gap:8px; }
   .tracker-surface .workspace-action-menu { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:8px 10px; color:var(--color-muted-foreground); font-size:13px; border-radius:6px; }
   .tracker-surface .workspace-action-menu:hover { background:var(--color-muted); }
@@ -262,3 +263,36 @@
 .nova-agenda-details[open] > summary .nova-agenda-outcome { display: none; }
 
 .job-assignment-row { scroll-margin-top: 6rem; }
+
+/* Shared NOVA primitives. Screen-specific content keeps the same header rhythm. */
+@media screen {
+  .tracker-surface .dossier-chapter-header--compact { border:0; padding-bottom:0; }
+  .tracker-surface .nova-page-header, .tracker-surface .nova-today-header { align-items:flex-start; gap:16px; }
+  .tracker-surface .nova-page-header h1, .tracker-surface .nova-today-header h1 { line-height:1.2; letter-spacing:-.03em; }
+  .tracker-surface .nova-page-context { margin-top:8px; }
+  .tracker-surface .nova-page-context .field-label { margin:0; }
+  .tracker-surface .nova-record-date { width:fit-content; max-width:100%; }
+  .tracker-surface .day-selector { gap:8px; }
+  .tracker-surface .day-selector input { width:160px; min-width:0; }
+  .tracker-surface .day-selector > button { flex:none; }
+  .tracker-surface .progress-range-toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:8px; }
+  .tracker-surface .progress-range-toolbar input { width:170px; }
+  .tracker-surface [data-ui="button"], .tracker-surface .inline-action { border-radius:8px; font-size:14px; font-weight:600; }
+  .tracker-surface [data-ui="input"], .tracker-surface select, .tracker-surface textarea { border-radius:8px; }
+  .tracker-surface [data-ui="card"], .tracker-surface .workspace-panel { border-radius:8px; }
+  .tracker-surface .workspace-views :is(a,button) { border-radius:0; font-size:14px; }
+  .tracker-surface .workspace-views :is([aria-current=page],[aria-pressed=true]) { font-weight:600; }
+  .tracker-surface .workspace-completion { display:inline-flex; align-items:center; justify-content:center; flex:none; width:44px; height:44px; min-width:44px; padding:0; border:0; border-radius:8px; background:transparent; }
+  .tracker-surface .workspace-completion:hover { background:var(--color-muted); }
+  .tracker-surface .workspace-completion:focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+  .tracker-surface .workspace-completion-indicator { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border:1px solid var(--color-muted-foreground); border-radius:4px; }
+  .tracker-surface .workspace-completion-indicator.is-round { width:24px; height:24px; border-radius:50%; }
+  .tracker-surface .workspace-completion-indicator.is-complete { border-color:var(--color-primary); background:var(--color-primary); color:var(--color-primary-foreground); }
+  .tracker-surface .workspace-exercise-row, .tracker-surface .workspace-milestone-row { border:0; border-bottom:1px solid var(--color-border); border-radius:0; padding:12px 0; }
+  .tracker-surface .workspace-exercise-row:last-child, .tracker-surface .workspace-milestone-row:last-child { border-bottom:0; }
+  @media(max-width:767px) {
+    .tracker-surface .nova-page-header, .tracker-surface .nova-today-header { align-items:center; flex-wrap:wrap; }
+    .tracker-surface .nova-page-action { flex:0 1 auto; }
+    .tracker-surface .nova-today-header > div { padding-bottom:0; }
+  }
+}

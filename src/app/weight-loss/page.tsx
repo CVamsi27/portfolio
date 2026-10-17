@@ -135,7 +135,31 @@ export default function WeightLossPage() {
   };
   return (
     <RequireAuth>
-      <TrackerShell icon="scale" title="Body and weight" subtitle={null}>
+      <TrackerShell
+        icon="scale"
+        title="Body and weight"
+        subtitle={null}
+        context={
+          <label className="field-label nova-record-date">
+            Record date
+            <Input
+              type="date"
+              max={today}
+              value={date}
+              onChange={(event) => {
+                if (event.target.value) {
+                  setDate(event.target.value);
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("date", event.target.value);
+                  window.history.replaceState(null, "", url);
+                  setDraft(undefined);
+                  setMessage("");
+                }
+              }}
+            />
+          </label>
+        }
+      >
         <div className="body-workspace-grid">
           <section id="weight-entry" className="progress-panel">
             <header>
@@ -152,21 +176,6 @@ export default function WeightLossPage() {
               }}
               className="mt-4 space-y-4"
             >
-              <label className="block text-sm font-medium">
-                Record date
-                <Input
-                  type="date"
-                  max={today}
-                  value={date}
-                  onChange={(event) => {
-                    if (event.target.value) {
-                      setDate(event.target.value);
-                      setDraft(undefined);
-                      setMessage("");
-                    }
-                  }}
-                />
-              </label>
               <label className="block text-sm font-medium">
                 Weight ({prefs.weightUnit})
                 <Input

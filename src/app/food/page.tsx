@@ -7,7 +7,8 @@ export default function FoodPage() {
     <RequireAuth>
       <PersonalShell
         icon="scale"
-        title="Food"
+        title={null}
+        progress={false}
         subtitle={null}
       >
         <FoodTracker />

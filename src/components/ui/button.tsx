@@ -45,6 +45,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
+        data-ui="button"
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...(!asChild ? { type: "button" as const } : {})}

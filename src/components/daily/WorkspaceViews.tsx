@@ -11,7 +11,7 @@ export default function WorkspaceViews<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <nav className="workspace-views" aria-label={label}>
+    <div role="group" aria-label={label} className="workspace-views">
       {views.map((view) => (
         <button
           key={view.id}
@@ -22,6 +22,6 @@ export default function WorkspaceViews<T extends string>({
           {view.label}
         </button>
       ))}
-    </nav>
+    </div>
   );
 }

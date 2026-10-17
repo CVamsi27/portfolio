@@ -8,7 +8,8 @@ export default function HealthPage() {
     <RequireAuth>
       <PersonalShell
         showBack={false}
-        title="Health"
+        title={null}
+        progress={false}
         icon="scale"
         subtitle={null}
       >

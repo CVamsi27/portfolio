@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { seed, daysAgoKey, workoutCell } from "./helpers";
 
-/** The exercise card containing a named exercise. */
+/** The exercise row containing a named exercise. */
 function card(page: import("@playwright/test").Page, name: string) {
-  return page.locator("div.rounded-xl.border", { has: page.getByText(name, { exact: true }) }).first();
+  return page.locator(".workspace-exercise-row", { has: page.getByText(name, { exact: true }) }).first();
 }
 
 test.describe("workout tracker", () => {

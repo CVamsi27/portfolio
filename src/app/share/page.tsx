@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ActionMenu from "@/components/trackers/ActionMenu";
+import ChapterHeader from "@/components/trackers/ChapterHeader";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import SharedInbox from "@/components/trackers/SharedInbox";
 import Segmented from "@/components/trackers/Segmented";
@@ -612,13 +613,7 @@ export default function SharePage() {
 
   return (
     <TrackerShell icon="share" title={null} subtitle={null}>
-      <header
-        data-editorial-chapter="true"
-        className="flex items-center justify-between gap-3"
-      >
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
-          Sharing
-        </h1>
+      <ChapterHeader compact eyebrow="Tools" title="Sharing" subtitle={null} action={
         <div className="flex items-center gap-3">
           <SyncBadge status={status} />
           {showInbox ? (
@@ -629,7 +624,7 @@ export default function SharePage() {
             <Button onClick={() => setComposerOpen(true)}>New drop</Button>
           )}
         </div>
-      </header>
+      } />
       <nav
         aria-label="Sharing views"
         data-testid="sharing-view-switcher"
