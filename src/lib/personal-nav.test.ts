@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   PERSONAL_PRIMARY_NAV,
-  PERSONAL_MORE_NAV,
   PERSONAL_TOOLS_NAV,
   isPersonalPrimaryPath,
   isPersonalToolPath,
@@ -18,7 +17,13 @@ test("Roadmap is directly reachable and owns its active navigation state", () =>
     ).map((n) => n.id),
     ["roadmap"],
   );
-  assert.equal(PERSONAL_MORE_NAV.filter((n) => n.id === "roadmap").length, 0);
+  // Roadmap lives once, in the primary navigation — never duplicated in Tools.
+  assert.equal(
+    [...PERSONAL_PRIMARY_NAV, ...PERSONAL_TOOLS_NAV].filter(
+      (n) => n.id === "roadmap",
+    ).length,
+    1,
+  );
   assert.deepEqual(
     PERSONAL_PRIMARY_NAV.filter((n) =>
       isPersonalPrimaryPath("/todo", n.href),

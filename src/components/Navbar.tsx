@@ -363,7 +363,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
       className={cn(
         "dossier-command-rail sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg",
         isTracker && "nova-personal-nav",
-        isTracker && ["/login", "/log"].includes(pathname) && "nova-login-nav",
+        isTracker && pathname === "/login" && "nova-login-nav",
       )}
     >
       {!isTracker && (

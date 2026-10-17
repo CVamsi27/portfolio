@@ -599,8 +599,8 @@ export default function ArchivePage() {
                     query
                       ? "No archive matches"
                       : items.length
-                        ? "No items for this goal"
-                        : "No saved items yet"
+                        ? "Add an item for this goal"
+                        : "Save your first item"
                   }
                   hint={
                     query

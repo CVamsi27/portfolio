@@ -96,6 +96,70 @@ test.describe("redesign guards — honest empty states", () => {
   }
 });
 
+test.describe("redesign guards — progress strip removed", () => {
+  for (const route of [
+    "/todo",
+    "/goal",
+    "/food",
+    "/health",
+    "/weight-loss",
+    "/workout-tracking",
+    "/intermittent-fasting",
+    "/routine",
+    "/hub",
+    "/plan",
+    "/roadmap",
+  ]) {
+    test(`${route} renders no repeated progress strip`, async ({ page }) => {
+      await seed(page);
+      await page.goto(route);
+      await expect(page.getByTestId("progress-lead")).toHaveCount(0);
+    });
+  }
+});
+
+test.describe("redesign guards — Tools directory", () => {
+  test("Tools lists every Tools destination from the shared source", async ({
+    page,
+  }) => {
+    await seed(page);
+    await page.goto("/more");
+    const links = page.getByTestId("more-links");
+    for (const [label, href] of [
+      ["Motivation", "/motivation"],
+      ["Library", "/archive"],
+      ["Sharing", "/share"],
+      ["Settings", "/settings"],
+    ] as const) {
+      await expect(links.locator(`a[href="${href}"]`)).toContainText(label);
+    }
+  });
+});
+
+test.describe("redesign guards — lead became an honest summary", () => {
+  test("Today adds a one-line focus summary when the day has a session", async ({
+    page,
+  }) => {
+    const now = Date.now();
+    await seed(page, {
+      "vk:focus:sessions": [
+        {
+          id: "focus_guard",
+          label: "Chapter 12",
+          plannedMinutes: 25,
+          startedAt: now - 25 * 60_000,
+          endedAt: now,
+          durationMinutes: 25,
+          status: "completed",
+          createdAt: now,
+        },
+      ],
+    });
+    await page.goto("/hub");
+    await expect(page.getByTestId("page-summary")).toContainText("25 min");
+  });
+});
+
 test.describe("redesign guards — capture affordances", () => {
   test("mobile dock offers quick add and search beside its destinations", async ({
     page,

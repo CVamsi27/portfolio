@@ -46,11 +46,11 @@ export default function HydrationTracker({ date }: { date?: string } = {}) {
             Daily Hydration
           </h3>
         </div>
-        <span className="font-mono text-xs tabular-nums text-muted-foreground">
-          {logs[today] == null
-            ? "No water recorded"
-            : `${currentGlasses} glasses · ${currentMl} ml`}
-        </span>
+        {logs[today] != null && (
+          <span className="font-mono text-xs tabular-nums text-muted-foreground">
+            {currentGlasses} glasses · {currentMl} ml
+          </span>
+        )}
       </div>
 
       <div className="mt-4">

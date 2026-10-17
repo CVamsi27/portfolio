@@ -7,6 +7,8 @@ import Link from "next/link";
 import ActionMenu from "@/components/trackers/ActionMenu";
 import CompletionToggle from "@/components/trackers/CompletionToggle";
 import PersonalShell from "@/components/trackers/PersonalShell";
+import ChapterBreadcrumb from "@/components/trackers/ChapterBreadcrumb";
+import MetricSummary from "@/components/progress/MetricSummary";
 import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
@@ -333,6 +335,10 @@ export default function GoalPage() {
         icon="flag"
         title="Goals"
         subtitle={null}
+        breadcrumb={
+          <ChapterBreadcrumb href="/plan" label="Plan" current="Goals" />
+        }
+        context={<MetricSummary metric="goal" context="today" />}
         badge={<SyncBadge status={status} />}
         actions={{
           primary: (

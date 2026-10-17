@@ -3,8 +3,10 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import PageHeader from "@/components/trackers/PageHeader";
+import ChapterBreadcrumb from "@/components/trackers/ChapterBreadcrumb";
+import MetricSummary from "@/components/progress/MetricSummary";
+import EmptyState from "@/components/trackers/EmptyState";
 import DaySelector from "@/components/daily/DaySelector";
-import WorkspaceProgressLead from "@/components/progress/WorkspaceProgressLead";
 import { validDay } from "@/lib/day-plan";
 import ActionMenu from "@/components/trackers/ActionMenu";
 import Modal from "@/components/trackers/Modal";
@@ -329,15 +331,27 @@ export default function FoodTracker() {
         eyebrow="Health"
         title="Food"
         subtitle={null}
+        breadcrumb={
+          <ChapterBreadcrumb href="/health" label="Health" current="Food" />
+        }
         context={
-          <DaySelector
-            date={date}
-            today={foodDateKey()}
-            onChange={setDate}
-            label="Record date"
-            previousLabel="Previous food date"
-            nextLabel="Next food date"
-          />
+          <>
+            <DaySelector
+              date={date}
+              today={foodDateKey()}
+              onChange={setDate}
+              label="Record date"
+              previousLabel="Previous food date"
+              nextLabel="Next food date"
+            />
+            {foodView === "diary" && (
+              <MetricSummary
+                metric="energy"
+                endDate={date}
+                context={date === foodDateKey() ? "today" : date}
+              />
+            )}
+          </>
         }
         action={
           <div className="flex flex-wrap items-center gap-2">
@@ -399,7 +413,6 @@ export default function FoodTracker() {
           </div>
         }
       />
-      <WorkspaceProgressLead />
       <nav className="workspace-views" aria-label="Food views">
         {[
           ["diary", "Diary"],
@@ -581,7 +594,11 @@ export default function FoodTracker() {
         </details>
       )}
       {foodView === "diary" && entries.length === 0 && (
-        <p className="workspace-empty">No food logged for this date.</p>
+        <EmptyState
+          appearance="plain"
+          title="Start this day's diary"
+          hint="Add your first food — totals and coverage build as you log meals, snacks and drinks."
+        />
       )}
       {foodView === "diary" && entries.length > 0 && (
         <details>

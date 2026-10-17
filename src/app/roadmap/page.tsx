@@ -29,6 +29,8 @@ import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
 import ActionMenu from "@/components/trackers/ActionMenu";
 import PersonalShell from "@/components/trackers/PersonalShell";
+import ChapterBreadcrumb from "@/components/trackers/ChapterBreadcrumb";
+import MetricSummary from "@/components/progress/MetricSummary";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { SimpleRing } from "@/components/trackers/Ring";
@@ -2306,6 +2308,7 @@ export default function RoadmapPage() {
         }
         subtitle={null}
         eyebrow="NOVA // Execution"
+        context={<MetricSummary metric="study" context="today" />}
       >
         <nav className="workspace-views" aria-label="Roadmap views">
           <button

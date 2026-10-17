@@ -9,7 +9,6 @@ export default function HealthPage() {
       <PersonalShell
         showBack={false}
         title={null}
-        progress={false}
         icon="scale"
         subtitle={null}
       >

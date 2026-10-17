@@ -2,14 +2,38 @@ import { test, expect } from "@playwright/test";
 import { seed } from "./helpers";
 
 for (const screen of [
-  { path: "/health?date=2026-10-03", label: "Selected date" },
-  { path: "/intermittent-fasting?date=2026-10-03", label: "Selected date" },
-  { path: "/weight-loss?date=2026-10-03", label: "Record date" },
-  { path: "/food?date=2026-10-03&view=diary", label: "Record date" },
-  { path: "/dashboard?date=2026-10-03", label: "Through date" },
-  { path: "/workout-tracking?date=2026-10-03", label: "Selected date" },
+  {
+    path: "/health?date=2026-10-03",
+    label: "Selected date",
+    anchor: ".workspace-views",
+  },
+  {
+    path: "/intermittent-fasting?date=2026-10-03",
+    label: "Selected date",
+    anchor: ".workspace-views",
+  },
+  {
+    path: "/weight-loss?date=2026-10-03",
+    label: "Record date",
+    anchor: "#weight-entry",
+  },
+  {
+    path: "/food?date=2026-10-03&view=diary",
+    label: "Record date",
+    anchor: ".workspace-views",
+  },
+  {
+    path: "/dashboard?date=2026-10-03",
+    label: "Through date",
+    anchor: '[data-testid="progress-chart"]',
+  },
+  {
+    path: "/workout-tracking?date=2026-10-03",
+    label: "Selected date",
+    anchor: ".workspace-views",
+  },
 ]) {
-  test(`${screen.path} keeps its date before progress and preserves selection`, async ({
+  test(`${screen.path} keeps its date before page content and preserves selection`, async ({
     page,
   }) => {
     await seed(page);
@@ -18,10 +42,10 @@ for (const screen of [
     const date = page.getByLabel(screen.label, { exact: true });
     await expect(date).toHaveValue("2026-10-03");
     const dateBox = await date.boundingBox();
-    const chartBox = await page.getByTestId("progress-lead").boundingBox();
+    const contentBox = await page.locator(screen.anchor).first().boundingBox();
     expect(dateBox).not.toBeNull();
-    expect(chartBox).not.toBeNull();
-    expect(dateBox!.y + dateBox!.height).toBeLessThanOrEqual(chartBox!.y);
+    expect(contentBox).not.toBeNull();
+    expect(dateBox!.y + dateBox!.height).toBeLessThanOrEqual(contentBox!.y);
     await date.fill("2026-10-02");
     await expect(date).toHaveValue("2026-10-02");
     await expect(page).toHaveURL(/[?&]date=2026-10-02(?:&|$)/);

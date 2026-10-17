@@ -207,15 +207,15 @@ test.describe("hub command center", () => {
     ).toBe(3);
   });
 
-  test("empty day shows no recorded focus or invented commitments", async ({
+  test("empty day shows no invented records or commitments", async ({
     page,
   }) => {
     await seed(page);
     await page.goto("/trackers");
     await expect(page.getByTestId("progress-rail")).toHaveCount(0);
-    await expect(page.getByTestId("progress-lead")).toContainText(
-      "No completed focus",
-    );
+    // The repeated negative strip is gone; honest silence replaces it.
+    await expect(page.getByTestId("progress-lead")).toHaveCount(0);
+    await expect(page.getByTestId("page-summary")).toHaveCount(0);
     await expect(
       page.getByText(
         "No timed commitments for this day. Schedule an activity in Plan.",

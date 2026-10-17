@@ -8,6 +8,8 @@ import { safeReturn } from "@/components/daily/CaptureWorkspace";
 import { useEffect, useMemo, useState } from "react";
 import CompletionToggle from "@/components/trackers/CompletionToggle";
 import PersonalShell from "@/components/trackers/PersonalShell";
+import ChapterBreadcrumb from "@/components/trackers/ChapterBreadcrumb";
+import MetricSummary from "@/components/progress/MetricSummary";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -308,7 +310,29 @@ export default function WorkoutPage() {
         icon="workout"
         title="Workouts"
         subtitle={null}
-        context={view === "session" ? <DaySelector date={selected} today={today} onChange={setSelected} /> : undefined}
+        breadcrumb={
+          <ChapterBreadcrumb href="/health" label="Health" current="Workouts" />
+        }
+        context={
+          view === "plan" ? undefined : (
+            <>
+              {view === "session" && (
+                <DaySelector
+                  date={selected}
+                  today={today}
+                  onChange={setSelected}
+                />
+              )}
+              <MetricSummary
+                metric="sets"
+                endDate={view === "session" ? selected : undefined}
+                context={
+                  view === "session" && selected !== today ? selected : "today"
+                }
+              />
+            </>
+          )
+        }
         badge={<SyncBadge status={status} />}
       >
         <WorkspaceViews
@@ -431,7 +455,7 @@ export default function WorkoutPage() {
               {exercises.length === 0 ? (
                 <EmptyState
                   icon={Dumbbell}
-                  title="No exercises on this day yet"
+                  title="Start this session"
                   hint="Add your first exercise — name, target sets and reps. It becomes part of this split day."
                   action={
                     <Button
@@ -593,7 +617,7 @@ export default function WorkoutPage() {
                     <div className="mt-3">
                       <EmptyState
                         icon={History}
-                        title="No PRs yet"
+                        title="Your best lifts land here"
                         hint="Log weighted sets — your best lift per exercise shows up here."
                       />
                     </div>

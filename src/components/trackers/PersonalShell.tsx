@@ -1,6 +1,5 @@
 import PersonalBackLink from "./PersonalBackLink";
-import { Suspense, type ReactNode } from "react";
-import WorkspaceProgressLead from "@/components/progress/WorkspaceProgressLead";
+import { type ReactNode } from "react";
 import { type TrackerIconName } from "./icons";
 import TrackerNavDock from "./TrackerNavDock";
 import PageHeader from "./PageHeader";
@@ -28,7 +27,7 @@ export default function PersonalShell({
   badge,
   actions,
   context,
-  progress = true,
+  breadcrumb,
   showBack = false,
   showDock = true,
   children,
@@ -40,7 +39,8 @@ export default function PersonalShell({
   badge?: ReactNode;
   actions?: { primary: ReactNode; secondary?: ReactNode };
   context?: ReactNode;
-  progress?: boolean;
+  /** Chapter trail such as `Plan / Tasks`; omit on chapter roots. */
+  breadcrumb?: ReactNode;
   showBack?: boolean;
   showDock?: boolean;
   children: ReactNode;
@@ -67,6 +67,7 @@ export default function PersonalShell({
             }
             subtitle={subtitle}
             context={context}
+            breadcrumb={breadcrumb}
             action={
               actions?.primary ?? (showBack ? <PersonalBackLink /> : undefined)
             }
@@ -78,14 +79,7 @@ export default function PersonalShell({
         ) : (
           <LockdownGate>
             <RoutineNotifier />
-            <div className="personal-content mt-5 space-y-5">
-              {progress && (
-                <Suspense fallback={null}>
-                  <WorkspaceProgressLead />
-                </Suspense>
-              )}
-              {children}
-            </div>
+            <div className="personal-content mt-5 space-y-5">{children}</div>
             <TrackerNavDock showDock={showDock} />
           </LockdownGate>
         )}

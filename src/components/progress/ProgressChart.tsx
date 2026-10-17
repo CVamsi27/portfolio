@@ -6,14 +6,78 @@ import { usePersonalProgress } from "@/lib/use-personal-progress";
 import {
   PROGRESS_METRICS,
   metricPoints,
-  progressMetric,
   type ProgressMetric,
 } from "@/lib/progress-presentation";
-import { validDay } from "@/lib/day-plan";
 import TrendChart from "./TrendChart";
 import { metricFor } from "@/lib/user-prefs";
+import EmptyState from "@/components/trackers/EmptyState";
 
-export function ProgressLead({
+/** Positive, action-first copy for a chart that has no readings yet. */
+const EMPTY_COPY: Record<ProgressMetric, { title: string; hint: string }> = {
+  weight: {
+    title: "Start your weight trend",
+    hint: "Record a weigh-in to chart this range.",
+  },
+  sets: {
+    title: "Record your working sets",
+    hint: "Log sets in a workout to chart your training.",
+  },
+  energy: {
+    title: "Chart your daily energy",
+    hint: "Log foods to record calories.",
+  },
+  protein: {
+    title: "Chart your protein",
+    hint: "Log foods to record protein.",
+  },
+  exercise: {
+    title: "Chart your movement",
+    hint: "Log exercises to record active minutes.",
+  },
+  fasting: {
+    title: "Chart your eating windows",
+    hint: "Save a first and last meal time to record fasts.",
+  },
+  water: {
+    title: "Chart your hydration",
+    hint: "Record glasses of water to chart your intake.",
+  },
+  sleep: {
+    title: "Chart your sleep",
+    hint: "Record sleep to chart nightly hours.",
+  },
+  focus: {
+    title: "Chart your focus minutes",
+    hint: "Start a focus session to record deep work.",
+  },
+  study: {
+    title: "Chart your study minutes",
+    hint: "Complete study chapters to record learning.",
+  },
+  tasks: {
+    title: "Chart your completions",
+    hint: "Complete a task to record it here.",
+  },
+  goal: {
+    title: "Log your goal metric",
+    hint: "Record today's number to start the trend.",
+  },
+  routine: {
+    title: "Chart your routines",
+    hint: "Complete a routine to record it here.",
+  },
+  reflection: {
+    title: "Chart your reflections",
+    hint: "Write a reflection to record it here.",
+  },
+};
+
+/**
+ * The Progress page's single chart. The metric and range controls live inside
+ * the panel they control; an empty range renders an actionable empty state
+ * instead of negative boilerplate.
+ */
+export default function ProgressChart({
   metric,
   endDate,
   options,
@@ -47,26 +111,15 @@ export function ProgressLead({
   const counts = ["tasks", "routine", "reflection", "sets"].includes(metric);
   const count = recorded.reduce((sum, point) => sum + (point.value ?? 0), 0);
   const empty = counts ? count === 0 : recorded.length === 0;
+  const actionHref = `${definition.href}${definition.href.includes("?") ? "&" : "?"}date=${data.end}`;
   return (
     <section
       className={`workspace-progress-lead${empty ? " is-empty" : ""}`}
       aria-label={`${definition.label} progress`}
-      data-testid="progress-lead"
+      data-testid="progress-chart"
     >
       <div className="workspace-progress-heading">
-        <h2>
-          {empty ? `No ${definition.label.toLowerCase()}` : definition.label}
-        </h2>
-        {empty &&
-          currentPath === "/dashboard" &&
-          definition.href.split("?")[0] !== currentPath && (
-            <Link
-              className="inline-action"
-              href={`${definition.href}${definition.href.includes("?") ? "&" : "?"}date=${data.end}`}
-            >
-              {definition.action}
-            </Link>
-          )}
+        <h2>{definition.label}</h2>
         <div className="workspace-progress-controls">
           {options && onMetric && (
             <label>
@@ -105,35 +158,39 @@ export function ProgressLead({
           </label>
         </div>
       </div>
-      {!empty && (
-        <p className="workspace-progress-period">
-          {data.first} – {data.end}
-          {syncing ? " · Syncing…" : ""}
-        </p>
-      )}
-      {!empty && (
-        <TrendChart
-          points={points}
-          label={definition.label}
-          unit={unit}
-          bars={definition.bars}
-        />
-      )}
-      {!empty && (
-        <div className="workspace-progress-footer">
-          <span>
-            {counts
-              ? `${count} ${unit} in this range`
-              : `${recorded.length}/${range} dated readings · ${unit}`}
-          </span>
-          {definition.href.split("?")[0] !== currentPath && (
-            <Link
-              href={`${definition.href}${definition.href.includes("?") ? "&" : "?"}date=${data.end}`}
-            >
+      {empty ? (
+        <EmptyState
+          title={EMPTY_COPY[metric].title}
+          hint={EMPTY_COPY[metric].hint}
+          action={
+            <Link className="inline-action" href={actionHref}>
               {definition.action}
             </Link>
-          )}
-        </div>
+          }
+        />
+      ) : (
+        <>
+          <p className="workspace-progress-period">
+            {data.first} – {data.end}
+            {syncing ? " · Syncing…" : ""}
+          </p>
+          <TrendChart
+            points={points}
+            label={definition.label}
+            unit={unit}
+            bars={definition.bars}
+          />
+          <div className="workspace-progress-footer">
+            <span>
+              {counts
+                ? `${count} ${unit} in this range`
+                : `${recorded.length}/${range} dated readings · ${unit}`}
+            </span>
+            {definition.href.split("?")[0] !== currentPath && (
+              <Link href={actionHref}>{definition.action}</Link>
+            )}
+          </div>
+        </>
       )}
       {empty && syncing && (
         <p role="status" className="text-sm text-muted-foreground">
@@ -146,47 +203,5 @@ export function ProgressLead({
         </p>
       )}
     </section>
-  );
-}
-
-export default function WorkspaceProgressLead() {
-  const path = usePathname(),
-    params = useSearchParams();
-  const [selected, setSelected] = useState<ProgressMetric | null>(null);
-  const metric = progressMetric(path, params.get("view"));
-  // Today and the selected Exams view place their chart within their own header flow.
-  if (
-    !metric ||
-    path === "/plan" ||
-    path === "/hub" ||
-    path === "/trackers" ||
-    (path === "/roadmap" && params.get("panel") === "exams")
-  )
-    return null;
-  const options: ProgressMetric[] | undefined =
-    path === "/health" && params.get("view") !== "recovery"
-      ? ["weight", "energy", "sets", "exercise", "water", "sleep"]
-      : path === "/workout-tracking"
-        ? ["sets", "exercise"]
-        : undefined;
-  const selectedQuery = params.get("metric") as ProgressMetric | null;
-  const chosen = options?.includes(selectedQuery!)
-    ? selectedQuery!
-    : selected && options?.includes(selected)
-      ? selected
-      : metric;
-  return (
-    <ProgressLead
-      key={`${path}:${params.get("view")}`}
-      metric={chosen}
-      options={options}
-      onMetric={(next) => {
-        setSelected(next);
-        const url = new URL(window.location.href);
-        url.searchParams.set("metric", next);
-        window.history.replaceState(null, "", url);
-      }}
-      endDate={validDay(params.get("date")) ? params.get("date")! : undefined}
-    />
   );
 }

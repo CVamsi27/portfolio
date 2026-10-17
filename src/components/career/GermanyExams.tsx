@@ -98,11 +98,7 @@ export default function GermanyExams({
         aria-label="Exam score progress"
       >
         <div className="workspace-progress-heading">
-          <h2>
-            {!hasScores
-              ? `${round.id} · No eligible scores · ${range} days`
-              : `${round.id} · Exam scores`}
-          </h2>
+          <h2>{`${round.id} · Exam scores`}</h2>
           <div className="workspace-progress-controls">
             <span className="text-sm text-muted-foreground">
               {track} · Current rubric
@@ -139,6 +135,11 @@ export default function GermanyExams({
               rubrics stay in history.
             </p>
           </>
+        )}
+        {!hasScores && (
+          <p className="text-sm text-muted-foreground">
+            Log an eligible score to start this chart.
+          </p>
         )}
       </section>
       <div className="flex flex-wrap items-center justify-between gap-3">

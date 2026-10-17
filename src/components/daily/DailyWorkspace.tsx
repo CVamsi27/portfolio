@@ -53,7 +53,7 @@ import TodayAgendaRow from "./TodayAgendaRow";
 import { agendaPeriod, agendaStatus } from "@/lib/day-presentation";
 import { ArrowRight } from "lucide-react";
 import { editablePlanBlocks } from "@/lib/plan-presentation";
-import { ProgressLead } from "@/components/progress/WorkspaceProgressLead";
+import MetricSummary from "@/components/progress/MetricSummary";
 import HabitChecklist from "@/components/personal/HabitChecklist";
 import FocusSprint from "@/components/trackers/FocusSprint";
 import { displayWeight } from "@/lib/health";
@@ -640,7 +640,11 @@ export default function DailyWorkspace({
           </header>
         </>
       )}
-      <ProgressLead metric="focus" endDate={date} />
+      <MetricSummary
+        metric="focus"
+        endDate={date}
+        context={date === today ? "today" : date}
+      />
       {!planning && (
         <WeekDateStrip date={date} today={today} onChange={setDate} />
       )}

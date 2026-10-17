@@ -163,7 +163,7 @@ export default function NutritionInsights({
             </ul>
             {!contributors.length && (
               <p className="text-sm text-muted-foreground">
-                No recorded amounts for this nutrient.
+                Log foods with this nutrient to see where it comes from.
               </p>
             )}
           </>

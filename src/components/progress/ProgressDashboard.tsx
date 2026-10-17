@@ -9,7 +9,7 @@ import {
 } from "@/lib/progress-presentation";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-import { ProgressLead } from "./WorkspaceProgressLead";
+import ProgressChart from "./ProgressChart";
 import ImportedHealthTrends from "./ImportedHealthTrends";
 import PageHeader from "@/components/trackers/PageHeader";
 const health: ProgressMetric[] = [
@@ -115,7 +115,7 @@ export default function ProgressDashboard() {
           </div>
         }
       />
-      <ProgressLead
+      <ProgressChart
         metric={chosen}
         endDate={through}
         options={

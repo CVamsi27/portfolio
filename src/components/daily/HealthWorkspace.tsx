@@ -16,7 +16,7 @@ import DaySelector from "./DaySelector";
 import CaptureWorkspace from "./CaptureWorkspace";
 import HealthConnections from "@/components/health/HealthConnections";
 import PageHeader from "@/components/trackers/PageHeader";
-import WorkspaceProgressLead from "@/components/progress/WorkspaceProgressLead";
+import MetricSummary from "@/components/progress/MetricSummary";
 export default function HealthWorkspace() {
   const params = useSearchParams(),
     router = useRouter();
@@ -46,16 +46,24 @@ export default function HealthWorkspace() {
         title="Health"
         subtitle={null}
         context={
-          <DaySelector
-            date={date}
-            today={today}
-            onChange={(day) =>
-              router.replace(`/health?view=${view}&date=${day}`)
-            }
-          />
+          <>
+            <DaySelector
+              date={date}
+              today={today}
+              onChange={(day) =>
+                router.replace(`/health?view=${view}&date=${day}`)
+              }
+            />
+            {view !== "connections" && (
+              <MetricSummary
+                metric={view === "recovery" ? "sleep" : "weight"}
+                endDate={date}
+                context={date === today ? "today" : date}
+              />
+            )}
+          </>
         }
       />
-      <WorkspaceProgressLead />
       {fasting.value.startedAt !== null && (
         <section className="workspace-panel">
           <h2>Active fasting timer</h2>

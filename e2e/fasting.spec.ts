@@ -60,7 +60,7 @@ test.describe("intermittent fasting tracker", () => {
       page.getByRole("heading", { name: "Set your daily routine" }).first(),
     ).toBeVisible();
     await page.getByRole("button", { name: "History", exact: true }).click();
-    await expect(page.getByText("No meal windows logged yet")).toBeVisible();
+    await expect(page.getByText("Save your first eating window")).toBeVisible();
     await expect(page.getByRole("button", { name: "Start Fast" })).toHaveCount(
       0,
     );
@@ -88,7 +88,7 @@ test.describe("intermittent fasting tracker", () => {
 
     // Delete the entry via the row's trash button.
     await page.getByRole("button", { name: "Delete meal window" }).click();
-    await expect(page.getByText("No meal windows logged yet")).toBeVisible();
+    await expect(page.getByText("Save your first eating window")).toBeVisible();
     const history = JSON.parse(
       (await page.evaluate(() =>
         window.localStorage.getItem("vk:fasting:history"),

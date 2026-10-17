@@ -25,6 +25,8 @@ export type PersonalNavItem = {
   label: string;
   short: string;
   icon: TrackerIconName;
+  /** Directory copy for surfaces that list the destination (Tools). */
+  description?: string;
 };
 
 export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
@@ -53,46 +55,6 @@ export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
   },
 ];
 
-export const PERSONAL_MORE_NAV: readonly PersonalNavItem[] = [
-  { id: "tasks", href: "/todo", label: "Tasks", short: "Tasks", icon: "todo" },
-  { id: "goal", href: "/goal", label: "Goals", short: "Goals", icon: "flag" },
-  {
-    id: "health",
-    href: "/weight-loss",
-    label: "Health / Weight loss",
-    short: "Health",
-    icon: "scale",
-  },
-  {
-    id: "fasting",
-    href: "/intermittent-fasting",
-    label: "Fasting",
-    short: "Fast",
-    icon: "timer",
-  },
-  {
-    id: "workouts",
-    href: "/workout-tracking",
-    label: "Workouts",
-    short: "Workouts",
-    icon: "workout",
-  },
-  {
-    id: "archive",
-    href: "/archive",
-    label: "Library",
-    short: "Library",
-    icon: "archive",
-  },
-  {
-    id: "settings",
-    href: "/settings",
-    label: "Settings",
-    short: "Settings",
-    icon: "settings",
-  },
-];
-
 export const PERSONAL_TOOLS_NAV: readonly PersonalNavItem[] = [
   {
     id: "motivation",
@@ -100,6 +62,7 @@ export const PERSONAL_TOOLS_NAV: readonly PersonalNavItem[] = [
     label: "Motivation",
     short: "Motivation",
     icon: "flame",
+    description: "Your purpose, reminders and next step.",
   },
   {
     id: "archive",
@@ -107,6 +70,7 @@ export const PERSONAL_TOOLS_NAV: readonly PersonalNavItem[] = [
     label: "Library",
     short: "Library",
     icon: "archive",
+    description: "Your private notes, links and saved material.",
   },
   {
     id: "sharing",
@@ -114,6 +78,7 @@ export const PERSONAL_TOOLS_NAV: readonly PersonalNavItem[] = [
     label: "Sharing",
     short: "Sharing",
     icon: "share",
+    description: "Manage explicit sharing and its audience.",
   },
   {
     id: "settings",
@@ -121,6 +86,7 @@ export const PERSONAL_TOOLS_NAV: readonly PersonalNavItem[] = [
     label: "Settings",
     short: "Settings",
     icon: "settings",
+    description: "Modules, optional protection, sync and data backup.",
   },
 ];
 
