@@ -225,7 +225,7 @@ export default function ArchivePage() {
     ];
 
     items.forEach((item, index) => {
-      const dateStr = new Date(item.createdAt).toLocaleDateString();
+      const dateStr = new Date(item.createdAt).toLocaleDateString("en-US");
       const goalName =
         GOAL_CATEGORIES.find((c) => c.id === item.goalCategory)?.label ??
         "Unlinked";

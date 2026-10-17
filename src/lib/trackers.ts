@@ -1158,21 +1158,21 @@ export const GOAL_MILESTONES: Record<GoalCategory, string[]> = {
 
 export const GOAL_SNIPPETS: Record<GoalCategory, (hub?: string) => string> = {
   general: () =>
-    `Daily progress: ${new Date().toLocaleDateString()} — One useful move is enough to keep the sequence alive. Notice what works, then return tomorrow.`,
+    `Daily progress: ${new Date().toLocaleDateString("en-US")} — One useful move is enough to keep the sequence alive. Notice what works, then return tomorrow.`,
   relocation: (hub) =>
     `Hallo! I'm a Full Stack Engineer specializing in TypeScript (React, Node, NestJS, PostgreSQL). I love the tech ecosystem in ${hub ?? "your city"} and notice your team is scaling up. Would love to connect and share how my background aligns with your current architecture needs. Vielen Dank!`,
   fitness: () =>
-    `Training update: ${new Date().toLocaleDateString()} — Every rep counts. Every session compounds. The version of me that shows up today is building the version of me that wins tomorrow.`,
+    `Training update: ${new Date().toLocaleDateString("en-US")} — Every rep counts. Every session compounds. The version of me that shows up today is building the version of me that wins tomorrow.`,
   weightloss: () =>
-    `Health check-in: ${new Date().toLocaleDateString()} — I am building a sustainable routine, one honest check-in at a time.`,
+    `Health check-in: ${new Date().toLocaleDateString("en-US")} — I am building a sustainable routine, one honest check-in at a time.`,
   career: () =>
-    `Career development check-in: ${new Date().toLocaleDateString()} — Focused on continuous improvement. Building skills, shipping projects, and making connections that matter.`,
+    `Career development check-in: ${new Date().toLocaleDateString("en-US")} — Focused on continuous improvement. Building skills, shipping projects, and making connections that matter.`,
   learning: () =>
-    `Learning update: ${new Date().toLocaleDateString()} — Today's focus: deep work on the core skill. Consistency beats intensity. 30 minutes of focused practice > 3 hours of distracted effort.`,
+    `Learning update: ${new Date().toLocaleDateString("en-US")} — Today's focus: deep work on the core skill. Consistency beats intensity. 30 minutes of focused practice > 3 hours of distracted effort.`,
   financial: () =>
-    `Financial check-in: ${new Date().toLocaleDateString()} — Tracking expenses, building savings, and investing in skills that generate returns. Small optimizations compound.`,
+    `Financial check-in: ${new Date().toLocaleDateString("en-US")} — Tracking expenses, building savings, and investing in skills that generate returns. Small optimizations compound.`,
   custom: () =>
-    `Daily reflection: ${new Date().toLocaleDateString()} — One step closer today. Progress isn't always visible, but it's always happening. Trust the process.`,
+    `Daily reflection: ${new Date().toLocaleDateString("en-US")} — One step closer today. Progress isn't always visible, but it's always happening. Trust the process.`,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

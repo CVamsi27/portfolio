@@ -7,7 +7,7 @@ export default function DashboardPage() {
   return (
     <RequireAuth>
       <PersonalShell
-        title="Progress"
+        title={null}
         eyebrow="Your records over time"
         icon="log"
         showBack={false}

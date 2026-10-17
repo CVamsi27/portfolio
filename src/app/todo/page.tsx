@@ -8,6 +8,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/client";
 import Modal from "@/components/trackers/Modal";
 import ActionMenu from "@/components/trackers/ActionMenu";
 import TrackerShell from "@/components/trackers/TrackerShell";
+import WorkspaceViews from "@/components/daily/WorkspaceViews";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
 import RequireAuth from "@/components/auth/RequireAuth";
@@ -325,14 +326,14 @@ export default function TodoPage() {
 
         {/* ── Views + tag filter ── */}
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-          <Segmented
+          <WorkspaceViews
             label="Task view"
-            options={[
+            views={[
               {
-                value: "today",
+                id: "today",
                 label: "Open",
               },
-              { value: "done", label: "Completed" },
+              { id: "done", label: "Completed" },
             ]}
             value={view}
             onChange={setView}

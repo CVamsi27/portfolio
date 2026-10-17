@@ -204,20 +204,22 @@ export default function FastingPage() {
         icon="timer"
         title="Water & eating window"
         subtitle={null}
+        context={
+          <DaySelector
+            date={today}
+            today={dateKey()}
+            onChange={(date) => {
+              setRecordDate(date);
+              setDraft({ firstMealTime: "", lastMealTime: "" });
+              setSaved(false);
+              const url = new URL(window.location.href);
+              url.searchParams.set("date", date);
+              window.history.replaceState(null, "", url);
+            }}
+          />
+        }
         badge={<SyncBadge status={status} />}
       >
-        <DaySelector
-          date={today}
-          today={dateKey()}
-          onChange={(date) => {
-            setRecordDate(date);
-            setDraft({ firstMealTime: "", lastMealTime: "" });
-            setSaved(false);
-            const url = new URL(window.location.href);
-            url.searchParams.set("date", date);
-            window.history.replaceState(null, "", url);
-          }}
-        />
         <WorkspaceViews
           label="Water and meal views"
           value={view}

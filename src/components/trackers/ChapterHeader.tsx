@@ -7,6 +7,7 @@ export default function ChapterHeader({
   subtitle,
   action,
   utility,
+  context,
   compact = false,
 }: {
   eyebrow: string;
@@ -14,6 +15,7 @@ export default function ChapterHeader({
   subtitle: ReactNode;
   action?: ReactNode;
   utility?: ReactNode;
+  context?: ReactNode;
   compact?: boolean;
 }) {
   if (compact)
@@ -25,15 +27,16 @@ export default function ChapterHeader({
       >
         <div data-testid="personal-section-header" className="nova-page-header">
           <div>
-          <h1 className="font-display font-semibold leading-tight tracking-tight">
-            {title}
-          </h1>
-          {(subtitle || utility) && (
-            <div className="chapter-context-row">
-              {subtitle && <p className="chapter-description">{subtitle}</p>}
-              {utility && <div className="dossier-utility">{utility}</div>}
-            </div>
-          )}
+            <h1 className="font-display font-semibold leading-tight tracking-tight">
+              {title}
+            </h1>
+            {context && <div className="nova-page-context">{context}</div>}
+            {(subtitle || utility) && (
+              <div className="chapter-context-row">
+                {subtitle && <p className="chapter-description">{subtitle}</p>}
+                {utility && <div className="dossier-utility">{utility}</div>}
+              </div>
+            )}
           </div>
           {action && <div className="nova-page-action">{action}</div>}
         </div>

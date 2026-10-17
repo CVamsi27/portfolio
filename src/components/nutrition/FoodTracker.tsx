@@ -2,6 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ChapterHeader from "@/components/trackers/ChapterHeader";
+import DaySelector from "@/components/daily/DaySelector";
+import WorkspaceProgressLead from "@/components/progress/WorkspaceProgressLead";
 import { validDay } from "@/lib/day-plan";
 import ActionMenu from "@/components/trackers/ActionMenu";
 import Modal from "@/components/trackers/Modal";
@@ -321,6 +324,82 @@ export default function FoodTracker() {
   };
   return (
     <div className="space-y-5">
+      <ChapterHeader
+        compact
+        eyebrow="Health"
+        title="Food"
+        subtitle={null}
+        context={
+          <DaySelector
+            date={date}
+            today={foodDateKey()}
+            onChange={setDate}
+            label="Record date"
+            previousLabel="Previous food date"
+            nextLabel="Next food date"
+          />
+        }
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            {foodView === "diary" && <Button onClick={start}>Add food</Button>}
+            <ActionMenu label="Food actions">
+              <Button variant="ghost" onClick={() => setMealOpen(true)}>
+                Log meal
+              </Button>
+              {foodView === "saved" && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    start();
+                    setIngredientOnly(true);
+                  }}
+                >
+                  Add saved food
+                </Button>
+              )}
+              {foodView === "saved" && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setRecipeEditing(null);
+                    setError("");
+                    setRecipeOpen(true);
+                  }}
+                >
+                  Create recipe
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setFoodView("strategy");
+                  window.history.replaceState(
+                    null,
+                    "",
+                    `/food?view=strategy&date=${date}`,
+                  );
+                }}
+              >
+                Nutrition settings
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setFoodView("insights");
+                  window.history.replaceState(
+                    null,
+                    "",
+                    `/food?view=insights&date=${date}`,
+                  );
+                }}
+              >
+                Nutrition insights
+              </Button>
+            </ActionMenu>
+          </div>
+        }
+      />
+      <WorkspaceProgressLead />
       <nav className="workspace-views" aria-label="Food views">
         {[
           ["diary", "Diary"],
@@ -343,102 +422,6 @@ export default function FoodTracker() {
           </Button>
         ))}
       </nav>
-      <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <label htmlFor="food-date" className="text-sm font-medium">
-            Record date
-          </label>
-          <Input
-            id="food-date"
-            type="date"
-            value={date}
-            onInput={(e) => {
-              if (validDay(e.currentTarget.value))
-                setDate(e.currentTarget.value);
-            }}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-        <Button
-          variant="ghost"
-          aria-label="Previous food date"
-          onClick={() => {
-            const day = new Date(`${date}T12:00:00Z`);
-            if (!Number.isFinite(day.getTime())) return;
-            day.setUTCDate(day.getUTCDate() - 1);
-            setDate(day.toISOString().slice(0, 10));
-          }}
-        >
-          ←
-        </Button>
-        <Button
-          variant="ghost"
-          aria-label="Next food date"
-          onClick={() => {
-            const day = new Date(`${date}T12:00:00Z`);
-            if (!Number.isFinite(day.getTime())) return;
-            day.setUTCDate(day.getUTCDate() + 1);
-            setDate(day.toISOString().slice(0, 10));
-          }}
-        >
-          →
-        </Button>
-        {foodView === "diary" && <Button onClick={start}>Add food</Button>}
-        <ActionMenu label="Food actions">
-          <Button variant="ghost" onClick={() => setMealOpen(true)}>
-            Log meal
-          </Button>
-          {foodView === "saved" && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                start();
-                setIngredientOnly(true);
-              }}
-            >
-              Add saved food
-            </Button>
-          )}
-          {foodView === "saved" && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setRecipeEditing(null);
-                setError("");
-                setRecipeOpen(true);
-              }}
-            >
-              Create recipe
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setFoodView("strategy");
-              window.history.replaceState(
-                null,
-                "",
-                `/food?view=strategy&date=${date}`,
-              );
-            }}
-          >
-            Nutrition settings
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setFoodView("insights");
-              window.history.replaceState(
-                null,
-                "",
-                `/food?view=insights&date=${date}`,
-              );
-            }}
-          >
-            Nutrition insights
-          </Button>
-        </ActionMenu>
-      </div>
       {syncStatus === "error" && (
         <p role="status" className="text-sm">
           Saved locally · sync needs attention.

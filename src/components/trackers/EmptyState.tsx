@@ -6,7 +6,7 @@ export default function EmptyState({
   title,
   hint,
   action,
-  appearance = "framed",
+  appearance = "plain",
 }: {
   icon: LucideIcon;
   title: string;

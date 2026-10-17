@@ -27,6 +27,8 @@ export default function PersonalShell({
   eyebrow,
   badge,
   actions,
+  context,
+  progress = true,
   showBack = false,
   showDock = true,
   children,
@@ -37,6 +39,8 @@ export default function PersonalShell({
   eyebrow?: string;
   badge?: ReactNode;
   actions?: { primary: ReactNode; secondary?: ReactNode };
+  context?: ReactNode;
+  progress?: boolean;
   showBack?: boolean;
   showDock?: boolean;
   children: ReactNode;
@@ -62,15 +66,29 @@ export default function PersonalShell({
               </span>
             }
             subtitle={subtitle}
-            action={actions?.primary ?? (showBack ? <PersonalBackLink /> : undefined)}
+            context={context}
+            action={
+              actions?.primary ?? (showBack ? <PersonalBackLink /> : undefined)
+            }
             utility={badge}
           />
         )}
-        {icon === "login" ? <div className="personal-content mt-5 space-y-5">{children}</div> : <LockdownGate>
-          <RoutineNotifier />
-          <div className="personal-content mt-5 space-y-5"><Suspense fallback={null}><WorkspaceProgressLead /></Suspense>{children}</div>
-          <TrackerNavDock showDock={showDock} />
-        </LockdownGate>}
+        {icon === "login" ? (
+          <div className="personal-content mt-5 space-y-5">{children}</div>
+        ) : (
+          <LockdownGate>
+            <RoutineNotifier />
+            <div className="personal-content mt-5 space-y-5">
+              {progress && (
+                <Suspense fallback={null}>
+                  <WorkspaceProgressLead />
+                </Suspense>
+              )}
+              {children}
+            </div>
+            <TrackerNavDock showDock={showDock} />
+          </LockdownGate>
+        )}
       </div>
     </EditorialFrame>
   );

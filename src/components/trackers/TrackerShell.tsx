@@ -9,6 +9,8 @@ export default function TrackerShell({
   eyebrow,
   badge,
   actions,
+  context,
+  progress,
   showBack = false,
   showDock = true,
   children,
@@ -19,11 +21,29 @@ export default function TrackerShell({
   eyebrow?: string;
   badge?: ReactNode;
   actions?: { primary: ReactNode; secondary?: ReactNode };
+  context?: ReactNode;
+  progress?: boolean;
   /** The command center is the root of the personal app, not a child chapter. */
   showBack?: boolean;
   /** Utility pages can opt out of the mobile action dock. */
   showDock?: boolean;
   children: ReactNode;
 }) {
-  return <PersonalShell {...{ icon, title, subtitle, eyebrow, badge, actions, showBack, showDock, children }} />;
+  return (
+    <PersonalShell
+      {...{
+        icon,
+        title,
+        subtitle,
+        eyebrow,
+        badge,
+        actions,
+        context,
+        progress,
+        showBack,
+        showDock,
+        children,
+      }}
+    />
+  );
 }

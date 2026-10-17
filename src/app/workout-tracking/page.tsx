@@ -6,6 +6,7 @@ import { useWorkspaceView } from "@/lib/use-workspace-view";
 import { safeReturn } from "@/components/daily/CaptureWorkspace";
 
 import { useEffect, useMemo, useState } from "react";
+import CompletionToggle from "@/components/trackers/CompletionToggle";
 import TrackerShell from "@/components/trackers/TrackerShell";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
@@ -307,6 +308,7 @@ export default function WorkoutPage() {
         icon="workout"
         title="Workouts"
         subtitle={null}
+        context={view === "session" ? <DaySelector date={selected} today={today} onChange={setSelected} /> : undefined}
         badge={<SyncBadge status={status} />}
       >
         <WorkspaceViews
@@ -368,9 +370,8 @@ export default function WorkoutPage() {
           )}
         </section>
         <div className="workspace-section-stack" hidden={view !== "session"}>
-          <DaySelector date={selected} today={today} onChange={setSelected} />
           {/* ── Header controls: split day tabs + unit toggle ── */}
-          <Card variant="dossier" id="exercise-logger">
+          {tabs.length > 1 && <Card variant="dossier" id="exercise-logger">
             <CardContent className="space-y-3 p-4">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold">
@@ -411,7 +412,7 @@ export default function WorkoutPage() {
                 </p>
               )}
             </CardContent>
-          </Card>
+          </Card>}
 
           {/* ── Exercise logger ── */}
           <Card variant="dossier">
@@ -805,7 +806,7 @@ function ExerciseCard({
   return (
     <div
       className={cn(
-        "rounded-xl border p-3 transition-all",
+        "workspace-exercise-row transition-colors",
         done ? "border-emerald-500/40 bg-emerald-500/5" : "border-border/60",
       )}
     >
@@ -829,18 +830,7 @@ function ExerciseCard({
           >
             <Pencil className="h-3.5 w-3.5" />
           </button>
-          <button
-            onClick={onToggle}
-            aria-label={`Mark ${ex.name} done`}
-            className={cn(
-              "flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-all active:scale-90",
-              done
-                ? "border-emerald-500 bg-emerald-500 text-white"
-                : "border-muted-foreground/40 hover:border-foreground",
-            )}
-          >
-            {done ? <Check className="h-4 w-4" /> : ""}
-          </button>
+          <CompletionToggle round checked={done} onClick={onToggle} label={`Mark ${ex.name} done`} />
         </div>
       </div>
 

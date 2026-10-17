@@ -8,27 +8,34 @@ export default function DaySelector({
   date,
   today,
   onChange,
+  label = "Selected date",
+  previousLabel = "Previous day",
+  nextLabel = "Next day",
 }: {
   date: string;
   today: string;
   onChange: (date: string) => void;
+  label?: string;
+  previousLabel?: string;
+  nextLabel?: string;
 }) {
   const inputId = useId();
   return (
     <div className="day-selector">
       <Button
         variant="outline"
-        aria-label="Previous day"
+        size="icon"
+        aria-label={previousLabel}
         onClick={() => onChange(shiftDay(date, -1))}
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
       </Button>
       <label className="sr-only" htmlFor={inputId}>
-        Selected date
+        {label}
       </label>
       <Input
         id={inputId}
-        aria-label="Selected date"
+        aria-label={label}
         type="date"
         value={date}
         onInput={(e) => {
@@ -40,7 +47,8 @@ export default function DaySelector({
       />
       <Button
         variant="outline"
-        aria-label="Next day"
+        size="icon"
+        aria-label={nextLabel}
         onClick={() => onChange(shiftDay(date, 1))}
       >
         <ArrowRight className="h-4 w-4" aria-hidden />

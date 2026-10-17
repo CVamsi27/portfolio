@@ -8,6 +8,7 @@ const Card = React.forwardRef<
 >(({ className, variant = "default", ...props }, ref) => (
   <div
     ref={ref}
+    data-ui="card"
     data-card-variant={variant === "dossier" ? "dossier" : undefined}
     className={cn(
       variant === "dossier"
