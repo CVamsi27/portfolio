@@ -235,3 +235,56 @@ export function validateSeedPayload(payload: {
   }
   return true;
 }
+
+export interface CareerPlanSection {
+  id: string;
+  title: string;
+  markdown: string;
+}
+
+export interface CareerPlan {
+  version: 1;
+  generatedAt: string;
+  updated: string;
+  window: string;
+  title: string;
+  intro?: string;
+  sourceDigest: string;
+  sections: CareerPlanSection[];
+}
+
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === "string" && value.length > 0;
+
+export function isCareerPlan(value: unknown): value is CareerPlan {
+  if (!value || typeof value !== "object") return false;
+  const plan = value as Record<string, unknown>;
+  return (
+    plan.version === 1 &&
+    isNonEmptyString(plan.generatedAt) &&
+    isNonEmptyString(plan.updated) &&
+    isNonEmptyString(plan.window) &&
+    isNonEmptyString(plan.title) &&
+    (plan.intro === undefined || typeof plan.intro === "string") &&
+    typeof plan.sourceDigest === "string" &&
+    /^[0-9a-f]{64}$/.test(plan.sourceDigest) &&
+    Array.isArray(plan.sections) &&
+    plan.sections.length > 0 &&
+    plan.sections.every((section) => {
+      if (!section || typeof section !== "object") return false;
+      const record = section as Record<string, unknown>;
+      return (
+        isNonEmptyString(record.id) &&
+        isNonEmptyString(record.title) &&
+        isNonEmptyString(record.markdown)
+      );
+    })
+  );
+}
+
+export function mergeCareerPlan(
+  previous: Record<string, unknown>,
+  plan: CareerPlan,
+): Record<string, unknown> {
+  return { ...previous, plan };
+}

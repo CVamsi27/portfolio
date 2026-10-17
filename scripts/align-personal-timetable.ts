@@ -59,8 +59,7 @@ if (error || !Array.isArray(row?.value?.days))
 const aligned = {
   ...alignCampaignTimetable(user.email, row.value),
   timezone: "Asia/Kolkata",
-  scheduleSource:
-    "software-developer-bible/80-lanes-abroad-full-stack/personal/reports/100-day-job-roadmap.md",
+  scheduleSource: "personal/reports/100-day-job-roadmap.md",
   scheduleBudget: {
     weekdayFocusedMinutes: 540,
     saturdayFocusedMinutes: 300,

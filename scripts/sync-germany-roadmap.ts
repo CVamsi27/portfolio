@@ -17,7 +17,11 @@ async function run() {
   if (!payloadPath)
     throw new Error("Pass --payload=PATH_TO_PRIVATE_GENERATED_PLAN");
   const absolute = resolve(payloadPath);
-  if (!absolute.includes("/80-lanes-abroad-full-stack/personal/"))
+  const privateRoots = [
+    "/80-lanes-abroad-full-stack/personal/",
+    "/repos/personal/",
+  ];
+  if (!privateRoots.some((root) => absolute.includes(root)))
     throw new Error(
       "Payload and backups must remain under the canonical private personal directory",
     );
