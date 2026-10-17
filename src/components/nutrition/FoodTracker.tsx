@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import ChapterHeader from "@/components/trackers/ChapterHeader";
+import PageHeader from "@/components/trackers/PageHeader";
 import DaySelector from "@/components/daily/DaySelector";
 import WorkspaceProgressLead from "@/components/progress/WorkspaceProgressLead";
 import { validDay } from "@/lib/day-plan";
@@ -324,7 +324,7 @@ export default function FoodTracker() {
   };
   return (
     <div className="space-y-5">
-      <ChapterHeader
+      <PageHeader
         compact
         eyebrow="Health"
         title="Food"

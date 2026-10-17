@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import DaySelector from "./DaySelector";
 import CaptureWorkspace from "./CaptureWorkspace";
 import HealthConnections from "@/components/health/HealthConnections";
-import ChapterHeader from "@/components/trackers/ChapterHeader";
+import PageHeader from "@/components/trackers/PageHeader";
 import WorkspaceProgressLead from "@/components/progress/WorkspaceProgressLead";
 export default function HealthWorkspace() {
   const params = useSearchParams(),
@@ -40,7 +40,7 @@ export default function HealthWorkspace() {
     `/log?type=${type}&date=${date}&returnTo=${encodeURIComponent(back)}`;
   return (
     <div className="daily-workspace">
-      <ChapterHeader
+      <PageHeader
         compact
         eyebrow="Health"
         title="Health"

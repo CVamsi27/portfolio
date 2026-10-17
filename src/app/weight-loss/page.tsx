@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
@@ -135,7 +135,7 @@ export default function WeightLossPage() {
   };
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="scale"
         title="Body and weight"
         subtitle={null}
@@ -342,7 +342,7 @@ export default function WeightLossPage() {
               </p>
             ))}
         </details>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

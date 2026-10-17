@@ -11,7 +11,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { ProgressLead } from "./WorkspaceProgressLead";
 import ImportedHealthTrends from "./ImportedHealthTrends";
-import ChapterHeader from "@/components/trackers/ChapterHeader";
+import PageHeader from "@/components/trackers/PageHeader";
 const health: ProgressMetric[] = [
   "weight",
   "energy",
@@ -83,7 +83,7 @@ export default function ProgressDashboard() {
   };
   return (
     <div className="progress-workspace" data-testid="progress-dashboard">
-      <ChapterHeader
+      <PageHeader
         compact
         eyebrow="Progress"
         title="Progress"

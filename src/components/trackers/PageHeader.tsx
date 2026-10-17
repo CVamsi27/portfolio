@@ -1,13 +1,20 @@
 import type { ReactNode } from "react";
 import ChapterLabel from "@/components/editorial/ChapterLabel";
 
-export default function ChapterHeader({
+/**
+ * The single page-header primitive for both surfaces: optional chapter
+ * breadcrumb, title, context slot (e.g. PageSummary), description, utility
+ * slot and actions. Compact mode is the NOVA workspace rhythm; the default
+ * mode is the full editorial header.
+ */
+export default function PageHeader({
   eyebrow,
   title,
   subtitle,
   action,
   utility,
   context,
+  breadcrumb,
   compact = false,
 }: {
   eyebrow: string;
@@ -16,8 +23,20 @@ export default function ChapterHeader({
   action?: ReactNode;
   utility?: ReactNode;
   context?: ReactNode;
+  /** Chapter trail such as `Plan / Tasks`; omit on chapter roots. */
+  breadcrumb?: ReactNode;
   compact?: boolean;
 }) {
+  const crumb =
+    breadcrumb !== undefined && breadcrumb !== null ? (
+      <nav
+        aria-label="Breadcrumb"
+        data-testid="chapter-breadcrumb"
+        className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-muted-foreground"
+      >
+        {breadcrumb}
+      </nav>
+    ) : null;
   if (compact)
     return (
       <header
@@ -27,6 +46,7 @@ export default function ChapterHeader({
       >
         <div data-testid="personal-section-header" className="nova-page-header">
           <div>
+            {crumb}
             <h1 className="font-display font-semibold leading-tight tracking-tight">
               {title}
             </h1>
@@ -53,6 +73,7 @@ export default function ChapterHeader({
         className="chapter-heading-layout"
       >
         <div className="chapter-heading-copy">
+          {crumb}
           {!compact && <ChapterLabel eyebrow={eyebrow} />}
           <h1 className="font-display mt-1.5 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
             {title}

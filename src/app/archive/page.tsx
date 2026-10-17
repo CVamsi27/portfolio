@@ -17,7 +17,7 @@ import {
 import Modal from "@/components/trackers/Modal";
 import RequireAuth from "@/components/auth/RequireAuth";
 import ActionMenu from "@/components/trackers/ActionMenu";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import EmptyState from "@/components/trackers/EmptyState";
 import Segmented from "@/components/trackers/Segmented";
 import { Button } from "@/components/ui/button";
@@ -274,7 +274,7 @@ export default function ArchivePage() {
 
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="archive"
         title="Library"
         actions={{
@@ -627,7 +627,7 @@ export default function ArchivePage() {
             )}
           </CardContent>
         </Card>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

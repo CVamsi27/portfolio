@@ -15,7 +15,7 @@ import {
   useNotificationPermission,
   refreshNotificationPermission,
 } from "@/lib/use-notification-permission";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,8 +71,6 @@ import {
   Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import SignalPanel from "@/components/trackers/SignalPanel";
-import StoryPanel from "@/components/trackers/StoryPanel";
 import DevicePreparation from "@/components/trackers/DevicePreparation";
 
 export default function SettingsPage() {
@@ -271,7 +269,7 @@ export default function SettingsPage() {
 
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="settings"
         title="Settings"
         subtitle={null}
@@ -862,7 +860,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </div>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

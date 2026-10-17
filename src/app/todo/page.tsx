@@ -7,7 +7,7 @@ import { planningCanEdit, validDay } from "@/lib/day-plan";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import Modal from "@/components/trackers/Modal";
 import ActionMenu from "@/components/trackers/ActionMenu";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import WorkspaceViews from "@/components/daily/WorkspaceViews";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -204,7 +204,7 @@ export default function TodoPage() {
 
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="todo"
         title="Tasks"
         subtitle={null}
@@ -643,7 +643,7 @@ export default function TodoPage() {
             )}
           </CardContent>
         </Card>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

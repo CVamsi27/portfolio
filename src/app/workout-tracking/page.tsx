@@ -7,7 +7,7 @@ import { safeReturn } from "@/components/daily/CaptureWorkspace";
 
 import { useEffect, useMemo, useState } from "react";
 import CompletionToggle from "@/components/trackers/CompletionToggle";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -304,7 +304,7 @@ export default function WorkoutPage() {
 
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="workout"
         title="Workouts"
         subtitle={null}
@@ -747,7 +747,7 @@ export default function WorkoutPage() {
             onClose={() => setRestTimer(null)}
           />
         )}
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

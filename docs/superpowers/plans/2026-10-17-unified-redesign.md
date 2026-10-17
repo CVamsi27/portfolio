@@ -27,14 +27,14 @@
 
 ## Phase 1 — Foundations (no intended visual change)
 
-- [ ] Inventory every custom property in the three stylesheets with its consumers; write the mapping to canonical tokens (`canvas`, `surface`, `surface-2`, `border`, `rule`, `ink`, `ink-muted`, `accent`, `accent-soft`, `accent-ink`, `focus`, `success`, `warning`, `danger`).
-- [ ] Remove tracker palette overrides and duplicate canvas declarations from `globals.css`; move all palette values into `ui-system.css`; convert `nova-workspace.css` colour literals to tokens.
-- [ ] Verify by screenshot diff that light/dark values are unchanged on representative routes (Today, Food, Progress, Settings, portfolio `/`).
-- [ ] Build shared primitives: `PageHeader` (chapter breadcrumb + title + context slot + actions), `PageSummary` (data-only value·context line), `EmptyState`, `SectionCard`, `ActionMenu` (a11y menu reused by rows).
-- [ ] Delete zero-consumer components: `DomainProgressOverview`, `ProgressRail`, `DailyCockpit`, `ConsistencyGrid`, `WeekPulse`, `ActionQueue`, `TodayDetails`, `TodayHeader`, `InstallPrompt`, `PersonalSectionNavigation`; delete the `TrackerShell` alias and update its 11 import sites; drop dead `SignalPanel`/`StoryPanel` imports from Settings.
-- [ ] Commit `refactor(ui): consolidate design tokens and shared primitives`.
+- [x] Inventory every custom property in the three stylesheets with its consumers; write the mapping to canonical tokens (`canvas`, `surface`, `surface-2`, `border`, `rule`, `ink`, `ink-muted`, `accent`, `accent-soft`, `accent-ink`, `focus`, `success`, `warning`, `danger`). — Inventory performed during the 17 Oct audit. Decision recorded: the canonical set is realised as the existing `--color-*` / `--portfolio-*` / `--nova-*` namespaces with a single owner (`ui-system.css`); a rename to new vocabulary would touch every Tailwind utility with zero UX value, so it was not performed. Mapping evidence: token dump + phase entry in `docs/ui-ux-review.md`.
+- [x] Remove tracker palette overrides and duplicate canvas declarations from `globals.css`; move all palette values into `ui-system.css`; convert `nova-workspace.css` colour literals to tokens. — Also removed: dead `.gradient-text` utility, dead `input[type="range"]` block (zero consumers), and the redundant second tracker palette block in `ui-system.css` whose light values (`#f6f7f5`/`#dce3df`/`#e9eeeb`) had been shadowed pre-change and would otherwise have drifted from the frozen snapshot.
+- [x] Verify by screenshot diff that light/dark values are unchanged on representative routes (Today, Food, Progress, Settings, portfolio `/`). — Token dump: 0 differences across 6 cases (light+dark, both surfaces). Pixel diff: 0 differing pixels across 15 captures (see phase entry).
+- [x] Build shared primitives: `PageHeader` (chapter breadcrumb + title + context slot + actions), `PageSummary` (data-only value·context line), `EmptyState`, `SectionCard`, `ActionMenu` (a11y menu reused by rows). — `ChapterHeader` renamed to `PageHeader` (5 import sites) and gained the `chapter-breadcrumb` slot; `PageSummary` and `SectionCard` added; `EmptyState` gained `secondary` + optional icon; `ActionMenu` already existed and is the canonical one.
+- [x] Delete zero-consumer components: `DomainProgressOverview`, `ProgressRail`, `DailyCockpit`, `ConsistencyGrid`, `WeekPulse`, `ActionQueue`, `TodayDetails`, `TodayHeader`, `InstallPrompt`, `PersonalSectionNavigation`; delete the `TrackerShell` alias and update its 11 import sites; drop dead `SignalPanel`/`StoryPanel` imports from Settings.
+- [x] Commit `refactor(ui): consolidate design tokens and shared primitives`.
 
-**Exit:** production build + full suite green; screenshots show no unintended visual drift.
+**Exit:** production build + full suite green; screenshots show no unintended visual drift. — **364 passed / 15 failed** (3.8m): the 15 failures are exactly the pinned Phase 2–4 guards from Phase 0, no other regressions. tsc, ESLint, production build green; token dump and 15-capture pixel diff show zero drift.
 
 ## Phase 2 — NOVA chrome, naming and chrome unification
 

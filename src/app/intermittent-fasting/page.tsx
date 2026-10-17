@@ -6,7 +6,7 @@ import { validDay } from "@/lib/day-plan";
 import { useWorkspaceView } from "@/lib/use-workspace-view";
 
 import { useEffect, useMemo, useState } from "react";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import Stat from "@/components/trackers/Stat";
 import Link from "next/link";
 import Modal from "@/components/trackers/Modal";
@@ -200,7 +200,7 @@ export default function FastingPage() {
 
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="timer"
         title="Water & eating window"
         subtitle={null}
@@ -471,7 +471,7 @@ export default function FastingPage() {
             </p>
           </div>
         </Modal>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

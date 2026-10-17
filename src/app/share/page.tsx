@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ActionMenu from "@/components/trackers/ActionMenu";
-import ChapterHeader from "@/components/trackers/ChapterHeader";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PageHeader from "@/components/trackers/PageHeader";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import SharedInbox from "@/components/trackers/SharedInbox";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -612,8 +612,8 @@ export default function SharePage() {
   const kb = Math.min(usage, BROWSER_STORAGE_LIMIT_BYTES) / 1024;
 
   return (
-    <TrackerShell icon="share" title={null} subtitle={null}>
-      <ChapterHeader compact eyebrow="Tools" title="Sharing" subtitle={null} action={
+    <PersonalShell icon="share" title={null} subtitle={null}>
+      <PageHeader compact eyebrow="Tools" title="Sharing" subtitle={null} action={
         <div className="flex items-center gap-3">
           <SyncBadge status={status} />
           {showInbox ? (
@@ -1169,6 +1169,6 @@ export default function SharePage() {
           )}
         </div>
       )}
-    </TrackerShell>
+    </PersonalShell>
   );
 }

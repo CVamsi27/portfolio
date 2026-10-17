@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ActionMenu from "@/components/trackers/ActionMenu";
 import CompletionToggle from "@/components/trackers/CompletionToggle";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
@@ -329,7 +329,7 @@ export default function GoalPage() {
 
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="flag"
         title="Goals"
         subtitle={null}
@@ -897,7 +897,7 @@ export default function GoalPage() {
             autoFocus
           />
         </Modal>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

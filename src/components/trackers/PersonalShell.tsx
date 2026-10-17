@@ -3,7 +3,7 @@ import { Suspense, type ReactNode } from "react";
 import WorkspaceProgressLead from "@/components/progress/WorkspaceProgressLead";
 import { type TrackerIconName } from "./icons";
 import TrackerNavDock from "./TrackerNavDock";
-import ChapterHeader from "./ChapterHeader";
+import PageHeader from "./PageHeader";
 import EditorialFrame from "@/components/editorial/EditorialFrame";
 import { cn } from "@/lib/utils";
 import RoutineNotifier from "@/components/personal/RoutineNotifier";
@@ -57,7 +57,7 @@ export default function PersonalShell({
         )}
       >
         {title == null ? null : (
-          <ChapterHeader
+          <PageHeader
             compact
             eyebrow={effectiveEyebrow}
             title={

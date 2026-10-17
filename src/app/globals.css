@@ -43,108 +43,21 @@
     ui-sans-serif, system-ui, sans-serif;
 }
 
-.dark {
-  --color-background: hsl(240 10% 3.9%);
-  --color-foreground: hsl(0 0% 98%);
-  --color-card: hsl(240 10% 5.5%);
-  --color-card-foreground: hsl(0 0% 98%);
-  --color-popover: hsl(240 10% 5.5%);
-  --color-popover-foreground: hsl(0 0% 98%);
-  --color-primary: hsl(263 70% 50%);
-  --color-primary-foreground: hsl(0 0% 98%);
-  --color-secondary: hsl(240 3.7% 15.9%);
-  --color-secondary-foreground: hsl(0 0% 98%);
-  --color-muted: hsl(240 3.7% 15.9%);
-  --color-muted-foreground: hsl(240 5% 64.9%);
-  --color-accent: hsl(240 3.7% 15.9%);
-  --color-accent-foreground: hsl(0 0% 98%);
-  --color-destructive: hsl(0 62.8% 30.6%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  --color-border: hsl(240 3.7% 15.9%);
-  --color-input: hsl(240 3.7% 15.9%);
-  --color-ring: hsl(263 70% 50%);
-  --color-background: #0b0d12;
-  --color-card: #11151d;
-  --color-dossier-red: #ff554d;
-  --color-dossier-lime: #c8ff3d;
-  --color-dossier-violet: #b59cff;
-  --nova-archive: #071014;
-  --nova-paper: #f2eee6;
-  --nova-cyan: #49e7ff;
-  --nova-lime: #c8ff3d;
-  --nova-red: #ff554d;
-  --nova-violet: #8c7dff;
-  --nova-ink: #111111;
-  --nova-mist: #7d8a94;
-}
+/* Dark neutrals are declared once in ui-system.css (html.dark). */
 
 @layer base {
-  .tracker-surface {
-    --color-primary: #c9ff4f;
-    --color-primary-foreground: #102027;
-    --color-ring: #c9ff4f;
-    --color-dossier-violet: #32b8c8;
-    --nova-violet: #32b8c8;
-  }
-
-  .tracker-surface:not(.dark) {
-    --color-background: #f4f0e7;
-    --color-foreground: #102027;
-    --color-card: #fffdf8;
-    --color-card-foreground: #102027;
-    --color-popover: #fffdf8;
-    --color-popover-foreground: #102027;
-    --color-secondary: #e9e4d9;
-    --color-secondary-foreground: #102027;
-    --color-muted: #e9e4d9;
-    --color-muted-foreground: #68736f;
-    --color-accent: #e9e4d9;
-    --color-accent-foreground: #102027;
-    --color-border: #dcd6ca;
-    --color-input: #dcd6ca;
-  }
-
-  .dark .tracker-surface {
-    --color-background: #102027;
-    --color-foreground: #f4f0e7;
-    --color-card: #152c33;
-    --color-card-foreground: #f4f0e7;
-    --color-popover: #152c33;
-    --color-popover-foreground: #f4f0e7;
-    --color-secondary: #1d383f;
-    --color-secondary-foreground: #f4f0e7;
-    --color-muted: #1d383f;
-    --color-muted-foreground: #a9b4af;
-    --color-accent: #1d383f;
-    --color-accent-foreground: #f4f0e7;
-    --color-border: #2b474d;
-    --color-input: #2b474d;
-  }
+  /* Surface palettes are owned exclusively by ui-system.css. The legacy cream
+     tracker palette and the lime/violet accents previously declared here were
+     shadowed by ui-system.css (unlayered beats @layer base), so they are
+     removed: one declaration per token. */
 
   .tracker-surface {
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
 
-  .tracker-surface .dossier-command-rail {
-    --color-dossier-lime: #c9ff4f;
-    --color-dossier-cyan: #32b8c8;
-    --color-dossier-red: #32b8c8;
-    background-color: color-mix(in srgb, var(--color-background) 92%, transparent);
-  }
-
   .tracker-surface .dossier-frame {
     background: var(--color-background);
-  }
-
-  .tracker-surface .dossier-card,
-  .tracker-surface .dossier-panel {
-    box-shadow: none;
-  }
-
-  .tracker-surface .dossier-card::before,
-  .tracker-surface .dossier-panel::before {
-    background: #32b8c8;
   }
 
   .tracker-surface .dossier-chapter-header--compact {
@@ -162,22 +75,8 @@
   }
 
   .tracker-surface .dossier-command-dock {
-    border-color: color-mix(in srgb, #32b8c8 42%, var(--color-border));
-    background: color-mix(in srgb, var(--color-card) 96%, transparent);
+    /* The dock's palette lives in ui-system.css; only the shadow offset stays. */
     box-shadow: 0 12px 32px rgb(16 32 39 / 0.22);
-  }
-
-  .tracker-surface .dossier-command-link.is-active {
-    border-color: #c9ff4f;
-    background: color-mix(in srgb, #c9ff4f 14%, transparent);
-    color: #c9ff4f;
-  }
-
-  .tracker-surface .bg-gradient-to-r.from-primary.to-fuchsia-500 {
-    background-image: none;
-    background-color: #c9ff4f;
-    color: #102027;
-    box-shadow: none;
   }
 
   html {
@@ -209,7 +108,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-dossier-lime);
+    outline: 2px solid var(--color-ring);
     outline-offset: 4px;
   }
 
@@ -226,7 +125,7 @@
   }
 
   ::selection {
-    background-color: hsl(262 83% 58% / 0.22);
+    background-color: color-mix(in srgb, var(--color-ring) 22%, transparent);
   }
 
   * {
@@ -251,73 +150,13 @@
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(262 83% 58% / 0.6);
+    background-color: color-mix(in srgb, var(--color-ring) 60%, transparent);
     border: 3px solid transparent;
     background-clip: content-box;
   }
 
-  /* Elegant range sliders (tracker timelines, targets) */
-  input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    height: 20px;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  input[type="range"]::-webkit-slider-runnable-track {
-    height: 6px;
-    border-radius: 9999px;
-    background: hsl(240 5% 45% / 0.25);
-  }
-
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    margin-top: -6px;
-    height: 18px;
-    width: 18px;
-    border-radius: 9999px;
-    background: hsl(0 0% 100%);
-    border: 2px solid hsl(262 83% 58%);
-    box-shadow: 0 2px 8px hsl(262 83% 58% / 0.4);
-    transition: transform 0.15s ease;
-  }
-
-  html.dark input[type="range"]::-webkit-slider-thumb {
-    background: hsl(240 10% 10%);
-  }
-
-  input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-  }
-
-  input[type="range"]::-moz-range-track {
-    height: 6px;
-    border-radius: 9999px;
-    background: hsl(240 5% 45% / 0.25);
-  }
-
-  input[type="range"]::-moz-range-progress {
-    height: 6px;
-    border-radius: 9999px;
-    background: linear-gradient(90deg, hsl(262 83% 58%), hsl(280 90% 62%));
-  }
-
-  input[type="range"]::-moz-range-thumb {
-    height: 14px;
-    width: 14px;
-    border-radius: 9999px;
-    background: hsl(0 0% 100%);
-    border: 2px solid hsl(262 83% 58%);
-    box-shadow: 0 2px 8px hsl(262 83% 58% / 0.4);
-  }
-
-  input[type="range"]:focus-visible {
-    outline: 2px solid hsl(262 83% 58% / 0.6);
-    outline-offset: 4px;
-    border-radius: 9999px;
-  }
+  /* The legacy range-slider styling block was removed in the redesign: no
+     input[type="range"] exists anywhere in the app (verified 17 Oct 2026). */
 }
 
 @layer utilities {
@@ -480,20 +319,6 @@
   .reveal-visible {
     opacity: 1;
     transform: none;
-  }
-
-.gradient-text {
-    background: linear-gradient(135deg, hsl(262 83% 58%), hsl(280 100% 60%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .dark .gradient-text {
-    background: linear-gradient(135deg, hsl(263 70% 60%), hsl(280 80% 70%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
   }
 
   @keyframes dossier-reveal {

@@ -2,18 +2,12 @@
    in ui-system.css; these rules are scoped to the NOVA workspace. */
 @media screen {
   body.tracker-surface {
-    --color-background: #f5f7fa;
-    --nova-archive: #f5f7fa;
-    --color-border: #d8e1ec;
-    --color-muted: #e5edf3;
-    --color-accent: #e5edf3;
-    /* Next/font defines its variables on body. Resolve the aliases here,
-       rather than inheriting invalid aliases evaluated on the root. */
+    /* Palette values are owned by ui-system.css; this block only resolves the
+       next/font aliases, which are defined on body rather than the root. */
     --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     font-family: var(--font-sans);
   }
-  html.dark body.tracker-surface { --color-background: #101820; --nova-archive: #101820; }
   .tracker-surface .nova-navigation-layout { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 12px 20px; }
   .tracker-surface .nova-navigation-body { display: flex; align-items: center; }
   .tracker-surface .nova-personal-nav .nova-brand > svg { width: 36px; height: 36px; }
