@@ -75,6 +75,34 @@
   .nova-today .daily-utilities > summary { min-height: 44px; cursor: pointer; display: flex; align-items: center; font-size: 14px; }
   .nova-today .daily-quick-actions { margin-block: 12px; }
   .nova-today > :is([role="status"], [role="alert"], .capture-return, .recorded-strip) { margin-top: 20px; }
+  .nova-today .nova-next-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; padding: 16px 20px; border: 1px solid var(--color-border); border-left: 3px solid var(--color-primary); border-radius: 10px; background: var(--color-card); }
+  .nova-next-body { display: grid; gap: 4px; min-width: 0; }
+  .nova-next-kicker { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--color-primary); }
+  .nova-next-body strong { font-size: 20px; font-weight: 600; overflow-wrap: anywhere; }
+  .nova-next-body small { font-size: 14px; color: var(--color-muted-foreground); }
+  .nova-next-cta { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-card); font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .nova-next-cta:hover { background: var(--color-accent); }
+  .nova-today .nova-setup-card { display: grid; gap: 12px; margin-top: 24px; padding: 16px 20px; border: 1px dashed var(--color-border); border-radius: 10px; background: color-mix(in srgb, var(--color-primary) 5%, transparent); }
+  .nova-setup-card > div { display: grid; gap: 4px; }
+  .nova-setup-card strong { font-size: 16px; font-weight: 600; }
+  .nova-setup-card small { font-size: 13px; color: var(--color-muted-foreground); }
+  .nova-setup-card ul { display: grid; gap: 4px; }
+  .nova-setup-card li { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  .nova-setup-icon { flex: none; width: 18px; height: 18px; color: var(--color-muted-foreground); }
+  .nova-setup-card li[data-done] .nova-setup-icon { color: var(--color-primary); }
+  .nova-setup-card li[data-done] a { color: var(--color-muted-foreground); }
+  .nova-today .nova-open-tasks { display: grid; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border); }
+  .nova-open-tasks h2 { font-size: 12px; font-weight: 600; color: var(--color-muted-foreground); letter-spacing: .14em; text-transform: uppercase; }
+  .nova-open-tasks ul { display: grid; gap: 4px; }
+  .nova-open-tasks li { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
+  .nova-open-tasks li a { font-size: 16px; font-weight: 500; overflow-wrap: anywhere; }
+  .nova-open-tasks li small { color: var(--color-muted-foreground); font-size: 13px; white-space: nowrap; }
+  .nova-timeline-session { margin-bottom: 20px; }
+  .nova-timeline-session .nova-agenda-row { border-left: 3px solid var(--color-primary); padding-left: 12px; }
+  .nova-agenda-body { display: grid; gap: 8px; min-width: 0; padding: 4px 0 4px 28px; border-left: 1px solid var(--color-border); }
+  .nova-agenda-body strong { font-size: 20px; font-weight: 600; overflow-wrap: anywhere; }
+  .nova-agenda-body small { color: var(--color-muted-foreground); font-size: 14px; }
+  .nova-agenda-body .agenda-actions { justify-content: flex-start; margin: 0; }
   @media (min-width: 1024px) {
     .tracker-surface .nova-personal-nav:not(.nova-login-nav) { position: fixed; inset: 0 auto 0 0; width: 224px; height: 100dvh; border-bottom: 0; border-right: 1px solid var(--color-border); }
     .tracker-surface .nova-personal-nav:not(.nova-login-nav) .nova-navigation-layout { flex-direction: column; align-items: stretch; height: 100%; padding: 28px 20px; }
@@ -118,6 +146,11 @@
     .nova-agenda-label { gap: 4px; }
     .nova-agenda-expanded { padding: 12px 8px 0 20px; gap: 8px; font-size: 14px; }
     .nova-agenda-group + .nova-agenda-group { margin-top: 16px; }
+    .nova-today .nova-next-card { flex-wrap: wrap; }
+    .nova-next-cta { width: 100%; }
+    .nova-agenda-body { padding-left: 20px; }
+    .nova-agenda-body strong { font-size: 16px; line-height: 1.5; }
+    .nova-timeline-session { margin-bottom: 12px; }
   }
   @media (min-width: 768px) and (max-width: 1023px) {
     .tracker-surface .editorial-frame.dossier-frame { padding: 24px; }
@@ -288,5 +321,32 @@
     .tracker-surface .nova-page-header, .tracker-surface .nova-today-header { align-items:center; flex-wrap:wrap; }
     .tracker-surface .nova-page-action { flex:0 1 auto; }
     .tracker-surface .nova-today-header > div { padding-bottom:0; }
+  }
+}
+
+/* Guided weekly review (/review): five steps that read existing records and
+   write only existing shapes — the journal entry for the week-ending date and
+   next week's commitments in the goal store. */
+@media screen {
+  .tracker-surface .weekly-review { display: grid; gap: 32px; }
+  .weekly-review-range { font-size: 13px; color: var(--color-muted-foreground); }
+  .weekly-review section.workspace-panel { display: grid; gap: 16px; }
+  .weekly-review h2 { font-family: var(--font-display); font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+  .weekly-review-days { display: grid; gap: 0; }
+  .weekly-review-days li { display: flex; align-items: center; gap: 12px; min-height: 44px; padding-block: 8px; border-bottom: 1px solid var(--color-border); }
+  .weekly-review-days li:last-child { border-bottom: 0; }
+  .weekly-review-days strong { min-width: 64px; font-variant-numeric: tabular-nums; }
+  .weekly-review-days span { font-size: 14px; color: var(--color-muted-foreground); }
+  .weekly-review-days .weekly-review-flag { margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--color-primary); }
+  .weekly-review-form { display: grid; gap: 16px; justify-items: start; max-width: 65ch; width: 100%; }
+  .weekly-review-form .field-label { width: 100%; }
+  .weekly-review-hint { font-size: 14px; line-height: 1.6; color: var(--color-muted-foreground); }
+  .weekly-review-groups, .weekly-review-metrics { display: grid; gap: 12px; }
+  .weekly-review-groups > div, .weekly-review-metrics > div { display: grid; gap: 6px; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-card); }
+  .weekly-review-groups dt, .weekly-review-metrics dt { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted-foreground); }
+  .weekly-review-groups dd, .weekly-review-metrics dd { font-size: 16px; font-variant-numeric: tabular-nums; }
+  .weekly-review-groups ul { display: grid; gap: 4px; margin-top: 6px; font-size: 14px; color: var(--color-muted-foreground); }
+  @media (min-width: 768px) {
+    .weekly-review-groups, .weekly-review-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 }

@@ -124,7 +124,10 @@ test("Review includes saved study, water, movement and body records without inve
     },
   });
   await page.goto("/review");
-  await expect(page).toHaveURL(/view=reflection/);
+  await expect(
+    page.getByRole("heading", { name: "Weekly review", exact: true }),
+  ).toBeVisible();
+  await page.goto("/dashboard?view=reflection");
   await page
     .getByRole("link", { name: "Write or edit reflection", exact: true })
     .click();

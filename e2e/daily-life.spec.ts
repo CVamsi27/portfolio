@@ -227,10 +227,6 @@ test("water needs one action, supports undo and leaves other dated records alone
 }) => {
   await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
   await page.goto("/hub?date=2026-10-02");
-  await page
-    .locator("summary")
-    .filter({ hasText: /^Add a record$/ })
-    .click();
   await page.getByRole("button", { name: "Water +1", exact: true }).click();
   expect(
     await page.evaluate(() =>
@@ -433,10 +429,6 @@ test("routine editing previews a draft and preserves occurrence history", async 
 test("water undo never corrects a different selected day", async ({ page }) => {
   await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
   await page.goto("/hub?date=2026-10-02");
-  await page
-    .locator("summary")
-    .filter({ hasText: /^Add a record$/ })
-    .click();
   await page.getByRole("button", { name: "Water +1", exact: true }).click();
   await page.getByRole("button", { name: "Choose date", exact: true }).click();
   await page.getByLabel("Selected date", { exact: true }).fill("2026-10-01");

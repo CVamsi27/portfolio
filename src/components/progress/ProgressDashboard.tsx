@@ -150,12 +150,17 @@ export default function ProgressDashboard() {
       </nav>
       {view === "reflection" && (
         <section className="workspace-panel">
-          <Link
-            className="inline-action"
-            href={`/log?view=journal&date=${data.end}&returnTo=${encodeURIComponent(`/dashboard?view=reflection&date=${data.end}`)}`}
-          >
-            Write or edit reflection
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              className="inline-action"
+              href={`/log?view=journal&date=${data.end}&returnTo=${encodeURIComponent(`/dashboard?view=reflection&date=${data.end}`)}`}
+            >
+              Write or edit reflection
+            </Link>
+            <Link className="inline-action" href={`/review?date=${data.end}`}>
+              Open the weekly review
+            </Link>
+          </div>
         </section>
       )}
       {view === "health" && (
