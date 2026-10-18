@@ -1,45 +1,32 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
-import { createPortal } from "react-dom";
-import { useDialogFocus } from "@/components/common/useDialogFocus";
+import { useMemo } from "react";
 import { useTheme } from "next-themes";
-
-const emptySubscribe = () => () => {};
 import {
-  Search,
-  X,
-  FileText,
-  User,
+  BookOpen,
   Briefcase,
-  Layers,
-  Mail,
+  Code2,
   Copy,
   Download,
-  Sun,
-  Moon,
   ExternalLink,
-  Code2,
-  Sparkles,
-  Check,
+  FileText,
   Gamepad2,
-  Terminal,
-  BookOpen,
-  Workflow,
-  Quote,
   GitBranch,
-  ShieldCheck,
-  ShieldAlert,
-  RotateCcw,
   Headphones,
+  Keyboard,
+  Layers,
+  Mail,
+  Moon,
+  Quote,
+  RotateCcw,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  Sun,
+  Terminal,
+  User,
+  Workflow,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   CONTACT_EMAIL,
   CONTACT_PHONE,
@@ -47,42 +34,18 @@ import {
   RESUME_PATH,
 } from "@/lib/const";
 import { toast } from "@/components/ui/use-toast";
+import type { CommandItem } from "./types";
 
-export type PaletteCommand = {
-  id: string;
-  category: "Navigation" | "Projects" | "Actions" | "Tech Filters";
-  title: string;
-  subtitle?: string;
-  icon: React.ComponentType<{ className?: string }>;
-  keywords?: string[];
-  run: () => void;
-};
-
-export default function PortfolioCommandPalette({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+/**
+ * The public portfolio's command registry: section navigation, downloads and
+ * contact actions, project search and tech filters. Mounted through the same
+ * CommandPalette component the workspace uses.
+ */
+export default function usePortfolioCommands(): CommandItem[] {
   const { setTheme, resolvedTheme } = useTheme();
-  const [query, setQuery] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [prevQuery, setPrevQuery] = useState(query);
-  const mounted = useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  );
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  if (query !== prevQuery) {
-    setPrevQuery(query);
-    setSelectedIndex(0);
-  }
-
-  const commands = useMemo<PaletteCommand[]>(() => {
-    const list: PaletteCommand[] = [
+  return useMemo<CommandItem[]>(() => {
+    const list: CommandItem[] = [
       // Navigation
       {
         id: "nav-top",
@@ -259,7 +222,7 @@ export default function PortfolioCommandPalette({
             "N:Chandaluri;Vamsi Krishna;;;",
             "TITLE:Senior Full Stack & Systems Engineer",
             `EMAIL;TYPE=INTERNET,PREF:${CONTACT_EMAIL}`,
-            `TEL;TYPE=CELL:${CONTACT_PHONE.replace(/\\s+/g, "")}`,
+            `TEL;TYPE=CELL:${CONTACT_PHONE.replace(/\s+/g, "")}`,
             "URL:https://buildora.work",
             "NOTE:Senior Full Stack & Systems Engineer specializing in TypeScript, React, NestJS, and PostgreSQL.",
             "END:VCARD",
@@ -432,6 +395,17 @@ export default function PortfolioCommandPalette({
         },
       },
       {
+        id: "act-shortcuts",
+        category: "Actions",
+        title: "Keyboard Shortcuts",
+        subtitle: "See every portfolio shortcut",
+        icon: Keyboard,
+        keywords: ["shortcuts", "keyboard", "keys", "help"],
+        run: () => {
+          window.dispatchEvent(new CustomEvent("portfolio-open-shortcuts"));
+        },
+      },
+      {
         id: "act-bible",
         category: "Actions",
         title: "Open Senior Full Stack Bible (study.buildora.work)",
@@ -479,7 +453,7 @@ export default function PortfolioCommandPalette({
     // Add projects
     PROJECTS.forEach((p) => {
       list.push({
-        id: `proj-${p.title.toLowerCase().replace(/\\s+/g, "-")}`,
+        id: `proj-${p.title.toLowerCase().replace(/\s+/g, "-")}`,
         category: "Projects",
         title: p.title,
         subtitle: p.description,
@@ -527,207 +501,4 @@ export default function PortfolioCommandPalette({
 
     return list;
   }, [resolvedTheme, setTheme]);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return commands;
-    return commands.filter((cmd) => {
-      const matchTitle = cmd.title.toLowerCase().includes(q);
-      const matchSubtitle = cmd.subtitle?.toLowerCase().includes(q);
-      const matchKeywords = cmd.keywords?.some((k) => k.includes(q));
-      return matchTitle || matchSubtitle || matchKeywords;
-    });
-  }, [commands, query]);
-
-  useEffect(() => {
-    if (!open) return;
-    const timer = setTimeout(() => inputRef.current?.focus(), 50);
-    return () => clearTimeout(timer);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target !== inputRef.current || e.isComposing || e.defaultPrevented)
-        return;
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      } else if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev + 1) % Math.max(1, filtered.length));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelectedIndex(
-          (prev) => (prev - 1 + filtered.length) % Math.max(1, filtered.length),
-        );
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        if (filtered[selectedIndex]) {
-          filtered[selectedIndex].run();
-          onClose();
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose, filtered, selectedIndex]);
-
-  useEffect(() => {
-    if (open && filtered[selectedIndex])
-      document
-        .getElementById(`portfolio-command-${filtered[selectedIndex].id}`)
-        ?.scrollIntoView({ block: "nearest" });
-  }, [open, filtered, selectedIndex]);
-  const dialogRef = useDialogFocus(open, onClose);
-
-  if (!mounted || !open) return null;
-
-  return createPortal(
-    <div
-      ref={dialogRef}
-      tabIndex={-1}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Command Palette"
-      className="fixed inset-0 z-[110] flex items-start justify-center p-4 sm:p-6 sm:pt-24"
-    >
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Palette Container */}
-      <div className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden sm:max-h-[calc(100dvh-8rem)] rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] shadow-2xl transition-all">
-        {/* Search Input */}
-        <div className="flex shrink-0 items-center border-b border-[var(--portfolio-rule)] pl-4 pr-14 py-3">
-          <Search className="h-4 w-4 shrink-0 text-[var(--portfolio-muted)]" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            role="combobox"
-            aria-expanded={open}
-            aria-autocomplete="list"
-            aria-controls="portfolio-command-results"
-            aria-activedescendant={
-              filtered[selectedIndex]
-                ? `portfolio-command-${filtered[selectedIndex].id}`
-                : undefined
-            }
-            aria-label="Search commands"
-            placeholder="Search pages, projects, or actions…"
-            className="ml-3 min-w-0 flex-1 bg-transparent font-utility text-sm text-[var(--portfolio-ink)] placeholder:text-[var(--portfolio-muted)]/70 focus:outline-none"
-          />
-          {query ? (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg p-1 text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]"
-              aria-label="Clear query"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          ) : (
-            <kbd className="hidden sm:inline-flex items-center rounded border border-[var(--portfolio-rule)] bg-muted/30 px-1.5 py-0.5 font-utility text-[0.62rem] text-[var(--portfolio-muted)]">
-              Esc
-            </kbd>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close command palette"
-          className="absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-[var(--portfolio-muted)] hover:bg-muted"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        {/* Results List */}
-        <div
-          id="portfolio-command-results"
-          role="listbox"
-          aria-label="Commands"
-          className="min-h-0 flex-1 overflow-y-auto p-2 scrollbar-thin"
-        >
-          {filtered.length === 0 ? (
-            <div className="py-8 text-center text-xs text-[var(--portfolio-muted)]">
-              No matching commands or projects found.
-            </div>
-          ) : (
-            filtered.map((item, index) => {
-              const Icon = item.icon;
-              const isSelected = index === selectedIndex;
-              return (
-                <button
-                  type="button"
-                  role="option"
-                  id={`portfolio-command-${item.id}`}
-                  aria-selected={isSelected}
-                  tabIndex={-1}
-                  key={item.id}
-                  onClick={() => {
-                    item.run();
-                    onClose();
-                  }}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                  className={cn(
-                    "flex w-full cursor-pointer items-center justify-between text-left rounded-xl px-3 py-2.5 transition-colors",
-                    isSelected
-                      ? "bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)]"
-                      : "text-[var(--portfolio-ink)] hover:bg-muted/40",
-                  )}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={cn(
-                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border",
-                        isSelected
-                          ? "border-[var(--portfolio-accent)]/40 bg-[var(--portfolio-accent)]/10 text-[var(--portfolio-accent)]"
-                          : "border-[var(--portfolio-rule)] bg-muted/20 text-[var(--portfolio-muted)]",
-                      )}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="break-words text-sm font-semibold">
-                        {item.title}
-                      </p>
-                      {item.subtitle ? (
-                        <p className="text-xs text-[var(--portfolio-muted)]">
-                          {item.subtitle}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <span className="ml-2 hidden shrink-0 text-xs sm:inline text-[var(--portfolio-muted)]">
-                    {item.category}
-                  </span>
-                </button>
-              );
-            })
-          )}
-        </div>
-
-        {/* Footer Hint */}
-        <div className="flex items-center justify-between border-t border-[var(--portfolio-rule)] bg-muted/10 px-4 py-2 text-[0.65rem] font-utility text-[var(--portfolio-muted)]">
-          <div className="flex items-center gap-2">
-            <span>↑↓ Navigate</span>
-            <span>·</span>
-            <span>↵ Select</span>
-            <span>·</span>
-            <span>Esc Close</span>
-          </div>
-          <span className="font-semibold text-[var(--portfolio-accent)]">
-            Command Palette
-          </span>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
 }

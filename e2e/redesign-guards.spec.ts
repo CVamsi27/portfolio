@@ -192,6 +192,43 @@ test.describe("redesign guards — capture affordances", () => {
       "true",
     );
   });
+
+  test("QuickSheet Add tab writes a glass of water immediately", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await seed(page);
+    await page.goto("/hub");
+    await page.getByTestId("dock-quick-add").click();
+    const sheet = page.getByRole("dialog", { name: /quick add and search/i });
+    await sheet.getByRole("button", { name: "Water +1", exact: true }).click();
+    await expect(sheet.getByRole("status")).toContainText("Water logged");
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const store = JSON.parse(
+            localStorage.getItem("vk:fasting:water") ?? "{}",
+          ) as Record<string, number>;
+          return Object.values(store).reduce((sum, value) => sum + value, 0);
+        }),
+      )
+      .toBe(1);
+  });
+
+  test("QuickSheet restores focus to the affordance that opened it", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await seed(page);
+    await page.goto("/hub");
+    const opener = page.getByTestId("header-search");
+    await opener.click();
+    const sheet = page.getByRole("dialog", { name: /quick add and search/i });
+    await expect(sheet).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
+    await expect(opener).toBeFocused();
+  });
 });
 
 test.describe("redesign guards — Today leads with the next action", () => {

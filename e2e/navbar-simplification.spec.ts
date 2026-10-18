@@ -9,9 +9,10 @@ for (const width of [320, 768, 1440]) {
     await seed(page);
     await page.goto("/hub");
     const rail = page.getByTestId("command-rail");
+    // Desktop: Add a record + Search. Compact: header search + Tools menu.
     await expect(
       rail.getByRole("button").filter({ visible: true }),
-    ).toHaveCount(width >= 1024 ? 2 : 1);
+    ).toHaveCount(2);
     if (width >= 1024) {
       await expect(
         rail.getByRole("link", { name: "Motivation", exact: true }),
@@ -45,10 +46,11 @@ for (const width of [320, 768, 1440]) {
         .getByRole("menuitem", { name: "Search or run command" })
         .click();
     }
-    const palette = page.getByRole("dialog", {
-      name: "Command Palette",
-      exact: true,
-    });
+    // Desktop keeps the palette; compact widths open the QuickSheet.
+    const palette =
+      width >= 1024
+        ? page.getByRole("dialog", { name: "Command Palette", exact: true })
+        : page.getByRole("dialog", { name: /quick add and search/i });
     await expect(palette).toBeVisible();
     await palette.getByLabel("Search commands").fill("tasks");
     await palette.getByRole("option", { name: /^Tasks/ }).click();

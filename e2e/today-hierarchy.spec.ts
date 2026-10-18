@@ -39,15 +39,13 @@ test("Tools dialogs return focus and release background isolation", async ({
   await page.goto("/hub");
   const tools = page.getByRole("button", { name: "Tools menu" });
   for (const [item, dialog] of [
-    ["Add a record", "Add a record"],
-    ["Search or run command", "Command Palette"],
-    ["Keyboard shortcuts", "Keyboard Shortcuts"],
-  ]) {
+    ["Add a record", /^Add a record$/],
+    ["Search or run command", /quick add and search/i],
+    ["Keyboard shortcuts", /^Keyboard Shortcuts$/],
+  ] as const) {
     await tools.click();
     await page.getByRole("menuitem", { name: item, exact: true }).click();
-    await expect(
-      page.getByRole("dialog", { name: dialog, exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("dialog", { name: dialog })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(tools).toBeFocused();
