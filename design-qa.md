@@ -344,6 +344,6 @@ Final gates on the frozen revision: production build (55 static pages; `/sitemap
 
 Limits: local mode only — authenticated cloud sync, push notifications and deployment were not exercised, and no account records were migrated. Case studies and seeded screenshots use local test data. The portfolio height budget was amended from ≤ ~8,000px to ≤ 11,800px (measured 10,817px at 1440 on macOS and 11,152px on the ubuntu-latest CI runner) with the owner’s direction to keep the achieved height; the rationale is recorded in the design doc, the spec and `docs/ui-ux-review.md`. The latent shared-cache hazard between `useLocalValue` and `useSyncedStorage` (recorded in Phase 4) remains out of scope.
 
-Publication follow-up: merged into `main` at `e6ec58b` on 19 October 2026 after these gates (ort merge; the merged tree is byte-identical to the verified revision). All seven phase commits plus the evidence commit are preserved in the merge. Not pushed; no deployment was performed by this pass.
+Publication follow-up: merged into `main` at `e6ec58b` on 19 October 2026 after these gates (ort merge; the merged tree is byte-identical to the verified revision). All seven phase commits plus the evidence commit are preserved in the merge. Pushed to `origin/main`; CI exposed a platform difference and two hydration races, all corrected in follow-up commits `5a3813f`, `52440b8` and `512a4dd` (final CI run `39229580230`: **406 passed / 0 failed / 0 flaky**). No deployment was performed by this pass.
 
 final result: passed
