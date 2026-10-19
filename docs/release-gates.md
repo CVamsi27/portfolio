@@ -103,3 +103,60 @@ The dump uses quoted identifiers (`"public"."tracker_data"`), not unquoted names
 | Migrations applied | None; awaiting approval for Task A3 |
 
 Gate A stops here. Applying `0006–0014` requires explicit owner approval.
+
+## Gate A result (19 October 2026)
+
+Status: **closed — awaiting owner acknowledgement before Gate B.**
+
+| Item | Result |
+| --- | --- |
+| Deployed SHA | `bff1525` |
+| Vercel production deployment | `7176695252` — success |
+| CI | `39270398340` — success (4m58s) |
+| Local full suite | 409 passed, 0 failed |
+| Migrations | `0006–0014` applied; remote list ends at `0014` |
+| Dry run | matched the same 9 files before push |
+| PostgREST surface | `/push_subscriptions`, `/push_deliveries`, `/rpc/merge_tracker_records`, `/rpc/claim_routine_push`, `/health_connect_devices`, `/health_connect_records` all present |
+| Production smoke | all 22 checks passed |
+
+Production smoke output:
+
+```text
+ok   root status 200
+ok   root renders the portfolio
+ok   case study docita
+ok   case study senior-full-stack-bible
+ok   case study teamops
+ok   case study super-tic-tac-toe
+ok   case study digital-library
+ok   case study task-manager
+ok   case study portfolio
+ok   sitemap status 200
+ok   sitemap has 8 URLs
+ok   sitemap uses the www origin
+ok   robots status 200
+ok   robots declares the sitemap
+ok   manifest status 200
+ok   header x-content-type-options
+ok   header referrer-policy
+ok   header x-frame-options
+ok   header permissions-policy disables camera
+ok   apex redirects to www
+ok   personal hub redirects to login
+ok   personal login status 200
+```
+
+Live verification:
+
+- `https://www.buildora.work/` sends `x-content-type-options: nosniff`, `referrer-policy: strict-origin-when-cross-origin`, `x-frame-options: DENY` and `permissions-policy: camera=(), microphone=(), geolocation=()`.
+- `https://www.buildora.work/work/docita` emits `<link rel="canonical" href="https://www.buildora.work/work/docita">` and a matching `og:url`.
+- The sitemap emits 8 `https://www.buildora.work/` URLs.
+- Cloudflare managed robots content is prepended to the app route; the response ends with `Host: https://www.buildora.work` and `Sitemap: https://www.buildora.work/sitemap.xml`. No Cloudflare operator change was required.
+
+Rollback:
+
+- Previous production deployment: `7170638613` (`e6c387b`). Promote it from Vercel if a rollback is needed.
+- Schema: `0006–0014` are additive; keep them. Do not downgrade the schema and do not roll back data.
+- Backup: `artifacts/release/2026-10-19/` (gitignored, directory `700`, files `600`). Hashes and row counts are recorded above.
+
+Unchanged in this gate: feature flags, Vercel and Supabase secrets, shared-drop rules, auth providers, and routing aliases.

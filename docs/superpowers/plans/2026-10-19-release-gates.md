@@ -67,7 +67,7 @@
 - Consumes: live production URLs.
 - Produces: `pnpm release:smoke`, exit code 0 only when the public contract passes.
 
-- [ ] **Step 1: Write the smoke script**
+- [x] **Step 1: Write the smoke script**
 
 ```js
 #!/usr/bin/env node
@@ -185,13 +185,13 @@ main().catch((error) => {
 });
 ```
 
-- [ ] **Step 2: Add the package script**
+- [x] **Step 2: Add the package script**
 
 ```json
 "release:smoke": "node scripts/release-smoke.mjs",
 ```
 
-- [ ] **Step 3: Run it against current production and record the baseline**
+- [x] **Step 3: Run it against current production and record the baseline**
 
 Run:
 
@@ -201,7 +201,7 @@ pnpm release:smoke
 
 Expected: failures for `sitemap uses the www origin`, `robots declares the sitemap`, the three header checks and the permissions-policy check. Root, case studies, manifest, apex redirect and personal redirect pass. Save the exact output in `docs/release-gates.md` under `## Gate A baseline (19 October 2026)`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/release-smoke.mjs package.json docs/release-gates.md
@@ -218,7 +218,7 @@ git commit -m "test(release): add production smoke verifier"
 - Consumes: linked Supabase project `ejbghgpatpfubxltkpde`.
 - Produces: schema/data dumps, JSON exports and `SHA256SUMS` for the migration rollback record.
 
-- [ ] **Step 1: Ignore the evidence directory and create it**
+- [x] **Step 1: Ignore the evidence directory and create it**
 
 Add this line to `.gitignore`:
 
@@ -235,7 +235,7 @@ git check-ignore artifacts/release/2026-10-19/public-schema.sql
 
 Expected: `git check-ignore` prints the path, proving a production dump cannot be staged by accident.
 
-- [ ] **Step 2: Dump the public schema and data**
+- [x] **Step 2: Dump the public schema and data**
 
 ```bash
 supabase db dump --linked --schema public \
@@ -246,7 +246,7 @@ supabase db dump --linked --schema public --data-only --use-copy \
 
 If the CLI prompts for the database password, enter it at the prompt. Do not put the password on the command line or in shell history.
 
-- [ ] **Step 3: Verify the dumps are real**
+- [x] **Step 3: Verify the dumps are real**
 
 ```bash
 grep -c 'CREATE TABLE IF NOT EXISTS "public".' artifacts/release/2026-10-19/public-schema.sql
@@ -255,7 +255,7 @@ grep -c 'COPY "public"."tracker_data"' artifacts/release/2026-10-19/public-data.
 
 Expected: at least 2 application tables (`shared_drops`, `tracker_data` at the current `0001–0005` schema) and exactly 1 `tracker_data` copy block. `pg_dump` quotes identifiers, so the pattern must include the quotes. If either dump is empty, stop.
 
-- [ ] **Step 4: Export the two key tables as JSON and record counts**
+- [x] **Step 4: Export the two key tables as JSON and record counts**
 
 ```bash
 set -a; . ./.env; set +a
@@ -272,7 +272,7 @@ node -e "for (const f of ['tracker_data-keys','shared_drops-ids']) { const rows 
 
 Record both counts in `docs/release-gates.md`. Do not print keys or rows.
 
-- [ ] **Step 5: Hash the artifacts**
+- [x] **Step 5: Hash the artifacts**
 
 ```bash
 shasum -a 256 artifacts/release/2026-10-19/public-schema.sql \
@@ -284,7 +284,7 @@ shasum -a 256 artifacts/release/2026-10-19/public-schema.sql \
 
 Record the hashes in `docs/release-gates.md`.
 
-- [ ] **Step 6: Commit the evidence note**
+- [x] **Step 6: Commit the evidence note**
 
 ```bash
 git add .gitignore docs/release-gates.md
@@ -300,7 +300,7 @@ git commit -m "docs(release): record the production backup"
 - Consumes: the verified backup from Task A2.
 - Produces: remote schema at `0014`, with `merge_tracker_records` and `claim_routine_push` visible through PostgREST.
 
-- [ ] **Step 1: Dry-run the exact migration list**
+- [x] **Step 1: Dry-run the exact migration list**
 
 ```bash
 supabase db push --linked --dry-run
@@ -310,13 +310,13 @@ Expected list, in order: `0006_career_roadmap_atomic_sync.sql`, `0007_merge_trac
 
 If the list differs, stop and report.
 
-- [ ] **Step 2: Apply**
+- [x] **Step 2: Apply**
 
 ```bash
 supabase db push --linked
 ```
 
-- [ ] **Step 3: Confirm the remote history**
+- [x] **Step 3: Confirm the remote history**
 
 ```bash
 supabase migration list --linked
@@ -324,7 +324,7 @@ supabase migration list --linked
 
 Expected: `remote` is non-empty for `0001–0014`.
 
-- [ ] **Step 4: Confirm the new surface through PostgREST**
+- [x] **Step 4: Confirm the new surface through PostgREST**
 
 ```bash
 set -a; . ./.env; set +a
@@ -342,11 +342,11 @@ console.log('schema surface ok');
 "
 ```
 
-- [ ] **Step 5: Record the result**
+- [x] **Step 5: Record the result**
 
 Append the dry-run list, push output, migration list and `schema surface ok` to `docs/release-gates.md`. Do not include connection strings or keys.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add docs/release-gates.md
@@ -367,7 +367,7 @@ git commit -m "docs(release): record the production migration"
 **Interfaces:**
 - Produces: `PORTFOLIO_ORIGIN = "https://www.buildora.work"` and `PERSONAL_ORIGIN = "https://personal.buildora.work"`, consumed by metadata, JSON-LD and the sitemap.
 
-- [ ] **Step 1: Write the failing origin test**
+- [x] **Step 1: Write the failing origin test**
 
 Create `src/lib/site.test.ts`:
 
@@ -391,7 +391,7 @@ node --experimental-strip-types --test src/lib/site.test.ts
 
 Expected: FAIL because `src/lib/site.ts` does not exist.
 
-- [ ] **Step 2: Add the constants**
+- [x] **Step 2: Add the constants**
 
 Create `src/lib/site.ts`:
 
@@ -400,7 +400,7 @@ export const PORTFOLIO_ORIGIN = "https://www.buildora.work";
 export const PERSONAL_ORIGIN = "https://personal.buildora.work";
 ```
 
-- [ ] **Step 3: Replace hardcoded metadata origins**
+- [x] **Step 3: Replace hardcoded metadata origins**
 
 In `src/app/layout.tsx`, import the constants and use them for `metadataBase`, `openGraph.url`, the Twitter card origin and every JSON-LD `@id`/`url` that currently uses `https://buildora.work` or `https://personal.buildora.work`. Keep the `study.buildora.work` resource links unchanged.
 
@@ -408,7 +408,7 @@ In `src/app/sitemap.ts`, import `PORTFOLIO_ORIGIN` and replace the local `PORTFO
 
 In `src/lib/const.ts`, change the displayed website value to `https://www.buildora.work`.
 
-- [ ] **Step 4: Update the production assertions**
+- [x] **Step 4: Update the production assertions**
 
 In `e2e/public-case-studies.spec.ts`, extend the sitemap test:
 
@@ -442,7 +442,7 @@ await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
 );
 ```
 
-- [ ] **Step 5: Run the checks**
+- [x] **Step 5: Run the checks**
 
 ```bash
 node --experimental-strip-types --test src/lib/site.test.ts
@@ -453,7 +453,7 @@ npx playwright test e2e/public-portfolio.spec.ts e2e/public-case-studies.spec.ts
 
 Expected: all pass after the edits.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/site.ts src/lib/site.test.ts src/app/layout.tsx src/app/sitemap.ts src/lib/const.ts e2e/public-case-studies.spec.ts e2e/public-portfolio.spec.ts
@@ -470,7 +470,7 @@ git commit -m "fix(seo): use the served www origin for canonical metadata"
 - Consumes: `PORTFOLIO_ORIGIN`.
 - Produces: `/robots.txt` containing `Sitemap: https://www.buildora.work/sitemap.xml`.
 
-- [ ] **Step 1: Add the failing assertion**
+- [x] **Step 1: Add the failing assertion**
 
 In `e2e/public-case-studies.spec.ts`, add:
 
@@ -484,7 +484,7 @@ test("robots declares the canonical sitemap", async ({ request }) => {
 });
 ```
 
-- [ ] **Step 2: Run it and confirm the failure**
+- [x] **Step 2: Run it and confirm the failure**
 
 ```bash
 npx playwright test e2e/public-case-studies.spec.ts --grep "robots declares" --reporter=line
@@ -492,7 +492,7 @@ npx playwright test e2e/public-case-studies.spec.ts --grep "robots declares" --r
 
 Expected: FAIL because the local build has no `/robots.txt` route (or lacks the line).
 
-- [ ] **Step 3: Add the route**
+- [x] **Step 3: Add the route**
 
 Create `src/app/robots.ts`:
 
@@ -509,7 +509,7 @@ export default function robots(): MetadataRoute.Robots {
 }
 ```
 
-- [ ] **Step 4: Rebuild and rerun**
+- [x] **Step 4: Rebuild and rerun**
 
 ```bash
 npx playwright test e2e/public-case-studies.spec.ts --reporter=line
@@ -517,7 +517,7 @@ npx playwright test e2e/public-case-studies.spec.ts --reporter=line
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/app/robots.ts e2e/public-case-studies.spec.ts
@@ -533,7 +533,7 @@ git commit -m "feat(seo): declare the sitemap in robots.txt"
 **Interfaces:**
 - Produces: `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` and `Permissions-Policy` on app responses.
 
-- [ ] **Step 1: Add the failing assertions**
+- [x] **Step 1: Add the failing assertions**
 
 In `e2e/public-case-studies.spec.ts`, add:
 
@@ -551,7 +551,7 @@ test("portfolio responses carry baseline security headers", async ({
 });
 ```
 
-- [ ] **Step 2: Run it and confirm the failure**
+- [x] **Step 2: Run it and confirm the failure**
 
 ```bash
 npx playwright test e2e/public-case-studies.spec.ts --reporter=line
@@ -559,7 +559,7 @@ npx playwright test e2e/public-case-studies.spec.ts --reporter=line
 
 Expected: FAIL on the missing headers.
 
-- [ ] **Step 3: Configure the headers**
+- [x] **Step 3: Configure the headers**
 
 Replace `next.config.mjs` with:
 
@@ -586,7 +586,7 @@ export default nextConfig;
 
 Do not add `notifications=()`; the push permission prompt must remain available.
 
-- [ ] **Step 4: Rebuild and rerun**
+- [x] **Step 4: Rebuild and rerun**
 
 ```bash
 npx playwright test e2e/public-case-studies.spec.ts e2e/public-portfolio.spec.ts --reporter=line
@@ -594,7 +594,7 @@ npx playwright test e2e/public-case-studies.spec.ts e2e/public-portfolio.spec.ts
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add next.config.mjs e2e/public-case-studies.spec.ts
@@ -610,7 +610,7 @@ git commit -m "fix(security): add baseline response headers"
 - Consumes: all Gate A commits.
 - Produces: a live deployment whose smoke checks pass, plus a rollback reference.
 
-- [ ] **Step 1: Run the local gates**
+- [x] **Step 1: Run the local gates**
 
 ```bash
 npx tsc --noEmit
@@ -620,7 +620,7 @@ npx playwright test --reporter=line
 
 Expected: 406 passed (or the current full count), 0 failed.
 
-- [ ] **Step 2: Push and wait for CI and Vercel**
+- [x] **Step 2: Push and wait for CI and Vercel**
 
 ```bash
 git push origin main
@@ -633,7 +633,7 @@ Wait for the CI run to finish with `success`. Confirm a Vercel production deploy
 gh api repos/CVamsi27/portfolio/deployments --jq '.[0] | [.id,.sha[0:7],.environment] | @tsv'
 ```
 
-- [ ] **Step 3: Run the smoke verifier against production**
+- [x] **Step 3: Run the smoke verifier against production**
 
 ```bash
 pnpm release:smoke
@@ -641,7 +641,7 @@ pnpm release:smoke
 
 Expected: all checks pass. If `robots declares the sitemap` still fails, Cloudflare's managed `robots.txt` is overriding the app route. In Cloudflare, disable the managed `robots.txt`/content-signals injection for `www.buildora.work` or add `Sitemap: https://www.buildora.work/sitemap.xml` to the managed output, then rerun. Do not weaken the assertion.
 
-- [ ] **Step 4: Record Gate A evidence**
+- [x] **Step 4: Record Gate A evidence**
 
 Append to `docs/release-gates.md`:
 
@@ -653,7 +653,7 @@ Append to `docs/release-gates.md`:
 - rollback deployment (`7170638613`, `e6c387b`) and the rule: promote the previous deployment; keep additive schema; no data rollback;
 - any Cloudflare operator change.
 
-- [ ] **Step 5: Commit and wait for the docs CI**
+- [x] **Step 5: Commit and wait for the docs CI**
 
 ```bash
 git add docs/release-gates.md
@@ -664,7 +664,7 @@ gh run list --limit 1
 
 Expected: docs-only CI success.
 
-- [ ] **Step 6: Stop and report Gate A**
+- [x] **Step 6: Stop and report Gate A**
 
 Report: migration result, live smoke result, canonical/robots/headers outcome, rollback reference. Do not start Gate B until the owner acknowledges.
 
