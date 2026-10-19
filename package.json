@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "release:smoke": "node scripts/release-smoke.mjs",
     "lint": "eslint src",
     "test:personal-access": "node --experimental-strip-types --test src/lib/personal-access*.test.ts && node --test scripts/personal-service-worker.test.mjs",
     "career:generate": "node scripts/generate-career-curriculum.mjs --bible-root ../software-developer-bible --start-date 2026-09-30 --days 100 --study-base-url https://study.buildora.work --output src/data/career-curriculum.json",
