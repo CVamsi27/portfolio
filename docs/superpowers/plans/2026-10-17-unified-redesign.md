@@ -86,7 +86,7 @@
 - [x] Record limits explicitly (local mode, no authenticated cloud verification, no deployment). — Recorded in `docs/ui-ux-review.md`, `design-qa.md` and the change sheet, including the height-budget amendment and the out-of-scope `useLocalValue`/`useSyncedStorage` cache hazard.
 - [x] Commit `docs(qa): record unified redesign verification`.
 
-**Exit:** all gates green; docs updated; user decides on merge/deploy. — **406/406 browser tests, 101/101 unit checks, 232/232 captures**; branch `redesign/unified-uiux` holds phases 0–5 plus this evidence commit; merge/deploy decision pending with the user.
+**Exit:** all gates green; docs updated; user decides on merge/deploy. — **406/406 browser tests, 101/101 unit checks, 232/232 captures**; branch `redesign/unified-uiux` held phases 0–5 plus the evidence commit, and was merged into `main` at `e6ec58b` on 19 October 2026 (seven phase commits plus the evidence commit preserved; not pushed). Deployment remains the user's decision.
 
 ## Risks and mitigations
 
