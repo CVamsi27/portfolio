@@ -333,20 +333,39 @@ test.describe("redesign guards — Today timeline, weekly review and first-run s
     await expect(
       page.getByRole("heading", { name: "Weekly review", exact: true }),
     ).toBeVisible();
-    await page
-      .getByLabel("What went well this week?")
-      .fill("Shipped the timeline rebuild");
-    await page
-      .getByLabel("What did you learn this week?")
-      .fill("Small sessions beat long plans");
+    // Typing before hydration is discarded by the controlled fields, so retry
+    // the pair until both values stick.
+    await expect(async () => {
+      await page
+        .getByLabel("What went well this week?")
+        .fill("Shipped the timeline rebuild");
+      await page
+        .getByLabel("What did you learn this week?")
+        .fill("Small sessions beat long plans");
+      await expect(
+        page.getByLabel("What went well this week?"),
+      ).toHaveValue("Shipped the timeline rebuild", { timeout: 1000 });
+      await expect(
+        page.getByLabel("What did you learn this week?"),
+      ).toHaveValue("Small sessions beat long plans", { timeout: 1000 });
+    }).toPass();
     await page.getByRole("button", { name: "Save reflection" }).click();
     await expect(page.getByRole("status")).toContainText(
       "Weekly reflection saved",
     );
-    await page
-      .getByLabel("First action for next week")
-      .fill("Book two interview slots");
-    await page.getByLabel("Commitment 2").fill("Ship the weekly review");
+    await expect(async () => {
+      await page
+        .getByLabel("First action for next week")
+        .fill("Book two interview slots");
+      await page.getByLabel("Commitment 2").fill("Ship the weekly review");
+      await expect(
+        page.getByLabel("First action for next week"),
+      ).toHaveValue("Book two interview slots", { timeout: 1000 });
+      await expect(page.getByLabel("Commitment 2")).toHaveValue(
+        "Ship the weekly review",
+        { timeout: 1000 },
+      );
+    }).toPass();
     await page.getByRole("button", { name: "Save next week" }).click();
     await expect(page.getByRole("status")).toContainText("Next week saved");
     const journal = await page.evaluate(

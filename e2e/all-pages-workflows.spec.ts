@@ -139,8 +139,16 @@ test("Food exposes the selected view to assistive technology after reload", asyn
 test("changing the food diary date survives reload", async ({ page }) => {
   await seed(page);
   await page.goto("/food?date=2026-10-03&view=diary");
-  await page.getByLabel("Record date", { exact: true }).fill("2026-10-02");
-  await expect(page).toHaveURL(/[?&]date=2026-10-02(?:&|$)/);
+  const dateInput = page.getByLabel("Record date", { exact: true });
+  // A pre-hydration fill is discarded when React attaches, so retry until the
+  // controlled input keeps the typed value and the URL follows it.
+  await expect(async () => {
+    await dateInput.fill("2026-10-02");
+    await expect(dateInput).toHaveValue("2026-10-02", { timeout: 1000 });
+    await expect(page).toHaveURL(/[?&]date=2026-10-02(?:&|$)/, {
+      timeout: 1000,
+    });
+  }).toPass();
   await page.reload();
   await expect(page.getByLabel("Record date", { exact: true })).toHaveValue(
     "2026-10-02",
