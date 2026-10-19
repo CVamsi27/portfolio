@@ -89,6 +89,18 @@ test.describe("portfolio case studies", () => {
     await expect(page).toHaveURL(/\/work\/teamops$/);
   });
 
+  test("case study canonical uses the served www origin", async ({ page }) => {
+    await page.goto("/work/docita");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://www.buildora.work/work/docita",
+    );
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+      "content",
+      "https://www.buildora.work/work/docita",
+    );
+  });
+
   test("portfolio host serves case studies, sitemap, and still redirects other paths", async ({
     request,
   }) => {
@@ -105,6 +117,8 @@ test.describe("portfolio case studies", () => {
     const body = await sitemap.text();
     expect(body).toContain("/work/docita");
     expect(body).toContain("/work/portfolio");
+    expect(body).toContain("https://www.buildora.work/");
+    expect(body).not.toMatch(/<loc>https:\/\/buildora\.work\//);
 
     const redirect = await request.get("http://127.0.0.1:4111/settings", {
       headers: { Host: "buildora.work" },

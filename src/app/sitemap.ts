@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next";
 import { CASE_STUDIES } from "@/lib/case-studies";
-
-/** The public portfolio origin. Case studies live at `/work/[slug]` below it. */
-const PORTFOLIO_ORIGIN = "https://buildora.work";
+import { PORTFOLIO_ORIGIN } from "@/lib/site";
 
 export const dynamic = "force-static";
 

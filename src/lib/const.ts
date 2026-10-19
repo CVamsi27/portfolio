@@ -157,7 +157,7 @@ export const PERSONAL_DETAILS: PersonalDetails[] = [
   },
   {
     icon: Globe,
-    value: "https://buildora.work",
+    value: "https://www.buildora.work",
   },
 ];
 

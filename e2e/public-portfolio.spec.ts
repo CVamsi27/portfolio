@@ -26,6 +26,10 @@ test.describe("public personal portfolio", () => {
       "content",
       "summary_large_image",
     );
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+      "content",
+      "https://www.buildora.work",
+    );
   });
 
   test("public manifest is distinct from the tracker manifest", async ({ page }) => {

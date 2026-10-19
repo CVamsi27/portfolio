@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import PWARegister from "@/components/PWARegister";
 import PersonalAccessGate from "@/components/auth/PersonalAccessGate";
 import { isPersonalHost } from "@/lib/personal-access";
+import { PERSONAL_ORIGIN, PORTFOLIO_ORIGIN } from "@/lib/site";
 import { Toaster } from "@/components/ui/toaster";
 import ReminderNudges from "@/components/ReminderNudges";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -53,7 +54,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const isTracker = brand === TRACKER_BRAND;
 
   return {
-    metadataBase: new URL(isTracker ? "https://personal.buildora.work" : "https://buildora.work"),
+    metadataBase: new URL(isTracker ? PERSONAL_ORIGIN : PORTFOLIO_ORIGIN),
     title: isTracker ? `${TRACKER_BRAND.name} | Personal Operating System` : PORTFOLIO_BRAND.title,
     description: brand.description,
     manifest: "/manifest.webmanifest",
@@ -68,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       type: "website" as const,
-      url: isTracker ? "https://personal.buildora.work" : "https://buildora.work",
+      url: isTracker ? PERSONAL_ORIGIN : PORTFOLIO_ORIGIN,
       title: isTracker ? `${TRACKER_BRAND.name} | Personal Operating System` : PORTFOLIO_BRAND.title,
       description: brand.description,
       images: [
@@ -112,10 +113,10 @@ export default async function RootLayout({
         "@graph": [
           {
             "@type": "Person",
-            "@id": "https://buildora.work/#person",
+            "@id": `${PORTFOLIO_ORIGIN}/#person`,
             name: "Vamsi Krishna Chandaluri",
             alternateName: "Vamsi Krishna",
-            url: "https://buildora.work",
+            url: PORTFOLIO_ORIGIN,
             jobTitle: "Senior Full Stack & Systems Engineer",
             description: brand.description,
             knowsAbout: [
@@ -142,17 +143,17 @@ export default async function RootLayout({
           },
           {
             "@type": "ProfilePage",
-            "@id": "https://buildora.work/#profilepage",
-            url: "https://buildora.work",
+            "@id": `${PORTFOLIO_ORIGIN}/#profilepage`,
+            url: PORTFOLIO_ORIGIN,
             name: PORTFOLIO_BRAND.title,
-            mainEntity: { "@id": "https://buildora.work/#person" },
+            mainEntity: { "@id": `${PORTFOLIO_ORIGIN}/#person` },
           },
           {
             "@type": "WebSite",
-            "@id": "https://buildora.work/#website",
-            url: "https://buildora.work",
+            "@id": `${PORTFOLIO_ORIGIN}/#website`,
+            url: PORTFOLIO_ORIGIN,
             name: PORTFOLIO_BRAND.siteName,
-            publisher: { "@id": "https://buildora.work/#person" },
+            publisher: { "@id": `${PORTFOLIO_ORIGIN}/#person` },
           },
         ],
       }
