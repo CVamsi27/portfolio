@@ -63,11 +63,13 @@ test.describe("public personal portfolio", () => {
     const height = await page.evaluate(
       () => document.documentElement.scrollHeight,
     );
-    // Budget revised 2026-10-19 (owner direction): measured 10,817px after all
-    // content-preserving tightening. The original "~8,000px" target implied
-    // -6,046px, but the plan's own listed moves measure -2,771px; deeper cuts
-    // would hide visible narrative (see docs/ui-ux-review.md).
-    expect(height).toBeLessThanOrEqual(11_000);
+    // Budget revised 2026-10-19 (owner direction): measured 10,817px on macOS
+    // and 11,152px on the ubuntu-latest CI runner after all content-preserving
+    // tightening, so the pin carries a margin for platform font metrics. The
+    // original "~8,000px" target implied -6,046px, but the plan's own listed
+    // moves measure -2,771px; deeper cuts would hide visible narrative (see
+    // docs/ui-ux-review.md).
+    expect(height).toBeLessThanOrEqual(11_800);
 
     // Seven indexed work cards; each detail list sits behind a disclosure.
     await expect(page.locator("[data-project-index]")).toHaveCount(7);
