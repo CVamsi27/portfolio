@@ -16,7 +16,8 @@ import { createRequestAuth } from "./lib/supabase/request.ts";
  *
  * - buildora.work / portfolio.buildora.work → portfolio resume ONLY.
  *   Every non-root path (incl. /login, /trackers, /goal, …) redirects to `/`.
- *   Only `/api/*` (contact form) is exempt.
+ *   Only `/api/*` (contact form), `/work/*` (project case studies) and the
+ *   SEO documents are exempt.
  * - personal.buildora.work → allowlisted Google sessions only; `/` rewrites
  *   to the tracker entry after server validation. Login/bootstrap stay public.
  * - Personal APIs are protected on every deployed host; machine endpoints
@@ -28,8 +29,14 @@ export default async function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
   const personalHost = isPersonalHost(host);
   const isLocal = isLocalHost(host);
+  // Public case studies are portfolio content: on localhost they keep the
+  // portfolio surface, on deployed hosts they are exempt from the redirect.
+  const isPortfolioCase = url.pathname.startsWith("/work/");
   const isLocalTrackerPath =
-    isLocal && url.pathname !== "/" && !url.pathname.startsWith("/api/");
+    isLocal &&
+    url.pathname !== "/" &&
+    !url.pathname.startsWith("/api/") &&
+    !isPortfolioCase;
   const isTrackerSurface = personalHost || isLocalTrackerPath;
   const requestHeaders = new Headers(req.headers);
   requestHeaders.delete("x-product-surface");
@@ -105,7 +112,12 @@ export default async function proxy(req: NextRequest) {
     url.pathname.startsWith("/icons/") ||
     /\.(?:svg|png|jpg|jpeg|gif|webp|pdf|ico)$/i.test(url.pathname);
 
-  if (isStaticAsset) {
+  // SEO documents (sitemap, robots) are static metadata — serve from any host
+  // without the portfolio redirect.
+  const isSeoDocument =
+    url.pathname === "/sitemap.xml" || url.pathname === "/robots.txt";
+
+  if (isStaticAsset || isSeoDocument) {
     return NextResponse.next();
   }
 
@@ -119,7 +131,12 @@ export default async function proxy(req: NextRequest) {
       : NextResponse.next();
   }
 
-  if (!isLocal && url.pathname !== "/" && !url.pathname.startsWith("/api/")) {
+  if (
+    !isLocal &&
+    url.pathname !== "/" &&
+    !url.pathname.startsWith("/api/") &&
+    !isPortfolioCase
+  ) {
     url.pathname = "/";
     url.search = "";
     return NextResponse.redirect(url, 307);

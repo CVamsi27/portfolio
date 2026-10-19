@@ -1361,7 +1361,7 @@ body.tracker-surface,
   border-radius: 0.85rem;
   border: 1.5px solid color-mix(in srgb, var(--portfolio-accent) 45%, var(--portfolio-rule));
   background: color-mix(in srgb, var(--portfolio-paper) 95%, var(--portfolio-blue-soft));
-  padding: clamp(1.5rem, 3.5vw, 2.5rem);
+  padding: clamp(1.4rem, 3vw, 2rem);
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06);
   transition: all 220ms ease;
   overflow: hidden;
@@ -1458,7 +1458,7 @@ body.tracker-surface,
   grid-template-columns: 3.5rem minmax(0, 1fr);
   gap: 1.5rem;
   border-bottom: 1px solid var(--portfolio-rule);
-  padding: 1.85rem 1rem;
+  padding: 1.4rem 1rem;
   border-radius: 0.5rem;
   transition: background-color 180ms ease, transform 180ms ease, padding 180ms ease;
 }
@@ -1664,6 +1664,12 @@ body.tracker-surface,
   overflow: hidden;
 }
 
+@media (min-width: 1024px) {
+  .portfolio-capability-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .portfolio-capability-group {
   min-height: 14rem;
   background: var(--portfolio-paper);
@@ -1699,10 +1705,10 @@ body.tracker-surface,
 }
 
 .portfolio-tech-shelf {
-  margin-top: 3rem;
+  margin-top: 2.25rem;
   border: 1px solid var(--portfolio-rule);
   border-radius: 0.75rem;
-  padding: 1.75rem;
+  padding: 1.5rem;
   background: color-mix(in srgb, var(--portfolio-paper) 94%, var(--portfolio-blue-soft));
 }
 
@@ -2588,5 +2594,454 @@ html.dark .portfolio-scroll-fab {
   /* Section headings */
   .portfolio-section-heading::after {
     display: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Tightened overview + case studies (Phase 5)
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Work rows: summary line + disclosure for engineering decisions ── */
+.portfolio-work-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.portfolio-work-case-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--portfolio-accent) 38%, transparent);
+  background: color-mix(in srgb, var(--portfolio-accent) 8%, transparent);
+  color: var(--portfolio-accent);
+  font-family: var(--font-utility);
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.portfolio-work-case-link:hover {
+  background: color-mix(in srgb, var(--portfolio-accent) 15%, transparent);
+  border-color: var(--portfolio-accent);
+  transform: translateY(-1px);
+}
+
+.portfolio-work-details {
+  margin-top: 1rem;
+}
+
+.portfolio-work-details > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  padding: 0.32rem 0.7rem;
+  border: 1px dashed color-mix(in srgb, var(--portfolio-rule) 92%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--portfolio-paper) 82%, var(--portfolio-blue-soft));
+  color: var(--portfolio-muted);
+  font-family: var(--font-utility);
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  list-style: none;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.portfolio-work-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.portfolio-work-details > summary:hover {
+  color: var(--portfolio-accent);
+  border-color: color-mix(in srgb, var(--portfolio-accent) 60%, transparent);
+}
+
+.portfolio-work-details > summary svg {
+  transition: transform 200ms ease;
+}
+
+.portfolio-work-details[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.portfolio-work-details-body {
+  margin-top: 1.1rem;
+  padding-left: 1.1rem;
+  border-left: 2px solid color-mix(in srgb, var(--portfolio-accent) 22%, transparent);
+}
+
+.portfolio-work-highlights {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+  color: var(--portfolio-muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+/* ── Generic inline disclosure (pattern solutions, repo highlights) ── */
+.portfolio-disclosure > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.28rem 0.65rem;
+  border: 1px dashed color-mix(in srgb, var(--portfolio-rule) 92%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--portfolio-paper) 85%, var(--portfolio-blue-soft));
+  color: var(--portfolio-muted);
+  font-family: var(--font-utility);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  list-style: none;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.portfolio-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.portfolio-disclosure > summary:hover {
+  color: var(--portfolio-accent);
+  border-color: color-mix(in srgb, var(--portfolio-accent) 60%, transparent);
+}
+
+.portfolio-disclosure > summary svg {
+  transition: transform 200ms ease;
+}
+
+.portfolio-disclosure[open] > summary svg {
+  transform: rotate(90deg);
+}
+
+.portfolio-disclosure-body {
+  margin-top: 0.6rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid color-mix(in srgb, var(--portfolio-accent) 22%, transparent);
+  line-height: 1.65;
+}
+
+/* ── Experience: collapsed pre-2023 rows ── */
+.portfolio-experience-history {
+  border-bottom: 1px solid var(--portfolio-rule);
+  border-left: 3px solid transparent;
+  padding-left: 1rem;
+  transition: border-color 220ms ease, background-color 180ms ease;
+}
+
+.portfolio-experience-history:hover {
+  border-left-color: color-mix(in srgb, var(--portfolio-accent) 50%, transparent);
+  background: color-mix(in srgb, var(--portfolio-paper) 97%, var(--portfolio-blue-soft));
+}
+
+.portfolio-experience-history-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.85rem;
+  padding: 1.15rem 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.portfolio-experience-history-summary::-webkit-details-marker {
+  display: none;
+}
+
+.portfolio-experience-history-chevron {
+  transition: transform 200ms ease;
+}
+
+.portfolio-experience-history[open] .portfolio-experience-history-chevron {
+  transform: rotate(180deg);
+}
+
+.portfolio-experience-history-body {
+  padding: 0.1rem 0 1.6rem;
+}
+
+/* ── Capabilities: single-row grid on wide screens ── */
+@media (min-width: 1024px) {
+  .portfolio-capability-group {
+    padding: 1.5rem;
+  }
+
+  .portfolio-capability-group h3 {
+    font-size: 1.22rem;
+  }
+}
+
+/* ── Case studies: /work/[slug] ── */
+.case-study-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--portfolio-muted);
+  font-family: var(--font-utility);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 160ms ease;
+}
+
+.case-study-back:hover {
+  color: var(--portfolio-accent);
+}
+
+.case-study-hero {
+  margin-top: 1.75rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--portfolio-rule);
+  max-width: 56rem;
+}
+
+.case-study-eyebrow {
+  color: var(--portfolio-accent);
+  font-family: var(--font-utility);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.case-study-title {
+  margin-top: 0.75rem;
+  color: var(--portfolio-ink);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+}
+
+.case-study-summary {
+  margin-top: 1.1rem;
+  color: var(--portfolio-muted);
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.case-study-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin-top: 1rem;
+  color: var(--portfolio-muted);
+  font-family: var(--font-utility);
+  font-size: 0.7rem;
+}
+
+.case-study-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.case-study-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.case-study-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.1rem;
+  border: 1px solid var(--portfolio-rule);
+  border-radius: 0.6rem;
+  color: var(--portfolio-ink);
+  font-family: var(--font-utility);
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.case-study-secondary-action:hover {
+  border-color: var(--portfolio-accent);
+  color: var(--portfolio-accent);
+}
+
+.case-study-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--portfolio-rule);
+  font-family: var(--font-utility);
+  font-size: 0.72rem;
+}
+
+.case-study-toc a {
+  color: var(--portfolio-muted);
+  transition: color 160ms ease;
+}
+
+.case-study-toc a:hover {
+  color: var(--portfolio-accent);
+}
+
+.case-study-section {
+  max-width: 56rem;
+  margin-top: 3rem;
+  scroll-margin-top: 6rem;
+}
+
+.case-study-section h2 {
+  color: var(--portfolio-ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.case-study-list {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.1rem;
+  padding: 0;
+  list-style: none;
+  color: var(--portfolio-muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.case-study-list li {
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.case-study-list li::before {
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: var(--portfolio-accent);
+  content: "";
+}
+
+.case-study-list--grid {
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.8rem 1.5rem;
+}
+
+.case-study-note {
+  margin-top: 1.1rem;
+  padding: 1.1rem 1.25rem;
+  border-left: 3px solid var(--portfolio-accent);
+  border-radius: 0 0.75rem 0.75rem 0;
+  background: color-mix(in srgb, var(--portfolio-paper) 88%, var(--portfolio-blue-soft));
+  color: var(--portfolio-muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.case-study-patterns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.case-study-patterns a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--portfolio-rule);
+  border-radius: 0.75rem;
+  background: var(--portfolio-paper);
+  color: var(--portfolio-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.case-study-patterns a:hover {
+  border-color: var(--portfolio-accent);
+  color: var(--portfolio-accent);
+  transform: translateY(-1px);
+}
+
+.case-study-pagination {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 4rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--portfolio-rule);
+}
+
+.case-study-pagination__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--portfolio-rule);
+  border-radius: 0.85rem;
+  background: var(--portfolio-paper);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.case-study-pagination__item:hover {
+  border-color: var(--portfolio-accent);
+  background: color-mix(in srgb, var(--portfolio-paper) 90%, var(--portfolio-blue-soft));
+}
+
+.case-study-pagination__item--next {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.case-study-pagination__item > span {
+  min-width: 0;
+}
+
+.case-study-pagination__item small {
+  display: block;
+  color: var(--portfolio-muted);
+  font-family: var(--font-utility);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.case-study-pagination__item strong {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--portfolio-ink);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .case-study-pagination {
+    grid-template-columns: 1fr;
+  }
+
+  .case-study-section {
+    margin-top: 2.25rem;
   }
 }

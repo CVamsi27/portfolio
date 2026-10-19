@@ -156,7 +156,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="Contact" className="portfolio-section portfolio-contact-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16">
+    <section id="Contact" className="portfolio-section portfolio-contact-section px-5 py-12 sm:px-10 sm:py-16 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="04 / Start a Conversation"

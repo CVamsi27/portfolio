@@ -11,8 +11,6 @@ import {
   ShieldCheck,
   Cpu,
   Terminal,
-  BookOpen,
-  ArrowUpRight,
 } from "lucide-react";
 
 const CAPABILITIES = [
@@ -136,7 +134,7 @@ const Skills = () => {
   const totalTools = filteredCoreSkills.length + filteredExtraSkills.length;
 
   return (
-    <section id="Capabilities" className="portfolio-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16">
+    <section id="Capabilities" className="portfolio-section px-5 py-12 sm:px-10 sm:py-16 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="03 / Disciplines & Stack"
@@ -177,38 +175,6 @@ const Skills = () => {
             );
           })}
         </div>
-
-        {/* Senior Full Stack Bible Spotlight */}
-        <Reveal delay={90} className="my-8 rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)]/40 p-4 sm:p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-accent)] shadow-xs">
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-display text-sm font-bold text-[var(--portfolio-ink)]">
-                    Senior Full Stack Interview Bible
-                  </h4>
-                  <span className="portfolio-impact-pill">Mechanisms · Revision · Practical Exercises</span>
-                </div>
-                <p className="mt-0.5 text-xs text-[var(--portfolio-muted)]">
-                  My open-source engineering reference covering 7 study stacks, 2 terminal interview lanes, and all 23 GoF design patterns.
-                </p>
-              </div>
-            </div>
-
-            <a
-              href="https://study.buildora.work"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-lg border border-[var(--portfolio-accent)] bg-[var(--portfolio-paper)] px-3.5 py-1.5 font-utility text-xs font-semibold text-[var(--portfolio-accent)] transition-all hover:bg-[var(--portfolio-accent)] hover:text-white shrink-0 shadow-xs"
-            >
-              <span>Explore study.buildora.work</span>
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
-          </div>
-        </Reveal>
 
         {/* Interactive Tech Stack Shelf */}
         <Reveal delay={120} className="portfolio-tech-shelf">

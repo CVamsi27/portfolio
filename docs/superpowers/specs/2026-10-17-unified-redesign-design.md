@@ -72,6 +72,7 @@ Observed drivers:
 ### T7 — Portfolio
 
 - Same one-page narrative, tightened to ≤ ~8,000px at 1440 (from 14,046px) by: collapsing Work card bullet lists behind per-card disclosure, Architecture 8 → 6 cards with the existing “Explore all 23 patterns” link, merging Open Source + Ecosystem tracks into one section, compacting Capabilities into one grid, collapsing pre-2023 Experience rows to a single line, keeping three Impact cards.
+- **Amendment 2026-10-19:** budget revised to ≤ 11,000px at 1440, measured 10,817px after every content-preserving move. The original target implied −6,046px, but the plan's own listed moves measure −2,771px; closing the rest would hide visible narrative (work-card descriptions, the Impact practice panel, current-role detail). Owner direction on 19 October: keep the achieved height, record the deviation rather than cut content. The e2e pin now enforces 11,000px as a regression guard.
 - Case-study routes `/work/[slug]` for the seven projects (docita, senior-full-stack-bible, teamops, super-tic-tac-toe, digital-library, task-manager, portfolio): hero (role, stack, live/source links), problem, approach, architecture highlights, verification/limits note, related-patterns links, next/prev navigation. Content is assembled from existing truthful sources (`const.ts` project copy, architecture showcase, README claims); no invented metrics.
 - `proxy.ts` allows `/work/*` on portfolio hosts while keeping every other non-root path redirecting to `/`.
 - Palette and Work cards link to case studies; per-page metadata/OG; sitemap entries.

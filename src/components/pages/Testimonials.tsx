@@ -38,7 +38,7 @@ export default function Testimonials() {
       id="Impact"
       aria-label="Product Work and Engineering Practice"
       data-chapter-index="06"
-      className="portfolio-chapter relative px-5 py-20 sm:px-10 sm:py-28 lg:px-16"
+      className="portfolio-chapter relative px-5 py-14 sm:px-10 sm:py-20 lg:px-16"
     >
       <div className="relative mx-auto max-w-7xl">
         <Reveal>

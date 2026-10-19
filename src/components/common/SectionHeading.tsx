@@ -17,7 +17,7 @@ export const SectionHeading = ({
   className,
 }: SectionHeadingProps) => {
   return (
-    <Reveal className={cn("editorial-section-heading portfolio-section-heading mb-12", className)}>
+    <Reveal className={cn("editorial-section-heading portfolio-section-heading mb-8", className)}>
       <ChapterLabel eyebrow={eyebrow} />
       <DisplayStatement as="h2" className="mt-5">
         {title}

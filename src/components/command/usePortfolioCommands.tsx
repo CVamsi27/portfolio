@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   BookOpen,
@@ -33,6 +34,7 @@ import {
   PROJECTS,
   RESUME_PATH,
 } from "@/lib/const";
+import { caseStudyHref, projectSlug } from "@/lib/case-studies";
 import { toast } from "@/components/ui/use-toast";
 import type { CommandItem } from "./types";
 
@@ -43,6 +45,7 @@ import type { CommandItem } from "./types";
  */
 export default function usePortfolioCommands(): CommandItem[] {
   const { setTheme, resolvedTheme } = useTheme();
+  const router = useRouter();
 
   return useMemo<CommandItem[]>(() => {
     const list: CommandItem[] = [
@@ -450,24 +453,20 @@ export default function usePortfolioCommands(): CommandItem[] {
       },
     ];
 
-    // Add projects
+    // Add projects — each opens its case study route.
     PROJECTS.forEach((p) => {
       list.push({
-        id: `proj-${p.title.toLowerCase().replace(/\s+/g, "-")}`,
+        id: `proj-${projectSlug(p.title)}`,
         category: "Projects",
         title: p.title,
-        subtitle: p.description,
+        subtitle: `Open the ${p.title} case study`,
         icon: Code2,
-        keywords: [p.title.toLowerCase(), ...p.tech.toLowerCase().split(", ")],
-        run: () => {
-          if (p.URL) {
-            window.open(p.URL, "_blank");
-          } else {
-            document
-              .getElementById("Work")
-              ?.scrollIntoView({ behavior: "smooth" });
-          }
-        },
+        keywords: [
+          p.title.toLowerCase(),
+          "case study",
+          ...p.tech.toLowerCase().split(", "),
+        ],
+        run: () => router.push(caseStudyHref(p.title)),
       });
     });
 
@@ -500,5 +499,5 @@ export default function usePortfolioCommands(): CommandItem[] {
     });
 
     return list;
-  }, [resolvedTheme, setTheme]);
+  }, [resolvedTheme, setTheme, router]);
 }

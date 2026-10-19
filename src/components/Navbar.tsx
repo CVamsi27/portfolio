@@ -388,12 +388,17 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         label: item.label,
         href: item.href,
       }))
-    : MENU_LIST.map((m) => ({ label: m, href: `#${m.replace(/\s+/g, "")}` }));
+    : MENU_LIST.map((m) => {
+        const anchor = `#${m.replace(/\s+/g, "")}`;
+        // Portfolio sections live on `/`; from sub-pages (e.g. case studies)
+        // the anchors have to point back at the overview.
+        return { label: m, href: pathname === "/" ? anchor : `/${anchor}` };
+      });
 
   const isMenuActive = (href: string) =>
     isTracker
       ? isPersonalPrimaryPath(pathname, href)
-      : active === href.replace("#", "");
+      : active === href.replace(/^\/?#/, "");
 
   const openCapture = () => {
     setCaptureContext({
