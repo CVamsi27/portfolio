@@ -80,13 +80,13 @@
 
 ## Phase 6 — Final QA, docs and release evidence
 
-- [ ] Full gates: complete Playwright suite, Node domain/curriculum/Germany/access suites, `tsc --noEmit`, ESLint, production build, whitespace check.
-- [ ] Screenshot matrix for every route (320/390/768/1440, light/dark) with populated seeds where available; store under `artifacts/ui-ux/redesign-final-2026-10-17/`.
-- [ ] Append phase entries to `docs/ui-ux-review.md` (implemented improvements, follow-ups, boundaries) mirroring the existing format; update `design-qa.md`; update `docs/NOVA_CHANGE_SHEET.md` status rows touched by this pass.
-- [ ] Record limits explicitly (local mode, no authenticated cloud verification, no deployment).
-- [ ] Commit `docs(qa): record unified redesign verification`.
+- [x] Full gates: complete Playwright suite, Node domain/curriculum/Germany/access suites, `tsc --noEmit`, ESLint, production build, whitespace check. — Fresh production build on the frozen revision (`npm run pretest:e2e`, 55 static pages, `/sitemap.xml` static, `/work/[slug]` present); **406 passed / 0 failed (2.0m)**; unit suites **101/101** node checks (10+13+18+36+21+3); `tsc --noEmit`, ESLint and `git diff --check` clean.
+- [x] Screenshot matrix for every route (320/390/768/1440, light/dark) with populated seeds where available; store under `artifacts/ui-ux/redesign-final-2026-10-17/`. — **232 captures / 0 failed**: 29 routes (21 workspace routes including `/routine`, the public home and seven case studies) × 4 widths × both themes, with seeded local records for the workspace and reduced motion; spot-checked captures at 320 (review) and 1440 dark (dashboard).
+- [x] Append phase entries to `docs/ui-ux-review.md` (implemented improvements, follow-ups, boundaries) mirroring the existing format; update `design-qa.md`; update `docs/NOVA_CHANGE_SHEET.md` status rows touched by this pass. — `docs/ui-ux-review.md` carries all five phase entries; `design-qa.md` gains the dated “Unified redesign” section; the change sheet’s “Updated” date, Progress row (guided weekly review), public-portfolio row and status table reflect this pass.
+- [x] Record limits explicitly (local mode, no authenticated cloud verification, no deployment). — Recorded in `docs/ui-ux-review.md`, `design-qa.md` and the change sheet, including the height-budget amendment and the out-of-scope `useLocalValue`/`useSyncedStorage` cache hazard.
+- [x] Commit `docs(qa): record unified redesign verification`.
 
-**Exit:** all gates green; docs updated; user decides on merge/deploy.
+**Exit:** all gates green; docs updated; user decides on merge/deploy. — **406/406 browser tests, 101/101 unit checks, 232/232 captures**; branch `redesign/unified-uiux` holds phases 0–5 plus this evidence commit; merge/deploy decision pending with the user.
 
 ## Risks and mitigations
 
