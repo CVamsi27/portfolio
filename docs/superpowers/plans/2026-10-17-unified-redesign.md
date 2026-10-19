@@ -86,7 +86,7 @@
 - [x] Record limits explicitly (local mode, no authenticated cloud verification, no deployment). — Recorded in `docs/ui-ux-review.md`, `design-qa.md` and the change sheet, including the height-budget amendment and the out-of-scope `useLocalValue`/`useSyncedStorage` cache hazard.
 - [x] Commit `docs(qa): record unified redesign verification`.
 
-**Exit:** all gates green; docs updated; user decides on merge/deploy. — **406/406 browser tests, 101/101 unit checks, 232/232 captures**; branch `redesign/unified-uiux` held phases 0–5 plus the evidence commit, and was merged into `main` at `e6ec58b` on 19 October 2026 (seven phase commits plus the evidence commit preserved). Pushed to `origin/main`; CI verified the merged revision after three follow-ups — the height pin widened to 11,800px for the runner's font metrics (`5a3813f`) and four hydration races in older and new guards made retry-safe (`52440b8`, `512a4dd`) — final CI run `39229580230`: **406 passed / 0 failed / 0 flaky**. Deployment remains the user's decision.
+**Exit:** all gates green; docs updated; user decides on merge/deploy. — **406/406 browser tests, 101/101 unit checks, 232/232 captures**; branch `redesign/unified-uiux` held phases 0–5 plus the evidence commit, and was merged into `main` at `e6ec58b` on 19 October 2026 (seven phase commits plus the evidence commit preserved). Pushed to `origin/main`; CI verified the merged revision after four follow-ups — the height pin widened to 11,800px for the runner's font metrics (`5a3813f`) and five hydration races across four older and new guards made retry-safe (`52440b8`, `512a4dd`, `79f4eed`) — final CI run `39231800372`: **406 passed / 0 failed / 0 flaky**. Deployment remains the user's decision.
 
 ## Risks and mitigations
 
