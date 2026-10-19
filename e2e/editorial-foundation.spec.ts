@@ -15,7 +15,9 @@ test("editorial foundation exposes semantic surfaces and an action hierarchy", a
   await expect(
     page.getByTestId("today-header").locator(".nova-primary-action"),
   ).toBeVisible();
-  await expect(page.getByTestId("progress-lead")).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Week dates" }),
+  ).toBeVisible();
 });
 
 test("portfolio uses the personal paper editorial surface", async ({
@@ -103,13 +105,14 @@ test("authenticated utility routes keep primary navigation available", async ({
     await page.goto(route);
     await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
   }
-  for (const standalone of ["/login", "/log"]) {
-    await page.goto(standalone);
-    await expect(page.getByTestId("mobile-command-dock")).toHaveCount(0);
-    await expect(
-      page.getByRole("link", { name: "NOVA home", exact: true }),
-    ).toBeVisible();
-  }
+  await page.goto("/login");
+  await expect(page.getByTestId("mobile-command-dock")).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "NOVA home", exact: true }),
+  ).toBeVisible();
+  // Add a record now lives inside the workspace chrome, dock included.
+  await page.goto("/log");
+  await expect(page.getByTestId("mobile-command-dock")).toBeVisible();
 });
 
 test("Sharing keeps limits available and dispatch in a contextual editor", async ({

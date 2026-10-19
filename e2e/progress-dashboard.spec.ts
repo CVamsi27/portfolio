@@ -47,7 +47,7 @@ test("dashboard charts saved dated records and portion totals across selectable 
 }) => {
   await records(page);
   await page.goto("/dashboard?view=health&metric=body");
-  const lead = page.getByTestId("progress-lead");
+  const lead = page.getByTestId("progress-chart");
   await expect(page.getByTestId("progress-dashboard")).toBeVisible();
   await expect(lead).toHaveCount(1);
   await expect(lead).toContainText("3/30 dated readings");
@@ -100,18 +100,18 @@ test("through-date selection changes the period and returning to today restores 
 }) => {
   await records(page);
   await page.goto("/dashboard?view=health&metric=body");
-  await expect(page.getByTestId("progress-lead")).toContainText(
+  await expect(page.getByTestId("progress-chart")).toContainText(
     "3/30 dated readings",
   );
   await page.getByLabel("Through date").fill("2026-09-04");
   await expect(page.getByLabel("Through date")).toHaveValue("2026-09-04");
   await expect(page).toHaveURL(/[?&]date=2026-09-04(?:&|$)/);
-  await expect(page.getByTestId("progress-lead")).toContainText("No weight");
+  await expect(page.getByTestId("progress-chart")).toContainText("Start your weight trend");
   await page
     .getByRole("button", { name: "Back to today", exact: true })
     .click();
   await expect(page.getByLabel("Through date")).toHaveValue("2026-10-04");
-  await expect(page.getByTestId("progress-lead")).toContainText(
+  await expect(page.getByTestId("progress-chart")).toContainText(
     "3/30 dated readings",
   );
 });
@@ -125,8 +125,8 @@ test("empty progress offers recording without fabricated trends and retains navi
   await expect(
     page.getByRole("heading", { level: 1, name: "Progress", exact: true }),
   ).toBeVisible();
-  const lead = page.getByTestId("progress-lead");
-  await expect(lead).toContainText("No weight");
+  const lead = page.getByTestId("progress-chart");
+  await expect(lead).toContainText("Start your weight trend");
   await expect(lead.locator("svg[role=img]")).toHaveCount(0);
   await lead.getByRole("link", { name: "Record weight", exact: true }).click();
   await expect(page).toHaveURL(/\/weight-loss\?date=2026-10-04$/);
@@ -148,7 +148,7 @@ for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/dashboard?view=health&metric=body");
     await expect(page.getByRole("img", { name: /Weight, kg:/ })).toBeVisible();
-    await expect(page.getByTestId("progress-lead")).toHaveCount(1);
+    await expect(page.getByTestId("progress-chart")).toHaveCount(1);
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBeLessThanOrEqual(width);

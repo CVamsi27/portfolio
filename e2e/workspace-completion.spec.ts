@@ -90,9 +90,11 @@ test("today completion does not count old completed tasks as today activity", as
       },
     ],
   });
-  await page.goto("/todo");
-  await page.getByText("View dated readings", { exact: true }).click();
-  const readings = page.getByTestId("progress-lead");
+  await page.goto("/dashboard?view=work&metric=tasks");
+  const readings = page.getByTestId("progress-chart");
+  await readings
+    .getByText("View dated readings", { exact: true })
+    .click();
   await expect(
     readings.getByRole("row", { name: new RegExp(today) }).getByRole("cell"),
   ).toHaveText("1");
@@ -141,7 +143,7 @@ test("progress includes journal coverage and goal readings without filling missi
     },
   });
   await page.goto("/dashboard?view=work&metric=goals");
-  const lead = page.getByTestId("progress-lead");
+  const lead = page.getByTestId("progress-chart");
   await expect(lead).toContainText("2/30 dated readings");
   await page.getByText("View dated readings", { exact: true }).click();
   await expect(

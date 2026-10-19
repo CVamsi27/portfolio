@@ -79,7 +79,7 @@ test("an empty goal filter offers access to existing items", async ({
     .getByRole("button", { name: "Relocation", exact: true })
     .click();
   await expect(
-    page.getByText("No items for this goal", { exact: true }),
+    page.getByText("Add an item for this goal", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Show all items", exact: true })

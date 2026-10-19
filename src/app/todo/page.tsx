@@ -7,7 +7,9 @@ import { planningCanEdit, validDay } from "@/lib/day-plan";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import Modal from "@/components/trackers/Modal";
 import ActionMenu from "@/components/trackers/ActionMenu";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
+import ChapterBreadcrumb from "@/components/trackers/ChapterBreadcrumb";
+import MetricSummary from "@/components/progress/MetricSummary";
 import WorkspaceViews from "@/components/daily/WorkspaceViews";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -204,10 +206,14 @@ export default function TodoPage() {
 
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="todo"
         title="Tasks"
         subtitle={null}
+        breadcrumb={
+          <ChapterBreadcrumb href="/plan" label="Plan" current="Tasks" />
+        }
+        context={<MetricSummary metric="tasks" context="today" />}
         badge={<SyncBadge status={status} />}
         actions={{
           primary: (
@@ -439,17 +445,19 @@ export default function TodoPage() {
                   filtered
                     ? "No matching tasks"
                     : view === "done"
-                      ? "Nothing completed yet"
+                      ? "Completed tasks will show here"
                       : view === "today"
-                        ? "No open tasks"
+                        ? "You're all clear today"
                         : view === "tomorrow"
-                          ? "Nothing planned for tomorrow"
-                          : "No upcoming tasks"
+                          ? "Tomorrow is open"
+                          : "Your schedule ahead is clear"
                 }
                 hint={
                   filtered
                     ? "Clear filters or change the search to see more tasks."
-                    : "Use Add task to create one."
+                    : view === "done"
+                      ? "Finish a task from any view to add it to the record."
+                      : "Use Add task to create one."
                 }
               />
             ) : (
@@ -643,7 +651,7 @@ export default function TodoPage() {
             )}
           </CardContent>
         </Card>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

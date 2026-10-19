@@ -6,7 +6,9 @@ import { validDay } from "@/lib/day-plan";
 import { useWorkspaceView } from "@/lib/use-workspace-view";
 
 import { useEffect, useMemo, useState } from "react";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
+import ChapterBreadcrumb from "@/components/trackers/ChapterBreadcrumb";
+import MetricSummary from "@/components/progress/MetricSummary";
 import Stat from "@/components/trackers/Stat";
 import Link from "next/link";
 import Modal from "@/components/trackers/Modal";
@@ -200,23 +202,37 @@ export default function FastingPage() {
 
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="timer"
-        title="Water & eating window"
+        title="Fasting & eating window"
         subtitle={null}
-        context={
-          <DaySelector
-            date={today}
-            today={dateKey()}
-            onChange={(date) => {
-              setRecordDate(date);
-              setDraft({ firstMealTime: "", lastMealTime: "" });
-              setSaved(false);
-              const url = new URL(window.location.href);
-              url.searchParams.set("date", date);
-              window.history.replaceState(null, "", url);
-            }}
+        breadcrumb={
+          <ChapterBreadcrumb
+            href="/health"
+            label="Health"
+            current="Fasting & eating window"
           />
+        }
+        context={
+          <>
+            <DaySelector
+              date={today}
+              today={dateKey()}
+              onChange={(date) => {
+                setRecordDate(date);
+                setDraft({ firstMealTime: "", lastMealTime: "" });
+                setSaved(false);
+                const url = new URL(window.location.href);
+                url.searchParams.set("date", date);
+                window.history.replaceState(null, "", url);
+              }}
+            />
+            <MetricSummary
+              metric={view === "water" ? "water" : "fasting"}
+              endDate={today}
+              context={today === dateKey() ? "today" : today}
+            />
+          </>
         }
         badge={<SyncBadge status={status} />}
       >
@@ -406,7 +422,7 @@ export default function FastingPage() {
                 <div className="mt-3">
                   <EmptyState
                     icon={Clock3}
-                    title="No meal windows logged yet"
+                    title="Save your first eating window"
                     hint="Save today’s first and last meal times to start the history."
                   />
                 </div>
@@ -471,7 +487,7 @@ export default function FastingPage() {
             </p>
           </div>
         </Modal>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

@@ -34,6 +34,11 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
 
   if (isTracker) return null;
 
+  // Portfolio sections live on `/`; from sub-pages (e.g. case studies) the
+  // footer anchors have to point back at the overview.
+  const sectionHref = (anchor: string) =>
+    pathname === "/" ? anchor : `/${anchor}`;
+
   return (
     <footer data-editorial-footer className="border-t border-border/40">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:px-10 lg:px-16">
@@ -56,25 +61,25 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
 
         <div className="flex flex-wrap justify-center sm:justify-start items-center gap-4 text-xs font-utility text-[var(--portfolio-muted)]">
           <a
-            href="#Work"
+            href={sectionHref("#Work")}
             className="transition-colors hover:text-[var(--portfolio-accent)]"
           >
             Work
           </a>
           <a
-            href="#Experience"
+            href={sectionHref("#Experience")}
             className="transition-colors hover:text-[var(--portfolio-accent)]"
           >
             Experience
           </a>
           <a
-            href="#Capabilities"
+            href={sectionHref("#Capabilities")}
             className="transition-colors hover:text-[var(--portfolio-accent)]"
           >
             Stack
           </a>
           <a
-            href="#Contact"
+            href={sectionHref("#Contact")}
             className="transition-colors hover:text-[var(--portfolio-accent)]"
           >
             Contact

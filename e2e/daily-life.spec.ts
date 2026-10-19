@@ -160,11 +160,11 @@ test("Progress opens one metric at a time and historical reflection is editable"
   await seed(page);
   await page.goto("/dashboard");
   await expect(page.locator(".progress-summary-button")).toHaveCount(0);
-  await expect(page.getByTestId("progress-lead")).toHaveCount(1);
+  await expect(page.getByTestId("progress-chart")).toHaveCount(1);
   await page
     .getByRole("combobox", { name: "Metric", exact: true })
     .selectOption("water");
-  await expect(page.getByTestId("progress-lead")).toContainText(
+  await expect(page.getByTestId("progress-chart")).toContainText(
     "Recorded water",
   );
   await page.getByRole("button", { name: "Reflection", exact: true }).click();
@@ -227,10 +227,6 @@ test("water needs one action, supports undo and leaves other dated records alone
 }) => {
   await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
   await page.goto("/hub?date=2026-10-02");
-  await page
-    .locator("summary")
-    .filter({ hasText: /^Add a record$/ })
-    .click();
   await page.getByRole("button", { name: "Water +1", exact: true }).click();
   expect(
     await page.evaluate(() =>
@@ -433,10 +429,6 @@ test("routine editing previews a draft and preserves occurrence history", async 
 test("water undo never corrects a different selected day", async ({ page }) => {
   await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
   await page.goto("/hub?date=2026-10-02");
-  await page
-    .locator("summary")
-    .filter({ hasText: /^Add a record$/ })
-    .click();
   await page.getByRole("button", { name: "Water +1", exact: true }).click();
   await page.getByRole("button", { name: "Choose date", exact: true }).click();
   await page.getByLabel("Selected date", { exact: true }).fill("2026-10-01");

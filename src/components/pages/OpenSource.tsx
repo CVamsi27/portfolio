@@ -1,23 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import {
-  ArrowUpRight,
-  BookOpen,
-  GitBranch,
-  GitCommit,
-  GitFork,
-  Globe,
-  Radio,
-  ShieldCheck,
-  Star,
-  Terminal,
-  Zap,
-} from "lucide-react";
+import { ArrowUpRight, ChevronRight, Radio } from "lucide-react";
 import LivePreviewModal from "@/components/LivePreviewModal";
 import { cn } from "@/lib/utils";
 
@@ -110,14 +97,16 @@ const CONTRIBUTION_TRACKS = [
   {
     project: "Langfuse",
     scope: "LLM Observability & Evaluation",
-    description: "Open-source LLM engineering platform. Track prompt latency, evaluation metrics, and tracing integrations in TypeScript.",
+    description:
+      "Open-source LLM engineering platform. Track prompt latency, evaluation metrics, and tracing integrations in TypeScript.",
     url: "https://github.com/langfuse/langfuse",
     tag: "AI Engineering & Observability",
   },
   {
     project: "Lightdash",
     scope: "Business Intelligence Semantic Layer",
-    description: "Open-source BI on dbt. Community discussions on metric definition schemas and semantic layer query performance.",
+    description:
+      "Open-source BI on dbt. Community discussions on metric definition schemas and semantic layer query performance.",
     url: "https://github.com/lightdash/lightdash",
     tag: "Data Platforms",
   },
@@ -134,7 +123,7 @@ export default function OpenSource() {
       id="OpenSource"
       aria-label="Open Source Contributions and Public Engineering"
       data-chapter-index="03"
-      className="portfolio-chapter relative px-5 py-20 sm:px-10 sm:py-28 lg:px-16"
+      className="portfolio-chapter relative px-5 py-14 sm:px-10 sm:py-20 lg:px-16"
     >
       <div className="relative mx-auto max-w-7xl">
         <Reveal>
@@ -167,51 +156,14 @@ export default function OpenSource() {
           </div>
         </Reveal>
 
-        {/* Highlight Stats Strip */}
-        <Reveal delay={80}>
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-4 sm:p-6">
-            <div>
-              <p className="font-mono text-xl sm:text-2xl font-bold text-[var(--portfolio-accent)]">
-                868+
-              </p>
-              <p className="font-utility text-[11px] uppercase tracking-wider text-[var(--portfolio-muted)] mt-1">
-                Open Reference Files
-              </p>
-            </div>
-            <div>
-              <p className="font-mono text-xl sm:text-2xl font-bold text-[var(--portfolio-accent)]">
-                20
-              </p>
-              <p className="font-utility text-[11px] uppercase tracking-wider text-[var(--portfolio-muted)] mt-1">
-                Verification Gates (CI)
-              </p>
-            </div>
-            <div>
-              <p className="font-mono text-xl sm:text-2xl font-bold text-[var(--portfolio-accent)]">
-                366k+
-              </p>
-              <p className="font-utility text-[11px] uppercase tracking-wider text-[var(--portfolio-muted)] mt-1">
-                Lines Curated
-              </p>
-            </div>
-            <div>
-              <p className="font-mono text-xl sm:text-2xl font-bold text-[var(--portfolio-accent)]">
-                100%
-              </p>
-              <p className="font-utility text-[11px] uppercase tracking-wider text-[var(--portfolio-muted)] mt-1">
-                Zero-Drift Verified
-              </p>
-            </div>
-          </div>
-        </Reveal>
-
-        {/* Repositories Grid */}
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
+        {/* Repositories Grid — repositories and ecosystem tracks in one grid */}
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
           {REPOSITORIES.map((repo, idx) => (
             <Reveal key={repo.id} delay={idx * 60}>
               <div
+                data-repo-card
                 className={cn(
-                  "group flex flex-col justify-between rounded-2xl border bg-[var(--portfolio-paper)] p-5 sm:p-6 transition-all duration-300 hover:shadow-lg",
+                  "group flex h-full flex-col justify-between rounded-2xl border bg-[var(--portfolio-paper)] p-5 sm:p-6 transition-all duration-300 hover:shadow-lg",
                   repo.featured
                     ? "border-[var(--portfolio-accent)]/40 shadow-sm"
                     : "border-[var(--portfolio-rule)] hover:border-[var(--portfolio-accent)]/60"
@@ -244,14 +196,20 @@ export default function OpenSource() {
                     {repo.description}
                   </p>
 
-                  <ul className="mt-4 space-y-1.5 border-t border-[var(--portfolio-rule)] pt-3 text-xs text-[var(--portfolio-ink)]">
-                    {repo.highlights.map((highlight, hIdx) => (
-                      <li key={hIdx} className="flex items-start gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--portfolio-accent)]" />
-                        <span>{highlight}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <details className="portfolio-disclosure mt-4 border-t border-[var(--portfolio-rule)] pt-3">
+                    <summary>
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      <span>Highlights</span>
+                    </summary>
+                    <ul className="mt-3 space-y-1.5 text-xs text-[var(--portfolio-ink)]">
+                      {repo.highlights.map((highlight, hIdx) => (
+                        <li key={hIdx} className="flex items-start gap-2">
+                          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--portfolio-accent)]" />
+                          <span>{highlight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
 
                   <div className="mt-4 flex flex-wrap gap-1.5">
                     {repo.tech.map((t) => (
@@ -309,57 +267,43 @@ export default function OpenSource() {
               </div>
             </Reveal>
           ))}
-        </div>
 
-        {/* Upstream Contribution Protocols */}
-        <Reveal delay={120}>
-          <div className="mt-12 rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 sm:p-8">
-            <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-4">
-              <div>
-                <h4 className="font-display text-base sm:text-lg font-bold text-[var(--portfolio-ink)]">
-                  Ecosystem Contribution Tracks
-                </h4>
-                <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
-                  Active tracking, issue evaluation, and documentation alignment for leading open-source repositories.
-                </p>
-              </div>
-              <ShieldCheck className="h-5 w-5 text-emerald-500" />
-            </div>
-
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {CONTRIBUTION_TRACKS.map((item) => (
-                <div
-                  key={item.project}
-                  className="rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-wash)] p-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-sm font-bold text-[var(--portfolio-ink)]">
+          {/* Ecosystem contribution tracks — same section, compact strip */}
+          {CONTRIBUTION_TRACKS.map((item, idx) => (
+            <Reveal key={item.project} delay={(REPOSITORIES.length + idx) * 60}>
+              <div
+                data-ecosystem-track
+                className="group flex h-full flex-col justify-between rounded-2xl border border-dashed border-[var(--portfolio-rule)] bg-[var(--portfolio-wash)] p-5 sm:p-6 transition-all duration-300 hover:border-[var(--portfolio-accent)]/60"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs font-semibold text-[var(--portfolio-ink)]">
                       {item.project}
                     </span>
                     <span className="rounded-full bg-[var(--portfolio-blue-soft)] px-2 py-0.5 font-utility text-[10px] font-semibold text-[var(--portfolio-accent)]">
                       {item.tag}
                     </span>
                   </div>
-                  <p className="mt-1 font-utility text-xs font-medium text-[var(--portfolio-accent)]">
-                    {item.scope}
+                  <p className="mt-2 font-utility text-xs font-medium text-[var(--portfolio-accent)]">
+                    Ecosystem track · {item.scope}
                   </p>
                   <p className="mt-2 text-xs leading-relaxed text-[var(--portfolio-muted)]">
                     {item.description}
                   </p>
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] text-[var(--portfolio-accent)] hover:underline"
-                  >
-                    <span>View Repository Guide</span>
-                    <ArrowUpRight className="h-3 w-3" />
-                  </a>
                 </div>
-              ))}
-            </div>
-          </div>
-        </Reveal>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-1 font-mono text-[11px] text-[var(--portfolio-accent)] hover:underline"
+                >
+                  <span>View Repository Guide</span>
+                  <ArrowUpRight className="h-3 w-3" />
+                </a>
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </div>
 
       {/* Live Preview Modal */}

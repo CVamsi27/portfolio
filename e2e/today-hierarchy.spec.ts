@@ -39,15 +39,13 @@ test("Tools dialogs return focus and release background isolation", async ({
   await page.goto("/hub");
   const tools = page.getByRole("button", { name: "Tools menu" });
   for (const [item, dialog] of [
-    ["Add a record", "Add a record"],
-    ["Search or run command", "Command Palette"],
-    ["Keyboard shortcuts", "Keyboard Shortcuts"],
-  ]) {
+    ["Add a record", /^Add a record$/],
+    ["Search or run command", /quick add and search/i],
+    ["Keyboard shortcuts", /^Keyboard Shortcuts$/],
+  ] as const) {
     await tools.click();
     await page.getByRole("menuitem", { name: item, exact: true }).click();
-    await expect(
-      page.getByRole("dialog", { name: dialog, exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("dialog", { name: dialog })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(tools).toBeFocused();
@@ -64,7 +62,7 @@ test("Tools dialogs return focus and release background isolation", async ({
   ).toBeFocused();
 });
 
-test("daily recording retains selected-date capture and undo from its disclosure", async ({
+test("daily recording retains selected-date capture and undo from the quick capture row", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -89,10 +87,6 @@ test("daily recording retains selected-date capture and undo from its disclosure
   });
   await page.goto(`/hub?date=${date}`);
   await expect(page.getByTestId("day-agenda")).toContainText("Commitment 10");
-  await page
-    .locator("summary")
-    .filter({ hasText: /^Add a record$/ })
-    .click();
   const actions = page.getByRole("group", { name: "Daily recording actions" });
   await expect(actions.getByRole("button", { name: "Water +1" })).toBeVisible();
   await actions.getByRole("button", { name: "Water +1" }).click();

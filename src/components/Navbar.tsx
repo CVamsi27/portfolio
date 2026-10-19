@@ -23,8 +23,6 @@ import {
 import { cn } from "@/lib/utils";
 import NovaMark from "@/components/brand/NovaMark";
 import VamsiMark from "@/components/brand/VamsiMark";
-import CommandPalette from "@/components/trackers/CommandPalette";
-import KeyboardShortcutsModal from "@/components/trackers/KeyboardShortcutsModal";
 import { isTrackerHost, isTrackerPath } from "@/lib/brand";
 import {
   Download,
@@ -37,8 +35,13 @@ import {
 } from "lucide-react";
 import Modal from "./trackers/Modal";
 import CaptureWorkspace from "./daily/CaptureWorkspace";
-import PortfolioShortcutsModal from "./PortfolioShortcutsModal";
-import PortfolioCommandPalette from "./PortfolioCommandPalette";
+import CommandPalette from "@/components/command/CommandPalette";
+import QuickSheet, {
+  type QuickSheetTab,
+} from "@/components/command/QuickSheet";
+import ShortcutsModal from "@/components/command/ShortcutsModal";
+import useNovaCommands from "@/components/command/useNovaCommands";
+import usePortfolioCommands from "@/components/command/usePortfolioCommands";
 import DeveloperTerminalDrawer from "./DeveloperTerminalDrawer";
 import ResumeModal from "./ResumeModal";
 import DeepStudyCockpitModal from "@/components/study/DeepStudyCockpitModal";
@@ -74,6 +77,10 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [portfolioShortcutsOpen, setPortfolioShortcutsOpen] = useState(false);
   const [portfolioPaletteOpen, setPortfolioPaletteOpen] = useState(false);
+  const [quickSheet, setQuickSheet] = useState<{
+    open: boolean;
+    tab: QuickSheetTab;
+  }>({ open: false, tab: "search" });
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [studyCockpitOpen, setStudyCockpitOpen] = useState(false);
@@ -89,6 +96,13 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   );
   const [active, setActive] = useState(MENU_LIST[0]);
   const [progress, setProgress] = useState(0);
+  const novaCommands = useNovaCommands();
+  const portfolioCommands = usePortfolioCommands();
+
+  /** Where the command surface lives: palette on desktop, QuickSheet on compact. */
+  const usesCompactCommandSurface = () =>
+    typeof window !== "undefined" &&
+    !window.matchMedia("(min-width: 1024px)").matches;
 
   useEffect(() => {
     if (!isTracker) return;
@@ -100,7 +114,14 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setPaletteOpen((prev) => !prev);
+        if (
+          typeof window !== "undefined" &&
+          !window.matchMedia("(min-width: 1024px)").matches
+        ) {
+          setQuickSheet((prev) => ({ open: !prev.open, tab: "search" }));
+        } else {
+          setPaletteOpen((prev) => !prev);
+        }
         return;
       }
 
@@ -281,6 +302,32 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   }, [isTracker]);
 
   useEffect(() => {
+    if (!isTracker) return;
+    const onOpenQuickSheet = (event: Event) => {
+      const detail = (event as CustomEvent<{ tab?: QuickSheetTab }>).detail;
+      setQuickSheet({
+        open: true,
+        tab: detail?.tab === "add" ? "add" : "search",
+      });
+    };
+    const onOpenShortcuts = () => setShortcutsOpen(true);
+    window.addEventListener("nova-open-quicksheet", onOpenQuickSheet);
+    window.addEventListener("nova-open-shortcuts", onOpenShortcuts);
+    return () => {
+      window.removeEventListener("nova-open-quicksheet", onOpenQuickSheet);
+      window.removeEventListener("nova-open-shortcuts", onOpenShortcuts);
+    };
+  }, [isTracker]);
+
+  useEffect(() => {
+    if (isTracker) return;
+    const onOpenShortcuts = () => setPortfolioShortcutsOpen(true);
+    window.addEventListener("portfolio-open-shortcuts", onOpenShortcuts);
+    return () =>
+      window.removeEventListener("portfolio-open-shortcuts", onOpenShortcuts);
+  }, [isTracker]);
+
+  useEffect(() => {
     const onOpenStudy = () => setStudyCockpitOpen(true);
     window.addEventListener("portfolio-open-study-cockpit", onOpenStudy);
     return () =>
@@ -341,12 +388,17 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         label: item.label,
         href: item.href,
       }))
-    : MENU_LIST.map((m) => ({ label: m, href: `#${m.replace(/\s+/g, "")}` }));
+    : MENU_LIST.map((m) => {
+        const anchor = `#${m.replace(/\s+/g, "")}`;
+        // Portfolio sections live on `/`; from sub-pages (e.g. case studies)
+        // the anchors have to point back at the overview.
+        return { label: m, href: pathname === "/" ? anchor : `/${anchor}` };
+      });
 
   const isMenuActive = (href: string) =>
     isTracker
       ? isPersonalPrimaryPath(pathname, href)
-      : active === href.replace("#", "");
+      : active === href.replace(/^\/?#/, "");
 
   const openCapture = () => {
     setCaptureContext({
@@ -363,7 +415,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
       className={cn(
         "dossier-command-rail sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg",
         isTracker && "nova-personal-nav",
-        isTracker && ["/login", "/log"].includes(pathname) && "nova-login-nav",
+        isTracker && pathname === "/login" && "nova-login-nav",
       )}
     >
       {!isTracker && (
@@ -493,6 +545,17 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                   Search
                 </button>
               </div>
+              <button
+                type="button"
+                data-testid="header-search"
+                aria-label="Search records"
+                onClick={() =>
+                  setQuickSheet({ open: true, tab: "search" })
+                }
+                className="lg:hidden inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <Search className="h-4 w-4" aria-hidden />
+              </button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
@@ -548,8 +611,13 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                   <DropdownMenuItem
                     className="min-h-11"
                     onSelect={() => {
-                      pendingToolsDialogRef.current = () =>
-                        setPaletteOpen(true);
+                      pendingToolsDialogRef.current = () => {
+                        if (usesCompactCommandSurface()) {
+                          setQuickSheet({ open: true, tab: "search" });
+                        } else {
+                          setPaletteOpen(true);
+                        }
+                      };
                     }}
                   >
                     Search or run command
@@ -639,21 +707,37 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
           <CommandPalette
             open={paletteOpen}
             onClose={() => setPaletteOpen(false)}
+            items={novaCommands.items}
+            variant="nova"
           />
-          <KeyboardShortcutsModal
+          <QuickSheet
+            open={quickSheet.open}
+            tab={quickSheet.tab}
+            onTabChange={(tab) => setQuickSheet((prev) => ({ ...prev, tab }))}
+            onClose={() =>
+              setQuickSheet((prev) => ({ ...prev, open: false }))
+            }
+            items={novaCommands.items}
+            captureItems={novaCommands.captureItems}
+          />
+          <ShortcutsModal
             open={shortcutsOpen}
             onClose={() => setShortcutsOpen(false)}
+            variant="nova"
           />
         </>
       ) : (
         <>
-          <PortfolioCommandPalette
+          <CommandPalette
             open={portfolioPaletteOpen}
             onClose={() => setPortfolioPaletteOpen(false)}
+            items={portfolioCommands}
+            variant="portfolio"
           />
-          <PortfolioShortcutsModal
+          <ShortcutsModal
             open={portfolioShortcutsOpen}
             onClose={() => setPortfolioShortcutsOpen(false)}
+            variant="portfolio"
           />
           <DeveloperTerminalDrawer
             open={terminalOpen}

@@ -1,17 +1,24 @@
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
-/** Consistent empty state for every tracker list. */
+/**
+ * Consistent empty state for every list and panel.
+ * Copy rules: positive title, one-line hint, one primary action, optional
+ * secondary link. Never negative boilerplate or zero-value grids.
+ */
 export default function EmptyState({
   icon: Icon,
   title,
   hint,
   action,
+  secondary,
   appearance = "plain",
 }: {
-  icon: LucideIcon;
+  icon?: LucideIcon;
   title: string;
   hint?: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
+  secondary?: ReactNode;
   appearance?: "framed" | "plain";
 }) {
   return (
@@ -20,7 +27,7 @@ export default function EmptyState({
         ? "py-4"
         : "flex flex-col items-center rounded-2xl border border-dashed border-border/60 px-6 py-10 text-center"}
     >
-      {appearance === "framed" && (
+      {appearance === "framed" && Icon && (
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
           <Icon className="h-6 w-6 text-muted-foreground/60" />
         </span>
@@ -35,7 +42,14 @@ export default function EmptyState({
           {hint}
         </p>
       ) : null}
-      {action ? <div className="mt-4">{action}</div> : null}
+      {action || secondary ? (
+        <div className={appearance === "plain"
+          ? "mt-4 flex flex-wrap items-center gap-x-4 gap-y-2"
+          : "mt-4 flex flex-col items-center gap-2"}>
+          {action}
+          {secondary}
+        </div>
+      ) : null}
     </div>
   );
 }

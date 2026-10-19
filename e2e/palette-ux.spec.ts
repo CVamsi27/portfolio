@@ -108,25 +108,53 @@ test("phone search is available by touch and fits a short screen", async ({
 }) => {
   await page.setViewportSize({ width: 320, height: 450 });
   await seed(page);
-  for (const route of ["/", "/hub"]) {
-    const palette = await open(page, route);
-    const close = palette.getByRole("button", {
-      name: "Close command palette",
-    });
-    await expect(close).toBeInViewport();
-    await expect(palette.getByRole("combobox")).toBeInViewport();
-    expect(
-      await palette.evaluate((el) =>
-        Array.from(el.querySelectorAll("div")).every(
-          (node) => node.scrollWidth <= node.clientWidth + 1,
-        ),
+  // The portfolio keeps the palette on phones.
+  const palette = await open(page, "/");
+  const close = palette.getByRole("button", {
+    name: "Close command palette",
+  });
+  await expect(close).toBeInViewport();
+  await expect(palette.getByRole("combobox")).toBeInViewport();
+  expect(
+    await palette.evaluate((el) =>
+      Array.from(el.querySelectorAll("div")).every(
+        (node) => node.scrollWidth <= node.clientWidth + 1,
       ),
-    ).toBe(true);
-    const bounds = await palette.boundingBox();
-    expect(bounds!.x).toBeGreaterThanOrEqual(0);
-    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
-    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(450);
-    await close.click();
-    await expect(palette).toBeHidden();
-  }
+    ),
+  ).toBe(true);
+  const bounds = await palette.boundingBox();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(450);
+  await close.click();
+  await expect(palette).toBeHidden();
+
+  // The workspace phone surface is the QuickSheet, opened on Search.
+  await page.goto("/hub");
+  await page.getByRole("button", { name: "Tools menu", exact: true }).click();
+  await page
+    .getByRole("menuitem", { name: "Search or run command", exact: true })
+    .click();
+  const sheet = page.getByRole("dialog", { name: /quick add and search/i });
+  await expect(sheet).toBeVisible();
+  await expect(sheet.getByRole("tab", { name: "Search" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  const sheetClose = sheet.getByRole("button", { name: "Close", exact: true });
+  await expect(sheetClose).toBeInViewport();
+  await expect(sheet.getByRole("combobox")).toBeInViewport();
+  expect(
+    await sheet.evaluate((el) =>
+      Array.from(el.querySelectorAll("div")).every(
+        (node) => node.scrollWidth <= node.clientWidth + 1,
+      ),
+    ),
+  ).toBe(true);
+  const sheetBounds = await sheet.boundingBox();
+  expect(sheetBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(sheetBounds!.x + sheetBounds!.width).toBeLessThanOrEqual(320);
+  expect(sheetBounds!.y + sheetBounds!.height).toBeLessThanOrEqual(450);
+  await sheetClose.click();
+  await expect(sheet).toHaveCount(0);
 });

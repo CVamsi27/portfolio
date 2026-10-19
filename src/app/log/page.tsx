@@ -18,7 +18,6 @@ function CapturePage() {
   return (
     <RequireAuth>
       <PersonalShell
-        showDock={false}
         icon="log"
         title={
           params.get("view") === "journal" ? "Daily reflection" : "Add a record"

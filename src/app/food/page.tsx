@@ -8,7 +8,6 @@ export default function FoodPage() {
       <PersonalShell
         icon="scale"
         title={null}
-        progress={false}
         subtitle={null}
       >
         <FoodTracker />

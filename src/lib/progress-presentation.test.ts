@@ -1,22 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { metricPoints, progressMetric } from "./progress-presentation.ts";
-
-test("content and account pages have no progress metric", () => {
-  for (const path of [
-    "/share",
-    "/archive",
-    "/settings",
-    "/motivation",
-    "/login",
-    "/log",
-  ])
-    assert.equal(progressMetric(path), null);
-  assert.equal(progressMetric("/health", "recovery"), "sleep");
-  assert.equal(progressMetric("/log", "journal"), null);
-  assert.equal(progressMetric("/plan"), "focus");
-  assert.equal(progressMetric("/health", "connections"), null);
-});
+import { metricPoints } from "./progress-presentation.ts";
 
 test("workout progress can show recorded sets without inventing duration", () => {
   assert.deepEqual(
@@ -74,18 +58,4 @@ test("reflection coverage counts saved text rather than treating every date as a
       { date: "2026-10-12", value: 1 },
     ],
   );
-});
-
-test("configuration and catalogue views omit unrelated tracking charts", () => {
-  for (const view of ["saved", "strategy", "insights"])
-    assert.equal(progressMetric("/food", view), null);
-  assert.equal(progressMetric("/workout-tracking", "plan"), null);
-  assert.equal(progressMetric("/routine", "notifications"), null);
-  assert.equal(progressMetric("/food", "diary"), "energy");
-});
-
-test("eating window views show their own history metric", () => {
-  assert.equal(progressMetric("/intermittent-fasting", "window"), "fasting");
-  assert.equal(progressMetric("/intermittent-fasting", "history"), "fasting");
-  assert.equal(progressMetric("/intermittent-fasting", "water"), "water");
 });

@@ -1,6 +1,6 @@
 # NOVA — consolidated website change sheet
 
-**Updated:** 11 October 2026 (IST)
+**Updated:** 19 October 2026 (IST)
 
 **Product:** personal.buildora.work — one personal workspace for planning, health, progress and purpose.
 
@@ -36,7 +36,7 @@ The product supports the whole person, not just the career timetable. Health rec
 | Today | Selected day, chronological work/meal/supplement agenda, one Now/Next action, unscheduled tasks and up to three pinned priorities | Execute or capture for the selected day |
 | Plan | Day/week time blocks, backlog, goal and learning links; focus setup reached by an exact task ID | Schedule or start selected work |
 | Health | Dated records, history, direct food/water/exercise/weight capture and optional recovery | Record or correct the selected day |
-| Progress | Compact overview, one selected Health or Work metric at a time, 7/30/90-day trends and Reflection; /review redirects to Reflection | Inspect one question or reflect |
+| Progress | Compact overview, one selected Health or Work metric at a time, 7/30/90-day trends and Reflection; `/review` is the guided weekly review (Reflection keeps the daily editor and links to it) | Inspect one question or reflect |
 | Tools /more | Library, Sharing, Settings and secondary tools; Motivation is reached from Goal | Open a secondary tool |
 
 Quick capture is always reachable from the shell and Today. `/log` remains the direct capture route; it is not removed. `/motivation` stays entirely goal-oriented, rather than becoming a timer dashboard. Existing routes and bookmarks remain usable; aliases must preserve their destination and selected view. Desktop and mobile use the same names and active-state rules. A compact Motivation link is available from the goal summary, without reproducing its content on Today.
@@ -54,6 +54,7 @@ This supersedes the earlier Today/Plan/Focus/Review/More proposal: Focus becomes
 | Implemented locally | Today/Plan/Health/Progress navigation plus Add/Tools, daily agenda, optional modules/habits/recovery, optional focus/rest/guard and consolidated recall | Local browser verification; existing destination routes and records retained |
 | Implemented locally | Food portions, recipes, macro/micronutrient coverage, saved/favorite foods, optional targets and typed backup/restore | Manual logging works without provider credentials; live database search needs its server key |
 | Implemented locally | Owner-only IST meal/supplement schedule, occurrence history, snooze/undo, notification opt-in and private push infrastructure | In-app checklist available; closed-site delivery requires migrations, server credentials, scheduler and a real signed-in device |
+| Implemented locally | Unified redesign: one palette owner, workspace chrome/naming alignment, single command palette + mobile QuickSheet, Today timeline with one next action, guided weekly review at /review, first-run setup card, tightened portfolio with /work/[slug] case studies | Branch `redesign/unified-uiux`; full suite 406/0 in 2.0m; phase evidence in docs/ui-ux-review.md |
 
 The earlier consolidation was merged into main at `f58d68a`. The new progress workspace lives on `fix/progress-dashboard`. “Implemented locally” is not a claim that personal.buildora.work has changed. Release verification must distinguish local mode from a real authenticated cloud session.
 
@@ -87,7 +88,7 @@ The earlier consolidation was merged into main at `f58d68a`. The new progress wo
 | Clock | Keep contextual | Compact local date/time on Today; timezone detail on request; correct midnight and daylight saving; absent from Motivation |
 | Device setup | Simplify | Optional checklist explaining browser versus OS capabilities; no repeated prerequisite screens |
 | Settings and account | Regroup | Profile/appearance, enabled modules, reminders, focus/rest preferences, sync/backup, data management |
-| Public portfolio | Retain completed improvements | Preserve resume/projects/contact and shared-control fixes; broad personal redesign does not rewrite the portfolio |
+| Public portfolio | Retain completed improvements | Preserve resume/projects/contact and shared-control fixes; the unified redesign tightens the one-pager (14,046 → 10,817px at 1440) and adds /work/[slug] case studies without removing any project |
 | Software Developer Bible | Preserve integration | Verified source links and curriculum alignment; no redesign of study.buildora.work in this release |
 
 **Remove from the visible experience:** duplicate summary cards, visit/deck counts, pretend playback, hidden video, automatic inspirational slideshows, unnecessary fullscreen barriers, rank/equalizer decorations, shame-based prompts, redundant affirmation sections, obsolete source/style choices, repeated diagnostic copy and implementation terminology.

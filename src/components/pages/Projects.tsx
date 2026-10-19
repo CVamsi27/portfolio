@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { PROJECTS } from "@/lib/const";
+import { caseStudyHref, projectSlug } from "@/lib/case-studies";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -17,6 +19,8 @@ import {
   X,
   Gamepad2,
   Radio,
+  ChevronDown,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DocitaArchitectureModal from "@/components/DocitaArchitectureModal";
@@ -190,7 +194,7 @@ const Projects = () => {
   };
 
   return (
-    <section id="Work" className="portfolio-section portfolio-work-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16">
+    <section id="Work" className="portfolio-section portfolio-work-section px-5 py-12 sm:px-10 sm:py-16 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="01 / Featured Systems"
@@ -317,6 +321,15 @@ const Projects = () => {
                     <Layers className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
                     <span>Architecture</span>
                   </button>
+
+                  <Link
+                    href={caseStudyHref(flagshipProject.title)}
+                    aria-label={`Read the ${flagshipProject.title} case study`}
+                    className="col-span-2 inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] py-2 px-2.5 font-utility text-xs font-semibold text-[var(--portfolio-ink)] transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)]"
+                  >
+                    <FileText className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
+                    <span>Read the {flagshipProject.title} case study</span>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -471,7 +484,7 @@ const Projects = () => {
                   </div>
 
                   <div className="portfolio-work-copy">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                    <div className="portfolio-work-summary">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <h3>{project.title}</h3>
                         {extra?.categoryLabel ? (
@@ -492,31 +505,37 @@ const Projects = () => {
                         ) : null}
                       </div>
 
-                      <a
-                        href={project.URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="self-end sm:self-auto text-[var(--portfolio-accent)] p-1 -mr-1"
-                        aria-label={`Open ${project.title}`}
+                      <Link
+                        href={caseStudyHref(project.title)}
+                        data-case-study-link={projectSlug(project.title)}
+                        className="portfolio-work-case-link"
+                        aria-label={`${project.title} case study`}
                       >
-                        <ArrowUpRight className="portfolio-work-arrow h-5 w-5 shrink-0" />
-                      </a>
+                        <span>Case study</span>
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </Link>
                     </div>
 
                     <p>{project.description}</p>
 
-                    {extra?.highlights?.length ? (
-                      <ul className="mt-3.5 space-y-1.5 text-xs text-[var(--portfolio-muted)]">
-                        {extra.highlights.map((item) => (
-                          <li key={item} className="flex items-start gap-2">
-                            <span className="text-[var(--portfolio-accent)] font-bold">›</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
+                    <details data-project-details className="portfolio-work-details">
+                      <summary>
+                        <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span>Engineering decisions</span>
+                      </summary>
+                      <div className="portfolio-work-details-body">
+                        {extra?.highlights?.length ? (
+                          <ul className="portfolio-work-highlights">
+                            {extra.highlights.map((item) => (
+                              <li key={item} className="flex items-start gap-2">
+                                <span className="text-[var(--portfolio-accent)] font-bold">›</span>
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
 
-                    <div className="portfolio-tag-list">
+                        <div className="portfolio-tag-list">
                       {project.tech.split(", ").map((tech) => (
                         <button
                           key={tech}
@@ -594,7 +613,9 @@ const Projects = () => {
                           <span>Source Code</span>
                         </a>
                       ) : null}
+                      </div>
                     </div>
+                    </details>
                   </div>
                 </Reveal>
               );

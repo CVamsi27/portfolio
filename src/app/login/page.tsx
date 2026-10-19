@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/lib/supabase/client";
@@ -89,7 +89,7 @@ export default function LoginPage() {
   };
 
   return (
-    <TrackerShell
+    <PersonalShell
       icon="login"
       showDock={false}
       title="Sign in"
@@ -221,6 +221,6 @@ export default function LoginPage() {
           )}
         </CardContent>
       </Card>
-    </TrackerShell>
+    </PersonalShell>
   );
 }

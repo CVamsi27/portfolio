@@ -50,10 +50,11 @@ import { Input } from "@/components/ui/input";
 import DaySelector from "./DaySelector";
 import WeekDateStrip from "./WeekDateStrip";
 import TodayAgendaRow from "./TodayAgendaRow";
+import TodaySetupCard from "./TodaySetupCard";
 import { agendaPeriod, agendaStatus } from "@/lib/day-presentation";
 import { ArrowRight } from "lucide-react";
 import { editablePlanBlocks } from "@/lib/plan-presentation";
-import { ProgressLead } from "@/components/progress/WorkspaceProgressLead";
+import MetricSummary from "@/components/progress/MetricSummary";
 import HabitChecklist from "@/components/personal/HabitChecklist";
 import FocusSprint from "@/components/trackers/FocusSprint";
 import { displayWeight } from "@/lib/health";
@@ -592,6 +593,72 @@ export default function DailyWorkspace({
             !incomplete.some((row) => row.at >= now)
           ? "Plan tomorrow"
           : "Plan this day";
+  const formatClock = (at: number) =>
+    new Intl.DateTimeFormat("en", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone,
+    }).format(at);
+  const timelineSession =
+    !planning && date === today && activeSession
+      ? {
+          title: work.focus?.label ?? work.study?.chapterTitle ?? "Focused work",
+          startedAt: work.focus?.startedAt ?? work.study?.startedAt ?? now,
+          href: work.study ? "/roadmap" : "/plan?view=focus",
+        }
+      : null;
+  const nextCard = (() => {
+    if (timelineSession) {
+      const minutesIn = Math.max(
+        0,
+        Math.round((now - timelineSession.startedAt) / 60000),
+      );
+      return {
+        kicker: "In session",
+        title: timelineSession.title,
+        meta: `Started ${formatClock(timelineSession.startedAt)} · ${minutesIn} min`,
+        href: timelineSession.href,
+        cta: "Resume",
+      };
+    }
+    const row = actionableNext ?? (date !== today ? incomplete[0] : undefined);
+    if (row)
+      return {
+        kicker: current && date === today ? "Now" : "Next",
+        title: row.title,
+        meta: `${formatClock(row.at)}${
+          row.durationMinutes
+            ? `–${formatClock(row.at + row.durationMinutes * 60000)}`
+            : ""
+        } · ${agendaStatus(row, date, today, now)}`,
+        href:
+          date !== today && ["task", "event", "study"].includes(row.kind)
+            ? `/plan?date=${date}`
+            : row.href,
+        cta:
+          row.kind === "meal"
+            ? "Log meal"
+            : row.kind === "supplement"
+              ? "Open routine"
+              : "Open",
+      };
+    if (date === today && pending[0])
+      return {
+        kicker: "Next",
+        title: pending[0].text,
+        meta: `Unscheduled · ${pending[0].priority} · ${pending[0].tag}`,
+        href: `/plan?view=focus&task=${encodeURIComponent(pending[0].id)}`,
+        cta: "Start focus sprint",
+      };
+    return {
+      kicker: "Today",
+      title: "An open day",
+      meta: "Schedule a commitment or start a focus sprint.",
+      href: `/plan?date=${date}`,
+      cta: "Plan this day",
+    };
+  })();
   return (
     <div className={`daily-workspace${planning ? "" : " nova-today"}`}>
       {planning ? (
@@ -640,7 +707,28 @@ export default function DailyWorkspace({
           </header>
         </>
       )}
-      <ProgressLead metric="focus" endDate={date} />
+      {!planning && date === today && <TodaySetupCard />}
+      {!planning && (
+        <section
+          className="nova-next-card"
+          data-testid="today-next-action"
+          aria-label="Now and next"
+        >
+          <div className="nova-next-body">
+            <p className="nova-next-kicker">{nextCard.kicker}</p>
+            <strong>{nextCard.title}</strong>
+            <small>{nextCard.meta}</small>
+          </div>
+          <Link className="nova-next-cta" href={nextCard.href}>
+            {nextCard.cta}
+          </Link>
+        </section>
+      )}
+      <MetricSummary
+        metric="focus"
+        endDate={date}
+        context={date === today ? "today" : date}
+      />
       {!planning && (
         <WeekDateStrip date={date} today={today} onChange={setDate} />
       )}
@@ -838,6 +926,46 @@ export default function DailyWorkspace({
               <div className={planning ? "workspace-heading" : "sr-only"}>
                 {planning && <h2>Your activities</h2>}
               </div>
+              {timelineSession && (
+                <ol className="agenda-list nova-timeline-session">
+                  <li
+                    className="nova-agenda-row"
+                    data-testid="today-session-block"
+                  >
+                    <div className="nova-agenda-time">
+                      <time
+                        dateTime={new Date(
+                          timelineSession.startedAt,
+                        ).toISOString()}
+                      >
+                        {formatClock(timelineSession.startedAt)}
+                      </time>
+                      <small>
+                        {Math.max(
+                          0,
+                          Math.round((now - timelineSession.startedAt) / 60000),
+                        )}{" "}
+                        min
+                      </small>
+                    </div>
+                    <div className="nova-agenda-body">
+                      <strong>{timelineSession.title}</strong>
+                      <small>
+                        In session · started{" "}
+                        {formatClock(timelineSession.startedAt)}
+                      </small>
+                      <div className="agenda-actions">
+                        <Link
+                          className="inline-action"
+                          href={timelineSession.href}
+                        >
+                          Resume
+                        </Link>
+                      </div>
+                    </div>
+                  </li>
+                </ol>
+              )}
               {incomplete.length ? (
                 planning ? (
                   <ol className="agenda-list">{incomplete.map(renderRow)}</ol>
@@ -881,17 +1009,38 @@ export default function DailyWorkspace({
           )}
         </div>
       )}
+      {!planning && pending.length > 0 && (
+        <section className="nova-open-tasks" data-testid="today-open-tasks">
+          <h2>Open tasks</h2>
+          <ul>
+            {pending.slice(0, 3).map((task) => (
+              <li key={task.id}>
+                <Link
+                  href={`/plan?view=focus&task=${encodeURIComponent(task.id)}`}
+                >
+                  {task.text}
+                </Link>
+                <small>
+                  {task.priority} · {task.tag}
+                </small>
+              </li>
+            ))}
+          </ul>
+          {pending.length > 3 && (
+            <Link className="inline-action" href="/todo">
+              {pending.length - 3} more in Tasks
+            </Link>
+          )}
+        </section>
+      )}
       {!planning && (
         <>
-          <details className="daily-utilities">
-            <summary>Add a record</summary>
-
+          <section className="daily-utilities">
             <div
               className="daily-quick-actions"
               role="group"
               aria-label="Daily recording actions"
             >
-              {modules.value.food && <Link href={addUrl("food")}>Food</Link>}
               <Button
                 variant="outline"
                 onClick={() => {
@@ -917,13 +1066,9 @@ export default function DailyWorkspace({
                   Undo water
                 </Button>
               )}
+              {modules.value.food && <Link href={addUrl("food")}>Food</Link>}
               <Link href={addUrl("weight")}>Weight</Link>
-              {modules.value.movement && (
-                <Link href={addUrl("exercise")}>Exercise</Link>
-              )}
-              {modules.value.recovery && (
-                <Link href={addUrl("sleep")}>Sleep</Link>
-              )}
+              <Link href={addUrl("note")}>Note</Link>
             </div>
             <section
               data-editorial-telemetry
@@ -944,16 +1089,19 @@ export default function DailyWorkspace({
               </span>
               <Link href={`/health?date=${date}`}>Edit records →</Link>
             </section>
-          </details>
+          </section>
           {modules.value.study &&
             germany?.execution &&
             Object.keys(germanyAssignments).length > 0 && (
-              <Link
-                className="capture-return"
-                href={`/roadmap?view=roadmap&panel=today&date=${date}`}
-              >
-                Open detailed assignments and study links
-              </Link>
+              <details className="daily-utilities">
+                <summary>Study &amp; career</summary>
+                <Link
+                  className="capture-return"
+                  href={`/roadmap?view=roadmap&panel=today&date=${date}`}
+                >
+                  Open detailed assignments and study links
+                </Link>
+              </details>
             )}
           {modules.value.habits && date === today && (
             <details className="daily-utilities">
@@ -966,6 +1114,9 @@ export default function DailyWorkspace({
             href={`/log?view=journal&date=${date}`}
           >
             Review this day →
+          </Link>
+          <Link className="capture-return" href={`/review?date=${date}`}>
+            Weekly review →
           </Link>
         </>
       )}

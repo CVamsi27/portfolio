@@ -120,43 +120,6 @@ export type ProgressReading = { date: string } & Partial<
   >
 >;
 
-export function progressMetric(
-  path: string,
-  view?: string | null,
-): ProgressMetric | null {
-  if (
-    path === "/food" &&
-    ["saved", "strategy", "insights"].includes(view ?? "")
-  )
-    return null;
-  if (path === "/workout-tracking" && view === "plan") return null;
-  if (path === "/routine" && view === "notifications") return null;
-  if (
-    path === "/intermittent-fasting" &&
-    ["window", "history"].includes(view ?? "")
-  )
-    return "fasting";
-  if (path === "/log") return null;
-  if (path === "/health" && view === "connections") return null;
-  if (path === "/health" && view === "recovery") return "sleep";
-  const routes: Record<string, ProgressMetric> = {
-    "/hub": "focus",
-    "/trackers": "focus",
-    "/plan": "focus",
-    "/todo": "tasks",
-    "/goal": "goal",
-    "/roadmap": "study",
-    "/health": "weight",
-    "/food": "energy",
-    "/weight-loss": "weight",
-    "/workout-tracking": "sets",
-    "/intermittent-fasting": "water",
-    "/routine": "routine",
-    "/review": "reflection",
-  };
-  return routes[path] ?? null;
-}
-
 export function metricPoints(
   days: ProgressReading[],
   metric: ProgressMetric,

@@ -3,7 +3,7 @@
 import { Suspense, use, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -122,7 +122,7 @@ export default function SharedDropPage() {
   const { loading, configured } = useAuth();
 
   return (
-    <TrackerShell
+    <PersonalShell
       icon="link"
       title="Shared drop"
       subtitle="An access-controlled drop with short-lived media and automatic expiry."
@@ -146,6 +146,6 @@ export default function SharedDropPage() {
           <SharedDrop shareId={shareId} />
         </Suspense>
       )}
-    </TrackerShell>
+    </PersonalShell>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
 import FocusScene from "@/components/motivation/FocusScene";
 import Modal from "@/components/trackers/Modal";
 import RequireAuth from "@/components/auth/RequireAuth";
@@ -83,7 +83,7 @@ export default function MotivationPage() {
 
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="flame"
         title="Motivation"
         eyebrow="Your purpose"
@@ -212,7 +212,7 @@ export default function MotivationPage() {
             </section>
           </div>
         </Modal>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

@@ -9,9 +9,9 @@ import {
 } from "@/lib/progress-presentation";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-import { ProgressLead } from "./WorkspaceProgressLead";
+import ProgressChart from "./ProgressChart";
 import ImportedHealthTrends from "./ImportedHealthTrends";
-import ChapterHeader from "@/components/trackers/ChapterHeader";
+import PageHeader from "@/components/trackers/PageHeader";
 const health: ProgressMetric[] = [
   "weight",
   "energy",
@@ -83,7 +83,7 @@ export default function ProgressDashboard() {
   };
   return (
     <div className="progress-workspace" data-testid="progress-dashboard">
-      <ChapterHeader
+      <PageHeader
         compact
         eyebrow="Progress"
         title="Progress"
@@ -115,7 +115,7 @@ export default function ProgressDashboard() {
           </div>
         }
       />
-      <ProgressLead
+      <ProgressChart
         metric={chosen}
         endDate={through}
         options={
@@ -150,12 +150,17 @@ export default function ProgressDashboard() {
       </nav>
       {view === "reflection" && (
         <section className="workspace-panel">
-          <Link
-            className="inline-action"
-            href={`/log?view=journal&date=${data.end}&returnTo=${encodeURIComponent(`/dashboard?view=reflection&date=${data.end}`)}`}
-          >
-            Write or edit reflection
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              className="inline-action"
+              href={`/log?view=journal&date=${data.end}&returnTo=${encodeURIComponent(`/dashboard?view=reflection&date=${data.end}`)}`}
+            >
+              Write or edit reflection
+            </Link>
+            <Link className="inline-action" href={`/review?date=${data.end}`}>
+              Open the weekly review
+            </Link>
+          </div>
         </section>
       )}
       {view === "health" && (

@@ -103,7 +103,7 @@ const About = () => {
       id="Top"
       aria-label="About and Introduction"
       data-chapter-index="00"
-      className="portfolio-hero relative overflow-hidden px-5 pb-16 pt-1 sm:px-10 sm:pb-24 sm:pt-2 lg:px-16 lg:pt-3"
+      className="portfolio-hero relative overflow-hidden px-5 pb-12 pt-1 sm:px-10 sm:pb-16 sm:pt-2 lg:px-16 lg:pt-3"
     >
       <div aria-hidden className="portfolio-hero__wash" />
       <div aria-hidden className="portfolio-hero__ambient" />
@@ -294,7 +294,7 @@ const About = () => {
         </aside>
       </div>
 
-      <div className="relative mx-auto mt-16 max-w-7xl">
+      <div className="relative mx-auto mt-10 max-w-7xl">
         <div className="portfolio-stat-grid">
           {STATS.map((stat) => {
             const Icon = stat.icon;

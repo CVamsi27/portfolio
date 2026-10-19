@@ -32,19 +32,17 @@ test.describe("goal tracker", () => {
     );
     expect(goal.metricByDay[daysAgoKey(0)]).toBe(3);
 
-    // Today's counter reflects the log; the dated 30-day chart section is present.
+    // Today's counter reflects the log; the dated chart lives on Progress.
     await expect(page.getByText("3 / 3")).toBeVisible();
+    await page.goto("/dashboard?view=work&metric=goal");
+    const chart = page.getByTestId("progress-chart");
     await expect(
-      page.getByRole("combobox", { name: "Range", exact: true }),
+      chart.getByRole("combobox", { name: "Range", exact: true }),
     ).toHaveValue("30");
+    await expect(chart.locator("svg[role=img]")).toBeVisible();
+    await chart.getByText("View dated readings", { exact: true }).click();
     await expect(
-      page.getByTestId("progress-lead").locator("svg[role=img]"),
-    ).toBeVisible();
-    await page.getByText("View dated readings", { exact: true }).click();
-    await expect(
-      page
-        .getByTestId("progress-lead")
-        .getByRole("row", { name: new RegExp(daysAgoKey(0)) }),
+      chart.getByRole("row", { name: new RegExp(daysAgoKey(0)) }),
     ).toContainText("3");
   });
 
@@ -174,8 +172,9 @@ test.describe("goal tracker", () => {
     await page.getByRole("button", { name: "Metric", exact: true }).click();
     // 12 logged vs 30 total at 3/day → on-track ETA line present.
     await expect(page.getByText(/on track in about/i)).toHaveCount(0);
+    await page.goto("/dashboard?view=work&metric=goal");
     await expect(
-      page.getByTestId("progress-lead").locator("svg[role=img]"),
+      page.getByTestId("progress-chart").locator("svg[role=img]"),
     ).toBeVisible();
   });
 });

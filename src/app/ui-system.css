@@ -1,8 +1,51 @@
 /* Surface tokens and shared layout rules for the approved UX redesign.
-   Keep component-specific styles in globals; semantic values live here. */
+   Palette values live here and only here; globals.css owns @theme defaults,
+   non-colour tokens and component styles.
+   Every value in the palette blocks below was frozen on 17 October 2026 to the
+   colour the app actually rendered before consolidation; the snapshot proof is
+   artifacts/ui-ux/token-before.json (gitignored, reproducible with
+   artifacts/ui-ux/redesign-review-2026-10-17/token-dump.mjs). */
 @media screen {
+  /* ── Neutral fallback ────────────────────────────────────────────────
+     Used only by the rare screen with no surface class (error pages). */
+  html.dark {
+    --color-background: hsl(240 10% 3.9%);
+    --color-foreground: hsl(0 0% 98%);
+    --color-card: hsl(240 10% 5.5%);
+    --color-card-foreground: hsl(0 0% 98%);
+    --color-popover: hsl(240 10% 5.5%);
+    --color-popover-foreground: hsl(0 0% 98%);
+    --color-primary: hsl(263 70% 50%);
+    --color-primary-foreground: hsl(0 0% 98%);
+    --color-secondary: hsl(240 3.7% 15.9%);
+    --color-secondary-foreground: hsl(0 0% 98%);
+    --color-muted: hsl(240 3.7% 15.9%);
+    --color-muted-foreground: hsl(240 5% 64.9%);
+    --color-accent: hsl(240 3.7% 15.9%);
+    --color-accent-foreground: hsl(0 0% 98%);
+    --color-destructive: hsl(0 62.8% 30.6%);
+    --color-destructive-foreground: hsl(0 0% 98%);
+    --color-border: hsl(240 3.7% 15.9%);
+    --color-input: hsl(240 3.7% 15.9%);
+    --color-ring: hsl(263 70% 50%);
+    --color-background: #0b0d12;
+    --color-card: #11151d;
+    --color-dossier-red: #ff554d;
+    --color-dossier-lime: #c8ff3d;
+    --color-dossier-violet: #b59cff;
+    --nova-archive: #071014;
+    --nova-paper: #f2eee6;
+    --nova-cyan: #49e7ff;
+    --nova-lime: #c8ff3d;
+    --nova-red: #ff554d;
+    --nova-violet: #8c7dff;
+    --nova-ink: #111111;
+    --nova-mist: #7d8a94;
+  }
+
+  /* ── NOVA workspace ────────────────────────────────────────────────── */
   body.tracker-surface {
-    --color-background: #f3f7fb;
+    --color-background: #f5f7fa;
     --color-foreground: #172b40;
     --color-card: #ffffff;
     --color-card-foreground: #172b40;
@@ -19,10 +62,12 @@
     --color-border: #d8e1ec;
     --color-input: #c2cfdd;
     --color-ring: #176c78;
+    --color-destructive: #ef4444;
+    --color-destructive-foreground: #fafafa;
     --color-dossier-lime: #176c78;
     --color-dossier-red: #ba3647;
     --color-dossier-violet: #176c78;
-    --nova-archive: #f3f7fb;
+    --nova-archive: #f5f7fa;
     --nova-paper: #ffffff;
     --nova-ink: #172b40;
     --nova-cyan: #176c78;
@@ -65,6 +110,8 @@
     --nova-violet: #70d6db;
     --nova-mist: #abbac8;
   }
+
+  /* ── Public portfolio ──────────────────────────────────────────────── */
   body.portfolio-surface {
     --portfolio-paper: #f7f9fc;
     --portfolio-ink: #172b40;
@@ -76,12 +123,32 @@
     --color-foreground: var(--portfolio-ink);
     --color-card: #ffffff;
     --color-card-foreground: var(--portfolio-ink);
+    --color-popover: #ffffff;
+    --color-popover-foreground: #09090b;
     --color-primary: var(--portfolio-accent);
     --color-primary-foreground: #ffffff;
+    --color-secondary: #f4f4f5;
+    --color-secondary-foreground: #18181b;
+    --color-muted: #f4f4f5;
     --color-muted-foreground: var(--portfolio-muted);
+    --color-accent: #f4f4f5;
+    --color-accent-foreground: #18181b;
     --color-border: var(--portfolio-rule);
     --color-input: var(--portfolio-rule);
     --color-ring: var(--portfolio-accent);
+    --color-destructive: #ef4444;
+    --color-destructive-foreground: #fafafa;
+    --color-dossier-lime: #c8ff3d;
+    --color-dossier-red: #ff3b30;
+    --color-dossier-violet: #a78bfa;
+    --nova-archive: #071014;
+    --nova-paper: #f2eee6;
+    --nova-cyan: #49e7ff;
+    --nova-lime: #c8ff3d;
+    --nova-red: #ff554d;
+    --nova-violet: #8c7dff;
+    --nova-ink: #111111;
+    --nova-mist: #7d8a94;
   }
   html.dark body.portfolio-surface {
     --portfolio-paper: #101820;
@@ -91,8 +158,19 @@
     --portfolio-rule: #354657;
     --portfolio-blue-soft: #223240;
     --color-card: #192530;
+    --color-card-foreground: var(--portfolio-ink);
+    --color-popover: #0d0d0f;
+    --color-popover-foreground: #fafafa;
     --color-primary-foreground: #172b40;
+    --color-secondary: #27272a;
+    --color-secondary-foreground: #fafafa;
+    --color-muted: #27272a;
+    --color-accent: #27272a;
+    --color-accent-foreground: #fafafa;
     --color-destructive: #fb8895;
+    --color-destructive-foreground: #fafafa;
+    --color-dossier-red: #ff554d;
+    --color-dossier-violet: #b59cff;
   }
 
   body :focus-visible { outline-color: var(--color-ring); }
@@ -248,20 +326,6 @@
 
 /* Personal workspace: title-first hierarchy and compact destinations. */
 @media screen {
-  body.tracker-surface {
-    --color-background: #f6f7f5;
-    --nova-archive: #f6f7f5;
-    --color-border: #dce3df;
-    --color-muted: #e9eeeb;
-    --color-accent: #e9eeeb;
-  }
-  html.dark body.tracker-surface {
-    --color-background: #101820;
-    --nova-archive: #101820;
-    --color-border: #354657;
-    --color-muted: #223240;
-    --color-accent: #223240;
-  }
   .tracker-surface .chapter-heading-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);

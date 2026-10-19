@@ -2,6 +2,7 @@
 import RequireAuth from "@/components/auth/RequireAuth";
 import PersonalShell from "@/components/trackers/PersonalShell";
 import SectionLinks from "@/components/personal/SectionLinks";
+import { PERSONAL_TOOLS_NAV } from "@/lib/personal-nav";
 export default function MorePage() {
   return (
     <RequireAuth>
@@ -13,29 +14,11 @@ export default function MorePage() {
       >
         <div data-testid="more-links">
           <SectionLinks
-            items={[
-              {
-                href: "/motivation",
-                label: "Motivation",
-                description: "Your purpose, reminders and next step.",
-              },
-              {
-                href: "/archive",
-                label: "Library",
-                description: "Your private notes, links and saved material.",
-              },
-              {
-                href: "/share",
-                label: "Sharing",
-                description: "Manage explicit sharing and its audience.",
-              },
-              {
-                href: "/settings",
-                label: "Settings",
-                description:
-                  "Modules, optional protection, sync and data backup.",
-              },
-            ]}
+            items={PERSONAL_TOOLS_NAV.map((item) => ({
+              href: item.href,
+              label: item.label,
+              description: item.description ?? "",
+            }))}
           />
         </div>
       </PersonalShell>

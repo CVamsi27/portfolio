@@ -2,7 +2,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
-import TrackerShell from "@/components/trackers/TrackerShell";
+import PersonalShell from "@/components/trackers/PersonalShell";
+import ChapterBreadcrumb from "@/components/trackers/ChapterBreadcrumb";
+import MetricSummary from "@/components/progress/MetricSummary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
@@ -135,29 +137,39 @@ export default function WeightLossPage() {
   };
   return (
     <RequireAuth>
-      <TrackerShell
+      <PersonalShell
         icon="scale"
-        title="Body and weight"
+        title="Body & weight"
         subtitle={null}
+        breadcrumb={
+          <ChapterBreadcrumb href="/health" label="Health" current="Body & weight" />
+        }
         context={
-          <label className="field-label nova-record-date">
-            Record date
-            <Input
-              type="date"
-              max={today}
-              value={date}
-              onChange={(event) => {
-                if (event.target.value) {
-                  setDate(event.target.value);
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("date", event.target.value);
-                  window.history.replaceState(null, "", url);
-                  setDraft(undefined);
-                  setMessage("");
-                }
-              }}
+          <>
+            <label className="field-label nova-record-date">
+              Record date
+              <Input
+                type="date"
+                max={today}
+                value={date}
+                onChange={(event) => {
+                  if (event.target.value) {
+                    setDate(event.target.value);
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("date", event.target.value);
+                    window.history.replaceState(null, "", url);
+                    setDraft(undefined);
+                    setMessage("");
+                  }
+                }}
+              />
+            </label>
+            <MetricSummary
+              metric="weight"
+              endDate={date}
+              context={date === today ? "today" : date}
             />
-          </label>
+          </>
         }
       >
         <div className="body-workspace-grid">
@@ -342,7 +354,7 @@ export default function WeightLossPage() {
               </p>
             ))}
         </details>
-      </TrackerShell>
+      </PersonalShell>
     </RequireAuth>
   );
 }

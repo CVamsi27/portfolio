@@ -70,7 +70,7 @@ export default function NutritionSummary({
       <h2 className="font-semibold">Daily nutrition</h2>
       {!entries.length ? (
         <p className="text-sm text-muted-foreground">
-          No food logged for this date.
+          Log your first food to see totals for this date.
         </p>
       ) : (
         <>
