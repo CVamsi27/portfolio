@@ -172,7 +172,13 @@ test("discarding a Library draft starts the next capture empty", async ({
 test("workout date changes survive reload", async ({ page }) => {
   await seed(page);
   await page.goto("/workout-tracking?date=2026-10-03");
-  await page.getByLabel("Selected date", { exact: true }).fill("2026-10-02");
+  const dateInput = page.getByLabel("Selected date", { exact: true });
+  // A pre-hydration fill is discarded when React attaches, so retry until the
+  // controlled input keeps the typed value.
+  await expect(async () => {
+    await dateInput.fill("2026-10-02");
+    await expect(dateInput).toHaveValue("2026-10-02", { timeout: 1000 });
+  }).toPass();
   await page.reload();
   await expect(page.getByLabel("Selected date", { exact: true })).toHaveValue(
     "2026-10-02",
