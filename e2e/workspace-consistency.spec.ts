@@ -86,7 +86,16 @@ for (const width of [320, 390]) {
       exact: true,
     });
     await expect(control).toBeVisible();
+    // Hydration can replace the row between resolution and measurement, so
+    // wait for a stable box before asserting its size.
+    await expect
+      .poll(async () => {
+        const box = await control.boundingBox();
+        return box ? Math.min(box.width, box.height) : 0;
+      })
+      .toBeGreaterThanOrEqual(44);
     const box = await control.boundingBox();
+    expect(box).not.toBeNull();
     expect(box!.width).toBeGreaterThanOrEqual(44);
     expect(box!.height).toBeGreaterThanOrEqual(44);
     expect(Math.abs(box!.width - box!.height)).toBeLessThanOrEqual(1);

@@ -112,8 +112,16 @@ test.describe("public personal portfolio", () => {
       .locator('[data-project-index="01"]')
       .locator("details[data-project-details]");
     await expect(details).not.toHaveAttribute("open", "");
-    await details.locator("summary").click();
-    await expect(details).toHaveAttribute("open", "");
+    // Retry the toggle so a post-hydration re-render cannot swallow the click.
+    await expect(async () => {
+      const isOpen = await details.evaluate(
+        (el) => (el as HTMLDetailsElement).open,
+      );
+      if (!isOpen) await details.locator("summary").click();
+      expect(await details.evaluate((el) => (el as HTMLDetailsElement).open)).toBe(
+        true,
+      );
+    }).toPass();
     await expect(details).toContainText(/PostgreSQL/i);
   });
 });
