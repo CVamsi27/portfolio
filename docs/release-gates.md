@@ -88,3 +88,18 @@ Readback:
 The dumps and JSON exports are under the gitignored `artifacts/release/2026-10-19/` directory. `git check-ignore` confirmed the release directory cannot be staged.
 
 The dump uses quoted identifiers (`"public"."tracker_data"`), not unquoted names; the verification grep in the plan was corrected to match the real format. No migration has been applied.
+
+## Gate A progress — stopped after backup
+
+| Item | Result |
+| --- | --- |
+| Plan commit pushed | `e111a2f` |
+| Production deployment for plan commit | `7175830284` — success |
+| CI for plan commit | `39264957612` — success (7m22s) |
+| Baseline smoke | 6 expected failures (sitemap origin, robots sitemap, four headers) |
+| Backup | Complete; 17 `tracker_data` rows, 0 `shared_drops` rows |
+| Backup permissions | Directory `700`, files `600`; path gitignored |
+| Local Gate A commits | `334edd2` (smoke verifier), `5a28aed` (backup record) — not pushed |
+| Migrations applied | None; awaiting approval for Task A3 |
+
+Gate A stops here. Applying `0006–0014` requires explicit owner approval.
