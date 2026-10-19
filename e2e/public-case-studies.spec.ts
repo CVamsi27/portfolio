@@ -101,6 +101,14 @@ test.describe("portfolio case studies", () => {
     );
   });
 
+  test("robots declares the canonical sitemap", async ({ request }) => {
+    const response = await request.get("http://127.0.0.1:4111/robots.txt");
+    expect(response.status()).toBe(200);
+    expect(await response.text()).toContain(
+      "Sitemap: https://www.buildora.work/sitemap.xml",
+    );
+  });
+
   test("portfolio host serves case studies, sitemap, and still redirects other paths", async ({
     request,
   }) => {
