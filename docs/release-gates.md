@@ -62,3 +62,29 @@ ok   personal login status 200
 ```
 
 The six failures are the Gate A deployment-integrity work; no route or auth regression was observed.
+
+## Gate A backup (19 October 2026)
+
+Command:
+
+```bash
+supabase db dump --linked --schema public -f artifacts/release/2026-10-19/public-schema.sql
+supabase db dump --linked --schema public --data-only --use-copy -f artifacts/release/2026-10-19/public-data.sql
+```
+
+Readback:
+
+| Artifact | Value |
+| --- | --- |
+| Application tables in dump | 2 (`shared_drops`, `tracker_data`) |
+| `tracker_data` rows | 17 |
+| `shared_drops` rows | 0 |
+| Storage | 1 bucket, 1 object, metadata size 0 |
+| Schema dump | `bd8a2d4f4c99f56c08a974fc5aa1c9458ddf3b4e4366524fcd0ee2bfacef1609` |
+| Data dump | `a530db054e7889d1e86d7913671a1a02efc065a6792ae59e02211b575857edf2` |
+| `tracker_data` key export | `c60be82fb8e788f4c74d2b23175ae438b471603514c6bf84a61045257e7335f3` |
+| `shared_drops` ID export | `4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945` |
+
+The dumps and JSON exports are under the gitignored `artifacts/release/2026-10-19/` directory. `git check-ignore` confirmed the release directory cannot be staged.
+
+The dump uses quoted identifiers (`"public"."tracker_data"`), not unquoted names; the verification grep in the plan was corrected to match the real format. No migration has been applied.

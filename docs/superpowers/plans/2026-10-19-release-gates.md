@@ -249,11 +249,11 @@ If the CLI prompts for the database password, enter it at the prompt. Do not put
 - [ ] **Step 3: Verify the dumps are real**
 
 ```bash
-grep -c "CREATE TABLE" artifacts/release/2026-10-19/public-schema.sql
-grep -c "COPY public.tracker_data" artifacts/release/2026-10-19/public-data.sql
+grep -c 'CREATE TABLE IF NOT EXISTS "public".' artifacts/release/2026-10-19/public-schema.sql
+grep -c 'COPY "public"."tracker_data"' artifacts/release/2026-10-19/public-data.sql
 ```
 
-Expected: at least 5 tables and exactly 1 `tracker_data` copy block. If either dump is empty, stop.
+Expected: at least 2 application tables (`shared_drops`, `tracker_data` at the current `0001–0005` schema) and exactly 1 `tracker_data` copy block. `pg_dump` quotes identifiers, so the pattern must include the quotes. If either dump is empty, stop.
 
 - [ ] **Step 4: Export the two key tables as JSON and record counts**
 
