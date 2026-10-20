@@ -172,3 +172,49 @@ ALLOW_PROD_SYNC_VERIFY=1 \
 EXPECTED_SUPABASE_REF=ejbghgpatpfubxltkpde \
 pnpm verify:cloud-sync
 ```
+
+## Gate B automated sync verification (20 October 2026)
+
+Command:
+
+```bash
+ALLOW_PROD_SYNC_VERIFY=1 \
+EXPECTED_SUPABASE_REF=ejbghgpatpfubxltkpde \
+pnpm verify:cloud-sync
+```
+
+Result: exit 0, 21 checks verified, 2 ephemeral users, 15 record keys.
+
+```text
+ok   created two ephemeral users
+ok   A writes its own row
+ok   B cannot read A's rows
+ok   B cannot insert as A
+ok   B cannot update A's rows
+ok   merge semantics routine:schedules
+ok   merge semantics routine:history
+ok   merge semantics recovery:entries
+ok   merge semantics habits:items
+ok   merge semantics habits:history
+ok   merge semantics plan:blocks
+ok   merge semantics plan:days
+ok   merge semantics nutrition:entries
+ok   merge semantics nutrition:foods
+ok   merge semantics nutrition:recipes
+ok   merge semantics nutrition:targets
+ok   merge semantics nutrition:programs
+ok   merge semantics nutrition:days
+ok   merge semantics nutrition:templates
+ok   merge semantics nutrition:batches
+ok   merge is owner-only
+{
+  "verified": 21,
+  "users": 2,
+  "keys": 15
+}
+cleanup ok: no probe rows remain
+```
+
+The first run exposed a harness bug, not a product bug: the project-ref guard expected a dot before the ref, and the generic probe shape did not satisfy the `0014` nutrition validators. The guard now compares the exact hostname, and the harness builds valid minimal shapes for programs, days, templates and batches. No validation was weakened, and the failing run's users were deleted in `finally`.
+
+No emails, user IDs, endpoints or keys are recorded here. The full output is in `artifacts/release/2026-10-19/cloud-sync-harness.txt`.

@@ -685,7 +685,7 @@ Report: migration result, live smoke result, canonical/robots/headers outcome, r
 - Produces: `parseStoredValue(raw, initial)`, `__readLocalForTesting(key, initial)`, `__resetLocalValueCacheForTesting()`.
 - Guarantees: a missing key never shares another reader's default.
 
-- [ ] **Step 1: Write the failing parser tests**
+- [x] **Step 1: Write the failing parser tests**
 
 Create `src/lib/local-parse.test.ts`:
 
@@ -720,7 +720,7 @@ node --experimental-strip-types --test src/lib/local-parse.test.ts
 
 Expected: FAIL because `local-parse.ts` does not exist.
 
-- [ ] **Step 2: Add the pure parser**
+- [x] **Step 2: Add the pure parser**
 
 Create `src/lib/local-parse.ts`:
 
@@ -736,7 +736,7 @@ export function parseStoredValue<T>(raw: string | null, initial: T): T {
 }
 ```
 
-- [ ] **Step 3: Cache only stored values**
+- [x] **Step 3: Cache only stored values**
 
 In `src/lib/use-synced-storage.ts`:
 
@@ -767,7 +767,7 @@ export function __resetLocalValueCacheForTesting() {
 }
 ```
 
-- [ ] **Step 4: Add the cache regression test**
+- [x] **Step 4: Add the cache regression test**
 
 Append to `src/lib/use-synced-storage.test.ts`:
 
@@ -811,7 +811,7 @@ test("empty storage never shares a cached default between readers", async (t) =>
 });
 ```
 
-- [ ] **Step 5: Add the test script and run it**
+- [x] **Step 5: Add the test script and run it**
 
 Add to `package.json`:
 
@@ -829,7 +829,7 @@ pnpm lint
 
 Expected: all pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/local-parse.ts src/lib/local-parse.test.ts src/lib/use-synced-storage.ts src/lib/use-synced-storage.test.ts package.json
@@ -847,7 +847,7 @@ git commit -m "fix(sync): never cache a default as another reader's value"
 - Consumes: `NEXT_PUBLIC_SUPABASE_URL`, publishable key, service key, `EXPECTED_SUPABASE_REF`, `ALLOW_PROD_SYNC_VERIFY=1`.
 - Produces: exit 0 only when RLS isolation, owner-only merge, newer-wins and tombstones pass and cleanup leaves no rows.
 
-- [ ] **Step 1: Write the harness**
+- [x] **Step 1: Write the harness**
 
 ```js
 #!/usr/bin/env node
@@ -1051,13 +1051,13 @@ try {
 
 > **Domain-valid probes:** `nutrition:programs`, `nutrition:days`, `nutrition:templates` and `nutrition:batches` are validated by `0012`/`0014`. The committed harness (`scripts/verify-cloud-sync.mjs`) builds valid minimal shapes for each and uses those shapes for the newer-wins and tombstone checks too. A generic `{ updatedAt, label }` probe is rejected by the database — do not weaken the validators to make the harness pass.
 
-- [ ] **Step 2: Add the package script**
+- [x] **Step 2: Add the package script**
 
 ```json
 "verify:cloud-sync": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/verify-cloud-sync.mjs",
 ```
 
-- [ ] **Step 3: Verify the guard rails**
+- [x] **Step 3: Verify the guard rails**
 
 ```bash
 pnpm verify:cloud-sync
@@ -1065,7 +1065,7 @@ pnpm verify:cloud-sync
 
 Expected: exits 1 with `Refusing to run: set ALLOW_PROD_SYNC_VERIFY=1.` It must not create users yet.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/verify-cloud-sync.mjs package.json docs/release-gates.md
@@ -1081,7 +1081,7 @@ git commit -m "test(sync): add guarded production RLS and merge harness"
 - Consumes: Gate A schema at `0014`, `.env` credentials.
 - Produces: a redacted pass summary and proof of cleanup.
 
-- [ ] **Step 1: Run the harness**
+- [x] **Step 1: Run the harness**
 
 ```bash
 ALLOW_PROD_SYNC_VERIFY=1 \
@@ -1091,15 +1091,15 @@ pnpm verify:cloud-sync
 
 Expected: `ok` for two users, RLS read/insert/update isolation, all 15 record keys, and owner-only merge; then `cleanup ok: no probe rows remain`; exit 0.
 
-- [ ] **Step 2: On failure, stop**
+- [x] **Step 2: On failure, stop**
 
 Record the failing assertion. Do not retry with a weakened check. Inspect the function definition and RLS policies; fix the cause in a new migration or code change, then rerun from Task A2's backup rule (no data rollback needed for probe users).
 
-- [ ] **Step 3: Record the evidence**
+- [x] **Step 3: Record the evidence**
 
 Append the redacted output to `docs/release-gates.md`. Do not record emails, user IDs, endpoints or keys.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/release-gates.md
