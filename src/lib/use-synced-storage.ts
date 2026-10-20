@@ -10,6 +10,7 @@ import {
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "./supabase/client.ts";
 import { mergeRecords, scopedLocalKey } from "./record-merge.ts";
+import { parseStoredValue } from "./local-parse.ts";
 import { useAuth, currentAuthUserId } from "./auth-store.ts";
 
 export type SyncStatus =
@@ -34,27 +35,30 @@ const debounceMs = 800;
  * instantly and the cloud progressively enhances it. Suspense would block
  * first paint on a network round-trip — worse UX for the same effect count.
  */
-type LocalEntry = { raw: string | null; parsed: unknown };
+type LocalEntry = { raw: string; parsed: unknown };
 const localCache = new Map<string, LocalEntry>();
 const localListeners = new Map<string, Set<() => void>>();
 let mounted = false;
 
 function readLocal<T>(localKey: string, initial: T): T {
   const raw = window.localStorage.getItem(localKey);
+  if (raw === null) {
+    localCache.delete(localKey);
+    return initial;
+  }
   const cached = localCache.get(localKey);
   if (cached && cached.raw === raw) return cached.parsed as T;
-  let parsed: T = initial;
-  if (raw !== null) {
-    try {
-      const v = JSON.parse(raw);
-      // Guard: JSON.parse("null") === null, or other unexpected types
-      if (v !== null && v !== undefined) parsed = v as T;
-    } catch {
-      // corrupted entry → fall back to initial
-    }
-  }
+  const parsed = parseStoredValue(raw, initial);
   localCache.set(localKey, { raw, parsed });
   return parsed;
+}
+
+export function __readLocalForTesting<T>(localKey: string, initial: T): T {
+  return readLocal(localKey, initial);
+}
+
+export function __resetLocalValueCacheForTesting() {
+  localCache.clear();
 }
 
 function notifyLocal(localKey: string) {

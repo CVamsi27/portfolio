@@ -133,3 +133,41 @@ test("Supabase Realtime Channel Multiplexer", async (t) => {
     unsub2();
   });
 });
+
+test("empty storage never shares a cached default between readers", async (t) => {
+  const originalWindow = globalThis.window;
+  const store = new Map<string, string>();
+  (globalThis as unknown as { window: unknown }).window = {
+    localStorage: {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        store.set(key, value);
+      },
+      removeItem: (key: string) => {
+        store.delete(key);
+      },
+    },
+  };
+  const { __readLocalForTesting, __resetLocalValueCacheForTesting } =
+    await import("./use-synced-storage.ts");
+  __resetLocalValueCacheForTesting();
+  t.after(() => {
+    __resetLocalValueCacheForTesting();
+    (globalThis as unknown as { window: unknown }).window = originalWindow;
+  });
+
+  assert.deepEqual(__readLocalForTesting("probe", { first: true }), {
+    first: true,
+  });
+  assert.deepEqual(__readLocalForTesting("probe", { second: true }), {
+    second: true,
+  });
+
+  store.set("probe", '{"stored":true}');
+  assert.deepEqual(__readLocalForTesting("probe", { second: true }), {
+    stored: true,
+  });
+  assert.deepEqual(__readLocalForTesting("probe", { other: true }), {
+    stored: true,
+  });
+});
