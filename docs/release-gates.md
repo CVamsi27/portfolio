@@ -160,3 +160,15 @@ Rollback:
 - Backup: `artifacts/release/2026-10-19/` (gitignored, directory `700`, files `600`). Hashes and row counts are recorded above.
 
 Unchanged in this gate: feature flags, Vercel and Supabase secrets, shared-drop rules, auth providers, and routing aliases.
+
+## Cloud sync harness
+
+`scripts/verify-cloud-sync.mjs` creates two ephemeral email/password users, verifies RLS read/write isolation, all 15 record keys' newer-wins/tombstone merge semantics, and owner-only merge, then deletes both users and their rows in `finally`.
+
+It is guarded twice: it refuses to run without `ALLOW_PROD_SYNC_VERIFY=1`, and it refuses unless `EXPECTED_SUPABASE_REF` matches the configured project URL. It never prints emails, user IDs, endpoints or keys.
+
+```bash
+ALLOW_PROD_SYNC_VERIFY=1 \
+EXPECTED_SUPABASE_REF=ejbghgpatpfubxltkpde \
+pnpm verify:cloud-sync
+```

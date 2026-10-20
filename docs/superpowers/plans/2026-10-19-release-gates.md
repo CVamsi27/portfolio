@@ -862,6 +862,12 @@ const anon =
 const service =
   process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
 const expectedRef = process.env.EXPECTED_SUPABASE_REF;
+let projectHost = "";
+try {
+  projectHost = new URL(url).hostname;
+} catch {
+  // Invalid or missing URL is rejected below.
+}
 
 if (process.env.ALLOW_PROD_SYNC_VERIFY !== "1") {
   console.error("Refusing to run: set ALLOW_PROD_SYNC_VERIFY=1.");
@@ -871,7 +877,7 @@ if (!url || !anon || !service) {
   console.error("Missing Supabase URL, publishable key or service key.");
   process.exit(1);
 }
-if (!expectedRef || !url.includes(`.${expectedRef}.supabase.co`)) {
+if (!expectedRef || projectHost !== `${expectedRef}.supabase.co`) {
   console.error("EXPECTED_SUPABASE_REF does not match the configured project.");
   process.exit(1);
 }
@@ -1042,6 +1048,8 @@ try {
   }
 }
 ```
+
+> **Domain-valid probes:** `nutrition:programs`, `nutrition:days`, `nutrition:templates` and `nutrition:batches` are validated by `0012`/`0014`. The committed harness (`scripts/verify-cloud-sync.mjs`) builds valid minimal shapes for each and uses those shapes for the newer-wins and tombstone checks too. A generic `{ updatedAt, label }` probe is rejected by the database — do not weaken the validators to make the harness pass.
 
 - [ ] **Step 2: Add the package script**
 
