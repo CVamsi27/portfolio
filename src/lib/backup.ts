@@ -492,6 +492,8 @@ export function applyBackup(backup: unknown): ImportReport {
   }
   const restored: string[] = [];
   const skipped: string[] = [];
+  const configured = isSupabaseConfigured();
+  const importedAt = String(Date.now());
 
   // Keep exact bytes for rollback, including timestamps and pending flags.
   const original = new Map<string, string | null>();
@@ -512,11 +514,17 @@ export function applyBackup(backup: unknown): ImportReport {
       snapshot[key] = { unparsedOriginal: raw };
     }
     changes.set(local, JSON.stringify(value));
+    // A restore is authoritative on this device. Without a fresh meta
+    // timestamp the mount-time cloud pull can overwrite it with older data.
     changes.set(
-      isSupabaseConfigured() ? `${local}:meta` : `vk:meta:${key}`,
-      null,
+      configured ? `${local}:meta` : `vk:meta:${key}`,
+      configured ? importedAt : null,
     );
-    if (SCOPED_KEYS.includes(key)) changes.set(`${local}:pending`, "true");
+    // Imported data must upload on the next sync wakeup, not just for
+    // record-shaped keys. Todos and other whole-value keys need this too.
+    // Keep the existing local-mode pending marker for record-shaped keys.
+    if (configured || SCOPED_KEYS.includes(key))
+      changes.set(`${local}:pending`, "true");
   }
   const snapshotKey = storageKey("pre-import");
   if (Object.keys(snapshot).length)

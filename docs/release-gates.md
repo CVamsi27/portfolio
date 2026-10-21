@@ -221,7 +221,7 @@ No emails, user IDs, endpoints or keys are recorded here. The full output is in 
 
 ## Gate B browser sync precheck (21 October 2026)
 
-Before the owner-assisted two-account check, a guarded local precheck exercised the browser sync path with two ephemeral Supabase users: two isolated browser contexts for account A and one context for account B. Result: 8 checks passed, then both users and their rows were deleted.
+Before the owner-assisted two-account check, a guarded local precheck exercised the browser sync path with two ephemeral Supabase users: two isolated browser contexts for account A and one context for account B. Result: 14 checks passed, then both users and their rows were deleted.
 
 ```text
 ok   created two isolated ephemeral users
@@ -233,6 +233,14 @@ ok   offline write stays local and retries online
 ok   a second account cannot read A's task
 ok   A stores tasks under the account-scoped key only
 ok   legacy unscoped todos are not attached to the account
+ok   UI sign-out closes the authenticated workspace
+ok   switching to B hides A's scoped task
+ok   switching back to A restores A's task
+ok   exports the account backup
+ok   import restores the deleted task on A
+ok   imported task reaches the second device
 ```
 
-The precheck used `localhost`, so it deliberately bypassed the personal-host Google allowlist. It does not replace B4: the owner still needs to sign in with the two approved Google accounts on two devices/profiles, verify the offline-reload/PWA path, switch accounts through the UI, and exercise export/restore. B4 remains open.
+The precheck caught a restore/sync gap: imported whole-value keys such as `todos` were restored locally but were not marked pending, and their sync metadata was cleared. A mount-time cloud pull could therefore overwrite the restored data. `applyBackup` now stamps every imported key with a fresh local timestamp and a pending flag, so the next sync wakeup uploads the restore. The three export/import checks above pass after that fix; `e2e/backup-sync-metadata.spec.ts` covers the metadata/pending regression.
+
+The precheck used `localhost`, so it deliberately bypassed the personal-host Google allowlist. It does not replace B4: the owner still needs to sign in with the two approved Google accounts on two devices/profiles and verify the offline-reload/PWA path. B4 remains open.
