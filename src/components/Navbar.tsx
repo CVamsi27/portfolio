@@ -532,17 +532,19 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
               <div className="hidden lg:flex flex-col gap-1 mt-3">
                 <button
                   type="button"
-                  className="dossier-rail-link text-left min-h-11"
+                  className="dossier-rail-link flex items-center gap-2 text-left min-h-11"
                   onClick={openCapture}
                 >
-                  Add a record
+                  <Plus className="h-5 w-5" aria-hidden />
+                  <span>Add a record</span>
                 </button>
                 <button
                   type="button"
-                  className="dossier-rail-link text-left min-h-11"
+                  className="dossier-rail-link flex items-center gap-2 text-left min-h-11"
                   onClick={() => setPaletteOpen(true)}
                 >
-                  Search
+                  <Search className="h-5 w-5" aria-hidden />
+                  <span>Search</span>
                 </button>
               </div>
               <button

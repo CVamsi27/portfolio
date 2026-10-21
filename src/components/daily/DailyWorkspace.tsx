@@ -472,7 +472,9 @@ export default function DailyWorkspace({
                 </Button>
               </>
             )}
-          {row.unavailable && <Link href="/todo">Find a task</Link>}
+          {row.unavailable && (
+            <Link href="/todo?view=open">Find a task</Link>
+          )}
         </div>
       </>
     );
@@ -659,6 +661,7 @@ export default function DailyWorkspace({
       cta: "Plan this day",
     };
   })();
+  const nextActionDuplicatesHeader = primaryHref === nextCard.href;
   return (
     <div className={`daily-workspace${planning ? "" : " nova-today"}`}>
       {planning ? (
@@ -719,9 +722,11 @@ export default function DailyWorkspace({
             <strong>{nextCard.title}</strong>
             <small>{nextCard.meta}</small>
           </div>
-          <Link className="nova-next-cta" href={nextCard.href}>
-            {nextCard.cta}
-          </Link>
+          {!nextActionDuplicatesHeader && (
+            <Link className="nova-next-cta" href={nextCard.href}>
+              {nextCard.cta}
+            </Link>
+          )}
         </section>
       )}
       <MetricSummary
@@ -1027,7 +1032,7 @@ export default function DailyWorkspace({
             ))}
           </ul>
           {pending.length > 3 && (
-            <Link className="inline-action" href="/todo">
+            <Link className="inline-action" href="/todo?view=open">
               {pending.length - 3} more in Tasks
             </Link>
           )}

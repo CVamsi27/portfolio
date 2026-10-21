@@ -165,6 +165,107 @@ test.describe("todo manager", () => {
     await expect(page.getByText("Plan tomorrow")).toBeVisible();
   });
 
+  test("today view keeps future work out and tucks overdue tasks into a disclosure", async ({
+    page,
+  }) => {
+    const today = daysAgoKey(0);
+    const yesterday = daysAgoKey(1);
+    const tomorrow = daysAgoKey(-1);
+    const task = (
+      id: string,
+      text: string,
+      date: string,
+      priority: "P1" | "P2" | "P3" = "P2",
+    ) => ({
+      id,
+      text,
+      done: false,
+      date,
+      priority,
+      tag: "Personal",
+      createdAt: 1,
+    });
+    await seed(page, {
+      "vk:todos": [
+        task("today", "Today task", today),
+        task("overdue", "Overdue task", yesterday, "P1"),
+        task("future", "Tomorrow task", tomorrow),
+      ],
+    });
+
+    await page.goto("/todo");
+    await expect(
+      page.getByRole("button", { name: "Today", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByText("Today task", { exact: true })).toBeVisible();
+    await expect(page.getByText("Tomorrow task", { exact: true })).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByText("Overdue task", { exact: true }),
+    ).toBeHidden();
+    await expect(page.getByText("Overdue (1)", { exact: true })).toBeVisible();
+
+    await page.getByText("Overdue (1)", { exact: true }).click();
+    await expect(
+      page.getByText("Overdue task", { exact: true }),
+    ).toBeVisible();
+
+    await page
+      .getByRole("group", { name: "Task view" })
+      .getByRole("button", { name: "Open", exact: true })
+      .click();
+    await expect(
+      page.getByText("Tomorrow task", { exact: true }),
+    ).toBeVisible();
+  });
+
+  test("offers a confirmed cleanup for stale 100-day plan tasks", async ({
+    page,
+  }) => {
+    const today = daysAgoKey(0);
+    const task = (id: string, text: string) => ({
+      id,
+      text,
+      done: false,
+      date: today,
+      priority: "P1" as const,
+      tag: "Goal",
+      createdAt: 1,
+    });
+    await seed(page, {
+      "vk:todos": [
+        task("t_100day_1", "Old plan task"),
+        task("career-plan:2026-10-21", "Current plan task"),
+        task("personal-1", "Personal task"),
+      ],
+    });
+
+    await page.goto("/todo");
+    await expect(page.getByTestId("legacy-plan-cleanup")).toContainText(
+      "1 unfinished task",
+    );
+    await page.getByRole("button", { name: "Clean up old tasks" }).click();
+    const dialog = page.getByRole("dialog", {
+      name: "Remove old 100-day plan tasks",
+    });
+    await expect(dialog).toBeVisible();
+    await dialog
+      .getByRole("button", { name: "Remove 1 old task", exact: true })
+      .click();
+
+    await expect(page.getByText("Old plan task", { exact: true })).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByText("Current plan task", { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText("Personal task", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Undo task deletion" }).click();
+    await expect(page.getByText("Old plan task", { exact: true })).toBeVisible();
+  });
+
   test("completed history preserves prior days without an execution streak", async ({ page }) => {
     const now = Date.now();
     const mk = (i: number) => {

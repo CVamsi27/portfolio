@@ -584,6 +584,13 @@ export default function FoodTracker() {
             );
           })}
       </div>
+      {foodView === "diary" && entries.length === 0 && (
+        <EmptyState
+          appearance="plain"
+          title="Start this day's diary"
+          hint="Add your first food — totals and coverage build as you log meals, snacks and drinks."
+        />
+      )}
       {foodView === "diary" && (
         <details className="workspace-disclosure">
           <summary>Review this day</summary>
@@ -592,13 +599,6 @@ export default function FoodTracker() {
             entries={Object.values(store.entries.value)}
           />
         </details>
-      )}
-      {foodView === "diary" && entries.length === 0 && (
-        <EmptyState
-          appearance="plain"
-          title="Start this day's diary"
-          hint="Add your first food — totals and coverage build as you log meals, snacks and drinks."
-        />
       )}
       {foodView === "diary" && entries.length > 0 && (
         <details>

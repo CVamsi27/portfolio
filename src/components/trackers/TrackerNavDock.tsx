@@ -69,27 +69,28 @@ export default function TrackerNavDock({
             </Link>
           );
         })}
+        {/*
+          Quick capture lives inside the dock so it stays reachable without
+          floating over page controls. It is a button, not a destination link,
+          so the dock keeps its five navigation targets.
+        */}
+        <button
+          type="button"
+          data-testid="dock-quick-add"
+          aria-label="Quick add"
+          title="Quick add"
+          onClick={() =>
+            window.dispatchEvent(
+              new CustomEvent("nova-open-quicksheet", {
+                detail: { tab: "add" },
+              }),
+            )
+          }
+          className="ml-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm shadow-primary/30 transition-transform active:scale-95"
+        >
+          <Plus className="h-5 w-5" aria-hidden />
+        </button>
       </div>
-      {/*
-        Floating quick capture: sits above the dock's right edge and opens the
-        QuickSheet on its Add tab. It is a button (not a destination link), so
-        the dock keeps its five navigation targets.
-      */}
-      <button
-        type="button"
-        data-testid="dock-quick-add"
-        aria-label="Quick add"
-        onClick={() =>
-          window.dispatchEvent(
-            new CustomEvent("nova-open-quicksheet", {
-              detail: { tab: "add" },
-            }),
-          )
-        }
-        className="absolute -top-14 right-1 inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform active:scale-95"
-      >
-        <Plus className="h-5 w-5" aria-hidden />
-      </button>
     </nav>
   );
 }

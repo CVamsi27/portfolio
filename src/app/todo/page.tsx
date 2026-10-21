@@ -46,13 +46,32 @@ import {
   X,
 } from "lucide-react";
 
-type View = "today" | "tomorrow" | "upcoming" | "done";
+type View = "today" | "tomorrow" | "upcoming" | "open" | "done";
 
 const tomorrowKey = () => {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   return dateKey(d);
 };
+
+const PRIORITY_RANK: Record<TodoPriority, number> = {
+  P1: 0,
+  P2: 1,
+  P3: 2,
+};
+
+/** P1 first, then overdue work, then the nearest due date. */
+function sortTasks(list: Todo[], today: string): Todo[] {
+  return [...list].sort((a, b) => {
+    const aOverdue = a.date < today ? -1 : 0;
+    const bOverdue = b.date < today ? -1 : 0;
+    return (
+      PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] ||
+      aOverdue - bOverdue ||
+      a.date.localeCompare(b.date)
+    );
+  });
+}
 
 export default function TodoPage() {
   useMigrateTodos();
@@ -72,7 +91,7 @@ export default function TodoPage() {
   const [priority, setPriority] = useState<TodoPriority>("P2");
   const [tag, setTag] = useState<TodoTag>("Personal");
   const [view, setView] = useWorkspaceView<View>(
-    ["today", "tomorrow", "upcoming", "done"],
+    ["today", "tomorrow", "upcoming", "open", "done"],
     "today",
   );
   const [tagFilter, setTagFilter] = useState<TodoTag | "all">("all");
@@ -95,11 +114,13 @@ export default function TodoPage() {
 
   const visible = useMemo(() => {
     let list: Todo[];
-    if (view === "today") list = safe.filter((t) => !t.done);
+    if (view === "today")
+      list = safe.filter((t) => t.date === today && !t.done);
     else if (view === "tomorrow")
       list = safe.filter((t) => t.date === tomorrow && !t.done);
     else if (view === "upcoming")
       list = safe.filter((t) => t.date > tomorrow && !t.done);
+    else if (view === "open") list = safe.filter((t) => !t.done);
     else list = safe.filter((t) => t.done);
     if (tagFilter !== "all") list = list.filter((t) => t.tag === tagFilter);
     if (priorityFilter !== "all")
@@ -108,18 +129,25 @@ export default function TodoPage() {
       list = list.filter((t) =>
         t.text.toLowerCase().includes(search.trim().toLowerCase()),
       );
-    // P1 first, overdue floats up within same priority, then by date
-    const prioRank: Record<TodoPriority, number> = { P1: 0, P2: 1, P3: 2 };
-    return [...list].sort((a, b) => {
-      const aOverdue = a.date < today ? -1 : 0;
-      const bOverdue = b.date < today ? -1 : 0;
-      return (
-        prioRank[a.priority] - prioRank[b.priority] ||
-        aOverdue - bOverdue ||
-        a.date.localeCompare(b.date)
-      );
-    });
+    return sortTasks(list, today);
   }, [safe, view, tagFilter, priorityFilter, search, today, tomorrow]);
+
+  const overdueVisible = useMemo(() => {
+    let list = overdueTasks;
+    if (tagFilter !== "all") list = list.filter((t) => t.tag === tagFilter);
+    if (priorityFilter !== "all")
+      list = list.filter((t) => t.priority === priorityFilter);
+    if (search.trim())
+      list = list.filter((t) =>
+        t.text.toLowerCase().includes(search.trim().toLowerCase()),
+      );
+    return sortTasks(list, today);
+  }, [overdueTasks, tagFilter, priorityFilter, search, today]);
+
+  const legacyPlanTasks = useMemo(
+    () => safe.filter((t) => t.id.startsWith("t_100day_") && !t.done),
+    [safe],
+  );
 
   const todayList = safe.filter((t) =>
     t.done
@@ -204,6 +232,185 @@ export default function TodoPage() {
       safe.map((t) => (t.date < today && !t.done ? { ...t, date: today } : t)),
     );
 
+  const [legacyCleanupOpen, setLegacyCleanupOpen] = useState(false);
+  const removeLegacyPlanTasks = () => {
+    const ids = new Set(legacyPlanTasks.map((t) => t.id));
+    setRemovedTasks(legacyPlanTasks);
+    setTodos((previous) => previous.filter((t) => !ids.has(t.id)));
+    setLegacyCleanupOpen(false);
+  };
+
+  const renderTaskList = (list: Todo[]) => (
+    <ul className="space-y-2">
+      {list.map((t) => (
+        <li
+          key={t.id}
+          className={cn(
+            "task-row group flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
+            t.done
+              ? "border-emerald-500/30 bg-emerald-500/5"
+              : t.date < today
+                ? "border-rose-500/30 bg-rose-500/5 hover:border-rose-500/50"
+                : "border-border/60 hover:border-primary/30",
+          )}
+        >
+          <button
+            onClick={() => toggle(t.id)}
+            className={cn(
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-md border text-xs transition-all active:scale-90",
+              t.done
+                ? "border-emerald-500 bg-emerald-500 text-white"
+                : "border-muted-foreground/50",
+            )}
+            aria-pressed={t.done}
+            aria-label={
+              t.done
+                ? `Mark "${t.text}" not done`
+                : `Mark "${t.text}" done`
+            }
+          >
+            {t.done ? <Check className="h-3 w-3" /> : ""}
+          </button>
+
+          {editingId === t.id ? (
+            <div className="order-last grid w-full min-w-0 gap-2 sm:order-none sm:w-auto sm:flex-1 sm:grid-cols-2">
+              <Input
+                aria-label="Edit task name"
+                className="min-h-11 flex-1"
+                value={editDraft}
+                onChange={(e) => setEditDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveEdit(t.id);
+                  if (e.key === "Escape") setEditingId(null);
+                }}
+                autoFocus
+              />
+              <label className="field-label">
+                Goal milestone
+                <select
+                  aria-label="Goal milestone"
+                  value={t.milestoneId ?? ""}
+                  onChange={(e) =>
+                    setTodos((p) =>
+                      p.map((item) =>
+                        item.id === t.id
+                          ? {
+                              ...item,
+                              milestoneId: e.target.value || undefined,
+                            }
+                          : item,
+                      ),
+                    )
+                  }
+                >
+                  <option value="">No milestone</option>
+                  {milestones.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs">
+                Due date
+                <Input
+                  type="date"
+                  aria-label={`Due date for ${t.text}`}
+                  value={t.date}
+                  onChange={(e) => {
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) return;
+                    setTodos((previous) =>
+                      previous.map((item) =>
+                        item.id === t.id
+                          ? { ...item, date: e.target.value }
+                          : item,
+                      ),
+                    );
+                    setEditingId(null);
+                  }}
+                />
+              </label>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setEditingId(t.id);
+                setEditDraft(t.text);
+              }}
+              className={cn(
+                "task-name min-w-0 min-h-11 flex-1 break-words text-left",
+                t.done && "line-through opacity-60",
+              )}
+              title="Click to edit"
+            >
+              {t.text}
+            </button>
+          )}
+
+          {/* Overdue badge */}
+          {!t.done && t.date < today && (
+            <span className="shrink-0 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-xs font-semibold text-rose-500">
+              Overdue
+            </span>
+          )}
+
+          <span className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+            {t.date === today ? "" : t.date.slice(5)}
+          </span>
+
+          <ActionMenu label={`Actions for ${t.text}`}>
+            {!t.done &&
+              planningCanEdit(
+                isSupabaseConfigured(),
+                process.env.NEXT_PUBLIC_DAILY_PLAN_ENABLED,
+              ) && (
+                <Link
+                  className="inline-action task-schedule order-last w-full sm:order-none sm:w-auto"
+                  href={`/plan?schedule=${encodeURIComponent(t.id)}&date=${t.date < today ? today : t.date}`}
+                >
+                  Schedule
+                </Link>
+              )}
+
+            <button
+              onClick={() => cyclePriority(t)}
+              aria-label="Cycle priority"
+              className="flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-bold transition-colors hover:bg-accent"
+              title="Click to cycle priority"
+            >
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  TODO_PRIORITIES.find((p) => p.id === t.priority)?.dot,
+                )}
+              />
+              {t.priority}
+            </button>
+
+            {!t.done ? (
+              <Link
+                href={`/plan?task=${encodeURIComponent(t.id)}#focus-sprint`}
+                title={`Focus on "${t.text}"`}
+                aria-label={`Focus on "${t.text}"`}
+                className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-primary sm:opacity-0 sm:group-hover:opacity-100"
+              >
+                <Play className="h-3.5 w-3.5" />
+              </Link>
+            ) : null}
+
+            <button
+              onClick={() => remove(t.id)}
+              aria-label="Delete task"
+              className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </ActionMenu>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <RequireAuth>
       <PersonalShell
@@ -268,6 +475,45 @@ export default function TodoPage() {
             Confirm reschedule
           </Button>
         </Modal>
+        <Modal
+          open={legacyCleanupOpen}
+          onClose={() => setLegacyCleanupOpen(false)}
+          title="Remove old 100-day plan tasks"
+        >
+          <p>
+            This removes {legacyPlanTasks.length} unfinished task
+            {legacyPlanTasks.length === 1 ? "" : "s"} left by the previous
+            100-day planner. Your personal tasks and the current career plan
+            stay in place.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            You can undo this immediately from the task list after removing.
+          </p>
+          <Button variant="destructive" onClick={removeLegacyPlanTasks}>
+            Remove {legacyPlanTasks.length} old task
+            {legacyPlanTasks.length === 1 ? "" : "s"}
+          </Button>
+        </Modal>
+        {legacyPlanTasks.length > 0 && (
+          <div
+            data-testid="legacy-plan-cleanup"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/8 px-3 py-2.5"
+          >
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+              {legacyPlanTasks.length} unfinished task
+              {legacyPlanTasks.length === 1 ? "" : "s"} from the old 100-day
+              planner {legacyPlanTasks.length === 1 ? "is" : "are"} still in
+              your task data.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLegacyCleanupOpen(true)}
+            >
+              Clean up old tasks
+            </Button>
+          </div>
+        )}
         {/* ── Quick add ── */}
         <Modal
           title="Add task"
@@ -335,10 +581,8 @@ export default function TodoPage() {
           <WorkspaceViews
             label="Task view"
             views={[
-              {
-                id: "today",
-                label: "Open",
-              },
+              { id: "today", label: "Today" },
+              { id: "open", label: "Open" },
               { id: "done", label: "Completed" },
             ]}
             value={view}
@@ -354,9 +598,10 @@ export default function TodoPage() {
                 value={view}
                 onChange={(event) => setView(event.target.value as View)}
               >
-                <option value="today">All open</option>
+                <option value="today">Today</option>
                 <option value="tomorrow">Tomorrow</option>
                 <option value="upcoming">Upcoming</option>
+                <option value="open">All open</option>
                 <option value="done">Completed</option>
               </select>
             </label>
@@ -419,26 +664,11 @@ export default function TodoPage() {
             </div>
           </details>
         )}
-        {/* ── Overdue rescue banner ── */}
-        {view === "today" && overdueTasks.length > 0 && (
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3 py-2.5">
-            <p className="text-xs font-semibold text-rose-400">
-              {overdueTasks.length} overdue task
-              {overdueTasks.length === 1 ? "" : "s"} carried from previous days
-            </p>
-            <button
-              onClick={() => setReschedulePreview(true)}
-              className="shrink-0 rounded-lg border border-rose-500/40 px-2.5 py-1 text-xs font-bold text-rose-400 transition-colors hover:border-rose-400 hover:text-rose-300"
-            >
-              Push all to today
-            </button>
-          </div>
-        )}
-
         {/* ── Task list ── */}
         <Card variant="dossier">
           <CardContent className="p-5">
-            {visible.length === 0 ? (
+            {visible.length === 0 &&
+            !(view === "today" && overdueVisible.length > 0) ? (
               <EmptyState
                 icon={view === "done" ? Check : ListChecks}
                 title={
@@ -460,178 +690,35 @@ export default function TodoPage() {
                       : "Use Add task to create one."
                 }
               />
+            ) : visible.length === 0 ? (
+              <p className="py-2 text-sm text-muted-foreground">
+                Nothing due today.
+              </p>
             ) : (
-              <ul className="space-y-2">
-                {visible.map((t) => (
-                  <li
-                    key={t.id}
-                    className={cn(
-                      "task-row group flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
-                      t.done
-                        ? "border-emerald-500/30 bg-emerald-500/5"
-                        : t.date < today
-                          ? "border-rose-500/30 bg-rose-500/5 hover:border-rose-500/50"
-                          : "border-border/60 hover:border-primary/30",
-                    )}
-                  >
-                    <button
-                      onClick={() => toggle(t.id)}
-                      className={cn(
-                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-md border text-xs transition-all active:scale-90",
-                        t.done
-                          ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-muted-foreground/50",
-                      )}
-                      aria-pressed={t.done}
-                      aria-label={
-                        t.done
-                          ? `Mark "${t.text}" not done`
-                          : `Mark "${t.text}" done`
-                      }
+              renderTaskList(visible)
+            )}
+            {view === "today" && overdueVisible.length > 0 && (
+              <details className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/5 px-3 py-2.5">
+                <summary className="cursor-pointer text-sm font-semibold text-rose-500">
+                  Overdue ({overdueVisible.length})
+                </summary>
+                <div className="mt-3 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-xs text-muted-foreground">
+                      Carried from previous days. They stay here until you
+                      reschedule or finish them.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setReschedulePreview(true)}
                     >
-                      {t.done ? <Check className="h-3 w-3" /> : ""}
-                    </button>
-
-                    {editingId === t.id ? (
-                      <div className="order-last grid w-full min-w-0 gap-2 sm:order-none sm:w-auto sm:flex-1 sm:grid-cols-2">
-                        <Input
-                          aria-label="Edit task name"
-                          className="min-h-11 flex-1"
-                          value={editDraft}
-                          onChange={(e) => setEditDraft(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") saveEdit(t.id);
-                            if (e.key === "Escape") setEditingId(null);
-                          }}
-                          autoFocus
-                        />
-                        <label className="field-label">
-                          Goal milestone
-                          <select
-                            aria-label="Goal milestone"
-                            value={t.milestoneId ?? ""}
-                            onChange={(e) =>
-                              setTodos((p) =>
-                                p.map((item) =>
-                                  item.id === t.id
-                                    ? {
-                                        ...item,
-                                        milestoneId:
-                                          e.target.value || undefined,
-                                      }
-                                    : item,
-                                ),
-                              )
-                            }
-                          >
-                            <option value="">No milestone</option>
-                            {milestones.map((m) => (
-                              <option key={m.id} value={m.id}>
-                                {m.title}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="text-xs">
-                          Due date
-                          <Input
-                            type="date"
-                            aria-label={`Due date for ${t.text}`}
-                            value={t.date}
-                            onChange={(e) => {
-                              if (!/^\d{4}-\d{2}-\d{2}$/.test(e.target.value))
-                                return;
-                              setTodos((previous) =>
-                                previous.map((item) =>
-                                  item.id === t.id
-                                    ? { ...item, date: e.target.value }
-                                    : item,
-                                ),
-                              );
-                              setEditingId(null);
-                            }}
-                          />
-                        </label>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setEditingId(t.id);
-                          setEditDraft(t.text);
-                        }}
-                        className={cn(
-                          "task-name min-w-0 min-h-11 flex-1 break-words text-left",
-                          t.done && "line-through opacity-60",
-                        )}
-                        title="Click to edit"
-                      >
-                        {t.text}
-                      </button>
-                    )}
-
-                    {/* Overdue badge */}
-                    {!t.done && t.date < today && (
-                      <span className="shrink-0 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-xs font-semibold text-rose-500">
-                        Overdue
-                      </span>
-                    )}
-
-                    <span className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                      {t.date === today ? "" : t.date.slice(5)}
-                    </span>
-
-                    <ActionMenu label={`Actions for ${t.text}`}>
-                      {!t.done &&
-                        planningCanEdit(
-                          isSupabaseConfigured(),
-                          process.env.NEXT_PUBLIC_DAILY_PLAN_ENABLED,
-                        ) && (
-                          <Link
-                            className="inline-action task-schedule order-last w-full sm:order-none sm:w-auto"
-                            href={`/plan?schedule=${encodeURIComponent(t.id)}&date=${t.date < today ? today : t.date}`}
-                          >
-                            Schedule
-                          </Link>
-                        )}
-
-                      <button
-                        onClick={() => cyclePriority(t)}
-                        aria-label="Cycle priority"
-                        className="flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-bold transition-colors hover:bg-accent"
-                        title="Click to cycle priority"
-                      >
-                        <span
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            TODO_PRIORITIES.find((p) => p.id === t.priority)
-                              ?.dot,
-                          )}
-                        />
-                        {t.priority}
-                      </button>
-
-                      {!t.done ? (
-                        <Link
-                          href={`/plan?task=${encodeURIComponent(t.id)}#focus-sprint`}
-                          title={`Focus on "${t.text}"`}
-                          aria-label={`Focus on "${t.text}"`}
-                          className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-primary sm:opacity-0 sm:group-hover:opacity-100"
-                        >
-                          <Play className="h-3.5 w-3.5" />
-                        </Link>
-                      ) : null}
-
-                      <button
-                        onClick={() => remove(t.id)}
-                        aria-label="Delete task"
-                        className="inline-flex h-11 w-11 items-center justify-center shrink-0 text-muted-foreground transition-colors hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </ActionMenu>
-                  </li>
-                ))}
-              </ul>
+                      Push all to today
+                    </Button>
+                  </div>
+                  {renderTaskList(overdueVisible)}
+                </div>
+              </details>
             )}
             {view === "done" && safe.some((t) => t.done) && (
               <Button

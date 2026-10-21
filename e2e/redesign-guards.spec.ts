@@ -182,6 +182,36 @@ test.describe("redesign guards — capture affordances", () => {
     );
   });
 
+  test("quick add stays inside the dock instead of covering page controls", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await seed(page);
+    await page.goto("/hub");
+    const dock = (await page.getByTestId("mobile-command-dock").boundingBox())!;
+    const quick = (await page.getByTestId("dock-quick-add").boundingBox())!;
+    expect(quick.x).toBeGreaterThanOrEqual(dock.x);
+    expect(quick.y).toBeGreaterThanOrEqual(dock.y);
+    expect(quick.x + quick.width).toBeLessThanOrEqual(dock.x + dock.width);
+    expect(quick.y + quick.height).toBeLessThanOrEqual(
+      dock.y + dock.height,
+    );
+
+    await page.goto("/health");
+    const water = (await page
+      .getByRole("button", { name: "Water +1", exact: true })
+      .boundingBox())!;
+    const quickOnHealth = (await page
+      .getByTestId("dock-quick-add")
+      .boundingBox())!;
+    const overlaps =
+      quickOnHealth.x < water.x + water.width &&
+      quickOnHealth.x + quickOnHealth.width > water.x &&
+      quickOnHealth.y < water.y + water.height &&
+      quickOnHealth.y + quickOnHealth.height > water.y;
+    expect(overlaps).toBe(false);
+  });
+
   test("header search opens the sheet on the Search tab", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await seed(page);
@@ -244,6 +274,22 @@ test.describe("redesign guards — Today leads with the next action", () => {
     const box = await next.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.y).toBeLessThan(844);
+  });
+
+  test("an open day keeps a single plan action", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await seed(page);
+    await page.goto("/hub");
+    await expect(
+      page
+        .getByTestId("today-header")
+        .getByRole("link", { name: "Plan this day", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByTestId("today-next-action")
+        .getByRole("link", { name: "Plan this day", exact: true }),
+    ).toHaveCount(0);
   });
 });
 
@@ -321,7 +367,7 @@ test.describe("redesign guards — Today timeline, weekly review and first-run s
     await expect(open).not.toContainText("Read one chapter");
     await expect(
       open.getByRole("link", { name: "1 more in Tasks", exact: true }),
-    ).toHaveAttribute("href", "/todo");
+    ).toHaveAttribute("href", "/todo?view=open");
   });
 
   test("weekly review saves one journal entry and next week's commitments", async ({
