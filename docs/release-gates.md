@@ -244,3 +244,14 @@ ok   imported task reaches the second device
 The precheck caught a restore/sync gap: imported whole-value keys such as `todos` were restored locally but were not marked pending, and their sync metadata was cleared. A mount-time cloud pull could therefore overwrite the restored data. `applyBackup` now stamps every imported key with a fresh local timestamp and a pending flag, so the next sync wakeup uploads the restore. The three export/import checks above pass after that fix; `e2e/backup-sync-metadata.spec.ts` covers the metadata/pending regression.
 
 The precheck used `localhost`, so it deliberately bypassed the personal-host Google allowlist. It does not replace B4: the owner still needs to sign in with the two approved Google accounts on two devices/profiles and verify the offline-reload/PWA path. B4 remains open.
+
+## Tracker audit follow-up (22 October 2026)
+
+The paused tracker audit found two misleading cross-page states in the reproduced production view: `/plan` showed “No activities” for a date whose generated timetable was visible on `/hub`, and `/review` called every scheduled day “quiet” because it only counted completed tasks. The local-only fixes now:
+
+- include generated timetable and career blocks in Plan’s day and week agendas while keeping those rows read-only;
+- keep the full assignment/guide detail in the existing Job timetable section instead of expanding it inside Plan agenda rows;
+- group the Plan week agenda by day and include the same generated blocks;
+- report scheduled block counts in Weekly review and reserve “quiet day” for days with no tasks, focus, study or timetable blocks.
+
+Evidence: the reproduced production seed showed 8 Plan agenda rows at both 390 px and 1440 px (previously 0), no horizontal overflow, and Review reported scheduled blocks instead of “quiet day” for scheduled dates. Verification passed: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:sync` (8), `pnpm test:germany-roadmap` (36), and the full Playwright suite (416 passed). No production data or deployment changed; B4 and the task-cleanup decision remain open.

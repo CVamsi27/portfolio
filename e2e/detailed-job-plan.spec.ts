@@ -149,10 +149,13 @@ test("Week includes linked assignments on each workday and avoids an empty activ
       .getByText("08:00–09:30 · 90 min"),
   ).toBeVisible();
   await expect(
+    page.getByTestId("plan-week-agenda"),
+  ).toContainText("Type narrowing at runtime");
+  await expect(
     page.getByText("No activities in this week. Add an activity to begin.", {
       exact: true,
     }),
-  ).not.toBeVisible();
+  ).toHaveCount(0);
 });
 
 test("saved and verified evidence stays consistent across pages and editing revokes the verified label", async ({

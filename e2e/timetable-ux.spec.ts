@@ -120,6 +120,46 @@ test("agenda is directly available without opening a second schedule", async ({
     timetable.getByRole("button", { name: "Show schedule" }),
   ).toHaveCount(0);
 });
+test("Plan shows the generated timetable in day and week views", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto("/plan?date=2026-10-03");
+  const day = page.getByTestId("day-agenda");
+  await expect(
+    day.getByText("Earlier research block", { exact: true }),
+  ).toBeVisible();
+  await expect(day).toContainText("Practical follow-up");
+  await expect(
+    page.getByText("No activities for this date. Add an activity to begin.", {
+      exact: true,
+    }),
+  ).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Week", exact: true }).click();
+  const week = page.getByTestId("plan-week-agenda");
+  await expect(
+    week.getByText("Earlier research block", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    week.getByText("Tomorrow's practice", { exact: true }),
+  ).toBeVisible();
+});
+test("review reports scheduled blocks instead of calling a scheduled day quiet", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto("/review?date=2026-10-04");
+  const saturday = page.locator(".weekly-review-days li").filter({
+    hasText: "Sat 3",
+  });
+  await expect(saturday).toContainText("4 blocks scheduled");
+  await expect(saturday).not.toContainText("quiet day");
+  const sunday = page.locator(".weekly-review-days li").filter({
+    hasText: "Sun 4",
+  });
+  await expect(sunday).toContainText("1 block scheduled");
+});
 test("open Today updates its plan across midnight", async ({ page }) => {
   const timetable = await setup(page);
   await page.clock.fastForward(15 * 60 * 60_000);

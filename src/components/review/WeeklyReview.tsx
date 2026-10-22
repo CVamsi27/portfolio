@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/lib/auth-store";
 import { useUserPrefs } from "@/lib/user-prefs";
 import { usePersonalProgress } from "@/lib/use-personal-progress";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
@@ -12,6 +13,7 @@ import { useGoalState, useJournal, useNow, useTodos } from "@/lib/tracker-store"
 import { normalizeWeeklyCommitments, type WeeklyCommitment } from "@/lib/trackers";
 import { calendarZone, shiftDay, validDay } from "@/lib/day-plan";
 import { containingWeek } from "@/lib/day-presentation";
+import { personalSchedule } from "@/lib/personal-timetable";
 import { zonedDate } from "@/lib/routine-reminders";
 import type { RecoveryEntry } from "@/components/personal/RecoveryTracker";
 
@@ -138,13 +140,23 @@ function CommitmentForm({
 export default function WeeklyReview() {
   const params = useSearchParams();
   const now = useNow(60000);
+  const { user } = useAuth();
   const { prefs } = useUserPrefs();
   const today = zonedDate(now, calendarZone(prefs.timeZone));
+  const timetable = useSyncedStorage<{
+    days: Array<{ date: string; schedule?: Record<string, unknown> }>;
+  } | null>("timetable_100_days", null);
   const end = validDay(params.get("date")) ? params.get("date")! : today;
   const { data } = usePersonalProgress(14, end);
   const week = data.days.slice(7);
   const previous = data.days.slice(0, 7);
   const weekStart = week[0]?.date ?? end;
+  const scheduledCount = (date: string) => {
+    const prescribed = personalSchedule(user?.email, date);
+    const stored = timetable.value?.days?.find((day) => day.date === date)
+      ?.schedule;
+    return Object.keys(prescribed ?? stored ?? {}).length;
+  };
   const nextWeekOf = shiftDay(containingWeek(end)[0], 7);
   const todos = useTodos();
   const journal = useJournal();
@@ -279,21 +291,34 @@ export default function WeeklyReview() {
       <section className="workspace-panel" aria-label="1 — Week at a glance">
         <h2>Week at a glance</h2>
         <ul className="weekly-review-days">
-          {week.map((day) => (
-            <li key={day.date}>
-              <strong>{dayLabel(day.date)}</strong>
-              <span>
-                {day.tasks > 0
-                  ? `${day.tasks} task${day.tasks === 1 ? "" : "s"} done`
-                  : "quiet day"}
-                {day.focus ? ` · ${day.focus} min focus` : ""}
-                {day.study ? ` · ${day.study} min study` : ""}
-              </span>
-              {journal.value[day.date] && (
-                <span className="weekly-review-flag">reflection</span>
-              )}
-            </li>
-          ))}
+          {week.map((day) => {
+            const scheduled = scheduledCount(day.date);
+            const hasActivity =
+              day.tasks > 0 ||
+              Boolean(day.focus) ||
+              Boolean(day.study) ||
+              scheduled > 0;
+            return (
+              <li key={day.date}>
+                <strong>{dayLabel(day.date)}</strong>
+                <span>
+                  {day.tasks > 0
+                    ? `${day.tasks} task${day.tasks === 1 ? "" : "s"} done`
+                    : hasActivity
+                      ? "0 tasks done"
+                      : "quiet day"}
+                  {scheduled
+                    ? ` · ${scheduled} block${scheduled === 1 ? "" : "s"} scheduled`
+                    : ""}
+                  {day.focus ? ` · ${day.focus} min focus` : ""}
+                  {day.study ? ` · ${day.study} min study` : ""}
+                </span>
+                {journal.value[day.date] && (
+                  <span className="weekly-review-flag">reflection</span>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </section>
 

@@ -53,7 +53,6 @@ import TodayAgendaRow from "./TodayAgendaRow";
 import TodaySetupCard from "./TodaySetupCard";
 import { agendaPeriod, agendaStatus } from "@/lib/day-presentation";
 import { ArrowRight } from "lucide-react";
-import { editablePlanBlocks } from "@/lib/plan-presentation";
 import MetricSummary from "@/components/progress/MetricSummary";
 import HabitChecklist from "@/components/personal/HabitChecklist";
 import FocusSprint from "@/components/trackers/FocusSprint";
@@ -149,10 +148,16 @@ export default function DailyWorkspace({
         : [],
     }))
     .filter((d) => d.assignments.length > 0);
-  const prescribed = modules.value.study
-    ? personalSchedule(user?.email, date)
-    : undefined;
-  const sourceDays = [shiftDay(date, -1), date, shiftDay(date, 1)];
+  const planningWeek = planning && view === "week";
+  const weekDays = planningWeek
+    ? Array.from({ length: 7 }, (_, i) => shiftDay(date, i))
+    : [];
+  // Keep a day either side so a block near midnight is still placed on the
+  // correct calendar day after timezone conversion. The Plan week view needs
+  // the same buffer around its seven visible days.
+  const sourceDays = planningWeek
+    ? [shiftDay(date, -1), ...weekDays, shiftDay(date, 7)]
+    : [shiftDay(date, -1), date, shiftDay(date, 1)];
   const fixedBlocks = (sourceDate: string) => {
     const prescribed = modules.value.study
       ? personalSchedule(user?.email, sourceDate)
@@ -178,24 +183,27 @@ export default function DailyWorkspace({
     ...sourceDays.map(fixedBlocks),
   ) as Record<string, PlanBlock>;
   const allBlocks = { ...ownerBlocks, ...plan.blocks.value };
-  const rows = dayAgenda({
-    date,
-    calendarTimeZone: timeZone,
-    blocks: planning
-      ? Object.fromEntries(
-          editablePlanBlocks(plan.blocks.value, date).map((block) => [
-            block.id,
-            block,
-          ]),
-        )
-      : allBlocks,
-    tasks: todos.value,
-    routines:
-      !planning && modules.value.routine
-        ? sourceDays.flatMap((day) => routineOccurrences(routine.items, day))
-        : [],
-    history: routine.history.value,
-  });
+  const routines =
+    !planning && modules.value.routine
+      ? sourceDays.flatMap((day) => routineOccurrences(routine.items, day))
+      : [];
+  const rowsForDay = (day: string) =>
+    dayAgenda({
+      date: day,
+      calendarTimeZone: timeZone,
+      blocks: allBlocks,
+      tasks: todos.value,
+      routines,
+      history: routine.history.value,
+    });
+  const rows = rowsForDay(date);
+  const weekRows = weekDays.map((day) => ({
+    date: day,
+    rows: rowsForDay(day),
+  }));
+  const hasAgenda = planningWeek
+    ? weekRows.some((day) => day.rows.length > 0)
+    : rows.length > 0;
   const completed = rows.filter((row) => row.done);
   const incomplete = rows.filter((row) => !row.done);
   const current = incomplete.find(
@@ -338,14 +346,15 @@ export default function DailyWorkspace({
       : undefined;
   const renderRow = (row: AgendaItem) => {
     const assignment = assignmentForRow(row);
+    const fixedSchedule =
+      row.id.startsWith("owner:") || row.id.startsWith("timetable:");
     const content = (
       <>
-        {assignment ? (
+        {planning && fixedSchedule ? null : assignment ? (
           <JobAssignmentDetail assignment={assignment} recordLink />
         ) : (
           row.block?.description &&
-          (germany?.execution &&
-          (row.id.startsWith("owner:") || row.id.startsWith("timetable:")) ? (
+          (germany?.execution && fixedSchedule ? (
             <RoadmapGuide
               content={row.block.description}
               context={{ date, task: `germany:2026:day:${date}` }}
@@ -873,53 +882,36 @@ export default function DailyWorkspace({
               ))}
         </section>
       )}
-      {(!planning ||
-        jobDays.length === 0 ||
-        (view === "week"
-          ? editablePlanBlocks(plan.blocks.value, date, 7).length > 0
-          : rows.length > 0)) && (
+      {(!planning || jobDays.length === 0 || hasAgenda) && (
         <div className={`daily-agenda-layout${planning ? " is-planning" : ""}`}>
-          {planning && view === "week" ? (
-            <section className="workspace-panel">
+          {planningWeek ? (
+            <section
+              className="workspace-panel"
+              data-testid="plan-week-agenda"
+            >
               <h2>
                 Your activities · {date}–{shiftDay(date, 6)}
               </h2>
-              {editablePlanBlocks(plan.blocks.value, date, 7).length ? (
-                <ul>
-                  {editablePlanBlocks(plan.blocks.value, date, 7).map(
-                    (block) => (
-                      <li
-                        className="workspace-heading border-b border-border py-4"
-                        key={block.id}
-                      >
-                        <div>
-                          <strong>{block.title}</strong>
-                          <p className="text-sm text-muted-foreground">
-                            {block.date} · {block.startLocal} ·{" "}
-                            {block.durationMinutes} min
-                            {block.completedAt ? " · Completed" : ""}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            disabled={!plan.enabled}
-                            onClick={() => begin(block)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            disabled={!plan.enabled}
-                            onClick={() => remove(block)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </li>
-                    ),
+              {hasAgenda ? (
+                <div className="plan-week-days">
+                  {weekRows.map(({ date: day, rows: dayRows }) =>
+                    dayRows.length ? (
+                      <section key={day} aria-label={`Activities for ${day}`}>
+                        <h3 className="font-display text-lg font-semibold">
+                          {new Intl.DateTimeFormat("en-GB", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "short",
+                            timeZone: "UTC",
+                          }).format(new Date(day + "T12:00:00Z"))}
+                        </h3>
+                        <ol className="agenda-list">
+                          {dayRows.map(renderRow)}
+                        </ol>
+                      </section>
+                    ) : null,
                   )}
-                </ul>
+                </div>
               ) : (
                 <p className="workspace-empty">
                   No activities in this week. Add an activity to begin.
