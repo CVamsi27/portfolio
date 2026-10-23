@@ -43,8 +43,6 @@ export default function TrackerNavDock({
               aria-current={active ? "page" : undefined}
               className={cn(
                 "dossier-command-link relative flex min-w-11 flex-1 flex-col items-center gap-1 rounded-xl px-0 min-h-12 py-2 transition-colors active:scale-95",
-                l.id === "roadmap" && "min-w-16",
-                l.id === "review" && "min-w-16",
                 active
                   ? "is-active bg-primary/15 text-primary font-bold"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/30",

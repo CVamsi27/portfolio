@@ -21,9 +21,13 @@
   .tracker-surface .personal-shell > div { max-width: 1120px; }
   .tracker-surface .dossier-command-dock { inset-inline: 0; bottom: 0; border-radius: 0; background: var(--color-card); box-shadow: none; backdrop-filter: none; }
   .tracker-surface .dossier-command-link { min-width: 44px; min-height: 60px; border-radius: 8px; }
-  .tracker-surface .dossier-command-link:is([href="/roadmap"], [href="/dashboard"]) { min-width: 68px; }
   .tracker-surface .dossier-command-link > span:last-child:not([data-dock-label]) { display: none; }
   .tracker-surface .dossier-command-link [data-dock-label] { font-size: 12px; letter-spacing: 0; }
+  /* The Linux/CI fallback sans is wider than the macOS fallback; tighten only
+     at the narrowest dock width so every label still fits its touch target. */
+  @media (max-width: 359px) {
+    .tracker-surface .dossier-command-link [data-dock-label] { letter-spacing: -0.06em; }
+  }
   .tracker-surface .dossier-command-dock > div { padding: 6px 2px; }
   .tracker-surface .personal-content { min-width: 0; }
   .tracker-surface .personal-shell .personal-content { margin-top:0; }
