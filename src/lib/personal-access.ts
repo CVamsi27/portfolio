@@ -71,6 +71,7 @@ export function isPublicPersonalPath(path: string): boolean {
 export function isMachineEndpoint(path: string): boolean {
   return [
     "/api/push/dispatch",
+    "/api/telegram/dispatch",
     "/api/health-connect/pair",
     "/api/health-connect/status",
     "/api/health-connect/sync",

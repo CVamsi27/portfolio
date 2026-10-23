@@ -14,7 +14,7 @@ import {
   type RoutineSchedule,
 } from "@/lib/routine-reminders";
 import Modal from "@/components/trackers/Modal";
-import PushPreferences from "./PushPreferences";
+import TelegramDelivery from "./TelegramDelivery";
 export default function RoutineReminders({
   configure = false,
 }: {
@@ -260,7 +260,7 @@ export default function RoutineReminders({
       {configure && (
         <>
           <div hidden={view !== "notifications"}>
-            <PushPreferences />
+            <TelegramDelivery />
           </div>
           <details hidden={view !== "schedule"}>
             <summary>Edit reminder schedules</summary>

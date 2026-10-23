@@ -3,10 +3,6 @@ import { useWorkspaceView } from "@/lib/use-workspace-view";
 
 import { Suspense, useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  useNotificationPermission,
-  refreshNotificationPermission,
-} from "@/lib/use-notification-permission";
 import { useAuth } from "@/lib/auth-store";
 import {
   alignPersonalTimetable,

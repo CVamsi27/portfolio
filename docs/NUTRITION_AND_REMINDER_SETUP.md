@@ -2,21 +2,33 @@
 
 Manual food/recipe logging and in-app routine checklists work without an external provider. Production private record syncing requires Supabase migrations 0007 and 0008. Apply with the project's existing migration workflow and retain a database backup; never reset user tables.
 
+## Telegram routine delivery (23 October 2026)
+
+Routine reminders now use the existing Telegram bot instead of VAPID/web push. The browser permission prompt and per-device push subscriptions are no longer part of the notification setup. Contact alerts already use the same bot and private owner chat.
+
 Server environment:
 
-- USDA_FDC_API_KEY: your data.gov FoodData Central key. Search has no production demo-key fallback.
-- VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY: generate once with `node scripts/generate-push-keys.mjs`; store the private key only on the server.
-- VAPID_SUBJECT: a valid operator mailto contact or HTTPS URL.
-- CRON_SECRET: a strong random bearer secret for the scheduler.
-- Existing Supabase URL and service-role/secret key, alongside the configured public auth key.
+- `USDA_FDC_API_KEY`: a data.gov FoodData Central key. Search has no production demo-key fallback.
+- `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`: the existing private bot credentials. Never expose either value in a client bundle, URL, backup, log or transcript.
+- `CRON_SECRET`: a strong random bearer secret for the scheduler.
+- Existing Supabase URL and service-role/secret key.
+- Optional `TELEGRAM_OWNER_EMAIL` when the owner account is not the default routine owner.
 
-Configure a server scheduler to GET `/api/push/dispatch` once per minute with `Authorization: Bearer <CRON_SECRET>`. No unauthenticated dispatch is accepted. Configuration is intentionally not silently added to a platform's cron plan or paid service. The app's push opt-in remains unavailable until these values are set.
+Configure a server scheduler to GET `/api/telegram/dispatch` once per minute with `Authorization: Bearer <CRON_SECRET>`. No unauthenticated dispatch is accepted. The route resolves the owner account by email, reads only that account's `routine:schedules` and `routine:history`, groups simultaneous items, claims a durable delivery ID, and sends one Telegram message. Failed sends remain pending for retry after the two-minute lease. The configured chat is the only recipient.
 
-Users explicitly enable notifications in Routine reminders. Subscription keys are private and owner-scoped. Lock-screen text is generic unless they select detailed content. The dispatcher groups simultaneous items (Lunch + Omega-3), leases durable per-device delivery IDs to avoid simultaneous double sends, retries failed pending deliveries, and removes expired subscriptions. A provider may accept a push without the device actually showing it; notification completion is not supplement completion. Browser/system delays remain possible.
+Message shape is plain text: the scheduled time in IST, the grouped routine labels, and a link to `/routine`. No browser/device push delivery is claimed. A standalone local setup message was delivered to the configured Telegram chat; scheduled provider delivery and retry behavior still require production verification. A Telegram message is a reminder, not proof that a meal or supplement was completed.
 
-Verify a real signed-in device with the site closed: one due notification, correct routine destination, separate meal/supplement states, snooze, denied permission, expired subscription, and a 10 PM reminder while NOVA's optional rest view is active. Record deployment evidence before claiming delivery is operational.
+Verify after deployment:
 
-Authoritative references: [FoodData Central API](https://fdc.nal.usda.gov/api-guide/), [web-push library](https://github.com/web-push-libs/web-push).
+1. Enable one routine for a time a few minutes away.
+2. Call the scheduler route with the configured bearer secret.
+3. Confirm exactly one Telegram message, the grouped labels, and the `/routine` link.
+4. Leave the item unlogged and confirm the next minute does not duplicate the message; then record the item in NOVA.
+5. Exercise a failed Telegram request and confirm the next scheduler run retries without marking it sent.
+
+Rollback: remove or unschedule the Telegram dispatch job. Keep `routine:schedules`, `routine:history`, `push_deliveries` and migration `0008`; they hold records and idempotency state. The legacy `/api/push/*` routes and tables remain for compatibility but are not scheduled or exposed in Settings.
+
+Authoritative references: [FoodData Central API](https://fdc.nal.usda.gov/api-guide/), [Telegram Bot API](https://core.telegram.org/bots/api).
 
 ## Account data and rollback
 
@@ -24,7 +36,7 @@ Authenticated storage now uses `vk:account:<user id>:<key>`. Existing cloud data
 
 Before rollout, export each account and back up the database. Apply migrations 0007 and 0008 without resetting tables, then check two distinct signed-in accounts and two devices: records stay private, separate entries merge, an edited entry wins by timestamp, deletions survive sync, and offline writes retry on reconnection. These authenticated checks have not been performed by the local auth-open browser suite.
 
-To roll back the UI, redeploy the previously verified application revision. Retain the new nutrition, routine, recovery and habit records, account-prefixed browser storage, and SQL tables; do not drop them as part of rollback. Disable the dispatch scheduler first if reverting push support. Restore an exported backup only after reviewing its account and timestamp. Supabase migration execution, server environment values, scheduler setup and real-device delivery remain deployment gates.
+To roll back the UI, redeploy the previously verified application revision. Retain the new nutrition, routine, recovery and habit records, account-prefixed browser storage, and SQL tables; do not drop them as part of rollback. Disable the Telegram dispatch scheduler first if reverting notification support. Restore an exported backup only after reviewing its account and timestamp. Supabase migration execution, server environment values and scheduler setup remain deployment gates.
 
 ## Active-session compatibility
 

@@ -25,7 +25,7 @@ The consolidation covers the entire personal workspace, beyond food logging. The
 
 ## Production gates
 
-Code implementation and a pushed branch do not activate provider services or prove deployed delivery. Apply migrations 0007/0008/0009 without resetting tables; configure USDA FoodData Central, VAPID and the authenticated minute scheduler; then verify real signed-in account isolation, concurrent/offline cloud edits and a closed-site notification on a real device. No credentials or provider signup were invented. These checks remain pending; follow [setup and rollback](NUTRITION_AND_REMINDER_SETUP.md).
+Code implementation and a pushed branch do not activate provider services or prove deployed delivery. Apply migrations 0007/0008/0009 without resetting tables; configure USDA FoodData Central, Telegram credentials and the authenticated minute scheduler; then verify real signed-in account isolation, concurrent/offline cloud edits and a closed-site notification on a real device. No credentials or provider signup were invented. These checks remain pending; follow [setup and rollback](NUTRITION_AND_REMINDER_SETUP.md).
 
 Final local verification and pushed commit evidence are recorded in the change sheet and implementation plan.
 
@@ -67,7 +67,7 @@ Verification: **231 Chromium regression tests passed (2.6 minutes)** and **25 do
 
 The approved [daily-life design](superpowers/specs/2026-10-04-daily-life-ux-restructure-design.md) supersedes the earlier shell and Review structures. Today/Plan use `DailyWorkspace` and the pure `day-plan` projection; Health and shared Capture are focused record workspaces. Progress shows compact summaries and one selected metric; Reflection and Journal use the same editable records. Data-preservation tests cover weight/recovery notes, planning backup rejection before writes, task identity, remove/undo and independent food/routine actions. Routine schedule changes now use drafts and explicit preview.
 
-The server RPC restricts collection names, so migration 0009 is required. Signed-in planning stays feature-gated until authenticated persistence is verified. Existing USDA, VAPID, minute-scheduler, migration and real-device delivery gates remain pending. No remote activation or deployment success is inferred from local tests.
+The server RPC restricts collection names, so migration 0009 is required. Signed-in planning stays feature-gated until authenticated persistence is verified. Existing USDA, Telegram, minute-scheduler, migration and real-device delivery gates remain pending. No remote activation or deployment success is inferred from local tests.
 
 Latest local daily-life evidence: 244 browser regression checks, 52 library/domain tests, 7 generator tests and 11 sync/seed tests passed. Final focused planning/capture/task/goal/progress checks passed after the rollout and calendar safeguards; TypeScript, ESLint, production build and Bible inventory validation passed. Source fixtures and populated phone/light plus desktop/dark captures were reviewed. Cross-timezone overlaps compare instants even when source dates differ; water undo cannot act on another selected date. Production gates above remain pending.
 

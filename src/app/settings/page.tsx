@@ -3,7 +3,7 @@ import WorldClockStrip from "@/components/trackers/WorldClockStrip";
 import MealWindowRetention from "@/components/trackers/MealWindowRetention";
 import HealthConnections from "@/components/health/HealthConnections";
 import { dateKey } from "@/lib/trackers";
-import PushPreferences from "@/components/personal/PushPreferences";
+import TelegramDelivery from "@/components/personal/TelegramDelivery";
 import ProtectionPreferences from "@/components/personal/ProtectionPreferences";
 import FocusPreferences from "@/components/personal/FocusPreferences";
 import ModulePreferences from "@/components/personal/ModulePreferences";
@@ -11,10 +11,6 @@ import ModulePreferences from "@/components/personal/ModulePreferences";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import {
-  useNotificationPermission,
-  refreshNotificationPermission,
-} from "@/lib/use-notification-permission";
 import PersonalShell from "@/components/trackers/PersonalShell";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -134,7 +130,6 @@ export default function SettingsPage() {
     false,
   );
 
-  const browserPermission = useNotificationPermission();
   const stats = useStorageStats();
   const [report, setReport] = useState<ImportReport | null>(null);
   const [confirmWipe, setConfirmWipe] = useState("");
@@ -229,25 +224,9 @@ export default function SettingsPage() {
   const saveReminders = () =>
     toast({
       title: "Reminders saved",
-      description: "In-app prompts are active when NOVA is open.",
-    });
-  const enableBrowserReminders = async () => {
-    if (!("Notification" in window)) {
-      setReminders({ ...reminders, browserPermission: "unsupported" });
-      return;
-    }
-    const permission = await Notification.requestPermission();
-    refreshNotificationPermission();
-    setReminders({ ...reminders, browserPermission: permission });
-    toast({
-      title:
-        permission === "granted"
-          ? "Browser reminders enabled"
-          : "Browser permission not granted",
       description:
-        "Background push delivery will be available after production scheduling is configured.",
+        "In-app prompts remain active; routine reminders use Telegram.",
     });
-  };
   const bedtimeTimesValid =
     /^\d{2}:\d{2}$/.test(lockdown.bedtimeStart) &&
     /^\d{2}:\d{2}$/.test(lockdown.bedtimeEnd);
@@ -394,7 +373,7 @@ export default function SettingsPage() {
         <div hidden={settingsView !== "notifications"} className="space-y-5">
           <details className="workspace-disclosure">
             <summary>Routine notification delivery</summary>
-            <PushPreferences />
+            <TelegramDelivery />
           </details>
           <Link className="inline-action" href="/routine">
             Edit routine schedules
@@ -409,8 +388,8 @@ export default function SettingsPage() {
               </div>
               <p className="text-sm text-muted-foreground">
                 Choose reminders in India Standard Time. In-app alerts appear
-                while NOVA is open. Browser alerts require your explicit opt-in;
-                background push is not configured.
+                while NOVA is open. Routine reminders are delivered by Telegram;
+                no browser permission is requested.
               </p>
               <div className="space-y-3">
                 {(
@@ -472,16 +451,8 @@ export default function SettingsPage() {
                   );
                 })}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Browser permission:{" "}
-                {reminders.browserPermission ?? browserPermission} · permission
-                is never requested automatically.
-              </p>
               <div className="flex flex-wrap gap-2">
                 <Button onClick={saveReminders}>Save reminders</Button>
-                <Button variant="outline" onClick={enableBrowserReminders}>
-                  Enable browser reminders
-                </Button>
               </div>
             </CardContent>
           </Card>

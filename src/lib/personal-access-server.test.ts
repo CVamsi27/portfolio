@@ -147,6 +147,7 @@ test("login, callback and machine endpoints retain their independent boundaries"
     "/api/health-connect/status",
     "/api/health-connect/sync",
     "/api/push/dispatch",
+    "/api/telegram/dispatch",
   ]) {
     assert.equal(
       (await proxy(request(path))).headers.get("x-middleware-next"),

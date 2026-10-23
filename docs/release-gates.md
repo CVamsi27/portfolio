@@ -1,6 +1,6 @@
 # Release gates — evidence and rollback record
 
-Three sequential gates: production baseline/schema, authenticated sync, push delivery. The approved design is in `docs/superpowers/specs/2026-10-19-release-gates-design.md`; the execution plan is `docs/superpowers/plans/2026-10-19-release-gates.md`.
+Three sequential gates: production baseline/schema, authenticated sync, notification delivery. Gate C now uses Telegram routine delivery instead of web push. The approved design is in `docs/superpowers/specs/2026-10-19-release-gates-design.md`; the execution plan is `docs/superpowers/plans/2026-10-19-release-gates.md`.
 
 Secrets, database connection strings and user rows are never recorded here. Raw backup artifacts stay under the gitignored `artifacts/release/2026-10-19/` directory.
 
@@ -255,3 +255,17 @@ The paused tracker audit found two misleading cross-page states in the reproduce
 - report scheduled block counts in Weekly review and reserve “quiet day” for days with no tasks, focus, study or timetable blocks.
 
 Evidence: the reproduced production seed showed 8 Plan agenda rows at both 390 px and 1440 px (previously 0), no horizontal overflow, and Review reported scheduled blocks instead of “quiet day” for scheduled dates. Verification passed: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:sync` (8), `pnpm test:germany-roadmap` (36), and the full Playwright suite (416 passed). No production data or deployment changed; B4 and the task-cleanup decision remain open.
+
+## Notification channel revision (23 October 2026)
+
+Gate C's VAPID/web-push delivery plan is superseded. Routine reminders now use the existing Telegram bot and private chat; no browser permission or device push subscription is required. Career, weigh-in and focus reminder slots remain in-app, and contact alerts continue to use the same Telegram bot.
+
+The local implementation adds:
+
+- an authenticated `/api/telegram/dispatch` scheduler endpoint using `CRON_SECRET`;
+- owner resolution by the configured owner email, with the routine and history rows read only for that account;
+- durable per-group delivery claims in the existing `push_deliveries` table, so retries do not duplicate a delivered group;
+- a plain-text Telegram message with the IST time, grouped routine labels and `/routine` link;
+- a Telegram delivery card in Settings and Routine notifications, replacing the browser push controls.
+
+Local verification: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:telegram` (6 passed), `pnpm test:personal-access` (24 passed), `pnpm test:sync` (8 passed), `pnpm test:germany-roadmap` (36 passed), and the full Playwright suite (417 passed). A standalone local setup message was delivered to the configured private Telegram chat; this proves bot/chat transport only. No live production scheduler, production environment change or scheduled routine delivery is claimed yet. Gate C still requires configuring the Telegram and cron secrets in production, installing the per-minute scheduler, proving one real scheduled routine message with no duplicate, and exercising retry/rollback. B4 remains open and no deployment was made.

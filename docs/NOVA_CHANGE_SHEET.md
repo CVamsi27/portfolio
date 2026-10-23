@@ -249,7 +249,7 @@ Timers use timestamps, paused duration and one authoritative `work:active` sessi
 | C03 | Simplify Today and Plan, tasks/goals/timetable | C02 | One next action; core task flow works; 10h/4h owner rule passes; no duplicate summaries |
 | C04 | Nutrition domain, manual daily log, saved foods and targets | C02 | Calculation/unknown/unit/date tests and manual CRUD pass; backup/account isolation integrated |
 | C05 | Recipes and FoodData Central search/details | C04 | History snapshots stable; provider faults safe; source attribution and serving conversion tested |
-| C06 | Unified Health: food, hydration, body, movement, optional recovery, meal/supplement reminders | C03–C05 | Shared records feed Health/Today once; the seven-item IST reminder routine and snooze/history checks pass; real push delivery tested where enabled; fasting remains optional |
+| C06 | Unified Health: food, hydration, body, movement, optional recovery, meal/supplement reminders | C03–C05 | Shared records feed Health/Today once; the seven-item IST reminder routine and snooze/history checks pass; Telegram routine delivery tested where configured; fasting remains optional |
 | C07 | Consolidated focus/study, recall, optional protection and bedtime | C02–C03 | Session route/reload/background behavior correct; skip/cancel/navigation always recoverable |
 | C08 | Review, quick capture and optional lightweight habits | C03–C07 | Daily/weekly views agree with source logs; no invented scores; reflection/history reachable |
 | C09 | Library, Sharing, Settings and entry/onboarding polish | C02, C04 | Data tools cover all modules; privacy/access/defaults preserved; obsolete choices removed |
@@ -279,7 +279,7 @@ Release only after the actual deployed authenticated flows pass. Record test cou
 
 The user approved implementation of this scope. The local application now includes the reorganized navigation, manual/recipe nutrition workflows, optional recovery/habits, owner-only routine defaults, consolidated recall, and optional rest/guard controls. No calorie target, supplement dose or meal history has been invented. Notification permission remains an explicit user choice.
 
-Local auth-open tests validate browser behavior and data handling; they do not prove deployed authentication, cloud migration execution or closed-site push delivery. Follow [Nutrition and reminder setup](NUTRITION_AND_REMINDER_SETUP.md) for provider configuration, database migrations, scheduler setup, account checks and rollback. The production release remains pending those gates.
+Local auth-open tests validate browser behavior and data handling; they do not prove deployed authentication, cloud migration execution or scheduled Telegram delivery. Follow [Nutrition and reminder setup](NUTRITION_AND_REMINDER_SETUP.md) for provider configuration, database migrations, scheduler setup, account checks and rollback. The production release remains pending those gates.
 
 ### Latest local evidence — 4 October 2026
 

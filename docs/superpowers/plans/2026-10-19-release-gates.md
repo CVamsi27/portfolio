@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Release and prove the three production gates: authenticated cloud sync, real push delivery, and a verified production deployment.
+**Goal:** Release and prove the three production gates: authenticated cloud sync, Telegram routine delivery, and a verified production deployment.
 
-**Architecture:** Gate A backs up and migrates the production database, then aligns canonical metadata, robots and security headers with what Vercel actually serves. Gate B fixes the local default-cache leak and proves RLS/merge with two ephemeral Supabase users plus a manual two-account check. Gate C configures VAPID/CRON secrets, installs a Supabase `pg_cron` + `pg_net` dispatcher, and proves delivery on macOS and Android.
+**Architecture:** Gate A backs up and migrates the production database, then aligns canonical metadata, robots and security headers with what Vercel actually serves. Gate B fixes the local default-cache leak and proves RLS/merge with two ephemeral Supabase users plus a manual two-account check. Gate C configures Telegram and scheduler secrets, installs a Supabase `pg_cron` + `pg_net` dispatcher, and proves Telegram routine delivery.
 
-**Tech Stack:** Next.js 16, React 19, TypeScript, Supabase (Postgres, Auth, Realtime, Vault, `pg_cron`, `pg_net`), Vercel, Playwright, Node 22/23, existing `@supabase/supabase-js` and `web-push` dependencies.
+**Tech Stack:** Next.js 16, React 19, TypeScript, Supabase (Postgres, Auth, Realtime, Vault, `pg_cron`, `pg_net`), Vercel, Playwright, Node 22/23, existing `@supabase/supabase-js`; legacy `web-push` remains dormant.
 
 ## Global Constraints
 
@@ -1205,7 +1205,19 @@ Append the deployed SHA, CI run, smoke output and harness summary to `docs/relea
 
 ---
 
-## Phase C — push delivery
+## Phase C — notification delivery
+
+### Gate C revision — Telegram delivery (23 October 2026)
+
+The owner replaced VAPID/web push with Telegram routine delivery. The original C1–C5 steps below remain as the web-push historical record; do not execute their VAPID steps. The active Gate C checklist is:
+
+- [x] C1: Add `src/lib/telegram-server.ts` and `src/lib/telegram-server.test.ts`; cover configuration validation, chat IDs, message formatting, send success/failure and owner resolution. `pnpm test:telegram` passes 6 tests.
+- [x] C2: Document Telegram delivery, scheduler, verification and rollback in `docs/NUTRITION_AND_REMINDER_SETUP.md` and `docs/release-gates.md`.
+- [ ] C3: Set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `CRON_SECRET` and the existing Supabase server key in the production host. Do not use VAPID values.
+- [ ] C4: Install a per-minute Supabase `pg_cron` + `pg_net` job that calls `https://www.buildora.work/api/telegram/dispatch` with the Vault-held bearer secret. Verify `cron.job`, `cron.job_run_details` and a 200 response.
+- [ ] C5: Prove one scheduled routine Telegram message, grouped labels, `/routine` link, no duplicate within the lease, retry after a failed send, and the documented rollback. iOS and Health Connect remain unverified.
+
+The Telegram route resolves the owner by `TELEGRAM_OWNER_EMAIL` or the routine owner constant, reads only that account's routine records, and uses `push_deliveries` for idempotency. The legacy `/api/push/*` code and tables are retained but not scheduled or shown in Settings.
 
 ### Task C1: Add push endpoint and configuration tests
 

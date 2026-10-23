@@ -99,7 +99,7 @@ Use clear Outgoing and Incoming views. Creation groups content, access, and expi
 
 ### Settings and More
 
-Group Settings into Profile and appearance, Notifications, Focus and bedtime, Sync and backup, and Data management. Show saved state and distinguish browser permission from in-app reminder preferences. Keep destructive actions at the end with specific descriptions of affected data. Backup import shows validation and results using the existing safe restore mechanism.
+Group Settings into Profile and appearance, Notifications, Focus and bedtime, Sync and backup, and Data management. Show saved state and distinguish Telegram routine delivery from in-app reminder preferences. Keep destructive actions at the end with specific descriptions of affected data. Backup import shows validation and results using the existing safe restore mechanism.
 
 More becomes a readable destination directory grouped into Planning, Health, Library, and Settings, including Tasks. Bedtime activation describes its immediate in-app effect. Maintain access to existing release mechanisms and do not silently disable protection features.
 
