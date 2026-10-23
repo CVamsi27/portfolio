@@ -1214,7 +1214,7 @@ The owner replaced VAPID/web push with Telegram routine delivery. The original C
 - [x] C1: Add `src/lib/telegram-server.ts` and `src/lib/telegram-server.test.ts`; cover configuration validation, chat IDs, message formatting, send success/failure and owner resolution. `pnpm test:telegram` passes 6 tests.
 - [x] C2: Document Telegram delivery, scheduler, verification and rollback in `docs/NUTRITION_AND_REMINDER_SETUP.md` and `docs/release-gates.md`.
 - [ ] C3: Set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `CRON_SECRET` and the existing Supabase server key in the production host. Do not use VAPID values.
-- [ ] C4: Install a per-minute Supabase `pg_cron` + `pg_net` job that calls `https://www.buildora.work/api/telegram/dispatch` with the Vault-held bearer secret. Verify `cron.job`, `cron.job_run_details` and a 200 response.
+- [ ] C4: Install the operator SQL at `supabase/schedules/telegram-dispatch.sql`: a per-minute Supabase `pg_cron` + `pg_net` job that calls `https://www.buildora.work/api/telegram/dispatch` with the Vault-held bearer secret. Verify `cron.job`, `cron.job_run_details` and a 200 response.
 - [ ] C5: Prove one scheduled routine Telegram message, grouped labels, `/routine` link, no duplicate within the lease, retry after a failed send, and the documented rollback. iOS and Health Connect remain unverified.
 
 The Telegram route resolves the owner by `TELEGRAM_OWNER_EMAIL` or the routine owner constant, reads only that account's routine records, and uses `push_deliveries` for idempotency. The legacy `/api/push/*` code and tables are retained but not scheduled or shown in Settings.

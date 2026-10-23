@@ -9,12 +9,14 @@ Routine reminders now use the existing Telegram bot instead of VAPID/web push. T
 Server environment:
 
 - `USDA_FDC_API_KEY`: a data.gov FoodData Central key. Search has no production demo-key fallback.
-- `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`: the existing private bot credentials. Never expose either value in a client bundle, URL, backup, log or transcript.
+- `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`: the existing private bot credentials. Never expose either value in a client bundle, backup, log or transcript. The server sends the token only to the Telegram API.
 - `CRON_SECRET`: a strong random bearer secret for the scheduler.
 - Existing Supabase URL and service-role/secret key.
 - Optional `TELEGRAM_OWNER_EMAIL` when the owner account is not the default routine owner.
 
 Configure a server scheduler to GET `/api/telegram/dispatch` once per minute with `Authorization: Bearer <CRON_SECRET>`. No unauthenticated dispatch is accepted. The route resolves the owner account by email, reads only that account's `routine:schedules` and `routine:history`, groups simultaneous items, claims a durable delivery ID, and sends one Telegram message. Failed sends remain pending for retry after the two-minute lease. The configured chat is the only recipient.
+
+The operator SQL is kept in `supabase/schedules/telegram-dispatch.sql`; it is deliberately outside `supabase/migrations` so a normal migration push cannot install a scheduler. Store the Vercel `CRON_SECRET` in Vault as `telegram_cron_secret` first, then run that file after the production deployment. Verify `cron.job` for `nova-telegram-dispatch`, recent HTTP `200` rows in `cron.job_run_details` / `net._http_response`, and the expected `{ "sent": 0, "failed": 0 }` JSON when no routine is due.
 
 Message shape is plain text: the scheduled time in IST, the grouped routine labels, and a link to `/routine`. No browser/device push delivery is claimed. A standalone local setup message was delivered to the configured Telegram chat; scheduled provider delivery and retry behavior still require production verification. A Telegram message is a reminder, not proof that a meal or supplement was completed.
 
