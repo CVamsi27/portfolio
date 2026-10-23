@@ -243,11 +243,21 @@ ok   imported task reaches the second device
 
 The precheck caught a restore/sync gap: imported whole-value keys such as `todos` were restored locally but were not marked pending, and their sync metadata was cleared. A mount-time cloud pull could therefore overwrite the restored data. `applyBackup` now stamps every imported key with a fresh local timestamp and a pending flag, so the next sync wakeup uploads the restore. The three export/import checks above pass after that fix; `e2e/backup-sync-metadata.spec.ts` covers the metadata/pending regression.
 
-The precheck used `localhost`, so it deliberately bypassed the personal-host Google allowlist. It does not replace B4: the owner still needs to sign in with the two approved Google accounts on two devices/profiles and verify the offline-reload/PWA path. B4 remains open.
+The precheck used `localhost`, so it deliberately bypassed the personal-host Google allowlist. It did not replace B4; the owner-assisted result is recorded below.
 
-### B4 owner-assisted sign-in progress (23 October 2026)
+### B4 result (23 October 2026)
 
-The owner reports that both approved Google accounts signed in successfully through the local production build in two separate Chrome profiles. This confirms the Google OAuth path for both accounts. The remaining B4 checks are cross-profile task add/pull/rename, offline add/reload/retry, deletion and non-resurrection, account switching and legacy-key isolation, backup export/import isolation, and the PWA offline reload. B4 is not complete until those results are recorded. The local build bypasses the personal-host allowlist; that production gate remains unit-tested and will be checked after deployment.
+The owner completed the two-account B4 check on the local production build against production Supabase, using two separate Chrome profiles and the two approved Google accounts. Owner-confirmed results:
+
+- Google OAuth sign-in succeeded for both accounts.
+- Cross-profile task add, pull and rename passed.
+- Offline add, offline reload, reconnect and retry passed.
+- Deletion and non-resurrection after reload passed.
+- Account switching and account-scoped/legacy-key isolation passed.
+- Export/import restoration stayed within the exporting account.
+- PWA offline reload passed.
+
+Limit: `localhost` bypasses the personal-host allowlist; the allowlist remains covered by unit tests and will be checked on the deployed personal host. B4 is complete for the local Google OAuth, sync and PWA path. Test task names only were used and were removed as part of the deletion check.
 
 ## Tracker audit follow-up (22 October 2026)
 
@@ -258,7 +268,7 @@ The paused tracker audit found two misleading cross-page states in the reproduce
 - group the Plan week agenda by day and include the same generated blocks;
 - report scheduled block counts in Weekly review and reserve “quiet day” for days with no tasks, focus, study or timetable blocks.
 
-Evidence: the reproduced production seed showed 8 Plan agenda rows at both 390 px and 1440 px (previously 0), no horizontal overflow, and Review reported scheduled blocks instead of “quiet day” for scheduled dates. Verification passed: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:sync` (8), `pnpm test:germany-roadmap` (36), and the full Playwright suite (416 passed). No production data or deployment changed; B4 and the task-cleanup decision remain open.
+Evidence: the reproduced production seed showed 8 Plan agenda rows at both 390 px and 1440 px (previously 0), no horizontal overflow, and Review reported scheduled blocks instead of “quiet day” for scheduled dates. Verification passed: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:sync` (8), `pnpm test:germany-roadmap` (36), and the full Playwright suite (416 passed). No production data or deployment changed; B4 is complete; the task-cleanup decision remains open.
 
 ## Notification channel revision (23 October 2026)
 
@@ -274,4 +284,4 @@ The local implementation adds:
 
 Implementation commit: `1741c42` (local `main`, not pushed or deployed).
 
-Local verification: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:telegram` (6 passed), `pnpm test:personal-access` (24 passed), `pnpm test:sync` (8 passed), `pnpm test:germany-roadmap` (36 passed), and the full Playwright suite (417 passed). A standalone local setup message was delivered to the configured private Telegram chat; this proves bot/chat transport only. A read-only production dry run resolved the owner, found one routine row and seven schedules, and computed zero due groups at check time; no message was sent. The locally built route returned `401` without a bearer and `200 {"sent":0,"failed":0}` with a test bearer while no groups were due. No live production scheduler, production environment change or scheduled routine delivery is claimed yet. Gate C still requires configuring the Telegram and cron secrets in production, installing the per-minute scheduler, proving one real scheduled routine message with no duplicate, and exercising retry/rollback. B4 remains open and no deployment was made.
+Local verification: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:telegram` (6 passed), `pnpm test:personal-access` (24 passed), `pnpm test:sync` (8 passed), `pnpm test:germany-roadmap` (36 passed), and the full Playwright suite (417 passed). A standalone local setup message was delivered to the configured private Telegram chat; this proves bot/chat transport only. A read-only production dry run resolved the owner, found one routine row and seven schedules, and computed zero due groups at check time; no message was sent. The locally built route returned `401` without a bearer and `200 {"sent":0,"failed":0}` with a test bearer while no groups were due. No live production scheduler, production environment change or scheduled routine delivery is claimed yet. Gate C still requires configuring the Telegram and cron secrets in production, installing the per-minute scheduler, proving one real scheduled routine message with no duplicate, and exercising retry/rollback. B4 is now complete and no deployment was made at that point.

@@ -1110,51 +1110,53 @@ git commit -m "docs(release): record cloud-sync harness evidence"
 
 B4 is paused while the owner's tracker report is triaged. Reproducing the 19 October production backup locally showed `/todo` defaulting to 178 open generated tasks (78 legacy `t_100day_*`, 100 current `career-plan:*`), 543 buttons, and 24,137 px of mobile scroll. The local-only fixes now default Tasks to Today, collapse overdue work, offer a confirmed legacy-task cleanup with undo, keep quick add inside the dock, suppress duplicate next-action CTAs, and restore the sidebar capture/search icons.
 
-Local evidence: TypeScript, lint, sync unit tests, the full Playwright suite, and a 20-route maximum-scroll sweep (no visible control covered by the dock or quick add). A guarded two-user browser precheck also covered same-account add/pull/rename/delete across contexts, offline retry, second-account isolation, scoped-key isolation, UI sign-out/account switching, export, and restore-to-second-device; it found and fixed an import/sync metadata gap. See `docs/release-gates.md`. A follow-up fixed Plan’s empty agenda despite a generated timetable and Review’s “quiet day” label for scheduled dates; the full suite now passes 416 tests. No production data or deployment changed. B4 remains paused pending the owner's two-account Google check and a decision on the 78 legacy tasks and the 100 current career-plan tasks.
+Local evidence: TypeScript, lint, sync unit tests, the full Playwright suite, and a 20-route maximum-scroll sweep (no visible control covered by the dock or quick add). A guarded two-user browser precheck also covered same-account add/pull/rename/delete across contexts, offline retry, second-account isolation, scoped-key isolation, UI sign-out/account switching, export, and restore-to-second-device; it found and fixed an import/sync metadata gap. See `docs/release-gates.md`. A follow-up fixed Plan’s empty agenda despite a generated timetable and Review’s “quiet day” label for scheduled dates; the full suite now passes 416 tests. No production data or deployment changed. B4 was completed on 23 October 2026; the task-cleanup decision on the 78 legacy tasks and the 100 current career-plan tasks remains open.
 
 ### Task B4: Complete the two-account manual sync check
 
 **Files:**
 - Modify: `docs/release-gates.md`
 
+**Status:** Completed 23 October 2026. Owner-confirmed all checks passed; evidence is in `docs/release-gates.md`.
+
 **Interfaces:**
 - Consumes: two approved Google accounts and two browser profiles/devices.
 - Produces: a signed checklist covering cross-device sync, offline retry, deletion, account switching and backup restore.
 
-- [ ] **Step 1: Prepare two signed-in profiles**
+- [x] **Step 1: Prepare two signed-in profiles**
 
 Use two separate browser profiles (or a browser and phone) with the two approved Google accounts. Do not sign out of either during the first four checks.
 
-- [ ] **Step 2: Cross-device write and pull**
+- [x] **Step 2: Cross-device write and pull**
 
 1. On account A, add a todo named `Release sync check <timestamp>` and wait for `Synced`.
 2. On account B, focus the tab or reload; confirm the todo appears.
 3. On B, rename it; on A, focus; confirm the new name.
 
-- [ ] **Step 3: Offline retry and deletion**
+- [x] **Step 3: Offline retry and deletion**
 
 1. On A, switch DevTools to Offline, add `Offline release check`.
 2. Reload; confirm it renders from local storage.
 3. Go online and focus; wait for `Synced`; confirm B receives it.
 4. Delete both test todos on A; confirm B loses them after focus and they do not return after reload.
 
-- [ ] **Step 4: Account switching and legacy isolation**
+- [x] **Step 4: Account switching and legacy isolation**
 
 1. Sign out of A and sign in as B; confirm no A data is visible.
 2. In DevTools, confirm account keys use `vk:account:<user id>:` and that older unscoped `vk:` keys were not attached to the account.
 3. Sign back in as A; confirm A data returns.
 
-- [ ] **Step 5: Export and restore**
+- [x] **Step 5: Export and restore**
 
 1. Export A's backup from Settings.
 2. Delete one test todo; import the backup on A; confirm it restores only A's account data.
 3. Do not import A's backup into B's account.
 
-- [ ] **Step 6: Record the checklist**
+- [x] **Step 6: Record the checklist**
 
 Record each result, timestamp, browser/device and any console sync error in `docs/release-gates.md`. If any check fails, stop and report; do not claim authenticated sync.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add docs/release-gates.md
