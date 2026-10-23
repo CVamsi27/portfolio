@@ -245,6 +245,10 @@ The precheck caught a restore/sync gap: imported whole-value keys such as `todos
 
 The precheck used `localhost`, so it deliberately bypassed the personal-host Google allowlist. It does not replace B4: the owner still needs to sign in with the two approved Google accounts on two devices/profiles and verify the offline-reload/PWA path. B4 remains open.
 
+### B4 owner-assisted sign-in progress (23 October 2026)
+
+The owner reports that both approved Google accounts signed in successfully through the local production build in two separate Chrome profiles. This confirms the Google OAuth path for both accounts. The remaining B4 checks are cross-profile task add/pull/rename, offline add/reload/retry, deletion and non-resurrection, account switching and legacy-key isolation, backup export/import isolation, and the PWA offline reload. B4 is not complete until those results are recorded. The local build bypasses the personal-host allowlist; that production gate remains unit-tested and will be checked after deployment.
+
 ## Tracker audit follow-up (22 October 2026)
 
 The paused tracker audit found two misleading cross-page states in the reproduced production view: `/plan` showed “No activities” for a date whose generated timetable was visible on `/hub`, and `/review` called every scheduled day “quiet” because it only counted completed tasks. The local-only fixes now:
