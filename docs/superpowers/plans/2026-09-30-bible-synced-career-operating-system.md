@@ -374,7 +374,7 @@ Remove the duplicate hub “Up next” lane. For career and relocation goal cate
 
 - [ ] **Step 5: Add opt-in notifications and correct settings copy**
 
-Add six career slots to Settings, default off. `ReminderNudges` checks exact minute in IST, deduplicates by `{date, reminderKey}` in local storage, shows the in-app reminder while the app is open, and requests Notification permission only from the explicit settings button. If permission is denied or unsupported, retain in-app reminders and show accurate status. The morning motivational browser notification must not request permission on page mount. Show “background alerts not configured” as a capability statement, not an error.
+Add six career slots to Settings, default off. `ReminderNudges` checks exact minute in IST, shows the in-app reminder while the app is open, and no longer requests browser Notification permission. Routine reminder background delivery is handled by Telegram; career reminder slots remain in-app. Show “routine delivery is configured on the server” as a capability statement, not an error.
 
 - [ ] **Step 6: Add E2E cases for timezone/date, carry-forward, reload persistence, and mobile width**
 

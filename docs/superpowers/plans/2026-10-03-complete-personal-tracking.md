@@ -4,7 +4,7 @@
 
 **Goal:** Deliver the approved integrated personal tracker, including food and scheduled meal/supplement reminders.
 
-**Architecture:** Reuse existing authenticated tracker storage, extending it with account-scoped keys and atomic timestamped record merging for new collections. Build nutrition calculations independently of rendering and providers. Keep the shared shell and existing routes; new Plan, Health and Review pages organize existing tools. Push delivery is separate from in-app recurrence, with explicit server configuration and permission.
+**Architecture:** Reuse existing authenticated tracker storage, extending it with account-scoped keys and atomic timestamped record merging for new collections. Build nutrition calculations independently of rendering and providers. Keep the shared shell and existing routes; new Plan, Health and Review pages organize existing tools. Telegram routine delivery is separate from in-app recurrence, with explicit server configuration and a private owner chat.
 
 **Tech Stack:** Next.js, React, TypeScript, Supabase RLS/RPC, native Web Push, Playwright and Node domain tests.
 

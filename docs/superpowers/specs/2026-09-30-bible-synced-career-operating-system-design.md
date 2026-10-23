@@ -142,7 +142,7 @@ Each daily checklist row keeps its evidence criterion visible and provides an ex
 
 On the hub, career and relocation goals (or any account with a seeded career timetable) prioritize the next dated task, then today's roadmap. A missing meal-window log and distant relocation outcome must not displace the concrete job-search/study task in the career next-action slot. The fasting tracker and its dedicated controls remain available elsewhere. Remove the redundant “Up next” lane and ungrounded minute estimate; the hub has one primary next move.
 
-Reminder preferences gain career-specific checkpoints for morning launch, study close, application/role follow-up, mock interview, evening review, and wind-down. When the page is open, the application shows an in-app nudge and uses the browser Notification API when the user opted in. It must tolerate permission denial and duplicate prevention. Background delivery is shown as unavailable until a production push provider, VAPID keys, subscription persistence, and a scheduler are configured; the UI does not imply it can notify a closed browser today.
+Reminder preferences gain career-specific checkpoints for morning launch, study close, application/role follow-up, mock interview, evening review, and wind-down. When the page is open, the application shows an in-app nudge. Routine reminder background delivery moved to Telegram; career reminder slots remain in-app. The UI must not imply that career reminders can notify a closed browser.
 
 ## Verification and Release Gates
 
@@ -162,7 +162,7 @@ Reminder preferences gain career-specific checkpoints for morning launch, study 
 - a checklist item cannot be finally verified without required evidence;
 - an evidence-backed task persists across reload and sync shape changes;
 - carry-forward creates a visible next action rather than an invisible overdue item;
-- reminders remain opt-in and behave safely when browser permission is denied;
+- reminders remain opt-in and behave safely when no background notification channel is configured;
 - role cards display source-check date, restricted location/visa status where applicable, and do not show stale research as an open job;
 - supported 320px, 390px, and 430px widths have no horizontal overflow.
 

@@ -176,7 +176,7 @@ Existing food snapshots, units, workout sets, weight history, journal, routines,
 - Owner routine: Monday B12 08:00; zinc 12:00; lunch and omega 3 14:00; snack 18:00; dinner 20:00; magnesium 22:00. Preserve occurrence identity, snooze, skip, taken and undo histories.
 - Other accounts' dates use their configured timezone. Generated owner routines use their explicit timezone even when traveling; display it where ambiguity matters.
 - Missing nutrition remains unknown. Show portion-aware calories/macros and available micronutrients with coverage. Unknown food days are not zero-intake days. Targets are user-entered; no invented dosage or medical interpretation.
-- In-app reminder availability and closed-site push delivery are distinct states. Existing migration/provider/scheduler/device verification gates remain visible in administration, not repeated as product copy on every screen.
+- In-app reminder availability and scheduled Telegram routine delivery are distinct states. Existing migration/provider/scheduler/device verification gates remain visible in administration, not repeated as product copy on every screen.
 
 ## Interaction and accessibility rules
 

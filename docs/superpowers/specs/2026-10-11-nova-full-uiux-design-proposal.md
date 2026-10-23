@@ -204,7 +204,7 @@ Library is a searchable collection with readable text/link/image previews, type 
 
 ### Settings, Capture and account entry
 
-Settings has named sections: Account, Appearance, Enabled features, Notifications and routines, Focus preferences, Devices, Sync and backup, Data management. Pairing, import/export, deletion, browser notification status and real-device limitations stay understandable. Put destructive actions at the end.
+Settings has named sections: Account, Appearance, Enabled features, Notifications and routines, Focus preferences, Devices, Sync and backup, Data management. Pairing, import/export, deletion, Telegram delivery status and real-device limitations stay understandable. Put destructive actions at the end.
 
 Capture chooses one record type, confirms date/units, and presents only its required fields. Use the same form and validation in contextual capture and /log. Returning from capture preserves the originating page/date.
 
