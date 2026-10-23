@@ -268,4 +268,6 @@ The local implementation adds:
 - a plain-text Telegram message with the IST time, grouped routine labels and `/routine` link;
 - a Telegram delivery card in Settings and Routine notifications, replacing the browser push controls.
 
+Implementation commit: `1741c42` (local `main`, not pushed or deployed).
+
 Local verification: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:telegram` (6 passed), `pnpm test:personal-access` (24 passed), `pnpm test:sync` (8 passed), `pnpm test:germany-roadmap` (36 passed), and the full Playwright suite (417 passed). A standalone local setup message was delivered to the configured private Telegram chat; this proves bot/chat transport only. No live production scheduler, production environment change or scheduled routine delivery is claimed yet. Gate C still requires configuring the Telegram and cron secrets in production, installing the per-minute scheduler, proving one real scheduled routine message with no duplicate, and exercising retry/rollback. B4 remains open and no deployment was made.
