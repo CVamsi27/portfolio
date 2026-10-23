@@ -193,11 +193,11 @@ test("mobile dock stays readable when web fonts are unavailable", async ({
   await page.route("**/*.woff2", (route) => route.abort());
   await setup(page, "light");
   await page.evaluate(() => document.fonts.ready);
-  // CI's Linux fallback is wider than macOS's. Force that wider stack so the
-  // label-fit assertion is deterministic across platforms.
+  // CI's generated "Inter Fallback" is wider than macOS's. Force that face so
+  // the label-fit assertion is deterministic across platforms.
   await page.addStyleTag({
     content:
-      '[data-dock-label] { font-family: Arial, "Liberation Sans", sans-serif !important; }',
+      '[data-dock-label] { font-family: "Inter Fallback", Arial, sans-serif !important; }',
   });
   const dock = page.getByTestId("mobile-command-dock");
   await expect(dock.locator("[data-dock-label]")).toHaveCount(5);

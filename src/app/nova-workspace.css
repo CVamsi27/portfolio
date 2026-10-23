@@ -26,6 +26,8 @@
   /* The Linux/CI fallback sans is wider than the macOS fallback; tighten only
      at the narrowest dock width so every label still fits its touch target. */
   @media (max-width: 359px) {
+    .tracker-surface .dossier-command-dock { padding-inline: 0; }
+    .tracker-surface .dossier-command-dock > div { padding-inline: 0; }
     .tracker-surface .dossier-command-link [data-dock-label] { letter-spacing: -0.06em; }
   }
   .tracker-surface .dossier-command-dock > div { padding: 6px 2px; }

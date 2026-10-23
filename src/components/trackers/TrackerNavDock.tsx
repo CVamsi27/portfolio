@@ -84,7 +84,7 @@ export default function TrackerNavDock({
               }),
             )
           }
-          className="ml-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm shadow-primary/30 transition-transform active:scale-95"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm shadow-primary/30 transition-transform active:scale-95"
         >
           <Plus className="h-5 w-5" aria-hidden />
         </button>
