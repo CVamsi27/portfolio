@@ -1168,11 +1168,13 @@ git commit -m "docs(release): record two-account sync verification"
 **Files:**
 - Modify: `docs/release-gates.md`
 
+**Status:** Completed 23 October 2026. Final SHA `f0bca86`, CI `39973697489`, production deployment `7281367750`; evidence is in `docs/release-gates.md`.
+
 **Interfaces:**
 - Consumes: Gate B commits.
 - Produces: live deployment with the cache fix and a green Gate B record.
 
-- [ ] **Step 1: Run the local gates**
+- [x] **Step 1: Run the local gates**
 
 ```bash
 pnpm test:sync
@@ -1183,7 +1185,7 @@ npx playwright test --reporter=line
 
 Expected: all pass.
 
-- [ ] **Step 2: Push and wait**
+- [x] **Step 2: Push and wait**
 
 ```bash
 git push origin main
@@ -1192,7 +1194,7 @@ gh run list --limit 1
 
 Wait for CI success and a Vercel production deployment for the pushed SHA.
 
-- [ ] **Step 3: Verify production**
+- [x] **Step 3: Verify production**
 
 ```bash
 pnpm release:smoke
@@ -1201,7 +1203,7 @@ ALLOW_PROD_SYNC_VERIFY=1 EXPECTED_SUPABASE_REF=ejbghgpatpfubxltkpde pnpm verify:
 
 Expected: smoke passes; harness passes and cleans up.
 
-- [ ] **Step 4: Record and stop**
+- [x] **Step 4: Record and stop**
 
 Append the deployed SHA, CI run, smoke output and harness summary to `docs/release-gates.md`. Commit the docs, push, wait for docs CI, then stop and report Gate B.
 

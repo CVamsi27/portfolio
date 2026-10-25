@@ -257,7 +257,30 @@ The owner completed the two-account B4 check on the local production build again
 - Export/import restoration stayed within the exporting account.
 - PWA offline reload passed.
 
-Limit: `localhost` bypasses the personal-host allowlist; the allowlist remains covered by unit tests and will be checked on the deployed personal host. B4 is complete for the local Google OAuth, sync and PWA path. Test task names only were used and were removed as part of the deletion check.
+Limit: `localhost` bypassed the personal-host allowlist; the allowlist remains covered by unit tests. Production sign-in on the deployed personal host was not repeated in B5, so this record does not claim deployed-account allowlist evidence. B4 is complete for the local Google OAuth, sync and PWA path. Test task names only were used and were removed as part of the deletion check.
+
+### B5 result — production deployment (23–25 October 2026)
+
+Status: **Gate B closed.**
+
+| Item | Result |
+| --- | --- |
+| Deployed SHA | `f0bca86` |
+| CI | `39973697489` — success (5m13s) |
+| Vercel production deployment | `7281367750` — success |
+| Production host | `https://www.buildora.work` |
+| Local gates at final SHA | `pnpm test:sync` 8 passed; `pnpm test:germany-roadmap` 36 passed; TypeScript and lint passed; full Playwright suite 417 passed |
+| Production smoke | all 22 checks passed |
+| Cloud sync harness | 21 checks passed; 2 ephemeral users; all 15 record keys; cleanup left no probe rows |
+| Deployment integrity | live CSS contains the `f0bca86` dock rules; `/api/telegram/dispatch` returns `401` without a bearer |
+
+Production smoke and the guarded harness were rerun against `https://www.buildora.work` on 25 October 2026.
+
+The first B5 push (`8b22e71`) passed the local suite but CI run `39970466491` failed on a real 320 px dock overflow: Linux fallback fonts made “Health” 45 px wide in a 42 px label box. `5cdc71a` gave the five links equal flex space and added deterministic wide-fallback coverage. A second CI run then exposed the generated `Inter Fallback` size-adjust on the normal 320 px assertion; `f0bca86` removes horizontal dock padding and tightens label tracking below 360 px. Final CI and deployment refer to `f0bca86`.
+
+No production tracker data was deleted or migrated in B5. The separate 178-open-task cleanup decision remains open. Gate C (Telegram routine delivery) remains open: no production Telegram environment, scheduler or scheduled routine message is claimed yet.
+
+Rollback: promote production deployment `7280852178` (`8b22e71`) if `f0bca86` regresses; it contains the Gate B sync fixes and its CI failure was the dock assertion corrected here. The Gate A fallback remains `7176883861` (`d72a5e1`). Schema stays at `0014`; do not downgrade it.
 
 ## Tracker audit follow-up (22 October 2026)
 
