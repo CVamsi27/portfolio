@@ -265,22 +265,23 @@ Status: **Gate B closed.**
 
 | Item | Result |
 | --- | --- |
-| Deployed SHA | `f0bca86` |
-| CI | `39973697489` — success (5m13s) |
-| Vercel production deployment | `7281367750` — success |
+| Application code SHA | `f0bca86` |
+| Docs-only verification SHA | `e74ee32` |
+| CI | `39973697489` — success (5m13s) for `f0bca86`; `40168670297` — success for `e74ee32` |
+| Vercel production deployment | `7281367750` for `f0bca86`; `7309498413` for the docs-only `e74ee32` |
 | Production host | `https://www.buildora.work` |
-| Local gates at final SHA | `pnpm test:sync` 8 passed; `pnpm test:germany-roadmap` 36 passed; TypeScript and lint passed; full Playwright suite 417 passed |
-| Production smoke | all 22 checks passed |
+| Local gates at final code SHA | `pnpm test:sync` 8 passed; `pnpm test:germany-roadmap` 36 passed; TypeScript and lint passed; full Playwright suite 417 passed |
+| Production smoke | all 22 checks passed on 25 October 2026, after the docs-only deployment |
 | Cloud sync harness | 21 checks passed; 2 ephemeral users; all 15 record keys; cleanup left no probe rows |
 | Deployment integrity | live CSS contains the `f0bca86` dock rules; `/api/telegram/dispatch` returns `401` without a bearer |
 
-Production smoke and the guarded harness were rerun against `https://www.buildora.work` on 25 October 2026.
+Production smoke and the guarded harness were rerun against `https://www.buildora.work` on 25 October 2026 after the docs-only deployment. Later documentation-only commits may auto-deploy, but they do not change the application code identified above.
 
 The first B5 push (`8b22e71`) passed the local suite but CI run `39970466491` failed on a real 320 px dock overflow: Linux fallback fonts made “Health” 45 px wide in a 42 px label box. `5cdc71a` gave the five links equal flex space and added deterministic wide-fallback coverage. A second CI run then exposed the generated `Inter Fallback` size-adjust on the normal 320 px assertion; `f0bca86` removes horizontal dock padding and tightens label tracking below 360 px. Final CI and deployment refer to `f0bca86`.
 
 No production tracker data was deleted or migrated in B5. The separate 178-open-task cleanup decision remains open. Gate C (Telegram routine delivery) remains open: no production Telegram environment, scheduler or scheduled routine message is claimed yet.
 
-Rollback: promote production deployment `7280852178` (`8b22e71`) if `f0bca86` regresses; it contains the Gate B sync fixes and its CI failure was the dock assertion corrected here. The Gate A fallback remains `7176883861` (`d72a5e1`). Schema stays at `0014`; do not downgrade it.
+Rollback: promote production deployment `7281367750` (`f0bca86`) if the current docs-only deployment ever needs replacing; it is the verified application code for this gate. The Gate A fallback remains `7176883861` (`d72a5e1`). Schema stays at `0014`; do not downgrade it.
 
 ## Tracker audit follow-up (22 October 2026)
 
