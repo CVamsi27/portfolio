@@ -37,3 +37,9 @@ Run `pnpm test:career-curriculum`, `pnpm test:germany-roadmap`, type/lint/build 
 The orientation importer (`sync-career-plan.ts`) uses the same real-path check for private inputs, an exclusive private backup, per-row compare-and-swap and all-row readback. An unchanged orientation exits without a write or backup.
 
 Today waits for hydration before selecting the device clock and calendar. Its server loading state matches the first browser paint; the mounted view then applies the user's timezone and preferences. A clock differing from the build date and the route-layout sweeps cover this boundary.
+
+## Implementation verification — 26 October 2026
+
+Implementation `03d3af2` adds the forward contract, history-preserving merge, private authoring/import boundaries, current public resume and consistent full-stack positioning. The companion Bible implementation is `43df6397`. Local validation passed 90 curriculum/roadmap tests, TypeScript, lint, the production build and all 422 browser tests. The calendar/clock regression and all eight viewport/theme sweeps pass. The orientation hostile-path regression failed before the real-path fix and passed afterward; unchanged imports perform no account write.
+
+Git publication, production deployment, and owner-data application are separate release stages. Check the deployed client before importing version 3; retain private backup, compare-and-swap/readback and no-op evidence separately. These checks establish application behavior within their fixtures, not candidate skill mastery or new production sign-in evidence.
