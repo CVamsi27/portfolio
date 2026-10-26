@@ -367,9 +367,11 @@ test.describe("personal roadmap", () => {
     });
     await page.clock.install({ time: new Date("2026-09-30T01:30:00.000Z") });
     await page.goto("/hub");
-    await expect(page.getByRole("status")).toContainText(
-      "Exercise and freshen up",
-    );
+    // The workspace can still announce hydration while the reminder is ready.
+    // Select the reminder status rather than requiring every status to be unique.
+    await expect(
+      page.getByRole("status").filter({ hasText: "Exercise and freshen up" }),
+    ).toBeVisible();
   });
 
   test("turns the goal roadmap into a weekly commitment", async ({ page }) => {
