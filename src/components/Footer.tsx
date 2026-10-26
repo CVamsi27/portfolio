@@ -51,7 +51,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
           </p>
           <span className="hidden sm:inline text-border">·</span>
           <p className="text-xs text-[var(--portfolio-muted)]">
-            Senior Full Stack &amp; Systems Engineer
+            Senior Full Stack Engineer
           </p>
           <span className="hidden sm:inline text-border">·</span>
           <p className="text-xs text-[var(--portfolio-muted)] opacity-70">

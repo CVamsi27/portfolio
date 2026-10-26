@@ -5,6 +5,10 @@ import { isDeepStrictEqual } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import { TIMETABLE_OWNER_EMAIL } from "../src/lib/personal-timetable.ts";
 import {
+  assertPrivateWorkspacePath,
+  assertFreshPrivateOutputPath,
+} from "./private-workspace.ts";
+import {
   alignCampaignTimetable,
   isGermanyRoadmap,
   mergeGermanyCareer,
@@ -13,18 +17,20 @@ const payloadPath = process.argv
   .find((arg) => arg.startsWith("--payload="))
   ?.slice(10);
 const apply = process.argv.includes("--apply");
+const previewPath = process.argv
+  .find((arg) => arg.startsWith("--preview="))
+  ?.slice(10);
 async function run() {
   if (!payloadPath)
     throw new Error("Pass --payload=PATH_TO_PRIVATE_GENERATED_PLAN");
-  const absolute = resolve(payloadPath);
-  const privateRoots = [
-    "/80-lanes-abroad-full-stack/personal/",
-    "/repos/personal/",
-  ];
-  if (!privateRoots.some((root) => absolute.includes(root)))
-    throw new Error(
-      "Payload and backups must remain under the canonical private personal directory",
-    );
+  const absolute = assertPrivateWorkspacePath(payloadPath);
+  const preview = previewPath
+    ? assertFreshPrivateOutputPath(previewPath)
+    : undefined;
+  if (preview) {
+    if (preview === absolute)
+      throw new Error("Preview must be a distinct private report");
+  }
   const plan = JSON.parse(readFileSync(absolute, "utf8"));
   if (!isGermanyRoadmap(plan)) throw new Error("Invalid reviewed plan");
   const url = process.env.SUPABASE_URL,
@@ -82,31 +88,45 @@ async function run() {
       version: timetable.updated_at,
     },
   ].filter((r) => !isDeepStrictEqual(r.value, prior.get(r.key)!.value));
-  console.log(
-    JSON.stringify(
-      {
-        mode: apply ? "apply" : "dry-run",
-        ownerResolved: true,
-        ownerRows: before!.length,
-        changedKeys: changes.map((r) => r.key),
-        weeks: plan.weeks.length,
-        sourceDigest: plan.sourceDigest,
-        preservedEvidenceEntries: Object.keys(
-          prior.get("career_execution_state")?.value?.evidenceByItemId ?? {},
-        ).length,
-        preservedStudyDays: timetable.value.days.length,
-      },
-      null,
-      2,
-    ),
-  );
-  if (!apply) return;
+  const summary = {
+    mode: apply ? "apply" : "dry-run",
+    ownerResolved: true,
+    ownerRows: before!.length,
+    changedKeys: changes.map((r) => r.key),
+    weeks: plan.weeks.length,
+    startDate: plan.startDate,
+    endDate: plan.endDate,
+    studyDays: plan.execution?.jobPlan?.days.length,
+    scheduleVersion: plan.execution?.jobPlan?.version,
+    sourceDigest: plan.sourceDigest,
+    preservedEvidenceEntries: Object.keys(
+      prior.get("career_execution_state")?.value?.evidenceByItemId ?? {},
+    ).length,
+    historicalDaysPreserved: timetable.value.days.filter(
+      (d: { date: string }) =>
+        d.date < (plan.execution?.jobPlan?.effectiveOn ?? plan.startDate),
+    ).length,
+    nextTimetableDays: (
+      changes.find((r) => r.key === timetable.key)?.value ?? timetable.value
+    ).days.length,
+    writesAreTransactional: false,
+  };
+  if (preview) {
+    writeFileSync(
+      preview,
+      JSON.stringify({ summary, before, changes }, null, 2) + "\n",
+      { mode: 0o600, flag: "wx" },
+    );
+  }
+  console.log(JSON.stringify(summary, null, 2));
+  if (!apply || changes.length === 0) return;
   const backup = resolve(
     dirname(absolute),
     `germany-roadmap-before-${Date.now()}.json`,
   );
   writeFileSync(backup, JSON.stringify(before, null, 2) + "\n", {
     mode: 0o600,
+    flag: "wx",
   });
   const applied = [];
   try {

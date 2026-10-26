@@ -13,13 +13,15 @@
     "test:sync": "node --experimental-strip-types --test src/lib/local-parse.test.ts src/lib/record-merge.test.ts src/lib/use-synced-storage.test.ts",
     "test:telegram": "node --experimental-strip-types --test src/lib/telegram-server.test.ts",
     "verify:cloud-sync": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/verify-cloud-sync.mjs",
-    "career:generate": "node scripts/generate-career-curriculum.mjs --bible-root ../software-developer-bible --start-date 2026-09-30 --days 100 --study-base-url https://study.buildora.work --output src/data/career-curriculum.json",
-    "career:validate": "node scripts/generate-career-curriculum.mjs --bible-root ../software-developer-bible --start-date 2026-09-30 --days 100 --study-base-url https://study.buildora.work --output src/data/career-curriculum.json --check",
+    "career:generate": "node scripts/generate-career-curriculum.mjs --bible-root ../software-developer-bible --start-date 2026-10-26 --days 100 --study-base-url https://study.buildora.work --output src/data/career-curriculum.json",
+    "career:validate": "node scripts/generate-career-curriculum.mjs --bible-root ../software-developer-bible --start-date 2026-10-26 --days 100 --study-base-url https://study.buildora.work --output src/data/career-curriculum.json --check",
     "career:seed": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --experimental-strip-types scripts/sync-roadmap.ts",
     "test:career-curriculum": "node --test scripts/generate-career-curriculum.test.mjs scripts/generate-career-plan.test.mjs && node --experimental-strip-types --test src/lib/career-roadmap.test.ts src/lib/bible-sync.test.ts scripts/career-seed-apply.test.ts",
     "pretest:e2e": "test -f .env && mv .env .env.local_save || true; NEXT_TELEMETRY_DISABLED=1 NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY= next build; STATUS=$?; test -f .env.local_save && mv .env.local_save .env || true; exit $STATUS",
     "test:e2e": "playwright test",
-    "test:germany-roadmap": "node --experimental-strip-types --test scripts/generate-germany-roadmap.test.mjs scripts/generate-job-plan.test.mjs scripts/generate-urgent-job-plan.test.mjs && node --experimental-strip-types --test src/lib/germany-roadmap.test.ts src/lib/germany-execution.test.ts src/lib/job-plan.test.ts src/lib/personal-timetable.test.ts src/lib/personal-nav.test.ts"
+    "test:germany-roadmap": "node --experimental-strip-types --test scripts/generate-germany-roadmap.test.mjs scripts/generate-job-plan.test.mjs scripts/generate-urgent-job-plan.test.mjs scripts/generate-forward-plan.test.mjs && node --experimental-strip-types --test src/lib/germany-roadmap.test.ts src/lib/germany-execution.test.ts src/lib/job-plan.test.ts src/lib/personal-timetable.test.ts src/lib/personal-nav.test.ts",
+    "career:forward:generate": "node --experimental-strip-types scripts/generate-job-plan.mjs --study-days",
+    "career:forward:release": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --experimental-strip-types scripts/sync-germany-roadmap.ts"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

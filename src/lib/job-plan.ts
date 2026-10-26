@@ -31,9 +31,22 @@ export interface JobAssignment {
   doneCheck: string;
   dependency: string;
   blocked: string;
+  chapterIds?: string[];
+  prerequisiteAssignmentIds?: string[];
+  skillIds?: string[];
+  relatedRoleIds?: string[];
+  relatedClaimIds?: string[];
+  provenance?: string;
 }
 export interface JobPlan {
-  version: 1 | 2;
+  version: 1 | 2 | 3;
+  endDate?: string;
+  studyDayCount?: number;
+  catalogueChapterIds?: string[];
+  knownSkillIds?: string[];
+  knownRoleIds?: string[];
+  knownClaimIds?: string[];
+  provenance?: string;
   effectiveOn: string;
   timezone: "Asia/Kolkata";
   weeklyMinutes: 3600;
@@ -83,6 +96,7 @@ export function urgentJobSlots(date: string): Array<[string, JobKind]> {
 export function isJobPlan(value: unknown): value is JobPlan {
   if (!value || typeof value !== "object") return false;
   const p = value as JobPlan;
+  if (p.version === 3) return isStudyDayJobPlan(p);
   try {
     if (
       (p.version !== 1 && p.version !== 2) ||
@@ -217,4 +231,150 @@ export function jobProgress(
     else if (status === "saved") saved++;
   }
   return { total: assignments.length, saved, verified };
+}
+
+export const STUDY_PLAN_START = "2026-10-26";
+export const STUDY_PLAN_END = "2027-02-18";
+export function studyDates(start = STUDY_PLAN_START, count = 100): string[] {
+  if (
+    !isCalendarDate(start) ||
+    !Number.isInteger(count) ||
+    count < 1 ||
+    count > 1000
+  )
+    throw new Error("Invalid study-day window");
+  const result: string[] = [];
+  const date = new Date(start + "T12:00:00Z");
+  while (result.length < count) {
+    if (date.getUTCDay() !== 0) result.push(date.toISOString().slice(0, 10));
+    date.setUTCDate(date.getUTCDate() + 1);
+  }
+  return result;
+}
+/** Protected lunch, family, dinner and 22:00 sleep anchors remain free. */
+export function studyDaySlots(date: string): Array<[string, JobKind]> {
+  const weekday = new Date(date + "T12:00:00Z").getUTCDay();
+  if (weekday === 0) return [];
+  if (weekday === 6)
+    return [
+      ["09:00-10:00", "funnel"],
+      ["10:15-12:15", "mock"],
+      ["13:00-14:00", "oss"],
+      ["14:15-14:45", "study"],
+      ["14:45-15:00", "review"],
+      ["15:00-15:15", "planning"],
+    ];
+  return [
+    ["06:30-07:00", "study"],
+    ["08:30-11:30", "applications"],
+    ["11:30-13:30", "project"],
+    ["13:30-14:00", "network"],
+    ["14:30-15:00", "network"],
+    ["15:00-16:00", weekday === 2 || weekday === 4 ? "network" : "oss"],
+    ...(weekday === 3
+      ? [["16:00-18:00", "assessment"] as [string, JobKind]]
+      : ([
+          ["16:00-17:30", "coding"],
+          ["17:30-18:00", "speaking"],
+        ] as Array<[string, JobKind]>)),
+    ["20:30-21:30", "german"],
+    ["21:30-22:00", "review"],
+  ];
+}
+export function studyAssignmentId(
+  date: string,
+  kind: JobKind,
+  range: string,
+): string {
+  return `fullstack:${STUDY_PLAN_START}:day:${date}:assignment:${kind}:${range.slice(0, 5).replace(":", "")}`;
+}
+function isStudyDayJobPlan(plan: JobPlan): boolean {
+  try {
+    if (
+      plan.effectiveOn !== STUDY_PLAN_START ||
+      plan.endDate !== STUDY_PLAN_END ||
+      plan.studyDayCount !== 100 ||
+      plan.timezone !== "Asia/Kolkata" ||
+      plan.weeklyMinutes !== 3600 ||
+      !/^[a-f0-9]{64}$/.test(plan.sourceDigest) ||
+      !text(plan.provenance) ||
+      !Array.isArray(plan.catalogueChapterIds) ||
+      !plan.catalogueChapterIds.length ||
+      new Set(plan.catalogueChapterIds).size !==
+        plan.catalogueChapterIds.length ||
+      plan.days.length !== 100
+    )
+      return false;
+    const dates = studyDates();
+    if (
+      ![plan.knownSkillIds, plan.knownRoleIds, plan.knownClaimIds].every(
+        (ids) =>
+          Array.isArray(ids) &&
+          ids.every(text) &&
+          new Set(ids).size === ids.length,
+      )
+    )
+      return false;
+    const skills = new Set(plan.knownSkillIds),
+      roles = new Set(plan.knownRoleIds),
+      claims = new Set(plan.knownClaimIds);
+    const chapters = new Set(plan.catalogueChapterIds);
+    const ids = new Set<string>();
+    return plan.days.every((day, index) => {
+      const slots = studyDaySlots(day.date);
+      if (day.date !== dates[index] || day.assignments.length !== slots.length)
+        return false;
+      let total = 0;
+      for (const [i, a] of day.assignments.entries()) {
+        const [range, kind] = slots[i];
+        const [start, end] = range.split("-").map(minute);
+        if (
+          a.date !== day.date ||
+          a.kind !== kind ||
+          a.range !== range ||
+          a.minutes !== end - start ||
+          a.id !== studyAssignmentId(day.date, kind, range) ||
+          ids.has(a.id) ||
+          ![
+            a.title,
+            a.outcome,
+            a.brief,
+            a.deliverable,
+            a.doneCheck,
+            a.dependency,
+            a.blocked,
+            a.provenance,
+          ].every((v) => text(v) && safeMarkdown(v!)) ||
+          !Array.isArray(a.steps) ||
+          a.steps.length < 2 ||
+          !a.steps.every((v) => text(v) && safeMarkdown(v)) ||
+          !Array.isArray(a.chapterIds) ||
+          !a.chapterIds.every((id) => chapters.has(id)) ||
+          !Array.isArray(a.prerequisiteAssignmentIds) ||
+          !a.prerequisiteAssignmentIds.every((id) => ids.has(id)) ||
+          !Array.isArray(a.skillIds) ||
+          ([
+            "study",
+            "project",
+            "coding",
+            "speaking",
+            "assessment",
+            "mock",
+          ].includes(a.kind) &&
+            !a.skillIds.length) ||
+          !a.skillIds.every((id) => skills.has(id)) ||
+          !Array.isArray(a.relatedRoleIds) ||
+          !a.relatedRoleIds.every((id) => roles.has(id)) ||
+          !Array.isArray(a.relatedClaimIds) ||
+          !a.relatedClaimIds.every((id) => claims.has(id))
+        )
+          return false;
+        ids.add(a.id);
+        total += a.minutes;
+      }
+      return total === (slots.length === 6 ? 300 : 660);
+    });
+  } catch {
+    return false;
+  }
 }

@@ -8,8 +8,13 @@ import {
 } from "@/lib/job-plan";
 import type { CareerExecutionEntry } from "@/lib/career-roadmap";
 import RoadmapGuide from "./RoadmapGuide";
+export function assignmentDayId(a: JobAssignment) {
+  return a.id.startsWith("fullstack:")
+    ? `fullstack:2026-10-26:day:${a.date}`
+    : `germany:2026:day:${a.date}`;
+}
 export function assignmentHref(a: JobAssignment) {
-  return `/roadmap?view=execution&panel=today&date=${a.date}&task=germany:2026:day:${a.date}&assignment=${encodeURIComponent(a.id)}#${a.id}`;
+  return `/roadmap?view=execution&panel=today&date=${a.date}&task=${assignmentDayId(a)}&assignment=${encodeURIComponent(a.id)}#${a.id}`;
 }
 export default function JobAssignmentDetail({
   assignment: a,
@@ -20,7 +25,7 @@ export default function JobAssignmentDetail({
   onGuide?: (id: string) => void;
   recordLink?: boolean;
 }) {
-  const context = { date: a.date, task: `germany:2026:day:${a.date}`, onGuide };
+  const context = { date: a.date, task: assignmentDayId(a), onGuide };
   return (
     <div className="job-assignment-detail space-y-5">
       <RoadmapGuide content={a.brief} context={context} />
@@ -32,6 +37,13 @@ export default function JobAssignmentDetail({
           ))}
         </ol>
       </div>
+      {a.skillIds?.length ? (
+        <p className="text-xs text-muted-foreground">
+          Skill: {a.skillIds.join(", ")} · Claim:{" "}
+          {a.relatedClaimIds?.join(", ") || "practice only"} · Roles:{" "}
+          {a.relatedRoleIds?.join(", ") || "qualified role review"}
+        </p>
+      ) : null}
       <dl className="space-y-4 text-sm">
         {[
           ["Save", a.deliverable],

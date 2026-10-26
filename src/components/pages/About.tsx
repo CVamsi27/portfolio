@@ -27,8 +27,8 @@ const STATS = [
     value: "5+",
     numericValue: 5,
     suffix: "+",
-    label: "Years shipping",
-    subtext: "Healthcare SaaS, enterprise & distributed systems",
+    label: "Years developing",
+    subtext: "Enterprise applications and an independent SaaS venture",
     icon: Clock,
   },
   {
@@ -90,8 +90,6 @@ const About = () => {
     }
   };
 
-  // Dynamic years-of-experience: started 2020
-  const yearsExperience = new Date().getFullYear() - 2020;
 
   const handleFilterByTech = (tech: string) => {
     window.dispatchEvent(new CustomEvent("portfolio-filter-tech", { detail: tech }));
@@ -112,13 +110,13 @@ const About = () => {
         <div className="max-w-5xl">
           <div className="portfolio-status-pill">
             <span className="portfolio-status-dot" aria-hidden="true" />
-            <span className="hidden sm:inline">Available for Senior / Staff Product Engineering Roles</span>
-            <span className="inline sm:hidden">Open to Senior / Staff Eng Roles</span>
+            <span className="hidden sm:inline">Open to Remote Full Stack Roles</span>
+            <span className="inline sm:hidden">Remote Full Stack Roles</span>
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <p className="font-utility text-[0.68rem] sm:text-[0.7rem] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.16em] text-[var(--portfolio-muted)]">
-              {currentTranslation.vamsi} {currentTranslation.krishna} {currentTranslation.chandaluri} · Senior Full Stack &amp; Systems Engineer
+              {currentTranslation.vamsi} {currentTranslation.krishna} {currentTranslation.chandaluri} · Senior Full Stack Engineer
             </p>
             <button
               type="button"
@@ -141,9 +139,9 @@ const About = () => {
           </h1>
 
           <p className="mt-6 sm:mt-8 max-w-2xl text-base sm:text-lg leading-relaxed sm:leading-8 text-[var(--portfolio-muted)]">
-            I architect and ship high-reliability web applications, resilient backend APIs,
-            and multi-tenant platforms — {yearsExperience}+ years of production engineering
-            trusted by clinics across India.
+            I build React/TypeScript interfaces, Node.js/NestJS APIs and PostgreSQL workflows
+            end to end, with 5+ years across enterprise applications and an independent
+            healthcare SaaS venture.
           </p>
 
           <div className="mt-7 sm:mt-9 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3">
@@ -225,10 +223,10 @@ const About = () => {
                 Vamsi Krishna
               </p>
               <p className="font-utility text-[11px] text-[var(--portfolio-accent)] font-medium">
-                Senior Full Stack &amp; Systems Engineer
+                Senior Full Stack Engineer
               </p>
               <p className="font-mono text-[10px] text-[var(--portfolio-muted)] mt-0.5">
-                Bangalore · Relocation (Germany)
+                Hyderabad, India · Remote full-stack roles
               </p>
             </div>
           </div>

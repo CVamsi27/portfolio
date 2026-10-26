@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { buildCurriculum, validateCurriculum } from "./generate-career-curriculum.mjs";
+import {
+  buildCurriculum,
+  validateCurriculum,
+} from "./generate-career-curriculum.mjs";
 
 const fixtureBible = mkdtempSync(join(tmpdir(), "career-curriculum-"));
 const fixtureExpectedChapterPaths = [];
@@ -12,61 +15,106 @@ for (let index = 1; index <= 100; index += 1) {
   fixtureExpectedChapterPaths.push(path);
   const file = join(fixtureBible, path);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, `<!-- section: JavaScript | role-priority: essential | general-importance: foundational -->\n# Chapter ${index}\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n`);
+  writeFileSync(
+    file,
+    `<!-- section: JavaScript | role-priority: essential | general-importance: foundational -->\n# Chapter ${index}\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n`,
+  );
 }
-mkdirSync(join(fixtureBible, "80-lanes-abroad-full-stack", "personal"), { recursive: true });
-writeFileSync(join(fixtureBible, "80-lanes-abroad-full-stack", "personal", "cv.md"), "# Private CV\n");
-writeFileSync(join(fixtureBible, "10-frontend", "INDEX.md"), "# Navigation only\n");
+mkdirSync(join(fixtureBible, "80-lanes-abroad-full-stack", "personal"), {
+  recursive: true,
+});
+writeFileSync(
+  join(fixtureBible, "80-lanes-abroad-full-stack", "personal", "cv.md"),
+  "# Private CV\n",
+);
+writeFileSync(
+  join(fixtureBible, "10-frontend", "INDEX.md"),
+  "# Navigation only\n",
+);
 const backendChapterPath = "20-backend/20.1-node/20.1.01-runtime.md";
 mkdirSync(dirname(join(fixtureBible, backendChapterPath)), { recursive: true });
-writeFileSync(join(fixtureBible, backendChapterPath), "<!-- section: Node | role-priority: essential | general-importance: foundational -->\n# Runtime\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n");
+writeFileSync(
+  join(fixtureBible, backendChapterPath),
+  "<!-- section: Node | role-priority: essential | general-importance: foundational -->\n# Runtime\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n",
+);
 fixtureExpectedChapterPaths.push(backendChapterPath);
 for (const [path, title] of [
   ["10-frontend/10.2-typescript/10.2.01-types.md", "TypeScript"],
   ["10-frontend/10.3-react/10.3.01-components.md", "React"],
 ]) {
   mkdirSync(dirname(join(fixtureBible, path)), { recursive: true });
-  writeFileSync(join(fixtureBible, path), `<!-- section: Frontend | role-priority: essential | general-importance: foundational -->\n# ${title}\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n`);
+  writeFileSync(
+    join(fixtureBible, path),
+    `<!-- section: Frontend | role-priority: essential | general-importance: foundational -->\n# ${title}\n\n[![Read time](https://img.shields.io/badge/read--time-15_min-informational)](#)\n`,
+  );
   fixtureExpectedChapterPaths.push(path);
 }
 
-const buildFixture = () => buildCurriculum({
-  bibleRoot: fixtureBible,
-  startDate: "2026-09-30",
-  dayCount: 100,
-  studyBaseUrl: "https://study.example.test",
-});
+const buildFixture = () =>
+  buildCurriculum({
+    bibleRoot: fixtureBible,
+    startDate: "2026-09-30",
+    dayCount: 100,
+    studyBaseUrl: "https://study.example.test",
+  });
 
 test("assigns every public numbered chapter exactly once across 100 consecutive dates", () => {
   const plan = buildFixture();
-  const chapters = plan.days.flatMap(day => day.chapters.map(chapter => chapter.path));
+  const chapters = plan.days.flatMap((day) =>
+    day.chapters.map((chapter) => chapter.path),
+  );
   assert.equal(plan.days.length, 100);
   assert.equal(plan.days[0].date, "2026-09-30");
   assert.equal(plan.days.at(-1).date, "2027-01-07");
   assert.equal(new Set(chapters).size, chapters.length);
-  assert.deepEqual([...chapters].sort(), [...fixtureExpectedChapterPaths].sort());
+  assert.deepEqual(
+    [...chapters].sort(),
+    [...fixtureExpectedChapterPaths].sort(),
+  );
 });
 
 test("excludes INDEX and private personal documents from the study inventory", () => {
   const plan = buildFixture();
-  const chapters = plan.days.flatMap(day => day.chapters);
-  assert.equal(chapters.some(chapter => chapter.path.endsWith("INDEX.md") || chapter.path.includes("/personal/")), false);
+  const chapters = plan.days.flatMap((day) => day.chapters);
+  assert.equal(
+    chapters.some(
+      (chapter) =>
+        chapter.path.endsWith("INDEX.md") ||
+        chapter.path.includes("/personal/"),
+    ),
+    false,
+  );
 });
 
 test("rejects a day whose study work exceeds its two-hour budget", () => {
   const plan = buildFixture();
-  assert.throws(() => validateCurriculum({
-    ...plan,
-    days: plan.days.map((day, index) => index === 0
-      ? { ...day, chapters: day.chapters.map(chapter => ({ ...chapter, estimatedMinutes: 121 })) }
-      : day),
-  }), /study budget/i);
+  assert.throws(
+    () =>
+      validateCurriculum({
+        ...plan,
+        days: plan.days.map((day, index) =>
+          index === 0
+            ? {
+                ...day,
+                chapters: day.chapters.map((chapter) => ({
+                  ...chapter,
+                  estimatedMinutes: 121,
+                })),
+              }
+            : day,
+        ),
+      }),
+    /study budget/i,
+  );
 });
 
 test("creates direct chapter URLs and a content digest without private paths", () => {
   const plan = buildFixture();
   const serialized = JSON.stringify(plan);
-  assert.match(plan.days[0].chapters[0].studyUrl, /^https:\/\/study\.example\.test\//);
+  assert.match(
+    plan.days[0].chapters[0].studyUrl,
+    /^https:\/\/study\.example\.test\//,
+  );
   assert.match(plan.sourceDigest, /^[a-f0-9]{64}$/);
   assert.equal(serialized.includes("personal/cv.md"), false);
   assert.equal(plan.totalStudyMinutes, 1545);
@@ -74,7 +122,9 @@ test("creates direct chapter URLs and a content digest without private paths", (
 
 test("every day has a ten-hour work schedule and protected family and meal anchors", () => {
   const plan = buildFixture();
-  const totals = Object.values(plan.days[0].schedule).filter(block => block.work).reduce((sum, block) => sum + block.minutes, 0);
+  const totals = Object.values(plan.days[0].schedule)
+    .filter((block) => block.work)
+    .reduce((sum, block) => sum + block.minutes, 0);
   assert.equal(totals, 600);
   assert.equal(plan.days[0].schedule["18:00-20:00"].minutes, 120);
   assert.equal(plan.days[0].schedule["14:00-14:30"].label, "Lunch");
@@ -83,32 +133,79 @@ test("every day has a ten-hour work schedule and protected family and meal ancho
 
 test("starts in JavaScript and keeps the full-stack study sequence ordered", () => {
   const plan = buildFixture();
-  const paths = plan.days.flatMap(day => day.chapters.map(chapter => chapter.path));
+  const paths = plan.days.flatMap((day) =>
+    day.chapters.map((chapter) => chapter.path),
+  );
   assert.match(paths[0], /^10-frontend\/10\.1-javascript\//);
-  const javascript = paths.findIndex(path => path.includes("/10.1-javascript/"));
-  const typescript = paths.findIndex(path => path.includes("/10.2-typescript/"));
-  const react = paths.findIndex(path => path.includes("/10.3-react/"));
-  const backend = paths.findIndex(path => path.startsWith("20-backend/"));
+  const javascript = paths.findIndex((path) =>
+    path.includes("/10.1-javascript/"),
+  );
+  const typescript = paths.findIndex((path) =>
+    path.includes("/10.2-typescript/"),
+  );
+  const react = paths.findIndex((path) => path.includes("/10.3-react/"));
+  const backend = paths.findIndex((path) => path.startsWith("20-backend/"));
   assert.ok(javascript < typescript && typescript < react && react < backend);
   const day = plan.days[0];
   assert.equal(day.checklist.length, 7);
-  assert.ok(day.checklist.every(item => Array.isArray(item.instructions) && item.instructions.length >= 2));
+  assert.ok(
+    day.checklist.every(
+      (item) =>
+        Array.isArray(item.instructions) && item.instructions.length >= 2,
+    ),
+  );
   assert.ok(day.steps.length >= 7);
 });
-
 
 test("imports independent role and general priorities and detects content-only edits", () => {
   const path = join(fixtureBible, fixtureExpectedChapterPaths[0]);
   const original = readFileSync(path, "utf8");
   try {
-    writeFileSync(path, "<!-- section: JavaScript | role-priority: optional | general-importance: foundational -->\n" + original);
+    writeFileSync(
+      path,
+      "<!-- section: JavaScript | role-priority: optional | general-importance: foundational -->\n" +
+        original,
+    );
     const before = buildFixture();
     const chapter = before.days[0].chapters[0];
     assert.equal(chapter.rolePriority, "Optional");
     assert.equal(chapter.generalImportance, "Foundational");
-    writeFileSync(path, readFileSync(path, "utf8") + "\nA corrected explanation with unchanged title and read time.\n");
+    writeFileSync(
+      path,
+      readFileSync(path, "utf8") +
+        "\nA corrected explanation with unchanged title and read time.\n",
+    );
     assert.notEqual(buildFixture().sourceDigest, before.sourceDigest);
-    writeFileSync(path, "<!-- role-priority: urgent | general-importance: foundational -->\n" + original);
+    writeFileSync(
+      path,
+      "<!-- role-priority: urgent | general-importance: foundational -->\n" +
+        original,
+    );
     assert.throws(buildFixture, /priority/i);
-  } finally { writeFileSync(path, original); }
+  } finally {
+    writeFileSync(path, original);
+  }
+});
+
+test("forward catalogue navigation excludes Sundays without assigning the catalogue as daily mastery", () => {
+  const plan = buildCurriculum({
+    bibleRoot: fixtureBible,
+    startDate: "2026-10-26",
+    dayCount: 100,
+    studyBaseUrl: "https://study.example.test",
+  });
+  assert.equal(plan.version, 2);
+  assert.equal(plan.endDate, "2027-02-18");
+  assert.equal(plan.chapters.length, plan.chapterCount);
+  assert.ok(
+    plan.days.every(
+      (day) =>
+        new Date(day.date + "T12:00:00Z").getUTCDay() !== 0 &&
+        day.navigationOnly &&
+        day.checklist.length === 0 &&
+        Object.keys(day.schedule).length === 0,
+    ),
+  );
+  assert.match(plan.days[0].mission, /reference|navigation/i);
+  assert.equal(plan.days.flatMap((d) => d.chapters).length, plan.chapterCount);
 });

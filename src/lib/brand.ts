@@ -12,7 +12,7 @@ export const PORTFOLIO_BRAND = {
   siteName: "Vamsi Krishna",
   personName: "Vamsi Krishna Chandaluri",
   name: "Vamsi Krishna",
-  title: "Vamsi Krishna — Portfolio | Full Stack Engineer",
+  title: "Vamsi Krishna — Portfolio | Senior Full Stack Engineer",
   iconPath: "/icons/vk.svg",
   ogImagePath: "/portfolio-og.png",
   description:

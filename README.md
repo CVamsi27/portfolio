@@ -20,7 +20,7 @@ The repository now keeps two intentional visual systems: the public portfolio us
 
 The system is responsive across the supported 320px, 390px, and 430px mobile viewports and honors `prefers-reduced-motion` by removing non-essential reveals and transitions. The current release includes explainable next-action prioritization, recovery mode, ordered milestones, weekly review, archive capture, and compact world clocks without changing the existing tracker-data contract.
 
-The Career Command Center also contains a Bible-derived, dated 100-day curriculum, evidence-gated completion, resume/role research, user-owned reminders, and a reseed-safe sync path. Its generated snapshot excludes personal Bible files and assigns every numbered public study chapter once.
+The Career Command Center contains a Bible-derived reference catalog, dated execution assignments, evidence-gated completion, role research and user-owned reminders. Catalog version 2 supplies navigation across numbered public chapters and the full-stack role lane; it creates no mandatory chapter checklist. The account's versioned plan supplies the actual daily workload.
 
 ---
 
@@ -74,7 +74,7 @@ The approved scope and current evidence are in [NOVA change sheet](docs/NOVA_CHA
 - **Motivation** — saved goal, one relevant encouragement, optional personal reminders, stable goal-aware imagery/fallbacks and a next-milestone action.
 - **Library** (`/archive`) — private local-first notes, links, image references, and quotes with tags, source URLs, pinning, goal links, search, and broken-media fallbacks.
 - **Reminders** — user-configured weigh-in, focus, and end-of-day prompts while the app is open. Browser permission is opt-in; background push is deferred until production scheduling and secrets exist.
-- **Career roadmap** (`/roadmap`) — dated study links for all 556 numbered Bible chapters, the owner-specific 10h weekday / 4h weekend overlay inside the IST schedule, practice/role/OSS/interview prompts, saved evidence with a separate verify action, and opt-in in-app/browser reminders. Career completion is not a blank checkbox.
+- **Career roadmap** (`/roadmap`) — a generated reference catalog plus a versioned 100-study-day execution plan, 60-hour full weeks (11h weekdays, 5h Saturday, Sunday free), concrete daily practice/role/OSS/interview prompts, saved evidence with a separate verify action, and opt-in reminders. Historical assignments and evidence retain their IDs.
 - **Focus and protection** — one active work-session controller with preserved legacy mirrors, navigation-safe focus/study sessions and cross-page pause/resume/cancel. Bedtime and distraction protection are opt-in, with immediate exit; NOVA does not control system Do Not Disturb or other apps.
 - **Share** (`/share`) — ephemeral drops with tags, pinning, fuzzy search, explicit private/public access, private media, email allowlists, and short-lived signed image URLs.
 - **PWA** — installable (`manifest.webmanifest`, generated maskable icons, install banner on the hub). The personal host uses network requests with server access checks and purges previous caches; offline page fallback remains available in local development.
@@ -94,7 +94,7 @@ pnpm dev            # http://localhost:3000 → tracker suite
 | `pnpm dev` | Next dev server |
 | `pnpm build` / `pnpm start` | Production build / serve |
 | `pnpm lint` | ESLint 9 flat config (`eslint.config.mjs`) |
-| `pnpm career:generate` | Rebuild the deterministic Bible curriculum snapshot (100 days from 2026-09-30) |
+| `pnpm career:generate` | Rebuild the Bible reference catalog and its configured Monday–Saturday navigation dates |
 | `pnpm career:validate` | Check snapshot freshness, chapter coverage, dates, capacity, and links |
 | `pnpm test:career-curriculum` | Run curriculum generator tests |
 | `pnpm career:seed` | Validate and preview owner-scoped Supabase rows; dry-run only |
@@ -149,7 +149,7 @@ Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximate
 
 ## Testing
 
-The E2E suite (`e2e/`, 101 tests across 20 specs) drives the real production build in local mode on port 4111:
+The E2E suite (`e2e/`) drives the real production build in local mode on port 4111. Use `pnpm exec playwright test --list` for the current inventory:
 
 ```bash
 pnpm test:e2e                          # full suite
@@ -170,19 +170,43 @@ Key mechanics: the config blanks `NEXT_PUBLIC_SUPABASE_*` for the build (auth op
 
 ## Keeping the personal roadmap aligned with the Bible
 
-The Bible owns chapter titles, read times, role priority and general importance. `career:generate` copies only the numbered technical study chapters, with a content digest; private Bible files never enter the bundle. `career:validate` fails when that generated snapshot differs from the source. The page computes its totals and shows both priorities and the digest. It refreshes saved chapter facts from the shipped catalogue while retaining dated schedules and separate evidence.
+The Bible owns chapter titles, read times, role priority and general importance. `career:generate` copies numbered technical chapters and the public full-stack lane, with a content digest; private authoring data never enters the bundle. `career:validate` fails when the snapshot differs from the source. The page computes totals and displays priorities and digest. Refreshing saved chapter facts retains dated schedules and evidence; missing chapters visibly request review rather than silently replacing dated work.
 
-Treat the 100-day inventory as navigation, not a completion deadline. Essential core engineering and system design come first; animation/alternative libraries are optional and Java is deferred. The private Bible execution plan remains the timetable owner.
+Treat catalog dates as navigation, not a mastery deadline. The reviewed account plan owns the timetable, prerequisite assignments and acceptance criteria. Reference availability does not add workload or mark a skill verified.
 
-For each Bible content/priority change: regenerate, run `career:validate`, the curriculum/sync tests and the roadmap browser tests, inspect the diff, then publish portfolio main. The Git-connected production deployment publishes the new bundle. A deployed bundle does not prove cloud planner rows are updated: run the owner-scoped seed in dry-run first, then `--apply`, and verify its complete readback. Keep credentials and owner identity in ignored environment configuration. If the RPC is unavailable, the seed uses one atomic bulk upsert; other RPC failures stop the sync. Existing evidence, unrelated todos and reminder preferences are retained.
+For each Bible content/priority change: regenerate, run `career:validate`, curriculum/sync tests and roadmap browser tests, inspect the diff, then publish portfolio main. The Git-connected deployment publishes the bundle. This does not update account rows. Use the reviewed campaign import below for a replan; `career:seed` is an initialization workflow and must not replace an existing execution plan. Existing evidence, unrelated todos and reminder preferences remain separate account state.
 
 No cross-repository scheduled sync is configured. A new Bible push requires regeneration/publication of this snapshot; the visible digest identifies what was actually shipped.
 
-### Germany campaign release
+### Versioned campaign release
+
+The forward revision uses GermanyRoadmap version 2 and JobPlan version 3. It contains 100 Monday–Saturday study days, exact 660/300-minute caps and no Sunday work. Each assignment has stable chapter, skill, claim and role references; study, synthetic project work, independent coding and spoken explanation have distinct outputs. The current campaign presentation contains reviewed full-stack role cards and unsent drafts; historical presentation and roadmap data are retained separately. No reminder preference or candidate-readiness score is promoted by import.
+
+After setting `PRIVATE_WORKSPACE` to the canonical private workspace, generate to fresh `.next` output names and inspect the resulting calendar and map. After validation, move all three together to their canonical names before the dry run:
+
+```bash
+node --experimental-strip-types scripts/generate-job-plan.mjs --study-days \
+  "$PRIVATE_WORKSPACE/reports/germany-job-roadmap-urgent-60h.json" \
+  src/data/career-curriculum.json \
+  "$PRIVATE_WORKSPACE/reports/fullstack-100-study-day-roadmap.next.json" \
+  "$PRIVATE_WORKSPACE/reports/2026-10-26-fullstack-100-study-day-calendar.next.md" \
+  --roles="$PRIVATE_WORKSPACE/reports/fullstack-role-queue.json" \
+  --matrix="$PRIVATE_WORKSPACE/reports/fullstack-skill-claim-role-matrix.json" \
+  --presentation="$PRIVATE_WORKSPACE/reports/fullstack-campaign-presentation.json" \
+  --campaign="$PRIVATE_WORKSPACE/reports/2026-10-25-fullstack-remote-campaign.md" \
+  --map="$PRIVATE_WORKSPACE/reports/fullstack-assignment-map.next.json"
+node --env-file=.env --experimental-strip-types scripts/sync-germany-roadmap.ts \
+  --payload="$PRIVATE_WORKSPACE/reports/fullstack-100-study-day-roadmap.json" \
+  --preview="$PRIVATE_WORKSPACE/reports/fullstack-owner-preview.json"
+```
+
+Deploy the compatible app before importing version 3 assignments. The preview is a mode-0600 local artifact containing owner data. Review its exact changed keys, historical preservation, final merged capacities and references. Repeat the same payload with `--apply` for the reviewed release; omit `--preview` or choose a fresh preview filename because previews never overwrite an existing file. Verify all owner rows, then expect an empty change list on the next dry run. The importer uses one compare-and-swap per row; it does not claim a two-row transaction. A conflict reports applied keys and retains the backup for deliberate reconciliation.
+
+### Historical Germany campaign authoring
 
 `/roadmap` is a primary personal navigation destination. Its account-scoped Germany campaign is separate from the public study catalogue. It shows the current week, three next actions, a dated shared timetable and evidence that requires an explicit verification step. Existing Curriculum, Revision and resource deep links remain available.
 
-The current urgent campaign uses 60 focused hours per full week: weekdays 660 minutes, Saturday 300, Sunday recovery. Its versioned assignments take effect on 15 October 2026; earlier timetable entries remain historical. The allocation covers applications, hiring conversations, interviews, project delivery, OSS, targeted study, German and review. Clock placements are movable IST examples; actual meetings use their date-aware invitation time.
+The retained urgent campaign uses 60 focused hours per full week: weekdays 660 minutes, Saturday 300, Sunday recovery. Its assignments take effect on 15 October 2026. These commands document that historical authoring path; the forward revision above supersedes its future schedule while preserving earlier work. Clock placements are IST examples; actual meetings use their date-aware invitation time.
 
 Current authoring sources live in the private personal workspace (`../personal/reports/`). The reviewed urgent campaign extends the retained 60-hour baseline without overwriting the baseline, original teaching guides or assessment definitions. Generate the new account payload and matching human calendar from this checkout; inputs, output and release backups stay under the canonical private personal directory:
 

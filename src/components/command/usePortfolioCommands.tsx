@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import {
   CONTACT_EMAIL,
-  CONTACT_PHONE,
   PROJECTS,
   RESUME_PATH,
 } from "@/lib/const";
@@ -223,11 +222,10 @@ export default function usePortfolioCommands(): CommandItem[] {
             "VERSION:3.0",
             "FN:Vamsi Krishna Chandaluri",
             "N:Chandaluri;Vamsi Krishna;;;",
-            "TITLE:Senior Full Stack & Systems Engineer",
+            "TITLE:Senior Full Stack Engineer",
             `EMAIL;TYPE=INTERNET,PREF:${CONTACT_EMAIL}`,
-            `TEL;TYPE=CELL:${CONTACT_PHONE.replace(/\s+/g, "")}`,
             "URL:https://buildora.work",
-            "NOTE:Senior Full Stack & Systems Engineer specializing in TypeScript, React, NestJS, and PostgreSQL.",
+            "NOTE:Senior Full Stack Engineer specializing in TypeScript, React, NestJS, and PostgreSQL.",
             "END:VCARD",
           ].join("\r\n");
 

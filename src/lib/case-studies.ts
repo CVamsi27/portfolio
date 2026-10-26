@@ -66,18 +66,18 @@ export const CASE_STUDIES: CaseStudy[] = [
     ],
     approach: [
       "Built the product end to end in a TypeScript monorepo — React/Vite clinical forms with shared Zod validation and TanStack Query server state on the front; NestJS, Prisma and PostgreSQL APIs behind.",
-      "Modeled multi-tenancy with PostgreSQL Row-Level Security and deny-by-default ABAC resource policies, plus field encryption and sensitive-data audit logging.",
-      "Made asynchronous work durable with PostgreSQL-backed background jobs and a transactional outbox with bounded retries and dead-letter replay; payment webhooks are HMAC-verified before they touch state.",
-      "Instrumented an internal operational dashboard for clinic activity, API latency percentiles and error rates.",
+      "Implemented clinic-scoped resource policies, configurable PostgreSQL Row-Level Security, patient-field encryption and sensitive-data audit hooks.",
+      "Implemented PostgreSQL jobs with bounded retries, claim fencing and manual dead-letter replay; selected transactional events use an outbox. Payment webhook paths verify HMAC signatures before guarded invoice updates.",
+      "Built internal dashboards for activity, API latency percentiles, errors, telemetry gaps and queue outcomes.",
     ],
     architecture: [
-      "Multi-tenant PostgreSQL Row-Level Security (RLS) with deny-by-default ABAC",
-      "Transactional outbox and background jobs with retries and recovery boundaries",
+      "Clinic-scoped authorization and configurable PostgreSQL RLS policies",
+      "Selected transactional outbox events and jobs with manual recovery boundaries",
       "Prisma migrations and tenant-scoped transactional writes",
-      "Full-stack end-to-end type safety with shared Zod schemas and TanStack Query",
+      "Shared Zod contracts, runtime input validation and TanStack Query server state",
     ],
     verification:
-      "Clinical workflows are covered by Jest/Vitest/Playwright checks for API, worker and frontend changes. Concurrency and isolation behavior are treated as invariants that need evidence against a real database, so this page distinguishes implemented mechanisms from outcomes that still require external verification — payment settlement and lab interoperability among them.",
+      "Source and test suites cover specific API, worker and frontend behavior. Real-database contention and tenant-role enforcement require isolated integration evidence; the appointment browser check currently opens a form rather than completing a write. These mechanisms do not establish deployed isolation, provider completion, customer adoption or production performance.",
     patternIds: [
       "transactional-outbox",
       "rls-abac",
@@ -93,22 +93,22 @@ export const CASE_STUDIES: CaseStudy[] = [
     category: "Knowledge Engine",
     role: "Author & maintainer — curriculum, examples and verification tooling",
     summary:
-      "A 366,000-line engineering corpus and study engine for senior full-stack preparation — 868 reference files, 560 chapters and automated verification gates.",
+      "A structured engineering study library for senior full-stack preparation, with canonical lessons, worked examples, separate revision and automated verification gates.",
     problem: [
       "Senior interview preparation is fragmented: scattered notes, outdated question lists, and no way to tell whether a guide is still correct.",
       "Reference material drifts — dead links, shallow topics and inconsistent structure compound across hundreds of chapters.",
     ],
     approach: [
-      "Wrote and structured a 366,000-line corpus: 868 reference files and 560 study chapters across 7 technical stacks.",
+      "Organized canonical teaching across frontend, backend, architecture, platform, quality, realtime and interview topics.",
       "Two terminal interview tracks: Abroad Full-Stack (EU/US startups) and Indian SDE (FAANG/Big Tech).",
       "All 23 Gang of Four design patterns implemented with production TypeScript and rationale, plus 31 production system design case studies.",
-      "Enforced hygiene with 20 automated verification gates in Python — zero-drift metrics, schema depth, dead-link prevention and teaching-flow checks on every build.",
+      "Added Python verification gates for generated metrics, structure, links, freshness and teaching flow.",
     ],
     architecture: [
-      "868 reference files and 560 comprehensive study chapters across 7 technical stacks",
+      "Canonical chapters and learning-flow indexes across seven technical study areas",
       "2 terminal interview tracks: Abroad Full-Stack (EU/US startups) and Indian SDE (FAANG/Big Tech)",
       "All 23 Gang of Four (GoF) design patterns implemented with production TypeScript and rationale",
-      "20 automated verification gates in Python enforcing 0-drift metrics, schema depth, and dead-link prevention",
+      "Automated metric, structure, freshness and link verification",
     ],
     verification:
       "Claims on this page come from the repository's own verification gates: structural checks, metric drift, dead links and teaching-flow verification all run in CI, so the corpus is checked rather than promised.",
@@ -132,16 +132,16 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach: [
       "Low-latency collaborative boards broadcast task mutations over a WebSocket event bus, with presence updates for concurrent clients.",
       "The backend is split into decoupled NestJS microservices with PostgreSQL persistence and Prisma modeling, so broadcasting and data concerns evolve separately.",
-      "A transactional outbox prevents message loss during network disconnects; multi-tenant isolation and RBAC guard shared workspaces.",
+      "The case study examines committed state, event intent, authorization and reconnect handling; these mechanisms need source and failure checks before stronger delivery claims.",
     ],
     architecture: [
-      "Decoupled WebSocket event bus broadcasting task mutations with sub-50ms latency",
-      "Transactional outbox pattern preventing message loss during network disconnects",
+      "WebSocket event flow for task mutations; latency needs a defined workload and measurement",
+      "Outbox/reconnect boundary to verify with crashes, duplicate delivery and replay",
       "Multi-tenant PostgreSQL isolation with Prisma ORM data modeling",
       "Authentication and RBAC permissions for shared workspaces",
     ],
     verification:
-      "The interesting failures in real-time collaboration are at the edges: disconnects, retries and duplicate delivery. The outbox and idempotency handling exist so that only committed state is broadcast — the happy path does not depend on them.",
+      "Disconnect, retry and duplicate-delivery behavior require reproducible checks of this project revision. No measured latency, complete replay guarantee or production usage is asserted here.",
     patternIds: ["observer-sse", "transactional-outbox"],
   },
   {

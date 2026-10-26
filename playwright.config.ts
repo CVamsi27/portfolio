@@ -22,6 +22,9 @@ export default defineConfig({
 
   use: {
     baseURL: "http://127.0.0.1:4111",
+    // Fixture dates use ISO/UTC keys. Keep ordinary browser tests on that same
+    // calendar; tests for other device zones create an explicit context.
+    timezoneId: "UTC",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },

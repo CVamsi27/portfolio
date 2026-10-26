@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
@@ -24,7 +24,7 @@ import {
   zonedDate,
   type RoutineHistory,
 } from "@/lib/routine-reminders";
-import { isGermanyRoadmap, type GermanyRoadmap } from "@/lib/germany-roadmap";
+import { roadmapForDate, type GermanyRoadmap } from "@/lib/germany-roadmap";
 import { jobAssignments, jobEvidenceStatus } from "@/lib/job-plan";
 import JobAssignmentDetail, {
   assignmentHref,
@@ -60,11 +60,18 @@ import { displayWeight } from "@/lib/health";
 import Modal from "@/components/trackers/Modal";
 const deviceZone = () =>
   Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
-export default function DailyWorkspace({
-  planning = false,
-}: {
-  planning?: boolean;
-}) {
+const subscribeHydration = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
+
+export default function DailyWorkspace({ planning = false }: { planning?: boolean }) {
+  const ready = useSyncExternalStore(subscribeHydration, clientReady, serverReady);
+  // The server cannot know the device clock or timezone. Match its first paint,
+  // then select the user's actual calendar in the mounted workspace.
+  return ready ? <ReadyDailyWorkspace planning={planning} /> : <p role="status">Loading your day…</p>;
+}
+
+function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
   const params = useSearchParams(),
     router = useRouter();
   const { user } = useAuth();
@@ -119,17 +126,15 @@ export default function DailyWorkspace({
     }>;
   } | null>("timetable_100_days", null);
   const storedDay = timetable.value?.days.find((day) => day.date === date);
-  const career = useSyncedStorage<{ germanyRoadmap?: GermanyRoadmap } | null>(
-    "career_command_center",
-    null,
-  );
+  const career = useSyncedStorage<{
+    germanyRoadmap?: GermanyRoadmap;
+    roadmapHistory?: GermanyRoadmap[];
+  } | null>("career_command_center", null);
   const execution = useSyncedStorage<CareerExecutionState>(
     "career_execution_state",
     EMPTY_CAREER_EXECUTION_STATE,
   );
-  const germany = isGermanyRoadmap(career.value?.germanyRoadmap)
-    ? career.value.germanyRoadmap
-    : null;
+  const germany = roadmapForDate(career.value, date);
   const germanyAssignments = germany?.execution
     ? datedAssignments(germany.execution, date)
     : {};
@@ -144,7 +149,7 @@ export default function DailyWorkspace({
     .map((d) => ({
       date: d,
       assignments: modules.value.study
-        ? jobAssignments(germany?.execution?.jobPlan, d)
+        ? jobAssignments(roadmapForDate(career.value, d)?.execution?.jobPlan, d)
         : [],
     }))
     .filter((d) => d.assignments.length > 0);
@@ -159,6 +164,7 @@ export default function DailyWorkspace({
     ? [shiftDay(date, -1), ...weekDays, shiftDay(date, 7)]
     : [shiftDay(date, -1), date, shiftDay(date, 1)];
   const fixedBlocks = (sourceDate: string) => {
+    const datedPlan = roadmapForDate(career.value, sourceDate);
     const prescribed = modules.value.study
       ? personalSchedule(user?.email, sourceDate)
       : undefined;
@@ -166,9 +172,9 @@ export default function DailyWorkspace({
     return modules.value.study
       ? timetableBlocks(
           sourceDate,
-          germany?.execution
+          datedPlan?.execution
             ? annotateGermanySchedule(
-                germany.execution,
+                datedPlan.execution,
                 sourceDate,
                 prescribed ?? storedDay?.schedule ?? {},
               )
@@ -357,7 +363,13 @@ export default function DailyWorkspace({
           (germany?.execution && fixedSchedule ? (
             <RoadmapGuide
               content={row.block.description}
-              context={{ date, task: `germany:2026:day:${date}` }}
+              context={{
+                date,
+                task:
+                  germany?.version === 2
+                    ? `fullstack:2026-10-26:day:${date}`
+                    : `germany:2026:day:${date}`,
+              }}
             />
           ) : (
             <p>{row.block.description}</p>
@@ -481,9 +493,7 @@ export default function DailyWorkspace({
                 </Button>
               </>
             )}
-          {row.unavailable && (
-            <Link href="/todo?view=open">Find a task</Link>
-          )}
+          {row.unavailable && <Link href="/todo?view=open">Find a task</Link>}
         </div>
       </>
     );
@@ -585,7 +595,9 @@ export default function DailyWorkspace({
     ? work.study
       ? "/roadmap"
       : "/plan?view=focus"
-    : ((nextAssignment ? assignmentHref(nextAssignment) : actionableNext?.href) ??
+    : ((nextAssignment
+        ? assignmentHref(nextAssignment)
+        : actionableNext?.href) ??
       (date === today && pending[0]
         ? `/plan?view=focus&task=${encodeURIComponent(pending[0].id)}`
         : `/plan?date=${date === today && rows.length > 0 && !incomplete.some((row) => row.at + (row.durationMinutes ?? 0) * 60000 > now) ? shiftDay(date, 1) : date}`));
@@ -614,7 +626,8 @@ export default function DailyWorkspace({
   const timelineSession =
     !planning && date === today && activeSession
       ? {
-          title: work.focus?.label ?? work.study?.chapterTitle ?? "Focused work",
+          title:
+            work.focus?.label ?? work.study?.chapterTitle ?? "Focused work",
           startedAt: work.focus?.startedAt ?? work.study?.startedAt ?? now,
           href: work.study ? "/roadmap" : "/plan?view=focus",
         }
@@ -885,10 +898,7 @@ export default function DailyWorkspace({
       {(!planning || jobDays.length === 0 || hasAgenda) && (
         <div className={`daily-agenda-layout${planning ? " is-planning" : ""}`}>
           {planningWeek ? (
-            <section
-              className="workspace-panel"
-              data-testid="plan-week-agenda"
-            >
+            <section className="workspace-panel" data-testid="plan-week-agenda">
               <h2>
                 Your activities · {date}–{shiftDay(date, 6)}
               </h2>

@@ -1,14 +1,11 @@
 /** Owner-only release: credentials stay in the environment; private payload is never imported by Next.js. */
 import { readFileSync, writeFileSync } from "node:fs";
-import { resolve, dirname, sep } from "node:path";
+import { resolve, dirname } from "node:path";
+import { assertPrivateWorkspacePath } from "./private-workspace.ts";
 import { isDeepStrictEqual } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import { TIMETABLE_OWNER_EMAIL } from "../src/lib/personal-timetable.ts";
 import { isCareerPlan, mergeCareerPlan } from "../src/lib/career-roadmap.ts";
-const PRIVATE_ROOTS = [
-  `${sep}80-lanes-abroad-full-stack${sep}personal${sep}`,
-  `${sep}repos${sep}personal${sep}`,
-];
 const payloadPath = process.argv
   .find((arg) => arg.startsWith("--payload="))
   ?.slice(10);
@@ -16,11 +13,7 @@ const apply = process.argv.includes("--apply");
 async function run() {
   if (!payloadPath)
     throw new Error("Pass --payload=PATH_TO_PRIVATE_GENERATED_PLAN");
-  const absolute = resolve(payloadPath);
-  if (!PRIVATE_ROOTS.some((root) => absolute.includes(root)))
-    throw new Error(
-      "Payload and backups must remain under the canonical private personal workspace",
-    );
+  const absolute = assertPrivateWorkspacePath(payloadPath);
   const plan = JSON.parse(readFileSync(absolute, "utf8"));
   if (!isCareerPlan(plan)) throw new Error("Invalid career plan payload");
   const url = process.env.SUPABASE_URL,
@@ -82,13 +75,14 @@ async function run() {
       2,
     ),
   );
-  if (!apply) return;
+  if (!apply || changes.length === 0) return;
   const backup = resolve(
     dirname(absolute),
     `career-plan-before-${Date.now()}.json`,
   );
   writeFileSync(backup, JSON.stringify(before, null, 2) + "\n", {
     mode: 0o600,
+    flag: "wx",
   });
   const applied = [];
   try {

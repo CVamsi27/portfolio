@@ -140,6 +140,7 @@ interface Timetable {
 
 interface CareerData {
   germanyRoadmap?: GermanyRoadmap;
+  roadmapHistory?: GermanyRoadmap[];
   plan?: CareerPlan;
   version?: number;
   reviewedOn?: string;
@@ -171,7 +172,7 @@ interface CareerData {
       company: string;
       city?: string;
       role: string;
-      fitScore: number;
+      fitScore: number | null;
       salary?: string;
       link: string;
       status: string;
@@ -181,7 +182,7 @@ interface CareerData {
     remoteEU?: {
       company: string;
       role: string;
-      fitScore: number;
+      fitScore: number | null;
       salary?: string;
       link: string;
       status: string;
@@ -191,7 +192,7 @@ interface CareerData {
     remoteIndia?: {
       company: string;
       role: string;
-      fitScore: number;
+      fitScore: number | null;
       salary?: string;
       link: string;
       status: string;
@@ -201,7 +202,7 @@ interface CareerData {
     remote: {
       company: string;
       role: string;
-      fitScore: number;
+      fitScore: number | null;
       link: string;
       status: string;
       notes: string;
@@ -704,6 +705,11 @@ function DayCard({
                         Ch {idx + 1}:
                       </span>
                       <span className="truncate max-w-[200px]">{ch.title}</span>
+                      {ch.catalogueStatus === "missing" && (
+                        <span className="text-amber-500">
+                          Source moved · review required
+                        </span>
+                      )}
                       <span className="text-muted-foreground">
                         Role: {ch.rolePriority ?? "Unclassified"} · General:{" "}
                         {ch.generalImportance ?? "Unclassified"}
@@ -1209,7 +1215,9 @@ function RolesSection({
       count: data.remoteIndia?.length ?? data.remote?.length ?? 0,
     },
   ];
-  const [tab, setTab] = useState<Tab>(tabs[0].key);
+  const [tab, setTab] = useState<Tab>(
+    tabs.find((tab) => tab.count > 0)?.key ?? "remoteIndia",
+  );
   const list: CareerData["targetRoles"]["germany"] =
     tab === "germany"
       ? data.germany
@@ -1246,7 +1254,8 @@ function RolesSection({
         <div className="space-y-2">
           {list.length === 0 && (
             <p className="rounded-lg border border-dashed border-border/40 p-4 text-xs text-muted-foreground">
-              No leads yet — sync the planner to refresh.
+              No verified full-stack remote lead in this lane. Keep unconfirmed
+              country or relocation eligibility in clarification pending.
             </p>
           )}
           {list.map((r, i) => (
@@ -1284,9 +1293,11 @@ function RolesSection({
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-bold ${r.fitScore >= 9 ? "bg-emerald-500/20 text-emerald-300" : r.fitScore >= 7 ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}
+                    className={`rounded-full px-2 py-0.5 text-xs font-bold ${typeof r.fitScore === "number" && r.fitScore >= 9 ? "bg-emerald-500/20 text-emerald-300" : typeof r.fitScore === "number" && r.fitScore >= 7 ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}
                   >
-                    {r.fitScore}/10
+                    {typeof r.fitScore === "number"
+                      ? `${r.fitScore}/10`
+                      : "Fit review pending"}
                   </span>
                   <a
                     href={r.link}
@@ -1602,7 +1613,7 @@ function OutreachSection({
           <Mail className="h-4 w-4 text-primary" />
           <h2 className="font-display font-bold">Outreach Templates</h2>
           <span className="ml-auto text-xs text-muted-foreground">
-            Copy → personalise → send
+            Copy → personalise → review
           </span>
         </div>
         <div className="flex flex-wrap gap-2 mb-4">
@@ -1766,7 +1777,8 @@ function MotivationHero({
       { at: 75, label: "75% done: 3 design posts published", emoji: "📝" },
       {
         at: 100,
-        label: "100-day sprint complete · offer in hand",
+        label:
+          "Study checkpoint reached · review evidence and actual hiring stages",
         emoji: "🎯",
       },
     ];
@@ -2371,6 +2383,7 @@ export default function RoadmapPage() {
           (germanyPlan ? (
             <GermanyRoadmapView
               plan={germanyPlan}
+              history={career?.roadmapHistory}
               careerView={section === "execution"}
               today={today}
               email={user?.email}
@@ -2521,6 +2534,13 @@ export default function RoadmapPage() {
                                           className="text-left font-medium text-foreground hover:text-primary transition-colors cursor-pointer"
                                         >
                                           {chapter.title}
+                                          {chapter.catalogueStatus ===
+                                            "missing" && (
+                                            <span className="block text-xs text-amber-500">
+                                              Source moved · retain evidence and
+                                              review the reference
+                                            </span>
+                                          )}
                                           <span className="block text-xs font-normal text-muted-foreground">
                                             Role:{" "}
                                             {chapter.rolePriority ??
@@ -3110,8 +3130,8 @@ export default function RoadmapPage() {
         {section === "plan" && career && isCareerPlan(career.plan) && (
           <section className="space-y-3" data-testid="career-plan">
             <p className="text-sm text-muted-foreground">
-              Tailored career plan · updated {career.plan.updated} · search window{" "}
-              {career.plan.window}
+              Tailored career plan · updated {career.plan.updated} · search
+              window {career.plan.window}
             </p>
             {career.plan.intro && (
               <div className="workspace-panel">
@@ -3188,12 +3208,12 @@ export default function RoadmapPage() {
                 </div>
                 <ul className="space-y-2 text-sm">
                   {[
-                    "Send 10 messages per day — no exceptions. Consistency beats perfection.",
-                    "Always include 1 specific product observation. Shows you've done research.",
-                    "Follow up after 5 days with: 'Just bumping this up in case it was buried.'",
-                    "LinkedIn + Email both. Find emails at hunter.io or Apollo.io.",
-                    "Target CTOs and Engineering Managers — not HR. Direct is faster.",
-                    "Track every message: company, date sent, response, follow-up date.",
+                    "Prepare relevant full-stack remote outreach within the weekly time budget; quality and real hiring stages determine volume.",
+                    "Use the exact live vacancy and one supported frontend-to-API-to-data example. Confirm India eligibility or an employer-supported remote relocation route.",
+                    "Drafts stay unsent until you review the recipient, channel, wording and actual role constraints.",
+                    "Follow up once after about five working days from an actual send, or on the employer's stated timeline. No send date means no follow-up deadline.",
+                    "Use a relevant employer contact through a verified channel; retain unanswered compensation, engagement and working-hours questions.",
+                    "Track prepared, sent, replied and submitted states separately, with actual dates and the next action.",
                   ].map((r, i) => (
                     <li key={i} className="flex gap-2.5 text-foreground/80">
                       <span className="shrink-0 mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
@@ -3495,7 +3515,9 @@ export default function RoadmapPage() {
                           {r.salary}
                         </span>
                         <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary">
-                          {r.fitScore}/10
+                          {typeof r.fitScore === "number"
+                            ? `${r.fitScore}/10`
+                            : "Fit review pending"}
                         </span>
                       </div>
                     </a>
@@ -3627,10 +3649,10 @@ export default function RoadmapPage() {
                   Java is deferred.
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  This dated inventory is a navigation backlog, not a
-                  requirement to finish every page. Optional and Deferred
-                  chapters may be skipped. Keep applying while practising. Saved
-                  evidence is retained.
+                  This catalogue is a navigation backlog, not a requirement to
+                  finish every page. Optional and Deferred chapters may be
+                  skipped. Keep applying while practising. Saved evidence is
+                  retained.
                 </p>
                 <a
                   className="mt-2 inline-block text-primary underline"

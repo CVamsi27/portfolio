@@ -193,7 +193,9 @@ for (const theme of ["light", "dark"]) {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await page.setViewportSize({ width, height: 900 });
       const runtimeErrors: string[] = [];
-      page.on("pageerror", (error) => runtimeErrors.push(error.message));
+      page.on("pageerror", (error) =>
+        runtimeErrors.push(`${page.url()}: ${error.message}`),
+      );
       for (const route of [
         "/",
         "/hub",
@@ -235,6 +237,19 @@ for (const theme of ["light", "dark"]) {
     });
   }
 }
+
+test("Today hydrates before choosing the device calendar and clock", async ({ page }) => {
+  await seed(page);
+  // Deliberately unlike the server build date: initial HTML cannot know this clock.
+  await page.clock.install({ time: new Date("2031-01-02T00:30:00Z") });
+  const runtimeErrors: string[] = [];
+  page.on("pageerror", (error) => runtimeErrors.push(error.message));
+  await page.goto("/hub");
+  await expect(page.getByTestId("today-header")).toContainText("Thu, 2 Jan 2031");
+  await expect(page.getByTestId("today-header")).toContainText("UTC");
+  await expect(page.getByRole("button", { name: "Choose date" })).toBeVisible();
+  expect(runtimeErrors).toEqual([]);
+});
 
 test("open dialogs remove background navigation from accessibility and focus", async ({
   page,

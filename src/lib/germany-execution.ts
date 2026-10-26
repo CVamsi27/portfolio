@@ -34,7 +34,7 @@ export interface GermanyCampaignWeek {
 }
 export interface GermanyExecution {
   jobPlan?: JobPlan;
-  version: 1;
+  version: 1 | 2;
   assessmentVersion: string;
   days: GermanyDay[];
   rounds: GermanyRound[];
@@ -71,7 +71,8 @@ export function studyTaskUrl(url: string, date: string, task: string): string {
     if (
       target.origin !== "https://study.buildora.work" ||
       !isCalendarDate(date) ||
-      task !== `germany:2026:day:${date}`
+      (task !== `germany:2026:day:${date}` &&
+        task !== `fullstack:2026-10-26:day:${date}`)
     )
       return url;
     target.searchParams.set("roadmapDate", date);
@@ -273,6 +274,7 @@ export function appendExamAttempt(
 export function isGermanyExecution(value: unknown): value is GermanyExecution {
   if (!value || typeof value !== "object") return false;
   const e = value as GermanyExecution;
+  if (e.version === 2) return isForwardExecution(e);
   const text = (s: unknown) => typeof s === "string" && s.trim().length > 0;
   const hash = (s: unknown) =>
     typeof s === "string" && /^[a-f0-9]{64}$/.test(s);
@@ -387,6 +389,7 @@ export function datedAssignments(
     return Object.fromEntries(
       detailed.map((a) => [a.range, assignmentMarkdown(a)]),
     );
+  if (execution.version === 2) return {};
   const weekday = new Date(date + "T12:00:00Z").getUTCDay();
   if (weekday === 0) return {};
   const offset = Math.floor(
@@ -463,7 +466,8 @@ export function recordGermanyCompany(
   record: GermanyCompanyRecord,
 ): CareerExecutionState {
   if (
-    !/^DE(0[1-9]|1[0-9]|2[0-5])$/.test(id) ||
+    (!/^DE(0[1-9]|1[0-9]|2[0-5])$/.test(id) &&
+      !/^[a-z][a-z0-9-]{1,80}-fullstack$/.test(id)) ||
     ![
       "research",
       "prepared",
@@ -517,7 +521,7 @@ export function annotateGermanySchedule<
     execution.jobPlan &&
     isCalendarDate(date) &&
     date >= execution.jobPlan.effectiveOn &&
-    date <= "2027-01-03" &&
+    date <= (execution.jobPlan.endDate ?? "2027-01-03") &&
     new Date(date + "T12:00:00Z").getUTCDay() === 0
   )
     return {} as T;
@@ -558,4 +562,79 @@ export function annotateGermanySchedule<
           },
     ]),
   ) as T;
+}
+
+function isForwardExecution(e: GermanyExecution): boolean {
+  try {
+    if (
+      e.jobPlan?.version !== 3 ||
+      !isJobPlan(e.jobPlan) ||
+      !/^[a-f0-9]{64}$/.test(e.assessmentVersion) ||
+      e.days.length !== 100 ||
+      e.weeks.length !== 17 ||
+      e.rounds.length !== 7 ||
+      e.guides.length !== 4 ||
+      e.posts.length !== 0
+    )
+      return false;
+    const text = (s: unknown) => typeof s === "string" && s.trim().length > 0;
+    return (
+      e.days.every(
+        (d, i) =>
+          d.id === `fullstack:2026-10-26:day:${e.jobPlan!.days[i].date}` &&
+          d.date === e.jobPlan!.days[i].date &&
+          d.week === Math.floor(i / 6) + 1 &&
+          text(d.title) &&
+          Object.values(d.blocks).every(text),
+      ) &&
+      e.rounds.every(
+        (r, i) =>
+          r.id === `R${i}` &&
+          text(r.title) &&
+          text(r.content) &&
+          /^[a-f0-9]{64}$/.test(r.version) &&
+          r.dimensions.length >= 5 &&
+          r.dimensions.every(text) &&
+          r.passTotal > 0 &&
+          r.passTotal <= r.dimensions.length * 4 &&
+          r.minimum3.every(
+            (n) => Number.isInteger(n) && n >= 0 && n < r.dimensions.length,
+          ),
+      ) &&
+      new Set(e.assessments.map((a) => a.id)).size === e.assessments.length &&
+      e.assessments.every(
+        (a) =>
+          e.jobPlan!.days.some(
+            (d) =>
+              d.date === a.date &&
+              d.assignments.some(
+                (x) =>
+                  ["assessment", "mock"].includes(x.kind) && x.range === a.time,
+              ),
+          ) && text(a.content),
+      ) &&
+      e.weeks.every(
+        (w, i) =>
+          w.number === i + 1 &&
+          [
+            w.application,
+            w.tuesday,
+            w.thursday,
+            w.oss.monday,
+            w.oss.wednesday,
+            w.oss.friday,
+            w.german,
+            w.germanCheck,
+            w.relocation,
+          ].every(text),
+      ) &&
+      e.companies.every((c) =>
+        [c.id, c.title, c.status, c.action].every(text),
+      ) &&
+      e.practices.every((p) => [p.id, p.task, p.cases].every(text)) &&
+      e.guides.every((g) => [g.id, g.title, g.content].every(text))
+    );
+  } catch {
+    return false;
+  }
 }

@@ -117,7 +117,7 @@ export default async function RootLayout({
             name: "Vamsi Krishna Chandaluri",
             alternateName: "Vamsi Krishna",
             url: PORTFOLIO_ORIGIN,
-            jobTitle: "Senior Full Stack & Systems Engineer",
+            jobTitle: "Senior Full Stack Engineer",
             description: brand.description,
             knowsAbout: [
               "TypeScript",

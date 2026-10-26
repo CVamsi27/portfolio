@@ -23,8 +23,39 @@ export interface GermanyWeek {
   campaign: string;
   items: CareerChecklistItem[];
 }
+export interface CampaignRole {
+  id: string;
+  company: string;
+  role: string;
+  link: string;
+  status: string;
+  notes: string;
+  sourceChecked: string;
+  fitScore: number | null;
+  salary?: string;
+  city?: string;
+}
+export interface CampaignPresentation {
+  reviewedOn: string;
+  profile: { headline: string; currentRole: string };
+  roleResearchNote: string;
+  targetRoles: {
+    germany: CampaignRole[];
+    remoteEU: CampaignRole[];
+    remoteIndia: CampaignRole[];
+    remote: CampaignRole[];
+  };
+  outreachTemplates: {
+    germanySaaS: string;
+    remote: string;
+    ossMaintainer: string;
+    linkedinConnection?: string;
+  };
+}
 export interface GermanyRoadmap {
-  version: 1;
+  version: 1 | 2;
+  catalogueChapterIds?: string[];
+  campaignPresentation?: CampaignPresentation;
   execution?: GermanyExecution;
   reviewedOn: string;
   startDate: string;
@@ -42,7 +73,15 @@ export function campaignPosition(
 ): { stage: "before" | "active" | "after"; week: number } {
   if (!isCalendarDate(date)) throw new Error("Invalid calendar date");
   if (date < plan.startDate) return { stage: "before", week: 1 };
-  if (date > plan.endDate) return { stage: "after", week: 12 };
+  if (date > plan.endDate)
+    return {
+      stage: "after",
+      week: Math.ceil(
+        (Date.parse(plan.endDate + "T12:00:00Z") -
+          Date.parse(plan.startDate + "T12:00:00Z")) /
+          604800000,
+      ),
+    };
   return {
     stage: "active",
     week:
@@ -64,7 +103,9 @@ function urgentWeeklyTargets(plan: GermanyRoadmap): Record<string, number> {
       !Number.isFinite(matches[0].hours) ||
       matches[0].hours < 0
     )
-      throw new Error(`Urgent campaign requires one valid allocation for ${label}`);
+      throw new Error(
+        `Urgent campaign requires one valid allocation for ${label}`,
+      );
     return matches[0].hours;
   };
   return {
@@ -83,7 +124,34 @@ export function mergeGermanyCareer(
   previous: Record<string, unknown>,
   plan: GermanyRoadmap,
 ): Record<string, unknown> {
-  const urgent = plan.execution?.jobPlan?.version === 2;
+  const presentation =
+    plan.version === 2 ? plan.campaignPresentation : undefined;
+  const oldProfile = (
+    previous.profile && typeof previous.profile === "object"
+      ? previous.profile
+      : {}
+  ) as Record<string, unknown>;
+  const oldPresentation = {
+    profile: {
+      headline: oldProfile.headline,
+      currentRole: oldProfile.currentRole,
+    },
+    targetRoles: previous.targetRoles,
+    roleResearchNote: previous.roleResearchNote,
+    outreachTemplates: previous.outreachTemplates,
+  };
+  const nextPresentation = presentation
+    ? {
+        profile: presentation.profile,
+        targetRoles: presentation.targetRoles,
+        roleResearchNote: presentation.roleResearchNote,
+        outreachTemplates: presentation.outreachTemplates,
+      }
+    : undefined;
+  const changedPresentation =
+    presentation &&
+    stableJson(oldPresentation) !== stableJson(nextPresentation);
+  const urgent = (plan.execution?.jobPlan?.version ?? 0) >= 2;
   const targets = urgent ? urgentWeeklyTargets(plan) : GERMANY_WEEKLY_TARGETS;
   const checklistUpdates = urgent
     ? {
@@ -129,6 +197,43 @@ export function mergeGermanyCareer(
   return {
     ...previous,
     germanyRoadmap: plan,
+    ...(presentation
+      ? {
+          profile: { ...oldProfile, ...presentation.profile },
+          targetRoles: presentation.targetRoles,
+          roleResearchNote: presentation.roleResearchNote,
+          outreachTemplates: presentation.outreachTemplates,
+        }
+      : {}),
+    ...(changedPresentation
+      ? {
+          campaignPresentationHistory: [
+            ...(Array.isArray(previous.campaignPresentationHistory)
+              ? previous.campaignPresentationHistory
+              : []),
+            {
+              reviewedOn: previous.reviewedOn ?? "legacy",
+              profile: previous.profile,
+              targetRoles: previous.targetRoles,
+              roleResearchNote: previous.roleResearchNote,
+              outreachTemplates: previous.outreachTemplates,
+            },
+          ],
+        }
+      : {}),
+    ...(plan.version === 2 &&
+    previous.germanyRoadmap &&
+    (previous.germanyRoadmap as GermanyRoadmap).sourceDigest !==
+      plan.sourceDigest
+      ? {
+          roadmapHistory: [
+            ...(Array.isArray(previous.roadmapHistory)
+              ? previous.roadmapHistory
+              : []),
+            previous.germanyRoadmap,
+          ],
+        }
+      : {}),
     reviewedOn: plan.reviewedOn,
     ...(checklist ? { germanyChecklist: checklist } : {}),
     legacyWeeklyTargets: previous.legacyWeeklyTargets ?? previousTargets,
@@ -175,6 +280,7 @@ export function alignCampaignTimetable<
     if (email?.trim().toLowerCase() !== TIMETABLE_OWNER_EMAIL) return timetable;
     const e = plan.execution,
       job = e.jobPlan!;
+    if (plan.version === 2) return alignForwardTimetable(timetable, plan) as T;
     return {
       ...timetable,
       scheduleReviewedOn: plan.reviewedOn,
@@ -244,6 +350,7 @@ export function alignCampaignTimetable<
 export function isGermanyRoadmap(value: unknown): value is GermanyRoadmap {
   if (!value || typeof value !== "object") return false;
   const p = value as GermanyRoadmap;
+  if (p.version === 2) return isForwardRoadmap(p);
   if (
     p.version !== 1 ||
     (p.execution !== undefined && !isGermanyExecution(p.execution)) ||
@@ -382,3 +489,210 @@ export const GERMANY_VERIFICATION_UPDATES: Record<string, string> = {
   "verify-db":
     "Owner-scoped plan release preserves unrelated rows and passes exact database readback; website publication is verified separately.",
 };
+
+function isForwardRoadmap(plan: GermanyRoadmap): boolean {
+  try {
+    if (
+      plan.startDate !== "2026-10-26" ||
+      plan.endDate !== "2027-02-18" ||
+      !isCalendarDate(plan.reviewedOn) ||
+      !plan.target ||
+      !/^[a-f0-9]{64}$/.test(plan.sourceDigest) ||
+      plan.execution?.version !== 2 ||
+      !isGermanyExecution(plan.execution) ||
+      plan.weeks.length !== 17 ||
+      (plan.campaignPresentation !== undefined &&
+        !isCampaignPresentation(
+          plan.campaignPresentation,
+          plan.execution?.jobPlan?.knownRoleIds ?? [],
+        ))
+    )
+      return false;
+    const dates = plan.execution.jobPlan!.days.map((d) => d.date);
+    return (
+      plan.weeks.every(
+        (w, i) =>
+          w.number === i + 1 &&
+          w.start === dates[i * 6] &&
+          w.end === dates[Math.min(i * 6 + 5, 99)] &&
+          [w.study, w.deliverable, w.campaign].every(
+            (s) => typeof s === "string" && s.length > 0,
+          ) &&
+          w.items.every(
+            (item) =>
+              typeof item.id === "string" &&
+              typeof item.text === "string" &&
+              typeof item.acceptanceCriteria === "string" &&
+              item.evidenceType === "note",
+          ),
+      ) &&
+      plan.allocations.length === 8 &&
+      plan.allocations.every(
+        (a) =>
+          typeof a.label === "string" &&
+          Number.isFinite(a.hours) &&
+          a.hours >= 0,
+      ) &&
+      plan.allocations.reduce((n, a) => n + a.hours, 0) === 60 &&
+      Array.isArray(plan.catalogueChapterIds) &&
+      JSON.stringify(plan.catalogueChapterIds) ===
+        JSON.stringify(plan.execution.jobPlan!.catalogueChapterIds) &&
+      plan.sections.every(
+        (s) => typeof s.title === "string" && typeof s.content === "string",
+      ) &&
+      plan.sources.every(
+        (s) => typeof s.label === "string" && /^https:\/\//.test(s.url),
+      )
+    );
+  } catch {
+    return false;
+  }
+}
+function alignForwardTimetable<
+  T extends { days: Array<{ date: string; schedule?: unknown }> },
+>(timetable: T, plan: GermanyRoadmap): T {
+  const previous = timetable as T & {
+    scheduleRevision?: string;
+    scheduleHistory?: unknown[];
+  };
+  const job = plan.execution!.jobPlan!;
+  const byDate = new Map(previous.days.map((day) => [day.date, day]));
+  const days = [...previous.days];
+  const date = new Date(plan.startDate + "T12:00:00Z");
+  while (date.toISOString().slice(0, 10) <= plan.endDate) {
+    const value = date.toISOString().slice(0, 10);
+    if (!byDate.has(value)) {
+      const day = { date: value };
+      days.push(day);
+      byDate.set(value, day);
+    }
+    date.setUTCDate(date.getUTCDate() + 1);
+  }
+  return {
+    ...timetable,
+    scheduleRevision: plan.sourceDigest,
+    ...(previous.scheduleRevision !== plan.sourceDigest
+      ? {
+          scheduleHistory: [
+            ...(previous.scheduleHistory ?? []),
+            {
+              sourceRevision: previous.scheduleRevision ?? "legacy",
+              supersededOn: plan.reviewedOn,
+              effectiveOn: job.effectiveOn,
+              days: previous.days,
+            },
+          ],
+        }
+      : {}),
+    scheduleReviewedOn: plan.reviewedOn,
+    scheduleEffectiveOn: job.effectiveOn,
+    scheduleTimezone: job.timezone,
+    scheduleBudgetMinutes: {
+      weekday: 660,
+      saturday: 300,
+      sunday: 0,
+      week: 3600,
+    },
+    scheduleBudget: {
+      weekdayFocusedMinutes: 660,
+      saturdayFocusedMinutes: 300,
+      sundayFocusedMinutes: 0,
+      weeklyFocusedMinutes: 3600,
+      effectiveOn: job.effectiveOn,
+    },
+    days: days
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((day) =>
+        day.date < job.effectiveOn || day.date > plan.endDate
+          ? day
+          : {
+              ...day,
+              schedule: annotateGermanySchedule(plan.execution!, day.date, {}),
+            },
+      ),
+  } as T;
+}
+
+/** A new schedule cannot relabel earlier dated assignments or their evidence. */
+export function roadmapForDate(
+  source:
+    | { germanyRoadmap?: unknown; roadmapHistory?: unknown[] }
+    | null
+    | undefined,
+  date: string,
+): GermanyRoadmap | null {
+  const active = isGermanyRoadmap(source?.germanyRoadmap)
+    ? source.germanyRoadmap
+    : null;
+  if (!active || !isCalendarDate(date)) return active;
+  if (date >= active.startDate) return active;
+  const history = (source?.roadmapHistory ?? [])
+    .filter(isGermanyRoadmap)
+    .filter((plan) => date >= plan.startDate && date <= plan.endDate);
+  return history.at(-1) ?? active;
+}
+
+function stableJson(value: unknown): string {
+  return JSON.stringify(value, (_key, value) =>
+    value && typeof value === "object" && !Array.isArray(value)
+      ? Object.fromEntries(
+          Object.keys(value)
+            .sort()
+            .map((key) => [key, value[key]]),
+        )
+      : value,
+  );
+}
+export function isCampaignPresentation(
+  value: unknown,
+  knownRoles: string[],
+): value is CampaignPresentation {
+  try {
+    if (!value || typeof value !== "object") return false;
+    const p = value as CampaignPresentation;
+    const text = (s: unknown) =>
+      typeof s === "string" && s.trim().length > 0 && !/<\/?[a-z]/i.test(s);
+    if (
+      !isCalendarDate(p.reviewedOn) ||
+      ![
+        p.profile.headline,
+        p.profile.currentRole,
+        p.roleResearchNote,
+        p.outreachTemplates.germanySaaS,
+        p.outreachTemplates.remote,
+        p.outreachTemplates.ossMaintainer,
+      ].every(text)
+    )
+      return false;
+    const roles = [
+      p.targetRoles.germany,
+      p.targetRoles.remoteEU,
+      p.targetRoles.remoteIndia,
+      p.targetRoles.remote,
+    ];
+    if (!roles.every(Array.isArray)) return false;
+    const ids = new Set<string>();
+    return roles.flat().every((role) => {
+      if (
+        !knownRoles.includes(role.id) ||
+        ids.has(role.id) ||
+        ![role.company, role.role, role.notes, role.status].every(text) ||
+        !isCalendarDate(role.sourceChecked) ||
+        !(
+          role.fitScore === null ||
+          (Number.isFinite(role.fitScore) &&
+            role.fitScore >= 0 &&
+            role.fitScore <= 10)
+        )
+      )
+        return false;
+      const url = new URL(role.link);
+      if (url.protocol !== "https:" || url.username || url.password)
+        return false;
+      ids.add(role.id);
+      return true;
+    });
+  } catch {
+    return false;
+  }
+}

@@ -85,7 +85,11 @@ export default function GermanyExecutionView({
   }, [careerView, e.guides, query]);
   useEffect(() => {
     const task = new URLSearchParams(window.location.search).get("task");
-    if (panel === "Today" && task === `germany:2026:day:${date}`) {
+    if (
+      panel === "Today" &&
+      (task === `germany:2026:day:${date}` ||
+        task === `fullstack:2026-10-26:day:${date}`)
+    ) {
       const frame = requestAnimationFrame(() => {
         const assignment = jobAssignments(e.jobPlan, date).find(
           (a) => a.id === selectedAssignment,
@@ -127,8 +131,9 @@ export default function GermanyExecutionView({
   const day = e.days.find((d) => d.date === date),
     assignments = datedAssignments(e, date);
   const detailed = jobAssignments(e.jobPlan, date);
-  const urgentCampaign =
-    e.jobPlan?.version === 2 && date >= e.jobPlan.effectiveOn;
+  const urgentCampaign = Boolean(
+    e.jobPlan && e.jobPlan.version >= 2 && date >= e.jobPlan.effectiveOn,
+  );
   const campaignBrief = urgentCampaign
     ? (detailed.find((a) => ["applications", "funnel"].includes(a.kind))
         ?.brief ??
@@ -151,17 +156,23 @@ export default function GermanyExecutionView({
     );
   });
   const nextExam = e.assessments.find((a) => a.date >= date);
-  const saturdayDate = e.assessments.find(
-    (assessment) =>
-      assessment.id === "E" + String(week.number).padStart(2, "0"),
-  )!.date;
+  const saturdayDate =
+    e.version === 2
+      ? week.end
+      : e.assessments.find(
+          (assessment) =>
+            assessment.id === "E" + String(week.number).padStart(2, "0"),
+        )!.date;
   const saturdayAssignments = jobAssignments(e.jobPlan, saturdayDate);
   const verified = plan.weeks
     .flatMap((w) => w.items)
     .filter((i) => state.evidenceByItemId[i.id]?.verifiedAt).length;
   const context = {
     date,
-    task: `germany:2026:day:${date}`,
+    task:
+      e.version === 2
+        ? `fullstack:2026-10-26:day:${date}`
+        : `germany:2026:day:${date}`,
     onGuide: openGuide,
   };
   const evidence = (
@@ -252,7 +263,7 @@ export default function GermanyExecutionView({
       </div>
       <nav
         aria-label={
-          e.jobPlan?.version === 2
+          (e.jobPlan?.version ?? 0) >= 2
             ? "Career plan sections"
             : "Germany roadmap sections"
         }
@@ -477,7 +488,7 @@ export default function GermanyExecutionView({
               <ul>
                 <EvidenceItem
                   item={evidence(
-                    `germany:2026:day:${date}:result`,
+                    `${e.version === 2 ? "fullstack:2026-10-26" : "germany:2026"}:day:${date}:result`,
                     "Save today’s explanation, project check and practice result",
                   )}
                   state={state}
@@ -499,7 +510,7 @@ export default function GermanyExecutionView({
                   className="inline-action min-h-11"
                   onClick={() => navigate(plan.startDate)}
                 >
-                  Open 12 October launch day
+                  Open {plan.startDate} launch day
                 </button>
               )}
             </section>
@@ -519,7 +530,11 @@ export default function GermanyExecutionView({
             move historical chapters or complete the library.
           </p>
           {e.days
-            .filter((d) => d.week === week.number)
+            .filter(
+              (d) =>
+                d.week === week.number &&
+                new Date(d.date + "T12:00:00Z").getUTCDay() !== 6,
+            )
             .map((d) => (
               <details
                 key={d.id}
@@ -540,37 +555,44 @@ export default function GermanyExecutionView({
                 </button>
               </details>
             ))}
-          <details className="rounded-xl border border-border p-4">
-            <summary className="cursor-pointer min-h-11 font-semibold text-sm">
-              Saturday: exam, funnel, relocation and review
-            </summary>
-            <div className="space-y-4 pt-3">
-              {saturdayAssignments.length
-                ? saturdayAssignments.map((assignment) => (
-                    <JobAssignmentRow
-                      key={assignment.id}
-                      assignment={assignment}
-                      evidence={state.evidenceByItemId[assignment.id]}
-                      recordLink
-                    />
-                  ))
-                : Object.entries(datedAssignments(e, saturdayDate)).map(
-                    ([time, content]) => (
-                      <div key={time}>
-                        <p className="font-semibold text-sm">{time} IST</p>
-                        <RoadmapGuide
-                          content={content}
-                          context={{
-                            ...context,
-                            date: saturdayDate,
-                            task: `germany:2026:day:${saturdayDate}`,
-                          }}
-                        />
-                      </div>
-                    ),
-                  )}
-            </div>
-          </details>
+          {new Date(saturdayDate + "T12:00:00Z").getUTCDay() === 6 && (
+            <details className="rounded-xl border border-border p-4">
+              <summary className="cursor-pointer min-h-11 font-semibold text-sm">
+                {e.version === 2
+                  ? "Saturday: exam, funnel and review"
+                  : "Saturday: exam, funnel, relocation and review"}
+              </summary>
+              <div className="space-y-4 pt-3">
+                {saturdayAssignments.length
+                  ? saturdayAssignments.map((assignment) => (
+                      <JobAssignmentRow
+                        key={assignment.id}
+                        assignment={assignment}
+                        evidence={state.evidenceByItemId[assignment.id]}
+                        recordLink
+                      />
+                    ))
+                  : Object.entries(datedAssignments(e, saturdayDate)).map(
+                      ([time, content]) => (
+                        <div key={time}>
+                          <p className="font-semibold text-sm">{time} IST</p>
+                          <RoadmapGuide
+                            content={content}
+                            context={{
+                              ...context,
+                              date: saturdayDate,
+                              task:
+                                e.version === 2
+                                  ? `fullstack:2026-10-26:day:${saturdayDate}`
+                                  : `germany:2026:day:${saturdayDate}`,
+                            }}
+                          />
+                        </div>
+                      ),
+                    )}
+              </div>
+            </details>
+          )}
           <h3 className="font-semibold">Weekly acceptance evidence</h3>
           <ul className="space-y-3">
             {week.items.map((item) => (
@@ -651,8 +673,8 @@ export default function GermanyExecutionView({
             <summary>Campaign context · Week {week.number}</summary>
             <section className="py-3 space-y-3">
               <p className="font-utility text-xs uppercase tracking-widest text-primary">
-                {e.jobPlan?.version === 2
-                  ? "Remote and Germany campaign"
+                {(e.jobPlan?.version ?? 0) >= 2
+                  ? "Full-stack remote campaign"
                   : "Germany campaign"}{" "}
                 · {plan.allocations.reduce((sum, a) => sum + a.hours, 0)}{" "}
                 hours/week
@@ -670,9 +692,9 @@ export default function GermanyExecutionView({
               </p>
               <p className="text-sm">
                 {position.stage === "before"
-                  ? "Prepare the launch packet; the dated campaign begins on 12 October."
+                  ? `Prepare the launch packet; the dated campaign begins on ${plan.startDate}.`
                   : position.stage === "after"
-                    ? "Continue the hiring cycle. Use the January 4–7 study ending, actual interview feedback and current eligible roles to choose the next two weeks."
+                    ? "Continue from actual interview feedback, unresolved skill evidence and currently eligible full-stack remote roles."
                     : `Week ${week.number}: ${week.deliverable}`}
               </p>
             </section>

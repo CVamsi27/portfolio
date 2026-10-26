@@ -7,7 +7,6 @@ import { Terminal, X, CornerDownLeft, Minimize2, Trash2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
   CONTACT_EMAIL,
-  CONTACT_PHONE,
   PROJECTS,
   RESUME_PATH,
   SKILLS,
@@ -82,14 +81,14 @@ export default function DeveloperTerminalDrawer({
           content: [
             "Available Commands:",
             "  whoami       - Display developer summary and current role",
-            "  bible        - Inspect the 860+ chapter Senior Full Stack Bible (study.buildora.work)",
+            "  bible        - Explore the Senior Full Stack Bible (study.buildora.work)",
             "  patterns     - Inspect 23 GoF design patterns & distributed invariants",
             "  oss          - View open source repositories & public engineering",
-            "  skills       - Print production technical capabilities & stack",
+            "  skills       - Print supported stack and learning depth",
             "  projects     - List flagship systems and deployment links",
-            "  impact       - Review verified production outcomes & endorsements",
+            "  impact       - Review engineering work and evidence",
             "  experience   - View career trajectory across 5+ years",
-            "  contact      - Display direct inbox, phone & coordinates",
+            "  contact      - Display professional inbox and links",
             "  resume       - Trigger download of VamsiKrishna_Resume.pdf",
             "  vcard        - Export vCard (.vcf) address book contact",
             "  theme        - Toggle between light and dark editorial theme",
@@ -141,7 +140,7 @@ export default function DeveloperTerminalDrawer({
           type: "output",
           content: [
             "OPEN SOURCE REPOSITORIES & PUBLIC WORK:",
-            "  • Senior Full Stack Bible:  github.com/CVamsi27/software-developer-bible (366k lines)",
+            "  • Senior Full Stack Bible:  github.com/CVamsi27/software-developer-bible",
             "  • TeamOps:                  github.com/CVamsi27/teamops (Real-Time WebSockets)",
             "  • Super Tic Tac Toe:        github.com/CVamsi27/super-tic-tac-toe (Minimax AI)",
             "  • Digital Library:          github.com/CVamsi27/digital-library (tRPC + Prisma)",
@@ -170,11 +169,11 @@ export default function DeveloperTerminalDrawer({
           type: "output",
           content: [
             "Vamsi Krishna Chandaluri",
-            "Title:    Full Stack Engineer",
+            "Title:    Senior Full Stack Engineer",
             "Focus:    Healthcare SaaS, Distributed Systems, High-Security Web Apps",
-            "Current:  Full Stack Engineer at Docita (Healthcare SaaS)",
-            "Location: Pan-India / Remote (Open to Germany & Global Relocation)",
-            "Stack:    TypeScript, React, Next.js, NestJS, Node.js, PostgreSQL, Prisma",
+            "Current:  Independent Docita healthcare SaaS venture",
+            "Location: Hyderabad, India / Remote; EU/Germany relocation subject to role",
+            "Stack:    TypeScript, React/Vite, NestJS, Node.js, PostgreSQL, Prisma",
           ].join("\n"),
         });
         break;
@@ -183,12 +182,12 @@ export default function DeveloperTerminalDrawer({
         newLines.push({
           type: "output",
           content: [
-            "CORE PRODUCTION TECH STACK:",
-            "  Frontend:     React 19, Next.js 16, TypeScript, TanStack Query, Tailwind CSS",
-            "  Backend:      NestJS, Express, Node.js, Spring Boot, WebSockets",
-            "  Database:     PostgreSQL, Prisma ORM, Row-Level Security (RLS), ACID Outbox",
+            "SUPPORTED STACK & DEPTH:",
+            "  Frontend:     React/Vite, TypeScript, TanStack Query, Tailwind; Next.js working depth",
+            "  Backend:      NestJS, Express, Node.js, WebSockets; Spring Boot training",
+            "  Database:     PostgreSQL, Prisma ORM, configurable RLS policies",
             "  Verification: Jest, Vitest, Playwright E2E, GitHub Actions CI/CD, Docker",
-            "  Architecture: Multi-Tenancy, ABAC, Distributed Queues, Transactional Outbox",
+            "  Architecture: Multi-Tenancy, ABAC, jobs, selected transactional outbox events",
           ].join("\n"),
         });
         break;
@@ -225,7 +224,6 @@ export default function DeveloperTerminalDrawer({
           content: [
             "DIRECT COORDINATES:",
             `  Email:    ${CONTACT_EMAIL}`,
-            `  Phone:    ${CONTACT_PHONE}`,
             "  GitHub:   https://github.com/CVamsi27",
             "  LinkedIn: https://www.linkedin.com/in/vamsikrishnachandaluri/",
             "  X:        https://x.com/Vamsikrishna99C",
@@ -250,11 +248,10 @@ export default function DeveloperTerminalDrawer({
           "VERSION:3.0",
           "FN:Vamsi Krishna Chandaluri",
           "N:Chandaluri;Vamsi Krishna;;;",
-          "TITLE:Senior Full Stack & Systems Engineer",
+          "TITLE:Senior Full Stack Engineer",
           `EMAIL;TYPE=INTERNET,PREF:${CONTACT_EMAIL}`,
-          `TEL;TYPE=CELL:${CONTACT_PHONE.replace(/\\s+/g, "")}`,
           "URL:https://buildora.work",
-          "NOTE:Senior Full Stack & Systems Engineer specializing in TypeScript, React, NestJS, and PostgreSQL.",
+          "NOTE:Senior Full Stack Engineer specializing in TypeScript, React, NestJS, and PostgreSQL.",
           "END:VCARD",
         ].join("\r\n");
         const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });

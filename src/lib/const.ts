@@ -5,7 +5,7 @@ import {
   Skills,
   WorkExperience,
 } from "@/types";
-import { AtSign, Globe, MapPin, Phone } from "lucide-react";
+import { AtSign, Globe, MapPin } from "lucide-react";
 import git from "../../public/git.svg";
 import html from "../../public/html.svg";
 import css from "../../public/css.svg";
@@ -19,7 +19,6 @@ import typescript from "../../public/typescript.svg";
 
 export const RESUME_PATH = "/VamsiKrishna_Resume.pdf";
 export const CONTACT_EMAIL = "cvamsik99@gmail.com";
-export const CONTACT_PHONE = "+91 7702148303";
 
 export const MENU_LIST = [
   "Work",
@@ -40,11 +39,11 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     company: "Docita",
     URL: "https://docita.work",
     details: [
-      "Built a multi-tenant healthcare SaaS end to end, spanning scheduling, patient records, prescriptions, billing and inventory in a TypeScript monorepo.",
-      "Build React/Vite clinical forms with shared Zod validation, React Hook Form and TanStack Query, handling pending submissions, API errors and server-state updates.",
-      "Develop NestJS, Prisma and PostgreSQL APIs with clinic-scoped authorization, resource policies and transactional writes; implement Row-Level Security policies, field encryption and sensitive-data audit logging.",
-      "Implement PostgreSQL-backed background jobs and a transactional outbox with bounded retries and dead-letter replay; integrate HMAC-verified payment webhooks and asynchronous document workflows.",
-      "Built an internal operational dashboard for clinic activity, API latency percentiles and error rates; maintain Jest/Vitest/Playwright checks for API, worker and frontend changes."
+      "Design and build a multi-tenant healthcare SaaS across React/Vite interfaces, NestJS APIs and PostgreSQL workflows for scheduling, patient records, prescriptions, billing and inventory.",
+      "Implement clinical forms with React Hook Form, shared Zod contracts and TanStack Query, including clinic-timezone conversion, pending/error states and server-state refresh after successful writes.",
+      "Develop clinic-scoped APIs and resource authorization policies with Prisma/PostgreSQL; add configurable Row-Level Security, patient-field encryption and sensitive-data audit hooks.",
+      "Implement PostgreSQL-backed jobs with bounded retries, claim fencing and manual dead-letter replay; integrate HMAC-verified payment webhooks, transactional invoice updates and outbox events for selected workflows.",
+      "Build internal dashboards for API latency, errors, telemetry gaps and queue outcomes; maintain Jest, Vitest and Playwright checks for API, worker and frontend changes."
     ]
   },
   {
@@ -69,7 +68,7 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     company: "Cognizant",
     URL: "https://www.cognizant.com/in/en",
     details: [
-      "Built 4 Spring Boot microservices for product, vendor, retail-shop, and checkout workflows in an e-commerce platform",
+      "Built and integrated four Spring Boot services in an e-commerce training platform during a graduate associate programme",
       "Implemented Eureka service discovery, Zuul gateway routing, JWT authorization, REST APIs, Swagger/OpenAPI documentation, and JPA/JDBC persistence"
     ]
   },
@@ -148,12 +147,8 @@ export const PERSONAL_DETAILS: PersonalDetails[] = [
     value: "cvamsik99@gmail.com",
   },
   {
-    icon: Phone,
-    value: "+91 7702148303",
-  },
-  {
     icon: MapPin,
-    value: "Open to Relocation (Germany)",
+    value: "Hyderabad, India · Remote full-stack roles",
   },
   {
     icon: Globe,

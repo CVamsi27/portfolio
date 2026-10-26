@@ -116,7 +116,7 @@ export default function ResumeModal({
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-border/60 px-5 py-2.5 bg-muted/10 text-xs text-muted-foreground">
           <div className="flex items-center gap-3">
-            <span>Bangalore, India · Open to Relocation (Germany)</span>
+            <span>Hyderabad, India · Remote full-stack roles</span>
             <span className="hidden sm:inline">·</span>
             <a
               href={`mailto:${CONTACT_EMAIL}`}

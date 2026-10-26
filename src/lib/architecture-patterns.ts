@@ -24,7 +24,7 @@ export const ARCHITECTURE_PATTERNS: ArchitecturePattern[] = [
     categoryLabel: "Distributed Systems",
     problem: "Dual-write hazard: atomic database state mutations coupled with asynchronous message broker or external notifications.",
     solution: "Persist outgoing events into an `outbox` table within the identical database transaction, decoupled from worker dispatch with idempotency keys.",
-    productionUse: "Docita Healthcare OS: Durable event intent and background processing; external completion requires recovery evidence.",
+    productionUse: "Docita Healthcare OS: Selected transactional event intent, bounded retries and manual replay; external effects need reconciliation.",
     stackUrl: "https://study.buildora.work/20-backend/20.6-microservices/03-data-and-consistency/20.6.3.06-transactional-outbox",
     codeSnippet: `// 1. Write state & outbox in same DB transaction
 await prisma.$transaction(async (tx) => {
@@ -46,7 +46,7 @@ await prisma.$transaction(async (tx) => {
     category: "distributed",
     categoryLabel: "Distributed Security",
     problem: "Cross-tenant data leakage in shared database architectures and complex clinic role permissions.",
-    solution: "PostgreSQL session variables with `current_setting('app.current_tenant_id')` backed by deny-by-default Attribute-Based Access Control.",
+    solution: "Bind the authorized clinic to the database transaction and evaluate resource policies; verify the runtime role and every query path.",
     productionUse: "Docita Healthcare OS: Tenant-scoped authorization and RLS policies; effective enforcement depends on roles and transaction context.",
     stackUrl: "https://study.buildora.work/20-backend/20.4-database/01-postgresql-foundations/20.4.1.06-row-level-security",
     codeSnippet: `-- Illustrative policy; verify real role and transaction context
@@ -98,20 +98,22 @@ class CGHSGovernmentStrategy implements BillingStrategy {
   },
   {
     id: "distributed-lock",
-    name: "Advisory Locks & Concurrency Guards",
+    name: "Booking Constraints & Concurrency Guards",
     category: "distributed",
-    categoryLabel: "Distributed Systems",
-    problem: "Race conditions in high-concurrency booking workflows causing double-booking of doctor appointment slots.",
-    solution: "PostgreSQL transaction-level advisory locks (`pg_try_advisory_xact_lock`) ensuring serialized execution per resource ID.",
-    productionUse: "Docita Healthcare OS: Booking concurrency is an invariant to verify with competing requests and actual database behavior.",
-    stackUrl: "https://study.buildora.work/20-backend/20.4-database/03-transactions-and-replication/20.4.3.03-optimistic-pessimistic-locking",
-    codeSnippet: `// Acquire session-scoped advisory lock on doctor + timeslot hash
-const acquired = await prisma.$queryRaw\`
-  SELECT pg_try_advisory_xact_lock(hashtext(\${lockKey})) AS locked;
-\`;
-if (!acquired[0].locked) {
-  throw new ConflictException('Timeslot is currently being booked.');
-}`,
+    categoryLabel: "Database Correctness",
+    problem: "Two independent requests can both observe the same free appointment slot before either writes.",
+    solution: "A PostgreSQL GiST exclusion constraint rejects overlapping active appointments for the same clinic and doctor at commit/write time.",
+    productionUse: "Docita source defines this overlap invariant; verify the migration and competing writes in an isolated database before claiming deployed enforcement.",
+    stackUrl: "https://study.buildora.work/20-backend/20.4-database/03-transactions-and-replication/20.4.3.01-transactions",
+    codeSnippet: `-- From the appointment overlap migration; status scope matters
+EXCLUDE USING gist (
+  "clinicId" WITH =,
+  "doctorId" WITH =,
+  tstzrange("startTime", "endTime") WITH &&
+)
+WHERE (status IN (
+  'SCHEDULED', 'CONFIRMED', 'IN_PROGRESS', 'RESCHEDULING'
+));`,
   },
   {
     id: "factory-method",

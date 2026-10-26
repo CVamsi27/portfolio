@@ -11,7 +11,6 @@ import {
   Copy,
   Clock,
   MapPin,
-  Phone,
   Send,
   Loader2,
   Sparkles,
@@ -33,7 +32,7 @@ import Connections from "../Connections";
 import { Textarea } from "../ui/textarea";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
-import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/const";
+import { CONTACT_EMAIL } from "@/lib/const";
 
 const FormSchema = z.object({
   name: z.string().trim().min(2, {
@@ -48,9 +47,9 @@ const FormSchema = z.object({
 });
 
 const QUICK_TOPICS = [
-  { label: "Senior Product Engineering Role", text: "Hi Vamsi, I'd like to discuss a senior product engineering role with our team..." },
+  { label: "Full Stack Role", text: "Hi Vamsi, I'd like to discuss a remote full-stack role with our team..." },
   { label: "Healthcare / Docita Tech", text: "Hi Vamsi, I was impressed by Docita and would love to learn more about your healthcare architecture..." },
-  { label: "High-Impact Contract", text: "Hi Vamsi, we're looking for a lead full-stack engineer for a key platform project..." },
+  { label: "Full Stack Contract", text: "Hi Vamsi, we're looking for a full-stack engineer for a defined remote project..." },
   { label: "General Chat", text: "Hi Vamsi, I came across your portfolio and wanted to connect..." },
 ];
 
@@ -90,9 +89,8 @@ const Contact = () => {
       "VERSION:3.0",
       "FN:Vamsi Krishna Chandaluri",
       "N:Chandaluri;Vamsi Krishna;;;",
-      "TITLE:Senior Full Stack & Systems Engineer",
+      "TITLE:Senior Full Stack Engineer",
       `EMAIL;TYPE=INTERNET,PREF:${CONTACT_EMAIL}`,
-      `TEL;TYPE=CELL:${CONTACT_PHONE.replace(/\\s+/g, "")}`,
       "URL:https://buildora.work",
       "NOTE:Full Stack Engineer specializing in TypeScript, React, NestJS, and PostgreSQL.",
       "END:VCARD",
@@ -232,28 +230,19 @@ const Contact = () => {
               <div className="mt-4 space-y-3 text-xs text-[var(--portfolio-muted)]">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-[var(--portfolio-accent)] shrink-0" />
-                  <span className="text-[var(--portfolio-ink)] font-medium">Open to Relocation (Germany / Remote)</span>
+                  <span className="text-[var(--portfolio-ink)] font-medium">Hyderabad, India · Remote full-stack roles</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-[var(--portfolio-accent)] shrink-0" />
-                  <span>Comfortable with European, US Eastern/Pacific, and APAC working hour overlaps.</span>
+                  <span>India/global remote; EU/Germany remote with confirmed relocation where required. Working-hour overlap by agreement.</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-[var(--portfolio-accent)] shrink-0" />
-                  <a
-                    href={`tel:${CONTACT_PHONE.replace(/\s+/g, "")}`}
-                    aria-label={`Call ${CONTACT_PHONE}`}
-                    className="text-[var(--portfolio-ink)] underline decoration-[var(--portfolio-rule)] underline-offset-4 hover:text-[var(--portfolio-accent)]"
-                  >
-                    {CONTACT_PHONE}
-                  </a>
-                </div>
+
               </div>
 
-              {/* Response time metric */}
+              {/* Preferred contact channel */}
               <div className="mt-4 flex items-center gap-2 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)] px-3 py-2">
-                <span className="font-utility text-[0.6rem] font-bold uppercase tracking-widest text-[var(--portfolio-muted)]">Avg. reply</span>
-                <span className="ml-auto font-display text-sm font-bold text-[var(--portfolio-ink)]">&lt; 24 hrs</span>
+                <span className="font-utility text-[0.6rem] font-bold uppercase tracking-widest text-[var(--portfolio-muted)]">Contact</span>
+                <span className="ml-auto font-display text-sm font-bold text-[var(--portfolio-ink)]">Email</span>
               </div>
 
               <div className="mt-6 border-t border-[var(--portfolio-rule)] pt-4">

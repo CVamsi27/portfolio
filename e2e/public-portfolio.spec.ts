@@ -129,3 +129,20 @@ test.describe("public personal portfolio", () => {
     await expect(details).toContainText(/PostgreSQL/i);
   });
 });
+
+
+test("public contact and vCard omit private phone contact", async ({ page }) => {
+  await page.goto("/#Contact");
+  await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download vCard contact" }).click();
+  const download = await downloadPromise;
+  const stream = await download.createReadStream();
+  if (!stream) throw new Error("Expected the downloaded contact card");
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  const card = Buffer.concat(chunks).toString("utf8");
+  expect(card).toContain("BEGIN:VCARD");
+  expect(card).toContain("EMAIL;");
+  expect(card).not.toMatch(/^TEL[;:]/m);
+});

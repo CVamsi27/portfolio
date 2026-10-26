@@ -43,10 +43,10 @@ const PROJECT_EXTRAS: Record<
     categoryLabel: "Healthcare SaaS",
     metrics: "5 Core Clinical Workflows",
     highlights: [
-      "Multi-tenant PostgreSQL Row-Level Security (RLS) & Deny-by-default ABAC",
-      "Transactional outbox and background jobs with retries and recovery boundaries",
+      "Clinic-scoped authorization and configurable PostgreSQL RLS policies",
+      "Selected transactional outbox events; jobs with bounded retries and manual recovery",
       "Prisma migrations and tenant-scoped transactional writes",
-      "Full-stack end-to-end type safety with shared Zod schemas and TanStack Query",
+      "Shared Zod contracts, runtime validation and TanStack Query server state",
     ],
   },
   "Senior Full Stack Bible": {
@@ -65,7 +65,7 @@ const PROJECT_EXTRAS: Record<
     categoryLabel: "Real-Time Platform",
     metrics: "WebSockets · Microservices",
     highlights: [
-      "Low-latency real-time collaborative boards with presence broadcast",
+      "Real-time collaborative boards with presence broadcast",
       "Decoupled microservice architecture with NestJS and PostgreSQL",
     ],
   },
@@ -74,7 +74,7 @@ const PROJECT_EXTRAS: Record<
     categoryLabel: "Full-Stack System",
     metrics: "tRPC · End-to-End Types",
     highlights: [
-      "100% end-to-end type safety from database models to UI via tRPC",
+      "Shared tRPC types from server contracts to UI, plus runtime validation",
       "Zod contract validation and relational query optimization with Prisma",
     ],
   },
@@ -109,7 +109,7 @@ const PROJECT_EXTRAS: Record<
 
 const TABS: { id: ProjectCategory; label: string }[] = [
   { id: "all", label: "All Systems" },
-  { id: "saas", label: "Production SaaS" },
+  { id: "saas", label: "Healthcare SaaS" },
   { id: "platforms", label: "Platforms & Distributed" },
   { id: "interactive", label: "Interactive & Creative" },
 ];

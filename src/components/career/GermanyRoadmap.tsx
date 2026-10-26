@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import {
   type GermanyRoadmap as Plan,
   campaignPosition,
+  roadmapForDate,
 } from "@/lib/germany-roadmap";
 import { isCalendarDate, personalSchedule } from "@/lib/personal-timetable";
 import type {
@@ -22,7 +23,8 @@ import type {
   GermanyCompanyRecord,
 } from "@/lib/germany-execution";
 export default function GermanyRoadmap({
-  plan,
+  plan: activePlan,
+  history = [],
   today,
   email,
   days,
@@ -33,6 +35,7 @@ export default function GermanyRoadmap({
   careerView = false,
 }: {
   careerView?: boolean;
+  history?: Plan[];
   plan: Plan;
   onAttempt?: (attempt: GermanyExamAttempt) => void;
   onCompany?: (id: string, record: GermanyCompanyRecord) => void;
@@ -57,6 +60,11 @@ export default function GermanyRoadmap({
     window.addEventListener("popstate", update);
     return () => window.removeEventListener("popstate", update);
   }, [today, query]);
+  const plan =
+    roadmapForDate(
+      { germanyRoadmap: activePlan, roadmapHistory: history },
+      date,
+    ) ?? activePlan;
   const position = campaignPosition(plan, date),
     week = plan.weeks[position.week - 1];
   const schedule =

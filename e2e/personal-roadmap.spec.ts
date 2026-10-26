@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
+import catalogue from "../src/data/career-curriculum.json";
 
 test.describe("personal roadmap", () => {
   test("keeps the hub canonical while tasks return to planning", async ({
@@ -257,6 +258,31 @@ test.describe("personal roadmap", () => {
   }) => {
     await page.clock.install({ time: new Date("2026-09-30T10:00:00+05:30") });
     await seed(page, {
+      // Historical authored tasks remain executable after the catalogue became
+      // navigation-only. A new catalogue must not manufacture completion tasks.
+      "vk:timetable_100_days": {
+        days: [
+          {
+            ...catalogue.days[0],
+            date: "2026-09-30",
+            title: "Execution Context",
+            checklist: [
+              {
+                id: "career:2026-09-30:study-notes",
+                text: "Write concise notes for chosen role-relevant chapters",
+                evidenceType: "note",
+                acceptanceCriteria:
+                  "At least 5 accurate ideas, one worked example, one open question, and links to the assigned chapters.",
+                estimatedMinutes: 25,
+                instructions: [
+                  "For each chapter, write its invariant, one small example, and one failure mode.",
+                  "Retain the actual notes and observed gap.",
+                ],
+              },
+            ],
+          },
+        ],
+      },
       "vk:career_execution_state": {
         version: 1,
         evidenceByItemId: {},
