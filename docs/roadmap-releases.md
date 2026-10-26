@@ -32,6 +32,8 @@ The preview is a new mode-0600 private file containing the source rows, exact pr
 
 The two updates are **not one transaction**. A concurrent update or readback mismatch stops the release and reports already applied keys. Retain that backup and preview. Re-read current rows and prepare a targeted repair with fresh compare-and-swap versions; do not blindly restore all owner rows or overwrite concurrent work. A local build or generated payload does not demonstrate that a deployed client or live account was updated.
 
+The forward importer runs this protocol through `scripts/owner-release.ts`. Its synthetic tests cover a first-row success followed by a second-row version conflict, then a fresh owner read and targeted reconciliation that preserves concurrent timetable and unrelated-row edits. They check both retained backups, zero writes/backups on a no-op, backup failure before any write, and readback mismatches in changed rows, untouched rows or row count. These tests run under `pnpm test:germany-roadmap` with temporary local backups and an in-memory account boundary.
+
 Run `pnpm test:career-curriculum`, `pnpm test:germany-roadmap`, type/lint/build checks and the affected browser tests. The forward browser suite checks Today → dated assignment → saved evidence → weekly plan, final-week rendering, Sunday recovery and retained prior evidence.
 
 The orientation importer (`sync-career-plan.ts`) uses the same real-path check for private inputs, an exclusive private backup, per-row compare-and-swap and all-row readback. An unchanged orientation exits without a write or backup.

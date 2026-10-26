@@ -19,7 +19,7 @@
     "test:career-curriculum": "node --test scripts/generate-career-curriculum.test.mjs scripts/generate-career-plan.test.mjs && node --experimental-strip-types --test src/lib/career-roadmap.test.ts src/lib/bible-sync.test.ts scripts/career-seed-apply.test.ts",
     "pretest:e2e": "test -f .env && mv .env .env.local_save || true; NEXT_TELEMETRY_DISABLED=1 NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY= next build; STATUS=$?; test -f .env.local_save && mv .env.local_save .env || true; exit $STATUS",
     "test:e2e": "playwright test",
-    "test:germany-roadmap": "node --experimental-strip-types --test scripts/generate-germany-roadmap.test.mjs scripts/generate-job-plan.test.mjs scripts/generate-urgent-job-plan.test.mjs scripts/generate-forward-plan.test.mjs && node --experimental-strip-types --test src/lib/germany-roadmap.test.ts src/lib/germany-execution.test.ts src/lib/job-plan.test.ts src/lib/personal-timetable.test.ts src/lib/personal-nav.test.ts",
+    "test:germany-roadmap": "node --experimental-strip-types --test scripts/generate-germany-roadmap.test.mjs scripts/generate-job-plan.test.mjs scripts/generate-urgent-job-plan.test.mjs scripts/generate-forward-plan.test.mjs scripts/owner-release.test.ts && node --experimental-strip-types --test src/lib/germany-roadmap.test.ts src/lib/germany-execution.test.ts src/lib/job-plan.test.ts src/lib/personal-timetable.test.ts src/lib/personal-nav.test.ts",
     "career:forward:generate": "node --experimental-strip-types scripts/generate-job-plan.mjs --study-days",
     "career:forward:release": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --experimental-strip-types scripts/sync-germany-roadmap.ts"
   },

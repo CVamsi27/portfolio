@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { createClient } from "@supabase/supabase-js";
+import { applyOwnerRelease } from "./owner-release.ts";
 import { TIMETABLE_OWNER_EMAIL } from "../src/lib/personal-timetable.ts";
 import {
   assertPrivateWorkspacePath,
@@ -119,59 +120,22 @@ async function run() {
     );
   }
   console.log(JSON.stringify(summary, null, 2));
-  if (!apply || changes.length === 0) return;
+  if (!apply) return;
   const backup = resolve(
     dirname(absolute),
     `germany-roadmap-before-${Date.now()}.json`,
   );
-  writeFileSync(backup, JSON.stringify(before, null, 2) + "\n", {
-    mode: 0o600,
-    flag: "wx",
+  const result = await applyOwnerRelease({
+    client,
+    owner,
+    before: before!,
+    changes,
+    backupPath: backup,
   });
-  const applied = [];
-  try {
-    // Each update is an atomic compare-and-swap. The two-key release is not a transaction.
-    // A conflict stops the release; retain the backup and report any already applied keys.
-    for (const row of changes) {
-      const { data, error } = await client
-        .from("tracker_data")
-        .update({ value: row.value, updated_at: new Date().toISOString() })
-        .eq("user_id", owner)
-        .eq("key", row.key)
-        .eq("updated_at", row.version)
-        .select("key")
-        .maybeSingle();
-      if (error) throw error;
-      if (!data)
-        throw new Error(
-          `Concurrent change in ${row.key}; owner data was not overwritten`,
-        );
-      applied.push(row.key);
-    }
-    const { data: after, error: readError } = await client
-      .from("tracker_data")
-      .select("key,value,updated_at")
-      .eq("user_id", owner);
-    if (readError) throw readError;
-    if (after!.length !== before!.length)
-      throw new Error("Owner row count changed during verification");
-    for (const row of before!) {
-      const expected =
-        changes.find((r) => r.key === row.key)?.value ?? row.value;
-      const actual = after!.find((r) => r.key === row.key);
-      if (!actual || !isDeepStrictEqual(actual.value, expected))
-        throw new Error(
-          `Readback mismatch or concurrent modification in ${row.key}`,
-        );
-    }
-    console.log(
-      `Verified ${applied.length} changed rows and ${before!.length - applied.length} untouched owner rows. Backup retained in the canonical private reports directory.`,
-    );
-  } catch (error) {
-    throw new Error(
-      `Release stopped; applied keys: ${applied.join(", ") || "none"}. Private backup retained. ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
-  }
+  if (result.appliedKeys.length === 0) return;
+  console.log(
+    `Verified ${result.appliedKeys.length} changed rows and ${result.untouchedRows} untouched owner rows. Backup retained in the canonical private reports directory.`,
+  );
 }
 run().catch((error) => {
   console.error(
