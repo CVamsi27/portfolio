@@ -1176,9 +1176,9 @@ const preferredReferences = [
     "10\\.3\\.3\\.06-state-management",
     "60.*order",
     "60.*reconnect",
-    "80\\.08-",
-    "80\\.08-",
-    "80\\.08-",
+    "20\\.12\\.06-safety-cost-governance",
+    "20\\.12\\.02-prompts-context-evals",
+    "20\\.12\\.01-llm-app-architecture",
   ],
   [
     "80\\.03-",
@@ -1338,13 +1338,7 @@ export function generateStudyDayRoadmap(base, curriculum, options = {}) {
         ? firstWeek[index].map((id) => byId.get(id))
         : week === 16
           ? [byId.get(finalReferences[index % 6])]
-          : week === 14 && /\bAI\b/.test(mechanism)
-            ? [
-                byId.get(
-                  "80-lanes-abroad-full-stack/80.08-system-design-case-bank.md",
-                ),
-              ]
-            : [primaryReference];
+          : [primaryReference];
     if (selected.some((chapter) => !chapter))
       throw new Error("Missing canonical reference for " + mechanism);
     const links = selected

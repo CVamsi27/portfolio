@@ -45,3 +45,7 @@ Today waits for hydration before selecting the device clock and calendar. Its se
 Implementation `03d3af2` adds the forward contract, history-preserving merge, private authoring/import boundaries, current public resume and consistent full-stack positioning. The companion Bible implementation is `43df6397`. Local validation passed 90 curriculum/roadmap tests, TypeScript, lint, the production build and all 422 browser tests. The calendar/clock regression and all eight viewport/theme sweeps pass. The orientation hostile-path regression failed before the real-path fix and passed afterward; unchanged imports perform no account write.
 
 Git publication, production deployment, and owner-data application are separate release stages. Check the deployed client before importing version 3; retain private backup, compare-and-swap/readback and no-op evidence separately. These checks establish application behavior within their fixtures, not candidate skill mastery or new production sign-in evidence.
+
+## Mechanism-specific learning references
+
+The optional AI practice now points to the canonical AI safety/governance, prompt/context/evaluation and LLM application-architecture chapters. A regression exercises generated assignments for the safety case, retained evaluation case and changed-case defense; the former general system-design link did not teach those mechanisms. This changes reference selection while retaining assignment IDs, dates, time budgets and prerequisite order.

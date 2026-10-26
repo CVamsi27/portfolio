@@ -345,6 +345,34 @@ test("canonical references follow the specific mechanism rather than a coinciden
   assert.match(study("2027-02-18")[0], /80\.33-weekly-study-tracker\.md$/);
 });
 
+test("AI practice links the safety and evaluation mechanisms its saved evidence requires", () => {
+  const plan = generate();
+  for (const [date, expected] of [
+    [
+      "2027-02-04",
+      "20-backend/20.12-ai-engineering/20.12.06-safety-cost-governance.md",
+    ],
+    [
+      "2027-02-05",
+      "20-backend/20.12-ai-engineering/20.12.02-prompts-context-evals.md",
+    ],
+    [
+      "2027-02-06",
+      "20-backend/20.12-ai-engineering/20.12.01-llm-app-architecture.md",
+    ],
+  ]) {
+    const study = plan.execution.jobPlan.days
+      .find((day) => day.date === date)
+      .assignments.find((assignment) => assignment.kind === "study");
+    assert.deepEqual(
+      study.chapterIds,
+      [expected],
+      `${date}: the AI task needs its actual canonical mechanism`,
+    );
+    assert.ok(study.brief.includes(`https://study.buildora.work/${expected}`));
+  }
+});
+
 test("forward execution never manufactures historical Saturday work when no retained plan is supplied", async () => {
   const { datedAssignments } = await import("../src/lib/germany-execution.ts");
   const plan = generate();
@@ -394,8 +422,15 @@ test("forward authoring and owner preview reject a public path merely named like
     assert.match(preview.stderr, /canonical private workspace/i);
     const orientation = spawnSync(
       process.execPath,
-      ["--experimental-strip-types", resolve("scripts/sync-career-plan.ts"), "--payload=" + payload],
-      { encoding: "utf8", env: { ...process.env, SUPABASE_URL: "", SUPABASE_SECRET_KEY: "" } },
+      [
+        "--experimental-strip-types",
+        resolve("scripts/sync-career-plan.ts"),
+        "--payload=" + payload,
+      ],
+      {
+        encoding: "utf8",
+        env: { ...process.env, SUPABASE_URL: "", SUPABASE_SECRET_KEY: "" },
+      },
     );
     assert.notEqual(orientation.status, 0);
     assert.match(orientation.stderr, /canonical private workspace/i);
