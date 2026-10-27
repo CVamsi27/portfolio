@@ -39,11 +39,11 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     company: "Docita",
     URL: "https://docita.work",
     details: [
-      "Design and build a multi-tenant healthcare SaaS across React/Vite interfaces, NestJS APIs and PostgreSQL workflows for scheduling, patient records, prescriptions, billing and inventory.",
-      "Implement clinical forms with React Hook Form, shared Zod contracts and TanStack Query, including clinic-timezone conversion, pending/error states and server-state refresh after successful writes.",
-      "Develop clinic-scoped APIs and resource authorization policies with Prisma/PostgreSQL; add configurable Row-Level Security, patient-field encryption and sensitive-data audit hooks.",
-      "Implement PostgreSQL-backed jobs with bounded retries, claim fencing and manual dead-letter replay; integrate HMAC-verified payment webhooks, transactional invoice updates and outbox events for selected workflows.",
-      "Build internal dashboards for API latency, errors, telemetry gaps and queue outcomes; maintain Jest, Vitest and Playwright checks for API, worker and frontend changes."
+      "Build a multi-tenant healthcare SaaS spanning 5 workflows — scheduling, patient records, prescriptions, billing and inventory — with React/Vite, NestJS and PostgreSQL.",
+      "Connect clinical forms to APIs using React Hook Form, Zod and TanStack Query; handle clinic-timezone conversion, input validation, pending/error states and server-state refresh after writes.",
+      "Implement clinic-scoped NestJS, Prisma and PostgreSQL APIs and resource policies, configurable Row-Level Security, patient-field encryption and sensitive-data audit hooks.",
+      "Implement PostgreSQL-backed jobs with bounded retries, claim fencing and manual dead-letter replay; connect HMAC-verified payment webhooks, transactional invoice updates and selected outbox events.",
+      "Build an internal operational dashboard exposing API latency, error rates, telemetry gaps and queue outcomes; maintain Jest, Vitest and Playwright checks across API, worker and frontend changes."
     ]
   },
   {
@@ -54,10 +54,10 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     company: "MAQ Software",
     URL: "https://maqsoftware.com",
     details: [
-      "Developed recruitment and internal-workflow applications with TypeScript, React and Node.js; centralized shared service logic and input validation across application modules.",
-      "Profiled REST APIs and PostgreSQL queries; addressed query bottlenecks with indexing, pagination, targeted caching and removal of N+1 access patterns.",
-      "Built reusable React and TypeScript components for responsive interfaces, standardizing loading, validation and error states with keyboard and screen-reader support.",
-      "Improved delivery practices with GitHub Actions, Jest and release checks; mentored engineers through code reviews, debugging and design discussions."
+      "Built recruitment and internal-workflow applications with TypeScript, React and Node.js; centralized service logic and input validation in reusable modules.",
+      "Optimized REST API and PostgreSQL access patterns through profiling, indexing, pagination, targeted caching and N+1 removal.",
+      "Standardized responsive React and TypeScript forms and reusable components with loading, validation and error states, keyboard interaction and screen-reader support.",
+      "Strengthened release checks with GitHub Actions and Jest; mentored engineers through code reviews, debugging and design discussions."
     ]
   },
   {

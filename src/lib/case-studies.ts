@@ -58,7 +58,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     role: "Independent SaaS venture — built and maintained end to end",
     period: "Aug 2025 – Present",
     summary:
-      "Independent healthcare SaaS: scheduling, patient records, prescriptions, billing and inventory on a TypeScript monorepo — built to replace fragmented paper workflows.",
+      "Independent healthcare SaaS spanning five workflows: scheduling, patient records, prescriptions, billing and inventory, built with React/Vite, NestJS and PostgreSQL.",
     problem: [
       "Clinics run scheduling, prescriptions, diagnostics and billing across disconnected paper and spreadsheet records, with no single auditable trail.",
       "Healthcare data raises the bar: cross-tenant isolation, scoped role permissions, field encryption and sensitive-data audit logging have to be structural, not bolted on.",

@@ -139,9 +139,9 @@ const About = () => {
           </h1>
 
           <p className="mt-6 sm:mt-8 max-w-2xl text-base sm:text-lg leading-relaxed sm:leading-8 text-[var(--portfolio-muted)]">
-            I build React/TypeScript interfaces, Node.js/NestJS APIs and PostgreSQL workflows
-            end to end, with 5+ years across enterprise applications and an independent
-            healthcare SaaS venture.
+            I build React/TypeScript interfaces, Node.js/NestJS APIs and PostgreSQL workflows,
+            with 5+ years across enterprise applications and an independent healthcare SaaS.
+            My work includes query optimization, tenant-scoped access and recoverable jobs.
           </p>
 
           <div className="mt-7 sm:mt-9 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3">
