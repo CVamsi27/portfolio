@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   DEFAULT_CAREER_TELEGRAM_PREFERENCES,
+  careerTelegramMayBeDue,
   dueCareerNotifications,
   validCareerTelegramPreferences,
   type CareerTelegramPreferences,
@@ -14,6 +15,7 @@ import {
   type JobPlan,
 } from "./job-plan.ts";
 import { routineOccurrences } from "./routine-reminders.ts";
+import { jobPlanFixture } from "../../scripts/fixtures/job-plan.mjs";
 
 // Synthetic technical plan only; no owner, destination or candidate material.
 function planFixture(): JobPlan {
@@ -539,4 +541,156 @@ test("a fully verified day does not produce a digest or block reminders", () => 
       dueCareerNotifications(plan, execution, preferences(), instant(time)),
       [],
     );
+});
+
+test("cheap prefilter preserves every due start across all 100 supported dates and cadences", () => {
+  const plan = planFixture();
+  let dueCount = 0;
+  for (const day of plan.days) {
+    for (const cadence of ["digest-only", "digest-and-learning"] as const) {
+      const prefs = preferences({ cadence });
+      const starts = new Set([
+        "06:00",
+        ...day.assignments
+          .filter((assignment) =>
+            ["study", "project"].includes(assignment.kind),
+          )
+          .map((assignment) => assignment.range.slice(0, 5)),
+      ]);
+      for (const time of starts) {
+        const scheduledAt = Date.parse(`${day.date}T${time}:00+05:30`);
+        for (const delay of [0, 600_000]) {
+          const now = scheduledAt + delay;
+          const actual = dueCareerNotifications(plan, {}, prefs, now);
+          if (!actual.length) continue;
+          dueCount += actual.length;
+          assert.equal(
+            careerTelegramMayBeDue(prefs, now),
+            true,
+            `${day.date} ${time} ${cadence} +${delay}`,
+          );
+        }
+      }
+    }
+  }
+  // Two digest windows per cadence/day, plus weekday study/project and Saturday study.
+  assert.equal(dueCount, 768);
+});
+
+test("cheap prefilter skips silent periods without loading a dated plan", () => {
+  for (const time of [
+    "00:00",
+    "05:59",
+    "06:11",
+    "06:41",
+    "08:30",
+    "11:41",
+    "13:30",
+    "20:30",
+    "23:59",
+  ])
+    assert.equal(
+      careerTelegramMayBeDue(preferences(), instant(time)),
+      false,
+      time,
+    );
+  for (const date of ["2026-10-25", "2026-11-01", "2027-02-19"])
+    assert.equal(
+      careerTelegramMayBeDue(
+        preferences(),
+        Date.parse(`${date}T06:00:00+05:30`),
+      ),
+      false,
+      date,
+    );
+  assert.equal(careerTelegramMayBeDue(preferences(), instant("06:00")), true);
+  assert.equal(careerTelegramMayBeDue(preferences(), instant("06:30")), true);
+  assert.equal(careerTelegramMayBeDue(preferences(), instant("11:30")), true);
+  assert.equal(
+    careerTelegramMayBeDue(
+      preferences({ cadence: "digest-only" }),
+      instant("06:30"),
+    ),
+    false,
+  );
+  assert.equal(
+    careerTelegramMayBeDue(
+      preferences(),
+      Date.parse("2026-10-31T14:15:00+05:30"),
+    ),
+    true,
+  );
+  assert.equal(
+    careerTelegramMayBeDue(
+      preferences(),
+      Date.parse("2026-10-31T06:30:00+05:30"),
+    ),
+    false,
+  );
+});
+
+test("cheap prefilter honors catch-up boundaries, activation and a custom local digest time", () => {
+  assert.equal(careerTelegramMayBeDue(preferences(), instant("06:10")), true);
+  assert.equal(
+    careerTelegramMayBeDue(preferences(), instant("06:10") + 1),
+    false,
+  );
+  assert.equal(
+    careerTelegramMayBeDue(
+      preferences({ catchUpMinutes: 1 }),
+      instant("06:01"),
+    ),
+    true,
+  );
+  assert.equal(
+    careerTelegramMayBeDue(
+      preferences({ catchUpMinutes: 1 }),
+      instant("06:01") + 1,
+    ),
+    false,
+  );
+  assert.equal(
+    careerTelegramMayBeDue(
+      preferences({ enabledAt: "2026-10-26T00:35:00Z" }),
+      instant("06:06"),
+    ),
+    false,
+  );
+  assert.equal(
+    careerTelegramMayBeDue(
+      preferences({ enabledAt: "2026-10-26T00:30:00Z" }),
+      instant("06:00"),
+    ),
+    true,
+  );
+  assert.equal(
+    careerTelegramMayBeDue(
+      preferences({ digestTime: "00:03" }),
+      Date.parse("2026-10-25T18:33:00Z"),
+    ),
+    true,
+  );
+  for (const prefs of [
+    undefined,
+    {},
+    DEFAULT_CAREER_TELEGRAM_PREFERENCES,
+    { ...preferences(), enabledAt: null },
+    { ...preferences(), catchUpMinutes: 11 },
+  ])
+    assert.equal(careerTelegramMayBeDue(prefs, instant("06:00")), false);
+  for (const now of [NaN, Infinity, -Infinity, 9e20])
+    assert.equal(careerTelegramMayBeDue(preferences(), now), false);
+});
+
+test("career reminders support only the validated version 3 dated schedule", () => {
+  const legacy = jobPlanFixture() as JobPlan;
+  assert.equal(isJobPlan(legacy), true);
+  assert.deepEqual(
+    dueCareerNotifications(legacy, {}, preferences(), instant("06:00")),
+    [],
+  );
+  assert.deepEqual(
+    dueCareerNotifications(legacy, {}, preferences(), instant("08:00")),
+    [],
+  );
 });

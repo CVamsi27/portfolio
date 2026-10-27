@@ -2,6 +2,8 @@ import {
   isJobPlan,
   jobAssignments,
   jobEvidenceStatus,
+  studyDates,
+  studyDaySlots,
   type JobAssignment,
   type JobKind,
   type JobPlan,
@@ -65,6 +67,58 @@ function validActivationTime(value: unknown): value is string {
     ) &&
     isCalendarDate(value.slice(0, 10)) &&
     Number.isFinite(Date.parse(value))
+  );
+}
+
+// The v3 validator fixes the dates and slots. Reuse them before loading its payload.
+const supportedStudyDates = new Set(studyDates());
+
+function careerTelegramContext(prefs: unknown, now: number) {
+  if (
+    !Number.isFinite(now) ||
+    !Number.isFinite(new Date(now).getTime()) ||
+    !validCareerTelegramPreferences(prefs) ||
+    !prefs.enabled
+  )
+    return undefined;
+  const date = zonedDate(now, prefs.timezone);
+  if (!supportedStudyDates.has(date)) return undefined;
+  return { prefs, date, enabledAt: Date.parse(prefs.enabledAt!) };
+}
+
+function notificationIsDue(
+  at: number,
+  enabledAt: number,
+  catchUpMinutes: number,
+  now: number,
+) {
+  return (
+    Number.isFinite(at) &&
+    at >= enabledAt &&
+    at <= now &&
+    now - at <= catchUpMinutes * 60_000
+  );
+}
+
+/** Cheap eligibility only: evidence and the supported v3 plan still require validation. */
+export function careerTelegramMayBeDue(prefs: unknown, now: number): boolean {
+  const context = careerTelegramContext(prefs, now);
+  if (!context) return false;
+  const { date, prefs: preferences, enabledAt } = context;
+  const times = [preferences.digestTime];
+  if (preferences.cadence === "digest-and-learning")
+    times.push(
+      ...studyDaySlots(date)
+        .filter(([, kind]) => kind === "study" || kind === "project")
+        .map(([range]) => range.slice(0, 5)),
+    );
+  return times.some((time) =>
+    notificationIsDue(
+      scheduledInstant(date, time, preferences.timezone),
+      enabledAt,
+      preferences.catchUpMinutes,
+      now,
+    ),
   );
 }
 
@@ -151,35 +205,22 @@ export function dueCareerNotifications(
   prefs: unknown,
   now: number,
 ): CareerTelegramNotification[] {
-  if (
-    !Number.isFinite(now) ||
-    !Number.isFinite(new Date(now).getTime()) ||
-    !validCareerTelegramPreferences(prefs) ||
-    !prefs.enabled ||
-    !isJobPlan(plan)
-  )
-    return [];
-  const date = zonedDate(now, prefs.timezone);
-  if (
-    !isCalendarDate(date) ||
-    date < plan.effectiveOn ||
-    (plan.endDate && date > plan.endDate) ||
-    new Date(`${date}T12:00:00Z`).getUTCDay() === 0
-  )
-    return [];
+  const context = careerTelegramContext(prefs, now);
+  if (!context || plan?.version !== 3 || !isJobPlan(plan)) return [];
+  const { date, prefs: preferences, enabledAt } = context;
   const entries = evidenceEntries(execution);
   const assignments = jobAssignments(plan, date).filter(
     (assignment) => jobEvidenceStatus(entries[assignment.id]) !== "verified",
   );
   if (!assignments.length) return [];
-  const enabledAt = Date.parse(prefs.enabledAt!);
   const due = (at: number) =>
-    Number.isFinite(at) &&
-    at >= enabledAt &&
-    at <= now &&
-    now - at <= prefs.catchUpMinutes * 60_000;
+    notificationIsDue(at, enabledAt, preferences.catchUpMinutes, now);
   const result: CareerTelegramNotification[] = [];
-  const digestAt = scheduledInstant(date, prefs.digestTime, prefs.timezone);
+  const digestAt = scheduledInstant(
+    date,
+    preferences.digestTime,
+    preferences.timezone,
+  );
   if (due(digestAt)) {
     const lines = assignments.map((assignment) => {
       const learning =
@@ -201,14 +242,14 @@ export function dueCareerNotifications(
       ),
     });
   }
-  if (prefs.cadence === "digest-and-learning")
+  if (preferences.cadence === "digest-and-learning")
     for (const assignment of assignments) {
       if (assignment.kind !== "study" && assignment.kind !== "project")
         continue;
       const scheduledAt = scheduledInstant(
         date,
         assignment.range.slice(0, 5),
-        prefs.timezone,
+        preferences.timezone,
       );
       if (!due(scheduledAt)) continue;
       const kind =

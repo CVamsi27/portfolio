@@ -110,3 +110,6 @@ Still pending: revision-aware meal storage/outbox and legacy cutover, broader va
 ### Day-review and recent-food consistency
 
 Planned entries are excluded from fasting/complete review controls as well as consumed totals. Changing the diary date or account resets any unconfirmed fasting action. Recent & saved uses the newest valid consumed snapshot per distinct food; repeating it creates a new intake record without linking it to an old prepared batch. Malformed dated intake stays unknown in completeness analysis; null rows cannot crash the diary. No schema change or new configuration is required for these corrections. The preceding full-spec and live-release gates remain open.
+
+
+Career delivery supports the validated version3 dated study plan. The dispatcher reuses its canonical slot definitions to skip full-plan reads outside a possible digest or study/project catch-up window. Routine checks still run every minute. This guard is an optimization: a due window still requires the full validated plan and current evidence before any career message is claimed.

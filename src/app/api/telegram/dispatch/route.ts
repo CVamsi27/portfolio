@@ -19,6 +19,7 @@ import {
 
 import {
   dueCareerNotifications,
+  careerTelegramMayBeDue,
   validCareerTelegramPreferences,
 } from "../../../../lib/career-telegram.ts";
 import {
@@ -92,7 +93,10 @@ export async function GET(request: Request) {
     const prefs = rows?.find(
       (row) => row.key === "career:telegram-preferences",
     )?.value;
-    if (validCareerTelegramPreferences(prefs) && prefs.enabled) {
+    if (
+      validCareerTelegramPreferences(prefs) &&
+      careerTelegramMayBeDue(prefs, now)
+    ) {
       // Read only the current plan, not the command center's retained release history.
       const [career, execution] = await Promise.all([
         admin

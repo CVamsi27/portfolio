@@ -16,7 +16,8 @@ const originalEnv = { ...process.env };
 const realFetch = globalThis.fetch;
 const realNow = Date.now;
 const owner = "ac5a22c5-a9c0-4c67-a72e-bebbe9d4ef9f";
-const clock = Date.parse("2026-10-26T06:01:00+05:30");
+const baseClock = Date.parse("2026-10-26T06:01:00+05:30");
+let clock = baseClock;
 let fixtureUrl = "";
 let privateChat = true;
 let ackError = false;
@@ -103,7 +104,15 @@ const server = createServer(async (request, response) => {
       enabledAt: prefsEnabled ? "2026-10-25T00:00:00Z" : null,
     };
     if (key === "eq.career_command_center") {
-      response.end(JSON.stringify({ plan: url.searchParams.get("select") === "plan:value->germanyRoadmap->execution->jobPlan" ? plan : null }));
+      response.end(
+        JSON.stringify({
+          plan:
+            url.searchParams.get("select") ===
+            "plan:value->germanyRoadmap->execution->jobPlan"
+              ? plan
+              : null,
+        }),
+      );
       return;
     }
     if (key === "eq.career_execution_state") {
@@ -197,6 +206,8 @@ after(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
 });
 beforeEach(() => {
+  clock = baseClock;
+  schedule.time = "06:00";
   privateChat = true;
   ackError = false;
   sweepError = false;
@@ -317,4 +328,18 @@ test("normalizing a numeric chat alias cannot resend an accepted career occurren
   const repeat = await GET(request());
   assert.equal((await repeat.json()).sent, 0);
   assert.equal(sends.length, 1);
+});
+
+test("routine-only ticks avoid loading the full dated career plan", async () => {
+  clock = baseClock + 12 * 60 * 60_000;
+  schedule.time = "18:00";
+  const response = await GET(request());
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).sent, 1);
+  assert.equal(
+    reads.some(
+      (url) => url.searchParams.get("key") === "eq.career_command_center",
+    ),
+    false,
+  );
 });
