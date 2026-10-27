@@ -16,6 +16,10 @@ import { validSchedule } from "./routine-reminders";
 import { validProgram, validNutritionDay } from "./nutrition-program";
 import { validMealTemplate, validPreparedBatch } from "./nutrition-reuse";
 import { validPortion } from "./nutrition-catalog";
+import {
+  validCareerTelegramPreferences,
+  type CareerTelegramPreferences,
+} from "./career-telegram";
 const SCOPED_KEYS = [
   "plan:blocks",
   "plan:days",
@@ -58,6 +62,7 @@ const KEYS = [
   "weight-loss",
   "archive:items",
   "reminders",
+  "career:telegram-preferences",
   "fasting:water",
   "work:active",
   "focus:active",
@@ -362,25 +367,27 @@ export function applyBackup(backup: unknown): ImportReport {
     if (!(key in data) || SCOPED_KEYS.includes(key)) continue;
     const value = data[key];
     const valid =
-      key === "work:active"
-        ? validWorkState(value)
-        : key === "bedtime:manual"
-          ? typeof value === "boolean"
-          : key === "bedtime:dismissed-until"
-            ? typeof value === "number" && Number.isFinite(value)
-            : arrayKeys.includes(key)
-              ? Array.isArray(value)
-              : [
-                    "work:active",
-                    "focus:active",
-                    "study:active_session",
-                    "timetable_100_days",
-                  ].includes(key)
-                ? value === null ||
-                  (typeof value === "object" && !Array.isArray(value))
-                : value !== null &&
-                  typeof value === "object" &&
-                  !Array.isArray(value);
+      key === "career:telegram-preferences"
+        ? validCareerTelegramPreferences(value)
+        : key === "work:active"
+          ? validWorkState(value)
+          : key === "bedtime:manual"
+            ? typeof value === "boolean"
+            : key === "bedtime:dismissed-until"
+              ? typeof value === "number" && Number.isFinite(value)
+              : arrayKeys.includes(key)
+                ? Array.isArray(value)
+                : [
+                      "work:active",
+                      "focus:active",
+                      "study:active_session",
+                      "timetable_100_days",
+                    ].includes(key)
+                  ? value === null ||
+                    (typeof value === "object" && !Array.isArray(value))
+                  : value !== null &&
+                    typeof value === "object" &&
+                    !Array.isArray(value);
     if (!valid)
       return {
         ok: false,
@@ -501,7 +508,15 @@ export function applyBackup(backup: unknown): ImportReport {
   const snapshot: Record<string, unknown> = {};
   for (const key of KEYS) {
     if (!(key in data)) continue;
-    const value = data[key];
+    // A backup restores configuration, never live consent for a server channel.
+    const value =
+      key === "career:telegram-preferences"
+        ? {
+            ...(data[key] as CareerTelegramPreferences),
+            enabled: false,
+            enabledAt: null,
+          }
+        : data[key];
     if (!looksLikeShape(value)) {
       skipped.push(key);
       continue;

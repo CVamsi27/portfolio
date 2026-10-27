@@ -10,6 +10,7 @@ import {
   validTelegramChatId,
 } from "./telegram-server.ts";
 import type { RoutineOccurrence } from "./routine-reminders.ts";
+import * as telegram from "./telegram-server.ts";
 
 const withEnv = async (
   values: Record<string, string | undefined>,
@@ -70,7 +71,7 @@ test("routine messages group labels, IST time, and the routine link", () => {
   ]);
   assert.match(message, /^NOVA routine · 14:00/);
   assert.match(message, /Lunch \+ Omega-3 with lunch/);
-  assert.match(message, /https:\/\/www\.buildora\.work\/routine/);
+  assert.match(message, /https:\/\/personal\.buildora\.work\/routine/);
 });
 
 test("telegram sender posts the configured chat without exposing the token", async () => {
@@ -83,7 +84,10 @@ test("telegram sender posts the configured chat without exposing the token", asy
       let request: { url: string; init?: RequestInit } | undefined;
       const fetcher = (async (url: string, init?: RequestInit) => {
         request = { url, init };
-        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+        return new Response(
+          JSON.stringify({ ok: true, result: { message_id: 73 } }),
+          { status: 200 },
+        );
       }) as typeof fetch;
       await sendTelegramMessage("NOVA routine · 14:00", fetcher);
       assert.equal(
@@ -95,6 +99,138 @@ test("telegram sender posts the configured chat without exposing the token", asy
       assert.equal(body.text, "NOVA routine · 14:00");
       assert.equal(body.disable_web_page_preview, true);
       assert.doesNotMatch(String(request?.init?.body), /abcdefghijklmnop/);
+    },
+  );
+});
+
+test("private destination verification rejects groups, mismatched IDs, and ambiguous metadata", async () => {
+  assert.equal(typeof telegram.getPrivateTelegramChat, "function");
+  await withEnv(
+    {
+      TELEGRAM_BOT_TOKEN: "123456789:abcdefghijklmnop",
+      TELEGRAM_CHAT_ID: "123456",
+    },
+    async () => {
+      const fetcher = (body: unknown, status = 200) =>
+        (async () =>
+          new Response(JSON.stringify(body), { status })) as typeof fetch;
+      const chat = await telegram.getPrivateTelegramChat(
+        fetcher({
+          ok: true,
+          result: { id: 123456, type: "private", first_name: "Fixture" },
+        }),
+      );
+      assert.match(chat.fingerprint, /^[a-f0-9]{64}$/);
+      assert.equal(JSON.stringify(chat).includes("Fixture"), false);
+      assert.equal(JSON.stringify(chat).includes("123456"), false);
+      for (const body of [
+        { ok: true, result: { id: 123456, type: "group" } },
+        { ok: true, result: { id: 987654, type: "private" } },
+        { ok: true, result: { type: "private" } },
+        { ok: false, description: "sensitive provider error" },
+      ])
+        await assert.rejects(
+          () => telegram.getPrivateTelegramChat(fetcher(body)),
+          (error: Error) =>
+            !/sensitive|123456|abcdefghijklmnop/.test(error.message),
+        );
+      await assert.rejects(
+        () =>
+          telegram.getPrivateTelegramChat((async () => {
+            throw new Error("token in upstream URL");
+          }) as typeof fetch),
+        /private chat could not be verified/,
+      );
+    },
+  );
+});
+
+test("send outcomes distinguish provider acceptance, definite rejection, and unknown acceptance", async () => {
+  assert.equal(typeof telegram.sendTelegramMessageOutcome, "function");
+  await withEnv(
+    {
+      TELEGRAM_BOT_TOKEN: "123456789:abcdefghijklmnop",
+      TELEGRAM_CHAT_ID: "123456",
+    },
+    async () => {
+      const fixtures: { body: unknown; status: number; expected: unknown }[] = [
+        {
+          body: { ok: true, result: { message_id: 73 } },
+          status: 200,
+          expected: { kind: "accepted", messageId: 73 },
+        },
+        {
+          body: {
+            ok: false,
+            error_code: 429,
+            parameters: { retry_after: 31 },
+            description: "sensitive",
+          },
+          status: 429,
+          expected: {
+            kind: "rejected",
+            code: "telegram-429",
+            retryAfterSeconds: 31,
+            retryable: true,
+          },
+        },
+        {
+          body: { ok: false, error_code: 403, description: "sensitive" },
+          status: 403,
+          expected: {
+            kind: "rejected",
+            code: "telegram-403",
+            retryable: false,
+          },
+        },
+        {
+          body: { ok: false, error_code: 500 },
+          status: 500,
+          expected: { kind: "unknown", code: "telegram-server-error" },
+        },
+        {
+          body: { ok: true },
+          status: 200,
+          expected: { kind: "unknown", code: "telegram-invalid-response" },
+        },
+        {
+          body: { ok: true, result: { message_id: 0 } },
+          status: 200,
+          expected: { kind: "unknown", code: "telegram-invalid-response" },
+        },
+        {
+          body: { ok: false, error_code: 400 },
+          status: 200,
+          expected: {
+            kind: "rejected",
+            code: "telegram-400",
+            retryable: false,
+          },
+        },
+      ];
+      for (const fixture of fixtures) {
+        const fetcher = (async () =>
+          new Response(JSON.stringify(fixture.body), {
+            status: fixture.status,
+          })) as typeof fetch;
+        assert.deepEqual(
+          await telegram.sendTelegramMessageOutcome("fixture", fetcher),
+          fixture.expected,
+        );
+      }
+      assert.deepEqual(
+        await telegram.sendTelegramMessageOutcome("fixture", (async () => {
+          throw new Error("sensitive token");
+        }) as typeof fetch),
+        { kind: "unknown", code: "telegram-network-error" },
+      );
+      assert.deepEqual(
+        await telegram.sendTelegramMessageOutcome(
+          "fixture",
+          (async () => new Response("not JSON")) as typeof fetch,
+        ),
+        { kind: "unknown", code: "telegram-invalid-response" },
+      );
     },
   );
 });

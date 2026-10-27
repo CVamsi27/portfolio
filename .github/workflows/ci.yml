@@ -61,6 +61,13 @@ jobs:
           pnpm test:career-curriculum
           pnpm test:germany-roadmap
 
+      - name: Telegram timing, access and durable SQL delivery tests
+        env:
+          TELEGRAM_SQL_TESTS: '1'
+        run: |
+          export PATH="$(pg_config --bindir):$PATH"
+          pnpm test:telegram
+
       - name: Personal access boundary tests
         run: pnpm test:personal-access
 

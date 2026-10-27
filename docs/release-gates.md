@@ -1,6 +1,6 @@
 # Release gates — evidence and rollback record
 
-Three sequential gates: production baseline/schema, authenticated sync, notification delivery. Gate C now uses Telegram routine delivery instead of web push. The approved design is in `docs/superpowers/specs/2026-10-19-release-gates-design.md`; the execution plan is `docs/superpowers/plans/2026-10-19-release-gates.md`.
+Three sequential gates: production baseline/schema, authenticated sync, notification delivery. Gate C uses Telegram routine and opted-in career delivery. The original gate design is in `docs/superpowers/specs/2026-10-19-release-gates-design.md`; the execution plan is `docs/superpowers/plans/2026-10-19-release-gates.md`. Current Telegram behavior and setup are documented in [Nutrition and reminder delivery setup](NUTRITION_AND_REMINDER_SETUP.md#telegram-routine-and-career-delivery-27-october-2026).
 
 Secrets, database connection strings and user rows are never recorded here. Raw backup artifacts stay under the gitignored `artifacts/release/2026-10-19/` directory.
 
@@ -294,7 +294,7 @@ The paused tracker audit found two misleading cross-page states in the reproduce
 
 Evidence: the reproduced production seed showed 8 Plan agenda rows at both 390 px and 1440 px (previously 0), no horizontal overflow, and Review reported scheduled blocks instead of “quiet day” for scheduled dates. Verification passed: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:sync` (8), `pnpm test:germany-roadmap` (36), and the full Playwright suite (416 passed). No production data or deployment changed; B4 is complete; the task-cleanup decision remains open.
 
-## Notification channel revision (23 October 2026)
+## Notification channel revision (23 October 2026, historical checkpoint)
 
 Gate C's VAPID/web-push delivery plan is superseded. Routine reminders now use the existing Telegram bot and private chat; no browser permission or device push subscription is required. Career, weigh-in and focus reminder slots remain in-app, and contact alerts continue to use the same Telegram bot.
 
@@ -309,3 +309,26 @@ The local implementation adds:
 Implementation commit: `1741c42` (local `main`, not pushed or deployed).
 
 Local verification: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test:telegram` (6 passed), `pnpm test:personal-access` (24 passed), `pnpm test:sync` (8 passed), `pnpm test:germany-roadmap` (36 passed), and the full Playwright suite (417 passed). A standalone local setup message was delivered to the configured private Telegram chat; this proves bot/chat transport only. A read-only production dry run resolved the owner, found one routine row and seven schedules, and computed zero due groups at check time; no message was sent. The locally built route returned `401` without a bearer and `200 {"sent":0,"failed":0}` with a test bearer while no groups were due. No live production scheduler, production environment change or scheduled routine delivery is claimed yet. Gate C still requires configuring the Telegram and cron secrets in production, installing the per-minute scheduler, proving one real scheduled routine message with no duplicate, and exercising retry/rollback. B4 is now complete and no deployment was made at that point.
+
+## Career Telegram extension — 27 October 2026
+
+The approved cadence adds a 06:00 IST digest and dated study/project block reminders through the existing private owner bot and dispatcher. Career delivery has its own account-scoped consent/cadence key and starts from its opt-in timestamp. It excludes Sundays, dates outside the plan, verified blocks and occurrences more than ten minutes late. Existing routine settings, in-app reminders, assignments and evidence are retained.
+
+The additive `0015_telegram_delivery_state.sql` migration introduces fenced claims and explicit sending, failure and unknown states. Provider acceptance is acknowledged durably; an ambiguous transport or database acknowledgement never authorizes an automatic resend. The authenticated owner-only `/api/telegram/status` endpoint reports configuration and career aggregate history without exposing chat IDs, account identity, secrets or private message bodies. Its configuration flags do not establish live scheduler or phone delivery.
+
+Production activation requires the evidence below. The implementation and fixture tests alone do not close Gate C.
+
+| Gate C evidence       | Required observation                                                                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Additive schema       | Migration `0015` applied; existing routine/history/evidence records preserved                                                                |
+| Deployed dispatcher   | Exact deployed revision; unauthenticated dispatch rejected; owner resolution and private-chat validation pass                                |
+| Account consent       | Intended owner's cloud preference readback records enabled cadence and activation time; other accounts remain off                            |
+| Scheduler             | Per-minute job installed separately from migrations; a recent HTTP outcome confirms authenticated route execution                            |
+| Real dated occurrence | Scheduler sends a real digest and study/project start; stable identity, accepted provider acknowledgement and matching ledger state recorded |
+| Duplicate prevention  | Repeated/overlapping dispatch of the occurrence produces no second provider send                                                             |
+| Suppression           | Sunday, stale, pre-consent and verified-block cases skip correctly                                                                           |
+| Failure handling      | Explicit rejection/rate limit handled within the valid window; ambiguous attempt remains unknown without automatic replay                    |
+| Phone receipt         | Owner confirms receipt separately from provider acceptance                                                                                   |
+| Rollback              | Career opt-out stops future career sends; removing the job stops all scheduler sends while retaining records and delivery identities         |
+
+Current production evidence is recorded only after the live checks above are performed. A standalone setup message, a read-only dry run, local browser fixtures or environment booleans do not prove recurring delivery.

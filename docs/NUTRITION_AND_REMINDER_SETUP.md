@@ -1,10 +1,10 @@
-# Nutrition and routine delivery setup
+# Nutrition and reminder delivery setup
 
 Manual food/recipe logging and in-app routine checklists work without an external provider. Production private record syncing requires Supabase migrations 0007 and 0008. Apply with the project's existing migration workflow and retain a database backup; never reset user tables.
 
-## Telegram routine delivery (23 October 2026)
+## Telegram routine and career delivery (27 October 2026)
 
-Routine reminders now use the existing Telegram bot instead of VAPID/web push. The browser permission prompt and per-device push subscriptions are no longer part of the notification setup. Contact alerts already use the same bot and private owner chat.
+Routine and opted-in career reminders use the existing Telegram bot. No browser permission or per-device push subscription is required. Contact alerts already use the same bot and private owner chat. Career delivery defaults off for every account; only the configured owner can receive career messages or inspect delivery history.
 
 Server environment:
 
@@ -14,21 +14,31 @@ Server environment:
 - Existing Supabase URL and service-role/secret key.
 - Optional `TELEGRAM_OWNER_EMAIL` when the owner account is not the default routine owner.
 
-Configure a server scheduler to GET `/api/telegram/dispatch` once per minute with `Authorization: Bearer <CRON_SECRET>`. No unauthenticated dispatch is accepted. The route resolves the owner account by email, reads only that account's `routine:schedules` and `routine:history`, groups simultaneous items, claims a durable delivery ID, and sends one Telegram message. Failed sends remain pending for retry after the two-minute lease. The configured chat is the only recipient.
+Apply the additive `0015_telegram_delivery_state.sql` migration after backing up the database. It extends the existing delivery ledger without dropping routine schedules, history, tracker data or historical delivery rows. Deploy the new dispatcher before enabling career preferences. Configure a scheduler to GET `/api/telegram/dispatch` once per minute with `Authorization: Bearer <CRON_SECRET>`. The route resolves the configured owner, reads only that account's rows and checks that the configured Telegram destination is a private chat before sending career content. An invalid, group or unverifiable chat fails closed.
 
-The operator SQL is kept in `supabase/schedules/telegram-dispatch.sql`; it is deliberately outside `supabase/migrations` so a normal migration push cannot install a scheduler. Store the Vercel `CRON_SECRET` in Vault as `telegram_cron_secret` first, then run that file after the production deployment. Verify `cron.job` for `nova-telegram-dispatch`, recent HTTP `200` rows in `cron.job_run_details` / `net._http_response`, and the expected `{ "sent": 0, "failed": 0 }` JSON when no routine is due.
+In Settings → Routine notification delivery, explicitly enable **Career Telegram reminders** and choose **Daily digest + study/project blocks** or **Daily digest only**. The approved default digest time is 06:00 IST (`Asia/Kolkata`); block alerts use the actual start times in the dated cloud plan. The independent `career:telegram-preferences` key stores consent and cadence using account-scoped sync. Saving on one device without successful cloud sync does not activate server delivery. A fresh account or an invalid preference record stays off; opening Settings does not opt anyone in. Routine settings and existing in-app reminders keep their own controls.
 
-Message shape is plain text: the scheduled time in IST, the grouped routine labels, and a link to `/routine`. No browser/device push delivery is claimed. A standalone local setup message was delivered to the configured Telegram chat; scheduled provider delivery and retry behavior still require production verification. A Telegram message is a reminder, not proof that a meal or supplement was completed.
+Full account backups include career preferences. Import validates the complete preference before any writes, restores the saved cadence/time settings with delivery disabled, and clears the activation timestamp. A mounted signed-in store uploads the restored opt-out immediately; Settings shows saving until the cloud acknowledges it and shows a sync error if the write fails. The server continues using its last saved cloud preference until that acknowledgement. Explicitly opt in after restore. Expanding an enabled digest-only cadence to include block alerts starts a fresh activation timestamp so earlier blocks cannot become catch-up notifications.
+
+Career notifications are generated only within the plan's date window, Monday through Saturday. Sundays are off. The opt-in timestamp excludes occurrences scheduled before consent; missed occurrences more than ten minutes old are skipped rather than replayed. The digest includes the day's work and full-plan links. Separate study/project starts are sent only for those dated blocks. Verified evidence suppresses a completed block; saved evidence still requires review. A reminder never verifies an assignment or changes its completion evidence.
+
+Stable delivery identities and fenced database claims prevent overlapping scheduler calls from sending the same occurrence twice. The ledger distinguishes `claimed`, `sending`, `sent`, `failed` and `unknown`, while retaining legacy `pending` rows. An explicit rate limit may retry within the occurrence window; ambiguous network/provider acceptance or a failed database acknowledgement stays unknown and is not automatically resent. Inspect unknown outcomes before an intentional replay. A successful Telegram API acknowledgement means provider acceptance, not receipt on a phone.
+
+The operator SQL is kept in `supabase/schedules/telegram-dispatch.sql`; it is deliberately outside `supabase/migrations` so a normal migration push cannot install a scheduler. Store the Vercel `CRON_SECRET` in Vault as `telegram_cron_secret` first, then run the scheduler file after deployment. Verify `cron.job` for `nova-telegram-dispatch`, recent runs in `cron.job_run_details`, and actual HTTP outcomes in `net._http_response`. A scheduler invocation succeeding does not by itself prove that its HTTP request or Telegram send succeeded.
+
+Routine messages retain the grouped labels and link to the authenticated personal `/routine` page. Career messages link to the dated personal hub and complete plan. Messages contain bounded technical summaries, never raw evidence or job/contact records. A Telegram reminder is not proof that a meal, supplement or learning task was completed.
+
+`GET /api/telegram/status` remotely validates the signed-in session and restricts diagnostics to the configured owner. It returns configuration booleans and career-only aggregate counts/latest attempt, acceptance and unknown timestamps. It reveals no chat IDs, owner identity, secrets, message contents or provider bodies. Another approved account receives an access-denied response before any delivery-row read. Missing delivery-state columns are reported as unavailable rather than a healthy empty history. The Settings card separates device/cloud preference saving, server configuration, provider acceptance and unknown outcomes. Configuration flags do not prove a scheduler is installed or a phone received anything.
 
 Verify after deployment:
 
-1. Enable one routine for a time a few minutes away.
-2. Call the scheduler route with the configured bearer secret.
-3. Confirm exactly one Telegram message, the grouped labels, and the `/routine` link.
-4. Leave the item unlogged and confirm the next minute does not duplicate the message; then record the item in NOVA.
-5. Exercise a failed Telegram request and confirm the next scheduler run retries without marking it sent.
+1. Confirm the migration and server environment, owner resolution and private-chat validation. Unauthenticated dispatch and status requests must fail closed, and a second approved account must not see the owner's delivery metadata.
+2. Opt in on the intended owner account; read back the cloud record, activation timestamp and cadence. Confirm existing routine and in-app preference records did not change.
+3. Observe a real 06:00 digest and a real dated study/project start through the installed scheduler. Match provider acknowledgement to the ledger and ask the owner to confirm phone receipt separately. A one-time setup message does not satisfy this step.
+4. Repeat the scheduler request and overlap calls for the same occurrence. Expect no duplicate. Check that a verified block, Sunday, a pre-consent occurrence and an occurrence over ten minutes late produce no career send.
+5. Verify explicit provider rejection/rate limit and unknown network or acknowledgement failure with fixtures. Unknown attempts require operator review and must not automatically resend. Record the deployed revision and actual gate evidence in [release gates](release-gates.md).
 
-Rollback: remove or unschedule the Telegram dispatch job. Keep `routine:schedules`, `routine:history`, `push_deliveries` and migration `0008`; they hold records and idempotency state. The legacy `/api/push/*` routes and tables remain for compatibility but are not scheduled or exposed in Settings.
+Rollback: disable Career Telegram reminders to stop future career occurrences while retaining routine delivery. If the whole dispatcher must stop, unschedule the Telegram job before reverting application code. Preserve preferences, activation history, schedules, routine history, evidence, `push_deliveries` and migrations `0008`/`0015`; do not delete records or clear delivery identities to force a retry. The legacy `/api/push/*` routes and tables remain for compatibility but are not scheduled or exposed in Settings.
 
 Authoritative references: [FoodData Central API](https://fdc.nal.usda.gov/api-guide/), [Telegram Bot API](https://core.telegram.org/bots/api).
 

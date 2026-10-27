@@ -19,6 +19,44 @@ export type SyncStatus =
   | "synced"
   | "error";
 
+type QueuedWrite = {
+  latest: (() => Promise<SyncStatus>) | null;
+  settled: Promise<SyncStatus>;
+};
+const writeQueues = new Map<string, QueuedWrite>();
+
+/** One request per local key, including sibling hook instances. Keep only the latest queued write. */
+function queueStorageWrite(localKey: string, write: () => Promise<SyncStatus>) {
+  const running = writeQueues.get(localKey);
+  if (running) {
+    running.latest = write;
+    return running.settled;
+  }
+  let settle!: (status: SyncStatus) => void;
+  const queue: QueuedWrite = {
+    latest: write,
+    settled: new Promise<SyncStatus>((resolve) => {
+      settle = resolve;
+    }),
+  };
+  writeQueues.set(localKey, queue);
+  void (async () => {
+    let status: SyncStatus = "syncing";
+    while (queue.latest) {
+      const current = queue.latest;
+      queue.latest = null;
+      try {
+        status = await current();
+      } catch {
+        status = "error";
+      }
+    }
+    writeQueues.delete(localKey);
+    settle(status);
+  })();
+  return queue.settled;
+}
+
 const debounceMs = 800;
 
 /**
@@ -358,7 +396,11 @@ export function useSyncedStorage<T>(
                 }
               }
             }
-            setStatus("synced");
+            setStatus(
+              window.localStorage.getItem(`${localKey}:pending`) === "true"
+                ? "syncing"
+                : "synced",
+            );
           },
           () => {
             if (!cancelled) setStatus("error");
@@ -404,7 +446,11 @@ export function useSyncedStorage<T>(
             // ignore
           }
         }
-        setStatus("synced");
+        setStatus(
+          window.localStorage.getItem(`${localKey}:pending`) === "true"
+            ? "syncing"
+            : "synced",
+        );
       });
     } catch (err) {
       console.warn("Failed to subscribe to realtime changes:", err);
@@ -441,34 +487,41 @@ export function useSyncedStorage<T>(
       if (pushTimer.current) clearTimeout(pushTimer.current);
 
       const doPush = () => {
-        void (async () => {
+        // Direct restores already changed local data. Show pending work before
+        // asynchronous session validation, and wait for the latest write ack.
+        setStatus("syncing");
+        void queueStorageWrite(localKey, async () => {
           try {
+            if (scoped && user?.id !== currentAuthUserId()) return "local-only";
+            // Another serialized write may already have acknowledged this value.
+            if (window.localStorage.getItem(`${localKey}:pending`) !== "true")
+              return "synced";
+            const latest = readLocal(localKey, next);
             const { data } = await sb.auth.getSession();
             const uid = data.session?.user?.id;
             if (
               !uid ||
               (scoped && (uid !== user?.id || uid !== currentAuthUserId()))
             ) {
-              setStatus("local-only");
-              return;
+              return "local-only";
             }
-            setStatus("syncing");
             const now = Date.now();
             const { error, data: merged } = records
               ? await sb.rpc("merge_tracker_records", {
                   p_owner: uid,
                   p_key: key,
-                  p_records: next,
+                  p_records: latest,
                 })
               : await sb.from("tracker_data").upsert(
                   {
                     user_id: uid,
                     key,
-                    value: next as unknown as object,
+                    value: latest as unknown as object,
                     updated_at: new Date(now).toISOString(),
                   },
                   { onConflict: "user_id,key" },
                 );
+            if (scoped && uid !== currentAuthUserId()) return "local-only";
             if (
               !error &&
               records &&
@@ -484,24 +537,26 @@ export function useSyncedStorage<T>(
               );
             }
             if (error) {
-              setStatus("error");
-              return;
-            }
-            try {
-              window.localStorage.setItem(metaKey, String(now));
-            } catch {
-              // ignore
+              return "error";
             }
             if (
               JSON.stringify(readLocal(localKey, initial)) ===
-              JSON.stringify(records ? merged : next)
-            )
+              JSON.stringify(records ? merged : latest)
+            ) {
+              window.localStorage.setItem(metaKey, String(now));
               window.localStorage.removeItem(`${localKey}:pending`);
-            setStatus("synced");
+              return "synced";
+            }
+            // An older acknowledgement cannot clear a newer local mutation or
+            // lower its metadata timestamp. The coalesced write follows next.
+            window.localStorage.setItem(`${localKey}:pending`, "true");
+            return "syncing";
           } catch {
-            setStatus("error");
+            return "error";
           }
-        })();
+        }).then((result) => {
+          if (!scoped || user?.id === currentAuthUserId()) setStatus(result);
+        });
       };
 
       if (immediate) {
@@ -523,13 +578,23 @@ export function useSyncedStorage<T>(
     const visible = () => {
       if (document.visibilityState === "visible") retry();
     };
+    const stored = (event: StorageEvent) => {
+      if (
+        event.key === null ||
+        event.key === localKey ||
+        event.key === `${localKey}:pending`
+      )
+        retry();
+    };
     window.addEventListener("online", retry);
     window.addEventListener("focus", retry);
+    window.addEventListener("storage", stored);
     document.addEventListener("visibilitychange", visible);
     retry();
     return () => {
       window.removeEventListener("online", retry);
       window.removeEventListener("focus", retry);
+      window.removeEventListener("storage", stored);
       document.removeEventListener("visibilitychange", visible);
     };
   }, [records, user, localKey, initial, push]);
