@@ -134,6 +134,9 @@ test("new routine groups study assignments and keeps the week useful on a narrow
   ).toBeVisible();
   await page.getByRole("link", { name: "Week", exact: true }).click();
   const week = page.getByTestId("plan-week-agenda");
+  await expect(page.getByLabel("Timetable dates")).toContainText(
+    "2026-10-26 – 2026-11-01",
+  );
   await expect(week.getByTestId("plan-week-day-2026-10-26")).toBeVisible();
   await expect(week.getByTestId("plan-week-day-2026-11-01")).toContainText(
     "Sunday off",
@@ -154,7 +157,9 @@ test("a compressed saved history reloads into the same dated assignments", async
     germanyRoadmap: revisedPlan,
     roadmapHistory: [{ note: "Retained synthetic history ".repeat(20000) }],
   };
-  const wire = await encodeTrackerHistory("career_command_center", value, {local:true});
+  const wire = await encodeTrackerHistory("career_command_center", value, {
+    local: true,
+  });
   await seed(page, { "vk:career_command_center": wire });
   await page.goto("/plan?date=2026-10-30");
   const morning = page.getByTestId("study-window-morning-study");
