@@ -19,6 +19,14 @@ export type SyncStatus =
   | "synced"
   | "error";
 
+export function cloudReadMayReplaceLocal(
+  cloudAt: number,
+  localAt: number,
+  pending: boolean,
+) {
+  return cloudAt > localAt || (cloudAt === localAt && !pending);
+}
+
 type QueuedWrite = {
   latest: (() => Promise<SyncStatus>) | null;
   settled: Promise<SyncStatus>;
@@ -395,7 +403,14 @@ export function useSyncedStorage<T>(
             if (data) {
               const cloudAt = new Date(data.updated_at).getTime();
               const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-              if (records || cloudAt >= localAt) {
+              if (
+                records ||
+                cloudReadMayReplaceLocal(
+                  cloudAt,
+                  localAt,
+                  window.localStorage.getItem(`${localKey}:pending`) === "true",
+                )
+              ) {
                 writeLocal(
                   localKey,
                   records
@@ -446,7 +461,14 @@ export function useSyncedStorage<T>(
         if (cancelled) return;
         const cloudAt = new Date(item.updated_at || "").getTime();
         const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-        if (records || cloudAt >= localAt) {
+        if (
+          records ||
+          cloudReadMayReplaceLocal(
+            cloudAt,
+            localAt,
+            window.localStorage.getItem(`${localKey}:pending`) === "true",
+          )
+        ) {
           writeLocal(
             localKey,
             records

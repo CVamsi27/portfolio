@@ -219,3 +219,11 @@ test("cloud values remain readable when browser storage quota rejects persistenc
   assert.deepEqual(storage.__readLocalForTesting("quota-probe", null), latest);
   assert.equal(storage.__readLocalForTesting("other-account", null), null);
 });
+
+test("an equal-version cloud read restores an evicted cache but cannot overwrite a pending edit", async () => {
+  const { cloudReadMayReplaceLocal } = await import("./use-synced-storage.ts");
+  assert.equal(cloudReadMayReplaceLocal(100, 100, false), true);
+  assert.equal(cloudReadMayReplaceLocal(100, 100, true), false);
+  assert.equal(cloudReadMayReplaceLocal(101, 100, true), true);
+  assert.equal(cloudReadMayReplaceLocal(99, 100, false), false);
+});
