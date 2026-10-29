@@ -145,3 +145,22 @@ test("new routine groups study assignments and keeps the week useful on a narrow
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(320);
 });
+
+test("a compressed saved history reloads into the same dated assignments", async ({
+  page,
+}) => {
+  const { encodeTrackerHistory } = await import("../src/lib/tracker-history");
+  const value = {
+    germanyRoadmap: revisedPlan,
+    roadmapHistory: [{ note: "Retained synthetic history ".repeat(20000) }],
+  };
+  const wire = await encodeTrackerHistory("career_command_center", value, {local:true});
+  await seed(page, { "vk:career_command_center": wire });
+  await page.goto("/plan?date=2026-10-30");
+  const morning = page.getByTestId("study-window-morning-study");
+  await expect(morning.locator("summary").first()).toContainText("09:00–14:00");
+  await morning.locator("summary").first().click();
+  await expect(morning.getByTestId(/^assignment-/)).toHaveCount(4);
+  await page.reload();
+  await expect(page.getByTestId("study-window-morning-study")).toBeVisible();
+});

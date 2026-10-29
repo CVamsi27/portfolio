@@ -16,6 +16,7 @@ import { validSchedule } from "./routine-reminders";
 import { validProgram, validNutritionDay } from "./nutrition-program";
 import { validMealTemplate, validPreparedBatch } from "./nutrition-reuse";
 import { validPortion } from "./nutrition-catalog";
+import { decodeTrackerHistory } from "./tracker-history";
 import {
   validCareerTelegramPreferences,
   type CareerTelegramPreferences,
@@ -257,6 +258,77 @@ export type ImportReport = {
   exportedAt?: string;
 };
 
+const HISTORY_KEYS = {
+  career_command_center: { roadmapHistory: "array", germanyRoadmap: "object" },
+  timetable_100_days: { scheduleHistory: "array", days: "array" },
+} as const;
+
+function backupHistoryValues(
+  backup: unknown,
+): Array<[string, Record<string, unknown>, string, "array" | "object"]> {
+  if (!backup || typeof backup !== "object") return [];
+  const data = (backup as { data?: unknown }).data;
+  if (!data || typeof data !== "object" || Array.isArray(data)) return [];
+  return Object.entries(HISTORY_KEYS).flatMap(([key, fields]) => {
+    const value = (data as Record<string, unknown>)[key];
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    return Object.entries(fields)
+      .filter(([field]) => field in value)
+      .map(
+        ([field, shape]) =>
+          [key, value as Record<string, unknown>, field, shape] as [
+            string,
+            Record<string, unknown>,
+            string,
+            "array" | "object",
+          ],
+      );
+  });
+}
+
+/** Legacy synchronous restores accept arrays; compressed histories require integrity checks. */
+export function applyBackup(backup: unknown): ImportReport {
+  for (const [key, value, field, shape] of backupHistoryValues(backup)) {
+    const candidate = value[field];
+    const rawObject =
+      candidate !== null &&
+      typeof candidate === "object" &&
+      !Array.isArray(candidate) &&
+      !("__novaHistory" in candidate) &&
+      !("codec" in candidate);
+    if (shape === "array" ? !Array.isArray(candidate) : !rawObject)
+      return {
+        ok: false,
+        error: `Compressed or invalid ${key} history requires validated import. Nothing imported.`,
+        keysRestored: [],
+        keysSkipped: [],
+      };
+  }
+  return applyValidatedBackup(backup);
+}
+
+/** Validate every compressed history before taking a snapshot or writing any key. */
+export async function applyBackupWithHistory(
+  backup: unknown,
+): Promise<ImportReport> {
+  try {
+    const documents = new Map(
+      backupHistoryValues(backup).map(([key, value]) => [key, value]),
+    );
+    for (const [key, value] of documents)
+      await decodeTrackerHistory(key, value, { local: true });
+  } catch {
+    return {
+      ok: false,
+      error: "Invalid or unsupported backup history. Nothing imported.",
+      keysRestored: [],
+      keysSkipped: [],
+    };
+  }
+  // Keep the validated wire envelope so restore does not expand history into device storage.
+  return applyValidatedBackup(backup);
+}
+
 function looksLikeShape(value: unknown): boolean {
   return (
     value === null ||
@@ -309,7 +381,7 @@ function validBackupRecipe(value: unknown): boolean {
  * the pre-import state is snapshotted to `vk:backup:v1:<key>` semantics
  * (a dedicated pre-import snapshot) so restore is itself reversible.
  */
-export function applyBackup(backup: unknown): ImportReport {
+function applyValidatedBackup(backup: unknown): ImportReport {
   if (typeof window === "undefined")
     return {
       ok: false,

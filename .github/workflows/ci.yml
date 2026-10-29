@@ -58,6 +58,7 @@ jobs:
 
       - name: Career curriculum and sync unit tests
         run: |
+          pnpm test:sync
           pnpm test:career-curriculum
           pnpm test:germany-roadmap
 

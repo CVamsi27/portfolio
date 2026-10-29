@@ -10,6 +10,13 @@ import {
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "./supabase/client.ts";
 import { mergeRecords, scopedLocalKey } from "./record-merge.ts";
+import {
+  cachedTrackerHistory,
+  decodeTrackerHistory,
+  encodeTrackerHistory,
+  hasTrackerHistoryEnvelope,
+  historyKeyForStorage,
+} from "./tracker-history.ts";
 import { parseStoredValue } from "./local-parse.ts";
 import { useAuth, currentAuthUserId } from "./auth-store.ts";
 
@@ -83,6 +90,9 @@ const debounceMs = 800;
  */
 type LocalEntry = { raw: string; parsed: unknown };
 const localCache = new Map<string, LocalEntry>();
+const pendingLocalDecodes = new Map<string, string>();
+const pendingLocalTasks = new Map<string, Promise<void>>();
+const localDecodeErrors = new Map<string, { raw: string; error: Error }>();
 // Large cloud plans may exceed localStorage. Keep the newest value available for
 // this session, scoped by the same account key, until storage can persist it.
 const memoryValues = new Map<string, { raw: string | null; parsed: unknown }>();
@@ -98,12 +108,58 @@ function readLocal<T>(localKey: string, initial: T): T {
     localCache.delete(localKey);
     return initial;
   }
+  const failed = localDecodeErrors.get(localKey);
+  if (failed?.raw === raw) throw failed.error;
+  localDecodeErrors.delete(localKey);
   const cached = localCache.get(localKey);
   if (cached && cached.raw === raw) return cached.parsed as T;
   const parsed = parseStoredValue(raw, initial);
+  const documentKey = historyKeyForStorage(localKey);
+  if (hasTrackerHistoryEnvelope(documentKey, parsed, { local: true })) {
+    if (pendingLocalDecodes.get(localKey) !== raw) {
+      pendingLocalDecodes.set(localKey, raw);
+      const task = decodeTrackerHistory(documentKey, parsed, { local: true })
+        .then((decoded) => {
+          if (pendingLocalDecodes.get(localKey) !== raw) return;
+          pendingLocalDecodes.delete(localKey);
+          if (window.localStorage.getItem(localKey) !== raw) return;
+          memoryValues.set(localKey, { raw, parsed: decoded });
+          notifyLocal(localKey);
+        })
+        .catch((error) => {
+          if (pendingLocalDecodes.get(localKey) !== raw) return;
+          pendingLocalDecodes.delete(localKey);
+          localDecodeErrors.set(localKey, {
+            raw,
+            error:
+              error instanceof Error
+                ? error
+                : new Error("History could not load"),
+          });
+          notifyLocal(localKey);
+        })
+        .finally(() => {
+          if (pendingLocalTasks.get(localKey) === task)
+            pendingLocalTasks.delete(localKey);
+        });
+      pendingLocalTasks.set(localKey, task);
+    }
+    return initial;
+  }
   localCache.set(localKey, { raw, parsed });
   return parsed;
 }
+
+async function readLocalReady<T>(localKey: string, initial: T): Promise<T> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const value = readLocal(localKey, initial),
+      pending = pendingLocalTasks.get(localKey);
+    if (!pending) return value;
+    await pending;
+  }
+  throw Error("Local data changed repeatedly while preparing a save");
+}
+export const __readLocalReadyForTesting = readLocalReady;
 
 export function __readLocalForTesting<T>(localKey: string, initial: T): T {
   return readLocal(localKey, initial);
@@ -112,6 +168,9 @@ export function __readLocalForTesting<T>(localKey: string, initial: T): T {
 export function __resetLocalValueCacheForTesting() {
   localCache.clear();
   memoryValues.clear();
+  pendingLocalDecodes.clear();
+  pendingLocalTasks.clear();
+  localDecodeErrors.clear();
 }
 
 function notifyLocal(localKey: string) {
@@ -119,18 +178,28 @@ function notifyLocal(localKey: string) {
   localListeners.get(localKey)?.forEach((l) => l());
 }
 
-function writeLocal(localKey: string, value: unknown): boolean {
+function writeLocal(
+  localKey: string,
+  value: unknown,
+  wire: unknown = value,
+  allowMemory = true,
+): boolean {
   let persisted = false;
+  const raw = JSON.stringify(wire);
   try {
-    window.localStorage.setItem(localKey, JSON.stringify(value));
-    memoryValues.delete(localKey);
+    window.localStorage.setItem(localKey, raw);
     persisted = true;
   } catch {
+    if (!allowMemory) return false;
+  }
+  pendingLocalDecodes.delete(localKey);
+  localDecodeErrors.delete(localKey);
+  if (!persisted || wire !== value)
     memoryValues.set(localKey, {
       raw: window.localStorage.getItem(localKey),
       parsed: value,
     });
-  }
+  else memoryValues.delete(localKey);
   notifyLocal(localKey);
   return persisted;
 }
@@ -385,6 +454,52 @@ export function useSyncedStorage<T>(
     if (!sb) return;
     let cancelled = false;
 
+    const acceptCloud = async (data: RealtimeItem | null) => {
+      if (cancelled) return;
+      try {
+        if (data) {
+          const decoded = await decodeTrackerHistory(key, data.value);
+          const wire = await encodeTrackerHistory(key, decoded, {
+            local: true,
+          });
+          // Decoding may finish after another edit, account switch or newer row.
+          if (
+            cancelled ||
+            (scoped && configured && currentAuthUserId() !== user.id)
+          )
+            return;
+          const cloudAt = new Date(data.updated_at ?? "").getTime();
+          const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
+          if (
+            records ||
+            cloudReadMayReplaceLocal(
+              cloudAt,
+              localAt,
+              window.localStorage.getItem(`${localKey}:pending`) === "true",
+            )
+          ) {
+            const next = records
+              ? mergeRecords(
+                  readLocal(localKey, initial) as never,
+                  decoded as never,
+                )
+              : decoded;
+            writeLocal(localKey, next, records ? next : wire);
+            try {
+              window.localStorage.setItem(metaKey, String(cloudAt));
+            } catch {}
+          }
+        }
+        if (!cancelled)
+          setStatus(
+            window.localStorage.getItem(`${localKey}:pending`) === "true"
+              ? "syncing"
+              : "synced",
+          );
+      } catch {
+        if (!cancelled) setStatus("error");
+      }
+    };
     const pullCloud = () => {
       if (cancelled) return;
       void sb
@@ -400,38 +515,7 @@ export function useSyncedStorage<T>(
               setStatus("error");
               return;
             }
-            if (data) {
-              const cloudAt = new Date(data.updated_at).getTime();
-              const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-              if (
-                records ||
-                cloudReadMayReplaceLocal(
-                  cloudAt,
-                  localAt,
-                  window.localStorage.getItem(`${localKey}:pending`) === "true",
-                )
-              ) {
-                writeLocal(
-                  localKey,
-                  records
-                    ? mergeRecords(
-                        readLocal(localKey, initial) as never,
-                        data.value as never,
-                      )
-                    : data.value,
-                );
-                try {
-                  window.localStorage.setItem(metaKey, String(cloudAt));
-                } catch {
-                  // ignore
-                }
-              }
-            }
-            setStatus(
-              window.localStorage.getItem(`${localKey}:pending`) === "true"
-                ? "syncing"
-                : "synced",
-            );
+            void acceptCloud(data);
           },
           () => {
             if (!cancelled) setStatus("error");
@@ -458,37 +542,7 @@ export function useSyncedStorage<T>(
     let unsubscribeRealtime: (() => void) | null = null;
     try {
       unsubscribeRealtime = subscribeRealtimeKey(user.id, key, (item) => {
-        if (cancelled) return;
-        const cloudAt = new Date(item.updated_at || "").getTime();
-        const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-        if (
-          records ||
-          cloudReadMayReplaceLocal(
-            cloudAt,
-            localAt,
-            window.localStorage.getItem(`${localKey}:pending`) === "true",
-          )
-        ) {
-          writeLocal(
-            localKey,
-            records
-              ? mergeRecords(
-                  readLocal(localKey, initial) as never,
-                  item.value as never,
-                )
-              : item.value,
-          );
-          try {
-            window.localStorage.setItem(metaKey, String(cloudAt));
-          } catch {
-            // ignore
-          }
-        }
-        setStatus(
-          window.localStorage.getItem(`${localKey}:pending`) === "true"
-            ? "syncing"
-            : "synced",
-        );
+        void acceptCloud(item);
       });
     } catch (err) {
       console.warn("Failed to subscribe to realtime changes:", err);
@@ -534,7 +588,7 @@ export function useSyncedStorage<T>(
             // Another serialized write may already have acknowledged this value.
             if (window.localStorage.getItem(`${localKey}:pending`) !== "true")
               return "synced";
-            const latest = readLocal(localKey, next);
+            const latest = await readLocalReady(localKey, next);
             const { data } = await sb.auth.getSession();
             const uid = data.session?.user?.id;
             if (
@@ -554,7 +608,10 @@ export function useSyncedStorage<T>(
                   {
                     user_id: uid,
                     key,
-                    value: latest as unknown as object,
+                    value: (await encodeTrackerHistory(
+                      key,
+                      latest,
+                    )) as unknown as object,
                     updated_at: new Date(now).toISOString(),
                   },
                   { onConflict: "user_id,key" },
@@ -643,20 +700,24 @@ export function useSyncedStorage<T>(
       const prev = mounted ? readLocal(localKey, initial) : initial;
       const resolved =
         typeof next === "function" ? (next as (p: T) => T)(prev) : next;
-      try {
-        window.localStorage.setItem(localKey, JSON.stringify(resolved));
-      } catch {
+      if (
+        !writeLocal(
+          localKey,
+          resolved,
+          cachedTrackerHistory(key, resolved, { local: true }),
+          false,
+        )
+      ) {
         setStatus("error");
         throw new Error(
           "Device storage is full or unavailable. Your change was not saved.",
         );
       }
-      writeLocal(localKey, resolved);
       window.localStorage.setItem(`${localKey}:pending`, "true");
       window.localStorage.setItem(metaKey, String(Date.now()));
       push(resolved, options?.immediate);
     },
-    [localKey, metaKey, initial, push, scoped, configured, user],
+    [key, localKey, metaKey, initial, push, scoped, configured, user],
   );
 
   return { value, setValue, status, user } as const;
