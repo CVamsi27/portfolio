@@ -1,4 +1,10 @@
-import { isCalendarDate } from "./personal-timetable.ts";
+import {
+  balancedStudyDaySlots,
+  isBalancedScheduleRevision,
+  isCalendarDate,
+  type PersonalScheduleRevision,
+} from "./personal-timetable.ts";
+export { BALANCED_7AM_SCHEDULE_REVISION } from "./personal-timetable.ts";
 export const jobKinds = [
   "study",
   "project",
@@ -40,6 +46,7 @@ export interface JobAssignment {
 }
 export interface JobPlan {
   version: 1 | 2 | 3;
+  scheduleRevision?: PersonalScheduleRevision;
   endDate?: string;
   studyDayCount?: number;
   catalogueChapterIds?: string[];
@@ -252,7 +259,12 @@ export function studyDates(start = STUDY_PLAN_START, count = 100): string[] {
   return result;
 }
 /** Protected lunch, family, dinner and 22:00 sleep anchors remain free. */
-export function studyDaySlots(date: string): Array<[string, JobKind]> {
+export function studyDaySlots(
+  date: string,
+  revision?: PersonalScheduleRevision,
+): Array<[string, JobKind]> {
+  if (isBalancedScheduleRevision(revision) && date >= revision.effectiveOn)
+    return balancedStudyDaySlots(date);
   const weekday = new Date(date + "T12:00:00Z").getUTCDay();
   if (weekday === 0) return [];
   if (weekday === 6)
@@ -296,6 +308,8 @@ function isStudyDayJobPlan(plan: JobPlan): boolean {
       plan.studyDayCount !== 100 ||
       plan.timezone !== "Asia/Kolkata" ||
       plan.weeklyMinutes !== 3600 ||
+      (plan.scheduleRevision !== undefined &&
+        !isBalancedScheduleRevision(plan.scheduleRevision)) ||
       !/^[a-f0-9]{64}$/.test(plan.sourceDigest) ||
       !text(plan.provenance) ||
       !Array.isArray(plan.catalogueChapterIds) ||
@@ -321,7 +335,8 @@ function isStudyDayJobPlan(plan: JobPlan): boolean {
     const chapters = new Set(plan.catalogueChapterIds);
     const ids = new Set<string>();
     return plan.days.every((day, index) => {
-      const slots = studyDaySlots(day.date);
+      const slots = studyDaySlots(day.date, plan.scheduleRevision);
+      const identitySlots = studyDaySlots(day.date);
       if (day.date !== dates[index] || day.assignments.length !== slots.length)
         return false;
       let total = 0;
@@ -333,7 +348,7 @@ function isStudyDayJobPlan(plan: JobPlan): boolean {
           a.kind !== kind ||
           a.range !== range ||
           a.minutes !== end - start ||
-          a.id !== studyAssignmentId(day.date, kind, range) ||
+          a.id !== studyAssignmentId(day.date, kind, identitySlots[i][0]) ||
           ids.has(a.id) ||
           ![
             a.title,
@@ -372,7 +387,14 @@ function isStudyDayJobPlan(plan: JobPlan): boolean {
         ids.add(a.id);
         total += a.minutes;
       }
-      return total === (slots.length === 6 ? 300 : 660);
+      return (
+        total ===
+        (plan.scheduleRevision && day.date >= plan.scheduleRevision.effectiveOn
+          ? 600
+          : slots.length === 6
+            ? 300
+            : 660)
+      );
     });
   } catch {
     return false;

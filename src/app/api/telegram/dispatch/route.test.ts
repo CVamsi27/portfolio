@@ -100,6 +100,7 @@ const server = createServer(async (request, response) => {
     const key = url.searchParams.get("key");
     const prefs = {
       ...DEFAULT_CAREER_TELEGRAM_PREFERENCES,
+      digestTime: "06:00",
       enabled: prefsEnabled,
       enabledAt: prefsEnabled ? "2026-10-25T00:00:00Z" : null,
     };

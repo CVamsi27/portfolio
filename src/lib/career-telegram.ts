@@ -10,6 +10,7 @@ import {
 } from "./job-plan.ts";
 import type { CareerExecutionEntry } from "./career-roadmap.ts";
 import { isCalendarDate } from "./personal-timetable.ts";
+import { BALANCED_7AM_SCHEDULE_REVISION } from "./personal-timetable.ts";
 import { scheduledInstant, zonedDate } from "./routine-reminders.ts";
 
 export interface CareerTelegramPreferences {
@@ -33,7 +34,7 @@ export const DEFAULT_CAREER_TELEGRAM_PREFERENCES: CareerTelegramPreferences = {
   version: 1,
   enabled: false,
   cadence: "digest-and-learning",
-  digestTime: "06:00",
+  digestTime: "07:00",
   timezone: "Asia/Kolkata",
   catchUpMinutes: 10,
   enabledAt: null,
@@ -108,7 +109,10 @@ export function careerTelegramMayBeDue(prefs: unknown, now: number): boolean {
   const times = [preferences.digestTime];
   if (preferences.cadence === "digest-and-learning")
     times.push(
-      ...studyDaySlots(date)
+      ...[
+        ...studyDaySlots(date),
+        ...studyDaySlots(date, BALANCED_7AM_SCHEDULE_REVISION),
+      ]
         .filter(([, kind]) => kind === "study" || kind === "project")
         .map(([range]) => range.slice(0, 5)),
     );

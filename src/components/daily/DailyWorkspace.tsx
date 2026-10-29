@@ -40,7 +40,13 @@ import {
   EMPTY_CAREER_EXECUTION_STATE,
   type CareerExecutionState,
 } from "@/lib/career-roadmap";
-import { personalSchedule } from "@/lib/personal-timetable";
+import {
+  personalSchedule,
+  personalDayFrame,
+  isNewPersonalRoutine,
+  isBalancedScheduleRevision,
+  TIMETABLE_OWNER_EMAIL,
+} from "@/lib/personal-timetable";
 import { useRoutine } from "@/lib/routine-store";
 import { usePersonalModules } from "@/lib/personal-modules";
 import { usePersonalProgress } from "@/lib/use-personal-progress";
@@ -58,17 +64,30 @@ import HabitChecklist from "@/components/personal/HabitChecklist";
 import FocusSprint from "@/components/trackers/FocusSprint";
 import { displayWeight } from "@/lib/health";
 import Modal from "@/components/trackers/Modal";
+import TimetableAgenda, { TimetableWeek } from "./TimetableAgenda";
 const deviceZone = () =>
   Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
 const subscribeHydration = () => () => {};
 const clientReady = () => true;
 const serverReady = () => false;
 
-export default function DailyWorkspace({ planning = false }: { planning?: boolean }) {
-  const ready = useSyncExternalStore(subscribeHydration, clientReady, serverReady);
+export default function DailyWorkspace({
+  planning = false,
+}: {
+  planning?: boolean;
+}) {
+  const ready = useSyncExternalStore(
+    subscribeHydration,
+    clientReady,
+    serverReady,
+  );
   // The server cannot know the device clock or timezone. Match its first paint,
   // then select the user's actual calendar in the mounted workspace.
-  return ready ? <ReadyDailyWorkspace planning={planning} /> : <p role="status">Loading your day…</p>;
+  return ready ? (
+    <ReadyDailyWorkspace planning={planning} />
+  ) : (
+    <p role="status">Loading your day…</p>
+  );
 }
 
 function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
@@ -138,12 +157,13 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
   const germanyAssignments = germany?.execution
     ? datedAssignments(germany.execution, date)
     : {};
-  const detailedAssignments = modules.value.study
-    ? jobAssignments(germany?.execution?.jobPlan, date)
-    : [];
+  const weekStart = shiftDay(
+    date,
+    -((new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7),
+  );
   const jobDays = (
     planning && view === "week"
-      ? Array.from({ length: 7 }, (_, i) => shiftDay(date, i))
+      ? Array.from({ length: 7 }, (_, i) => shiftDay(weekStart, i))
       : [date]
   )
     .map((d) => ({
@@ -155,13 +175,13 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
     .filter((d) => d.assignments.length > 0);
   const planningWeek = planning && view === "week";
   const weekDays = planningWeek
-    ? Array.from({ length: 7 }, (_, i) => shiftDay(date, i))
+    ? Array.from({ length: 7 }, (_, i) => shiftDay(weekStart, i))
     : [];
   // Keep a day either side so a block near midnight is still placed on the
   // correct calendar day after timezone conversion. The Plan week view needs
   // the same buffer around its seven visible days.
   const sourceDays = planningWeek
-    ? [shiftDay(date, -1), ...weekDays, shiftDay(date, 7)]
+    ? [shiftDay(weekStart, -1), ...weekDays, shiftDay(weekStart, 7)]
     : [shiftDay(date, -1), date, shiftDay(date, 1)];
   const fixedBlocks = (sourceDate: string) => {
     const datedPlan = roadmapForDate(career.value, sourceDate);
@@ -207,6 +227,19 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
     date: day,
     rows: rowsForDay(day),
   }));
+  const frameForDay = (day: string) =>
+    modules.value.study &&
+    isNewPersonalRoutine(day) &&
+    (user?.email?.trim().toLowerCase() === TIMETABLE_OWNER_EMAIL ||
+      isBalancedScheduleRevision(
+        roadmapForDate(career.value, day)?.execution?.jobPlan?.scheduleRevision,
+      ))
+      ? personalDayFrame(day)
+      : [];
+  const frame = frameForDay(date);
+  const weekFrames = Object.fromEntries(
+    weekDays.map((day) => [day, frameForDay(day)]),
+  );
   const hasAgenda = planningWeek
     ? weekRows.some((day) => day.rows.length > 0)
     : rows.length > 0;
@@ -346,17 +379,36 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
   const assignmentForRow = (row?: AgendaItem) =>
     row && (row.id.startsWith("owner:") || row.id.startsWith("timetable:"))
       ? jobAssignments(
-          germany?.execution?.jobPlan,
+          roadmapForDate(career.value, row.block?.date ?? date)?.execution
+            ?.jobPlan,
           row.block?.date ?? date,
         ).find((a) => row.id.endsWith(":" + a.range))
       : undefined;
+  const rowHref = (row: AgendaItem) => {
+    const assignment = assignmentForRow(row);
+    return assignment
+      ? assignmentHref(assignment)
+      : date !== today && ["task", "event", "study"].includes(row.kind)
+        ? `/plan?date=${row.block?.date ?? date}`
+        : row.href;
+  };
   const renderRow = (row: AgendaItem) => {
     const assignment = assignmentForRow(row);
     const fixedSchedule =
       row.id.startsWith("owner:") || row.id.startsWith("timetable:");
+    if (planning && assignment)
+      return (
+        <li key={row.id} className="min-w-0">
+          <JobAssignmentRow
+            assignment={assignment}
+            evidence={execution.value?.evidenceByItemId?.[assignment.id]}
+            recordLink
+          />
+        </li>
+      );
     const content = (
       <>
-        {planning && fixedSchedule ? null : assignment ? (
+        {assignment ? (
           <JobAssignmentDetail assignment={assignment} recordLink />
         ) : (
           row.block?.description &&
@@ -421,15 +473,7 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
                 Taken
               </Button>
             ) : (
-              <Link
-                className="inline-action"
-                href={
-                  date !== today &&
-                  ["task", "event", "study"].includes(row.kind)
-                    ? `/plan?date=${date}`
-                    : row.href
-                }
-              >
+              <Link className="inline-action" href={rowHref(row)}>
                 {row.kind === "meal"
                   ? "Log meal"
                   : date === today
@@ -588,16 +632,29 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
         )}
       </section>
     );
+  if (user && !germany && career.status === "syncing")
+    return (
+      <p role="status" className="py-8 text-muted-foreground">
+        Loading your saved plan…
+      </p>
+    );
+  if (user && !germany && career.status === "error")
+    return (
+      <section className="workspace-panel">
+        <h1>Your plan couldn’t load</h1>
+        <p>
+          Your saved records are still in your account. Try loading them again.
+        </p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+      </section>
+    );
   const activeSession = Boolean(work.focus || work.study);
   const actionableNext = date === today ? next : undefined;
-  const nextAssignment = assignmentForRow(actionableNext);
   const primaryHref = activeSession
     ? work.study
       ? "/roadmap"
       : "/plan?view=focus"
-    : ((nextAssignment
-        ? assignmentHref(nextAssignment)
-        : actionableNext?.href) ??
+    : ((actionableNext ? rowHref(actionableNext) : undefined) ??
       (date === today && pending[0]
         ? `/plan?view=focus&task=${encodeURIComponent(pending[0].id)}`
         : `/plan?date=${date === today && rows.length > 0 && !incomplete.some((row) => row.at + (row.durationMinutes ?? 0) * 60000 > now) ? shiftDay(date, 1) : date}`));
@@ -656,10 +713,7 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
             ? `–${formatClock(row.at + row.durationMinutes * 60000)}`
             : ""
         } · ${agendaStatus(row, date, today, now)}`,
-        href:
-          date !== today && ["task", "event", "study"].includes(row.kind)
-            ? `/plan?date=${date}`
-            : row.href,
+        href: rowHref(row),
         cta:
           row.kind === "meal"
             ? "Log meal"
@@ -825,197 +879,172 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
           Undo removed activity
         </Button>
       )}
-      {planning && jobDays.length > 0 && (
-        <section className="workspace-panel" aria-label="Job timetable">
-          <h2 className="font-display text-xl font-semibold">Job timetable</h2>
-          <p className="text-sm text-muted-foreground">
-            {jobDays.reduce(
-              (n, d) =>
-                n + d.assignments.reduce((sum, a) => sum + a.minutes, 0),
-              0,
-            ) / 60}{" "}
-            hours · IST · open an assignment for instructions and links
-          </p>
-          {view === "week" && (
+      <div className={`daily-agenda-layout${planning ? " is-planning" : ""}`}>
+        {planningWeek ? (
+          <section
+            className="workspace-panel"
+            data-testid="plan-week-agenda"
+            aria-label={jobDays.length ? "Job timetable" : "Weekly timetable"}
+          >
+            <h2>Weekly timetable</h2>
             <p
-              className="text-xs text-muted-foreground mb-3"
+              className="mb-4 text-sm text-muted-foreground"
               aria-label="Timetable dates"
             >
-              {[date, shiftDay(date, 6)]
-                .map((d) =>
-                  new Intl.DateTimeFormat("en-GB", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    timeZone: "UTC",
-                  }).format(new Date(d + "T12:00:00Z")),
-                )
-                .join(" – ")}
+              {date} – {shiftDay(date, 6)} ·{" "}
+              {timeZone === "Asia/Kolkata" ? "IST" : timeZone}
             </p>
-          )}
-          {view === "week"
-            ? jobDays.map((d) => (
-                <details
-                  key={d.date}
-                  data-testid={`job-day-${d.date}`}
-                  open={d.date === date}
-                  className="border-t border-border py-3"
+            {jobDays.length || frame.length ? (
+              <TimetableWeek
+                days={weekRows.filter(
+                  (day) => day.rows.length || weekFrames[day.date]?.length,
+                )}
+                selectedDate={date}
+                frames={weekFrames}
+                renderRow={renderRow}
+                renderProgress={(day) => (
+                  <JobProgressLabel
+                    assignments={jobAssignments(
+                      roadmapForDate(career.value, day)?.execution?.jobPlan,
+                      day,
+                    )}
+                    entries={execution.value?.evidenceByItemId}
+                  />
+                )}
+              />
+            ) : hasAgenda ? (
+              <div className="plan-week-days">
+                {weekRows.map(({ date: day, rows: dayRows }) =>
+                  dayRows.length ? (
+                    <section key={day} aria-label={`Activities for ${day}`}>
+                      <h3 className="font-display text-lg font-semibold">
+                        {new Intl.DateTimeFormat("en-GB", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "short",
+                          timeZone: "UTC",
+                        }).format(new Date(day + "T12:00:00Z"))}
+                      </h3>
+                      <ol className="agenda-list">{dayRows.map(renderRow)}</ol>
+                    </section>
+                  ) : null,
+                )}
+              </div>
+            ) : (
+              <p className="workspace-empty">
+                No activities in this week. Add an activity to begin.
+              </p>
+            )}
+          </section>
+        ) : (
+          <section
+            className="workspace-panel"
+            data-testid="day-agenda"
+            aria-label={
+              planning && jobDays.length ? "Job timetable" : undefined
+            }
+          >
+            <div className={planning ? "workspace-heading" : "sr-only"}>
+              {planning && (
+                <div>
+                  <h2>Daily timetable</h2>
+                  <p>
+                    {frame.length
+                      ? frame.some((block) => block.kind === "study")
+                        ? "07:00 start · Two study windows · IST"
+                        : "Sunday off · Personal routine · IST"
+                      : "Your commitments, in time order"}
+                  </p>
+                </div>
+              )}
+            </div>
+            {timelineSession && (
+              <ol className="agenda-list nova-timeline-session">
+                <li
+                  className="nova-agenda-row"
+                  data-testid="today-session-block"
                 >
-                  <summary className="min-h-11 cursor-pointer font-semibold">
-                    {new Intl.DateTimeFormat("en-GB", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      timeZone: "UTC",
-                    }).format(new Date(d.date + "T12:00:00Z"))}{" "}
-                    · {d.assignments.reduce((n, a) => n + a.minutes, 0) / 60}{" "}
-                    hours
-                    <JobProgressLabel
-                      assignments={d.assignments}
-                      entries={execution.value?.evidenceByItemId}
-                    />
-                  </summary>
-                  {d.assignments.map((a) => (
-                    <JobAssignmentRow
-                      key={a.id}
-                      assignment={a}
-                      evidence={execution.value?.evidenceByItemId?.[a.id]}
-                      recordLink
-                    />
-                  ))}
-                </details>
-              ))
-            : detailedAssignments.map((a) => (
-                <JobAssignmentRow
-                  key={a.id}
-                  assignment={a}
-                  evidence={execution.value?.evidenceByItemId?.[a.id]}
-                  recordLink
+                  <div className="nova-agenda-time">
+                    <time
+                      dateTime={new Date(
+                        timelineSession.startedAt,
+                      ).toISOString()}
+                    >
+                      {formatClock(timelineSession.startedAt)}
+                    </time>
+                    <small>
+                      {Math.max(
+                        0,
+                        Math.round((now - timelineSession.startedAt) / 60000),
+                      )}{" "}
+                      min
+                    </small>
+                  </div>
+                  <div className="nova-agenda-body">
+                    <strong>{timelineSession.title}</strong>
+                    <small>
+                      In session · started{" "}
+                      {formatClock(timelineSession.startedAt)}
+                    </small>
+                    <div className="agenda-actions">
+                      <Link
+                        className="inline-action"
+                        href={timelineSession.href}
+                      >
+                        Resume
+                      </Link>
+                    </div>
+                  </div>
+                </li>
+              </ol>
+            )}
+            {incomplete.length || frame.length ? (
+              planning || frame.length ? (
+                <TimetableAgenda
+                  date={date}
+                  rows={incomplete}
+                  frame={frame}
+                  renderRow={renderRow}
                 />
-              ))}
-        </section>
-      )}
-      {(!planning || jobDays.length === 0 || hasAgenda) && (
-        <div className={`daily-agenda-layout${planning ? " is-planning" : ""}`}>
-          {planningWeek ? (
-            <section className="workspace-panel" data-testid="plan-week-agenda">
-              <h2>
-                Your activities · {date}–{shiftDay(date, 6)}
-              </h2>
-              {hasAgenda ? (
-                <div className="plan-week-days">
-                  {weekRows.map(({ date: day, rows: dayRows }) =>
-                    dayRows.length ? (
-                      <section key={day} aria-label={`Activities for ${day}`}>
-                        <h3 className="font-display text-lg font-semibold">
-                          {new Intl.DateTimeFormat("en-GB", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "short",
-                            timeZone: "UTC",
-                          }).format(new Date(day + "T12:00:00Z"))}
-                        </h3>
-                        <ol className="agenda-list">
-                          {dayRows.map(renderRow)}
-                        </ol>
-                      </section>
-                    ) : null,
+              ) : (
+                <div className="nova-agenda-groups">
+                  {(["Morning", "Afternoon", "Evening"] as const).map(
+                    (period) => {
+                      const items = incomplete.filter(
+                        (row) => agendaPeriod(row.at, timeZone) === period,
+                      );
+                      return items.length ? (
+                        <section
+                          className="nova-agenda-group"
+                          key={period}
+                          aria-label={period}
+                        >
+                          <h3>{period}</h3>
+                          <ol className="agenda-list">
+                            {items.map(renderRow)}
+                          </ol>
+                        </section>
+                      ) : null;
+                    },
                   )}
                 </div>
-              ) : (
-                <p className="workspace-empty">
-                  No activities in this week. Add an activity to begin.
-                </p>
-              )}
-            </section>
-          ) : (
-            <section className="workspace-panel" data-testid="day-agenda">
-              <div className={planning ? "workspace-heading" : "sr-only"}>
-                {planning && <h2>Your activities</h2>}
-              </div>
-              {timelineSession && (
-                <ol className="agenda-list nova-timeline-session">
-                  <li
-                    className="nova-agenda-row"
-                    data-testid="today-session-block"
-                  >
-                    <div className="nova-agenda-time">
-                      <time
-                        dateTime={new Date(
-                          timelineSession.startedAt,
-                        ).toISOString()}
-                      >
-                        {formatClock(timelineSession.startedAt)}
-                      </time>
-                      <small>
-                        {Math.max(
-                          0,
-                          Math.round((now - timelineSession.startedAt) / 60000),
-                        )}{" "}
-                        min
-                      </small>
-                    </div>
-                    <div className="nova-agenda-body">
-                      <strong>{timelineSession.title}</strong>
-                      <small>
-                        In session · started{" "}
-                        {formatClock(timelineSession.startedAt)}
-                      </small>
-                      <div className="agenda-actions">
-                        <Link
-                          className="inline-action"
-                          href={timelineSession.href}
-                        >
-                          Resume
-                        </Link>
-                      </div>
-                    </div>
-                  </li>
-                </ol>
-              )}
-              {incomplete.length ? (
-                planning ? (
-                  <ol className="agenda-list">{incomplete.map(renderRow)}</ol>
-                ) : (
-                  <div className="nova-agenda-groups">
-                    {(["Morning", "Afternoon", "Evening"] as const).map(
-                      (period) => {
-                        const items = incomplete.filter(
-                          (row) => agendaPeriod(row.at, timeZone) === period,
-                        );
-                        return items.length ? (
-                          <section
-                            className="nova-agenda-group"
-                            key={period}
-                            aria-label={period}
-                          >
-                            <h3>{period}</h3>
-                            <ol className="agenda-list">
-                              {items.map(renderRow)}
-                            </ol>
-                          </section>
-                        ) : null;
-                      },
-                    )}
-                  </div>
-                )
-              ) : (
-                <p className="workspace-empty">
-                  {planning
-                    ? "No activities for this date. Add an activity to begin."
-                    : "No timed commitments for this day. Schedule an activity in Plan."}
-                </p>
-              )}
-              {completed.length > 0 && (
-                <details>
-                  <summary>{completed.length} completed or skipped</summary>
-                  <ol className="agenda-list">{completed.map(renderRow)}</ol>
-                </details>
-              )}
-            </section>
-          )}
-        </div>
-      )}
+              )
+            ) : (
+              <p className="workspace-empty">
+                {planning
+                  ? "No activities for this date. Add an activity to begin."
+                  : "No timed commitments for this day. Schedule an activity in Plan."}
+              </p>
+            )}
+            {completed.length > 0 && (
+              <details>
+                <summary>{completed.length} completed or skipped</summary>
+                <ol className="agenda-list">{completed.map(renderRow)}</ol>
+              </details>
+            )}
+          </section>
+        )}
+      </div>
       {!planning && pending.length > 0 && (
         <section className="nova-open-tasks" data-testid="today-open-tasks">
           <h2>Open tasks</h2>

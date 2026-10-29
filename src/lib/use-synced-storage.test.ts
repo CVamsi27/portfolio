@@ -53,7 +53,9 @@ test("Supabase Realtime Channel Multiplexer", async (t) => {
 
   // Mock getSupabase via setSupabaseClientForTesting
   const { setSupabaseClientForTesting } = await import("./supabase/client.ts");
-  setSupabaseClientForTesting(mockSupabase as unknown as import("@supabase/supabase-js").SupabaseClient);
+  setSupabaseClientForTesting(
+    mockSupabase as unknown as import("@supabase/supabase-js").SupabaseClient,
+  );
 
   t.after(() => {
     resetRealtimeHubsForTesting();
@@ -63,56 +65,75 @@ test("Supabase Realtime Channel Multiplexer", async (t) => {
     setSupabaseClientForTesting(undefined);
   });
 
-  await t.test("multiplexes multiple subscriptions on the same key into a single channel", () => {
-    const events1: RealtimeItem[] = [];
-    const events2: RealtimeItem[] = [];
+  await t.test(
+    "multiplexes multiple subscriptions on the same key into a single channel",
+    () => {
+      const events1: RealtimeItem[] = [];
+      const events2: RealtimeItem[] = [];
 
-    const unsub1 = subscribeRealtimeKey("testuser_abc", "study:completed_chapters", (item) => {
-      events1.push(item);
-    });
+      const unsub1 = subscribeRealtimeKey(
+        "testuser_abc",
+        "study:completed_chapters",
+        (item) => {
+          events1.push(item);
+        },
+      );
 
-    const unsub2 = subscribeRealtimeKey("testuser_abc", "study:completed_chapters", (item) => {
-      events2.push(item);
-    });
+      const unsub2 = subscribeRealtimeKey(
+        "testuser_abc",
+        "study:completed_chapters",
+        (item) => {
+          events2.push(item);
+        },
+      );
 
-    // Exactly one Supabase channel should have been created
-    assert.equal(channelCreatedCount, 1);
+      // Exactly one Supabase channel should have been created
+      assert.equal(channelCreatedCount, 1);
 
-    const state = getRealtimeHubDebugState("testuser_abc");
-    assert.equal(state?.totalListeners, 2);
-    assert.deepEqual(state?.keys, ["study:completed_chapters"]);
+      const state = getRealtimeHubDebugState("testuser_abc");
+      assert.equal(state?.totalListeners, 2);
+      assert.deepEqual(state?.keys, ["study:completed_chapters"]);
 
-    // Simulate realtime broadcast from Postgres
-    assert.ok(broadcastCallback);
-    broadcastCallback({
-      new: {
-        key: "study:completed_chapters",
-        value: [{ chapterId: "10.1.1.01", completedAt: 12345 }],
-        updated_at: "2026-10-01T08:00:00Z",
-      },
-    });
+      // Simulate realtime broadcast from Postgres
+      assert.ok(broadcastCallback);
+      broadcastCallback({
+        new: {
+          key: "study:completed_chapters",
+          value: [{ chapterId: "10.1.1.01", completedAt: 12345 }],
+          updated_at: "2026-10-01T08:00:00Z",
+        },
+      });
 
-    // Both subscribers should have received the event
-    assert.equal(events1.length, 1);
-    assert.equal(events2.length, 1);
-    assert.equal(events1[0].key, "study:completed_chapters");
-    assert.equal(events2[0].key, "study:completed_chapters");
+      // Both subscribers should have received the event
+      assert.equal(events1.length, 1);
+      assert.equal(events2.length, 1);
+      assert.equal(events1[0].key, "study:completed_chapters");
+      assert.equal(events2[0].key, "study:completed_chapters");
 
-    unsub1();
-    unsub2();
-  });
+      unsub1();
+      unsub2();
+    },
+  );
 
   await t.test("routes events to correct keys without interference", () => {
     const completedEvents: RealtimeItem[] = [];
     const roadmapEvents: RealtimeItem[] = [];
 
-    const unsub1 = subscribeRealtimeKey("testuser_abc", "study:completed_chapters", (item) => {
-      completedEvents.push(item);
-    });
+    const unsub1 = subscribeRealtimeKey(
+      "testuser_abc",
+      "study:completed_chapters",
+      (item) => {
+        completedEvents.push(item);
+      },
+    );
 
-    const unsub2 = subscribeRealtimeKey("testuser_abc", "career_execution_state", (item) => {
-      roadmapEvents.push(item);
-    });
+    const unsub2 = subscribeRealtimeKey(
+      "testuser_abc",
+      "career_execution_state",
+      (item) => {
+        roadmapEvents.push(item);
+      },
+    );
 
     // Still using the same shared channel
     assert.equal(channelCreatedCount, 1);
@@ -170,4 +191,31 @@ test("empty storage never shares a cached default between readers", async (t) =>
   assert.deepEqual(__readLocalForTesting("probe", { other: true }), {
     stored: true,
   });
+});
+
+test("cloud values remain readable when browser storage quota rejects persistence", async (t) => {
+  const originalWindow = globalThis.window;
+  const store = new Map([["quota-probe", '{"stale":true}']]);
+  (globalThis as unknown as { window: unknown }).window = {
+    localStorage: {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: () => {
+        throw new DOMException("Full", "QuotaExceededError");
+      },
+    },
+  };
+  const storage = await import("./use-synced-storage.ts");
+  storage.__resetLocalValueCacheForTesting();
+  t.after(() => {
+    storage.__resetLocalValueCacheForTesting();
+    (globalThis as unknown as { window: unknown }).window = originalWindow;
+  });
+  assert.equal(typeof storage.__writeLocalForTesting, "function");
+  const latest = {
+    days: [{ date: "2026-10-30", title: "Actual cloud assignment" }],
+  };
+  storage.__writeLocalForTesting("quota-probe", latest);
+  assert.deepEqual(storage.__readLocalForTesting("quota-probe", null), latest);
+  assert.deepEqual(storage.__readLocalForTesting("quota-probe", null), latest);
+  assert.equal(storage.__readLocalForTesting("other-account", null), null);
 });

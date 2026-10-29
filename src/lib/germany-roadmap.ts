@@ -194,6 +194,10 @@ export function mergeGermanyCareer(
   const verification = previous.verificationChecklist as
     | { items?: Array<{ id: string; text: string }> }
     | undefined;
+  const scheduleEffectiveOn =
+    plan.execution?.jobPlan?.scheduleRevision?.effectiveOn ??
+    plan.execution?.jobPlan?.effectiveOn ??
+    "2026-10-12";
   return {
     ...previous,
     germanyRoadmap: plan,
@@ -256,17 +260,14 @@ export function mergeGermanyCareer(
       : {}),
     daySchedule: {
       timezone: "Asia/Kolkata",
-      effectiveOn: plan.execution?.jobPlan?.effectiveOn ?? "2026-10-12",
+      effectiveOn: scheduleEffectiveOn,
       note: "Date-aware weekday rotation, Saturday and recovery Sunday; use the shared timetable.",
       blocks: Object.entries(
         plan.execution?.jobPlan
           ? annotateGermanySchedule(
               plan.execution,
-              plan.execution.jobPlan.effectiveOn,
-              personalSchedule(
-                TIMETABLE_OWNER_EMAIL,
-                plan.execution.jobPlan.effectiveOn,
-              )!,
+              scheduleEffectiveOn,
+              personalSchedule(TIMETABLE_OWNER_EMAIL, scheduleEffectiveOn)!,
             )
           : personalSchedule(TIMETABLE_OWNER_EMAIL, "2026-10-12")!,
       ).map(([time, block]) => ({ time, ...block, type: "work" })),
@@ -556,6 +557,9 @@ function alignForwardTimetable<
     scheduleHistory?: unknown[];
   };
   const job = plan.execution!.jobPlan!;
+  const effectiveOn = job.scheduleRevision?.effectiveOn ?? job.effectiveOn;
+  const weekdayMinutes = job.scheduleRevision ? 600 : 660;
+  const saturdayMinutes = job.scheduleRevision ? 600 : 300;
   const byDate = new Map(previous.days.map((day) => [day.date, day]));
   const days = [...previous.days];
   const date = new Date(plan.startDate + "T12:00:00Z");
@@ -578,32 +582,35 @@ function alignForwardTimetable<
             {
               sourceRevision: previous.scheduleRevision ?? "legacy",
               supersededOn: plan.reviewedOn,
-              effectiveOn: job.effectiveOn,
+              effectiveOn,
               days: previous.days,
             },
           ],
         }
       : {}),
     scheduleReviewedOn: plan.reviewedOn,
-    scheduleEffectiveOn: job.effectiveOn,
+    scheduleEffectiveOn: effectiveOn,
+    ...(job.scheduleRevision
+      ? { scheduleProfile: job.scheduleRevision.profile }
+      : {}),
     scheduleTimezone: job.timezone,
     scheduleBudgetMinutes: {
-      weekday: 660,
-      saturday: 300,
+      weekday: weekdayMinutes,
+      saturday: saturdayMinutes,
       sunday: 0,
       week: 3600,
     },
     scheduleBudget: {
-      weekdayFocusedMinutes: 660,
-      saturdayFocusedMinutes: 300,
+      weekdayFocusedMinutes: weekdayMinutes,
+      saturdayFocusedMinutes: saturdayMinutes,
       sundayFocusedMinutes: 0,
       weeklyFocusedMinutes: 3600,
-      effectiveOn: job.effectiveOn,
+      effectiveOn,
     },
     days: days
       .sort((a, b) => a.date.localeCompare(b.date))
       .map((day) =>
-        day.date < job.effectiveOn || day.date > plan.endDate
+        day.date < effectiveOn || day.date > plan.endDate
           ? day
           : {
               ...day,
@@ -625,7 +632,10 @@ export function roadmapForDate(
     ? source.germanyRoadmap
     : null;
   if (!active || !isCalendarDate(date)) return active;
-  if (date >= active.startDate) return active;
+  const effectiveOn =
+    active.execution?.jobPlan?.scheduleRevision?.effectiveOn ??
+    active.startDate;
+  if (date >= effectiveOn) return active;
   const history = (source?.roadmapHistory ?? [])
     .filter(isGermanyRoadmap)
     .filter((plan) => date >= plan.startDate && date <= plan.endDate);

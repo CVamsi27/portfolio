@@ -438,3 +438,56 @@ test("forward authoring and owner preview reject a public path merely named like
     rmSync(temp, { recursive: true, force: true });
   }
 });
+
+test("balanced clock revision preserves assignment identity, prior days and refresh determinism", () => {
+  const legacy = generate();
+  assert.equal(typeof generator.reviseStudyDaySchedule, "function");
+  const revision = {
+    version: 1,
+    effectiveOn: "2026-10-30",
+    profile: "balanced-7am",
+  };
+  const revised = generator.reviseStudyDaySchedule(
+    legacy,
+    revision,
+    catalogue.sourceDigest,
+  );
+  assert.ok(isGermanyRoadmap(revised));
+  const before = legacy.execution.jobPlan.days,
+    after = revised.execution.jobPlan.days;
+  assert.deepEqual(after.slice(0, 4), before.slice(0, 4));
+  const identities = (days) =>
+    days.flatMap((d) =>
+      d.assignments.map((a) => [
+        a.id,
+        a.date,
+        a.kind,
+        a.prerequisiteAssignmentIds,
+        a.chapterIds,
+        a.skillIds,
+      ]),
+    );
+  assert.deepEqual(identities(after), identities(before));
+  assert.equal(after.flatMap((d) => d.assignments).length, 919);
+  assert.equal(
+    after[4].assignments.reduce((n, a) => n + a.minutes, 0),
+    600,
+  );
+  assert.equal(
+    after[5].assignments.reduce((n, a) => n + a.minutes, 0),
+    600,
+  );
+  assert.equal(after[4].assignments[0].range, "09:00-10:30");
+  assert.match(after[4].assignments[0].brief, /90-minute/);
+  assert.doesNotMatch(after[4].assignments[0].brief, /30-minute/);
+  assert.deepEqual(
+    revised.allocations.map((a) => a.hours),
+    [6, 7, 12, 10, 5, 9.5, 5, 5.5],
+  );
+  assert.deepEqual(
+    generator.reviseStudyDaySchedule(revised, revision, catalogue.sourceDigest),
+    revised,
+  );
+  const refreshed = generator.generateStudyDayRoadmap(revised, catalogue);
+  assert.deepEqual(refreshed.execution.jobPlan, revised.execution.jobPlan);
+});

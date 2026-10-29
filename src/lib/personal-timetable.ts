@@ -7,6 +7,172 @@ export type ScheduleBlock = {
   output: string;
 };
 export type PersonalSchedule = Record<string, ScheduleBlock>;
+export const BALANCED_7AM_SCHEDULE_REVISION = {
+  version: 1,
+  effectiveOn: "2026-10-30",
+  profile: "balanced-7am",
+} as const;
+export type PersonalScheduleRevision = typeof BALANCED_7AM_SCHEDULE_REVISION;
+export function isBalancedScheduleRevision(
+  value: unknown,
+): value is PersonalScheduleRevision {
+  if (!value || typeof value !== "object") return false;
+  const revision = value as PersonalScheduleRevision;
+  return (
+    revision.version === 1 &&
+    revision.effectiveOn === "2026-10-30" &&
+    revision.profile === "balanced-7am"
+  );
+}
+export function isNewPersonalRoutine(date: string): boolean {
+  return (
+    isCalendarDate(date) && date >= BALANCED_7AM_SCHEDULE_REVISION.effectiveOn
+  );
+}
+export type PersonalFrameBlock = {
+  id: string;
+  startLocal: string;
+  durationMinutes: number;
+  label: string;
+  kind: "study" | "exercise" | "event";
+};
+export function personalDayFrame(date: string): PersonalFrameBlock[] {
+  if (!isNewPersonalRoutine(date)) return [];
+  const sunday = new Date(`${date}T12:00:00Z`).getUTCDay() === 0;
+  return [
+    {
+      id: "refresh",
+      startLocal: "07:00",
+      durationMinutes: 30,
+      label: "Refresh",
+      kind: "event",
+    },
+    {
+      id: "exercise",
+      startLocal: "07:30",
+      durationMinutes: 60,
+      label: "Exercise",
+      kind: "exercise",
+    },
+    {
+      id: "bath",
+      startLocal: "08:30",
+      durationMinutes: 30,
+      label: "Bath",
+      kind: "event",
+    },
+    ...(!sunday
+      ? [
+          {
+            id: "morning-study",
+            startLocal: "09:00",
+            durationMinutes: 300,
+            label: "Morning study",
+            kind: "study" as const,
+          },
+        ]
+      : []),
+    {
+      id: "lunch",
+      startLocal: "14:00",
+      durationMinutes: 60,
+      label: "Lunch",
+      kind: "event",
+    },
+    ...(!sunday
+      ? [
+          {
+            id: "afternoon-study",
+            startLocal: "15:00",
+            durationMinutes: 300,
+            label: "Afternoon study",
+            kind: "study" as const,
+          },
+        ]
+      : []),
+  ];
+}
+type PersonalWorkKind =
+  | "study"
+  | "applications"
+  | "project"
+  | "network"
+  | "oss"
+  | "assessment"
+  | "coding"
+  | "speaking"
+  | "german"
+  | "review"
+  | "funnel"
+  | "mock"
+  | "planning";
+/** Clock slots are separate from the historical assignment identity. */
+export function balancedStudyDaySlots(
+  date: string,
+): Array<[string, PersonalWorkKind]> {
+  if (!isCalendarDate(date)) return [];
+  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+  if (weekday === 0) return [];
+  if (weekday === 6)
+    return [
+      ["09:00-10:00", "funnel"],
+      ["10:00-12:00", "mock"],
+      ["12:00-14:00", "oss"],
+      ["15:00-17:00", "study"],
+      ["17:00-18:30", "review"],
+      ["18:30-20:00", "planning"],
+    ];
+  return [
+    ["09:00-10:30", "study"],
+    ["10:30-11:30", "applications"],
+    ["11:30-13:30", "project"],
+    ["13:30-14:00", "network"],
+    ["15:00-15:30", "network"],
+    ["15:30-16:30", weekday === 2 || weekday === 4 ? "network" : "oss"],
+    ...(weekday === 3
+      ? [["16:30-18:30", "assessment"] as [string, PersonalWorkKind]]
+      : ([
+          ["16:30-18:00", "coding"],
+          ["18:00-18:30", "speaking"],
+        ] as Array<[string, PersonalWorkKind]>)),
+    ["18:30-19:30", "german"],
+    ["19:30-20:00", "review"],
+  ];
+}
+function balancedPersonalSchedule(date: string): PersonalSchedule {
+  const labels: Record<PersonalWorkKind, string> = {
+    study: "Bible study and retrieval",
+    applications: "Applications and recruiter replies",
+    project: "Build and verify the project slice",
+    network: "Networking and technical writing",
+    oss: "Open source",
+    assessment: "Assessment and gap repair",
+    coding: "Coding interview practice",
+    speaking: "Spoken project or behavioral practice",
+    german: "German practice",
+    review: "Evidence review and next action",
+    funnel: "Funnel review and role qualification",
+    mock: "Mock interview and debrief",
+    planning: "Weekly planning and repair scope",
+  };
+  return Object.fromEntries(
+    balancedStudyDaySlots(date).map(([range, kind]) => {
+      const [start, end] = range
+        .split("-")
+        .map((time) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3)));
+      return [
+        range,
+        {
+          label: labels[kind],
+          minutes: end - start,
+          work: true,
+          output:
+            "Retain the actual result, evidence, observed gap and next action within this block",
+        },
+      ];
+    }),
+  );
+}
 const weekday: PersonalSchedule = {
   "08:30-10:30": {
     label: "Bible study and retrieval practice",
@@ -188,6 +354,7 @@ export function personalSchedule(
   )
     return undefined;
   const day = new Date(`${date}T12:00:00Z`).getUTCDay();
+  if (isNewPersonalRoutine(date)) return balancedPersonalSchedule(date);
   if (date < "2026-10-12") return day === 0 || day === 6 ? weekend : weekday;
   if (day === 0) return {};
   if (day === 6) return campaignSaturday;

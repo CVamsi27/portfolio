@@ -1,3 +1,4 @@
+import { validCareerTelegramPreferences } from "../src/lib/career-telegram.ts";
 import { writeFileSync } from "node:fs";
 import { isDeepStrictEqual } from "node:util";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -69,4 +70,17 @@ export async function applyOwnerRelease({
       `Release stopped; applied keys: ${applied.join(", ") || "none"}. Private backup retained. ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
+}
+
+/** Owner-approved clock change never re-enables or resets notification consent. */
+export function reviseCareerDigestPreferences(
+  value: unknown,
+  digestTime: string,
+) {
+  if (!validCareerTelegramPreferences(value))
+    throw new Error("Existing valid career preferences required");
+  const next = { ...value, digestTime };
+  if (!validCareerTelegramPreferences(next))
+    throw new Error("Invalid digest time");
+  return next;
 }

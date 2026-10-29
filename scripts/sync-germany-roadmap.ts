@@ -3,7 +3,10 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { createClient } from "@supabase/supabase-js";
-import { applyOwnerRelease } from "./owner-release.ts";
+import {
+  applyOwnerRelease,
+  reviseCareerDigestPreferences,
+} from "./owner-release.ts";
 import { TIMETABLE_OWNER_EMAIL } from "../src/lib/personal-timetable.ts";
 import {
   assertPrivateWorkspacePath,
@@ -18,6 +21,12 @@ const payloadPath = process.argv
   .find((arg) => arg.startsWith("--payload="))
   ?.slice(10);
 const apply = process.argv.includes("--apply");
+const digestTime = process.argv
+  .find((arg) => arg.startsWith("--digest-time="))
+  ?.slice(14);
+const backupPath = process.argv
+  .find((arg) => arg.startsWith("--backup="))
+  ?.slice(9);
 const previewPath = process.argv
   .find((arg) => arg.startsWith("--preview="))
   ?.slice(10);
@@ -42,6 +51,10 @@ async function run() {
     );
   const client = createClient(url, secret, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: (url, options) =>
+        fetch(url, { ...options, signal: AbortSignal.timeout(90000) }),
+    },
   });
   const owners = [];
   for (let page = 1; ; page++) {
@@ -88,6 +101,20 @@ async function run() {
       ),
       version: timetable.updated_at,
     },
+    ...(digestTime
+      ? (() => {
+          const row = prior.get("career:telegram-preferences");
+          if (!row)
+            throw new Error("Existing career Telegram preference row required");
+          return [
+            {
+              key: row.key,
+              value: reviseCareerDigestPreferences(row.value, digestTime),
+              version: row.updated_at,
+            },
+          ];
+        })()
+      : []),
   ].filter((r) => !isDeepStrictEqual(r.value, prior.get(r.key)!.value));
   const summary = {
     mode: apply ? "apply" : "dry-run",
@@ -105,7 +132,10 @@ async function run() {
     ).length,
     historicalDaysPreserved: timetable.value.days.filter(
       (d: { date: string }) =>
-        d.date < (plan.execution?.jobPlan?.effectiveOn ?? plan.startDate),
+        d.date <
+        (plan.execution?.jobPlan?.scheduleRevision?.effectiveOn ??
+          plan.execution?.jobPlan?.effectiveOn ??
+          plan.startDate),
     ).length,
     nextTimetableDays: (
       changes.find((r) => r.key === timetable.key)?.value ?? timetable.value
@@ -121,10 +151,9 @@ async function run() {
   }
   console.log(JSON.stringify(summary, null, 2));
   if (!apply) return;
-  const backup = resolve(
-    dirname(absolute),
-    `germany-roadmap-before-${Date.now()}.json`,
-  );
+  const backup = backupPath
+    ? assertFreshPrivateOutputPath(backupPath)
+    : resolve(dirname(absolute), `germany-roadmap-before-${Date.now()}.json`);
   const result = await applyOwnerRelease({
     client,
     owner,
@@ -139,7 +168,9 @@ async function run() {
 }
 run().catch((error) => {
   console.error(
-    error instanceof Error ? error.message : "Owner release failed",
+    error instanceof Error
+      ? error.message
+      : "Owner release failed (request or storage error)",
   );
   process.exitCode = 1;
 });

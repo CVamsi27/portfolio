@@ -75,11 +75,17 @@ const debounceMs = 800;
  */
 type LocalEntry = { raw: string; parsed: unknown };
 const localCache = new Map<string, LocalEntry>();
+// Large cloud plans may exceed localStorage. Keep the newest value available for
+// this session, scoped by the same account key, until storage can persist it.
+const memoryValues = new Map<string, { raw: string | null; parsed: unknown }>();
 const localListeners = new Map<string, Set<() => void>>();
 let mounted = false;
 
 function readLocal<T>(localKey: string, initial: T): T {
   const raw = window.localStorage.getItem(localKey);
+  const memory = memoryValues.get(localKey);
+  if (memory && memory.raw === raw) return memory.parsed as T;
+  memoryValues.delete(localKey);
   if (raw === null) {
     localCache.delete(localKey);
     return initial;
@@ -97,6 +103,7 @@ export function __readLocalForTesting<T>(localKey: string, initial: T): T {
 
 export function __resetLocalValueCacheForTesting() {
   localCache.clear();
+  memoryValues.clear();
 }
 
 function notifyLocal(localKey: string) {
@@ -104,14 +111,23 @@ function notifyLocal(localKey: string) {
   localListeners.get(localKey)?.forEach((l) => l());
 }
 
-function writeLocal(localKey: string, value: unknown) {
+function writeLocal(localKey: string, value: unknown): boolean {
+  let persisted = false;
   try {
     window.localStorage.setItem(localKey, JSON.stringify(value));
+    memoryValues.delete(localKey);
+    persisted = true;
   } catch {
-    // quota — cloud push still attempted by the caller
+    memoryValues.set(localKey, {
+      raw: window.localStorage.getItem(localKey),
+      parsed: value,
+    });
   }
   notifyLocal(localKey);
+  return persisted;
 }
+
+export const __writeLocalForTesting = writeLocal;
 
 function subscribeLocal(localKey: string, cb: () => void) {
   let set = localListeners.get(localKey);
@@ -379,7 +395,7 @@ export function useSyncedStorage<T>(
             if (data) {
               const cloudAt = new Date(data.updated_at).getTime();
               const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-              if (records || cloudAt > localAt) {
+              if (records || cloudAt >= localAt) {
                 writeLocal(
                   localKey,
                   records
@@ -430,7 +446,7 @@ export function useSyncedStorage<T>(
         if (cancelled) return;
         const cloudAt = new Date(item.updated_at || "").getTime();
         const localAt = Number(window.localStorage.getItem(metaKey) ?? 0);
-        if (records || cloudAt > localAt) {
+        if (records || cloudAt >= localAt) {
           writeLocal(
             localKey,
             records
