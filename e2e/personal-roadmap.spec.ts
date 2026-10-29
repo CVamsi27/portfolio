@@ -370,7 +370,7 @@ test.describe("personal roadmap", () => {
     // The workspace can still announce hydration while the reminder is ready.
     // Select the reminder status rather than requiring every status to be unique.
     await expect(
-      page.getByRole("status").filter({ hasText: "Exercise and freshen up" }),
+      page.getByRole("status").filter({ hasText: "Wake up and refresh" }),
     ).toBeVisible();
   });
 

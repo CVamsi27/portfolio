@@ -1,3 +1,8 @@
+import {
+  personalDayFrame,
+  balancedStudyDaySlots,
+  isNewPersonalRoutine,
+} from "../src/lib/personal-timetable.ts";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -95,6 +100,67 @@ const DAILY_SCHEDULE = {
     output: "Devices away and tomorrow ready",
   },
 };
+
+export function careerDaySchedule(date) {
+  if (!isNewPersonalRoutine(date)) return DAILY_SCHEDULE;
+  const names = {
+    study: "Bible study and retrieval",
+    applications: "Applications and replies",
+    project: "Build and verify",
+    network: "Networking and technical writing",
+    oss: "Open source",
+    assessment: "Assessment and gap repair",
+    coding: "Coding interview",
+    speaking: "Spoken project story",
+    german: "German practice",
+    review: "Evidence review",
+    funnel: "Application funnel",
+    mock: "Mock interview",
+    planning: "Next-week planning",
+  };
+  const clock = (minutes) =>
+    `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+  return Object.fromEntries([
+    ...personalDayFrame(date)
+      .filter((b) => b.kind !== "study")
+      .map((b) => {
+        const start =
+          Number(b.startLocal.slice(0, 2)) * 60 + Number(b.startLocal.slice(3));
+        return [
+          `${b.startLocal}-${clock(start + b.durationMinutes)}`,
+          {
+            label: b.label,
+            minutes: b.durationMinutes,
+            work: false,
+            output: "Protected personal routine",
+          },
+        ];
+      }),
+    ...balancedStudyDaySlots(date).map(([range, kind]) => {
+      const [start, end] = range
+        .split("-")
+        .map((t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3)));
+      return [
+        range,
+        {
+          label: names[kind],
+          minutes: end - start,
+          work: true,
+          output: "Actual attempt, observed result and next action",
+        },
+      ];
+    }),
+    [
+      "20:00-20:30",
+      {
+        label: "Dinner",
+        minutes: 30,
+        work: false,
+        output: "Protected meal break",
+      },
+    ],
+  ]);
+}
 
 const PHASES = [
   { through: 1, id: "activation", label: "Activation and baseline" },
@@ -580,11 +646,20 @@ export function validateCurriculum(curriculum) {
     const workMinutes = Object.values(day.schedule)
       .filter((block) => block.work)
       .reduce((sum, block) => sum + block.minutes, 0);
-    if (workMinutes !== 600)
+    if (
+      workMinutes !==
+      (isNewPersonalRoutine(day.date) &&
+      new Date(day.date + "T12:00:00Z").getUTCDay() === 0
+        ? 0
+        : 600)
+    )
       throw new Error(`Day ${day.day} must contain exactly ten work hours.`);
     if (
-      day.schedule["18:00-20:00"]?.minutes !== 120 ||
-      day.schedule["14:00-14:30"]?.label !== "Lunch" ||
+      (isNewPersonalRoutine(day.date)
+        ? day.schedule["07:00-07:30"]?.label !== "Refresh" ||
+          day.schedule["14:00-15:00"]?.label !== "Lunch"
+        : day.schedule["18:00-20:00"]?.minutes !== 120 ||
+          day.schedule["14:00-14:30"]?.label !== "Lunch") ||
       day.schedule["20:00-20:30"]?.label !== "Dinner"
     )
       throw new Error(
@@ -721,7 +796,7 @@ export function buildCurriculum({
         (sum, chapter) => sum + chapter.estimatedMinutes,
         0,
       ),
-      schedule: DAILY_SCHEDULE,
+      schedule: careerDaySchedule(date),
       mission: activation
         ? "Activate the system: audit your resume and portfolio, confirm the first target role, study the assigned chapter, and finish one practice artifact that is feasible from the current time. Earlier blocks today are not overdue."
         : `Use these ${chapters.length} chapter options as a navigation backlog. Prioritize Essential core and system-design topics, then Important ones; Optional and Deferred detail can wait. Build one reviewable proof from a relevant concept and continue applying.`,
@@ -731,7 +806,7 @@ export function buildCurriculum({
       ossTrack: { project: oss.project, action: oss.action },
       oSSProject: oss.project,
       roleTrack: {
-        lane: "Senior Full-Stack / Backend TypeScript",
+        lane: "Senior Full-Stack TypeScript",
         action: roleAction(day),
       },
       mockInterviewPlatform:
@@ -755,46 +830,78 @@ export function buildCurriculum({
         roleAction(day),
         oss,
       ),
-      notifications: [
-        {
-          key: "launch",
-          time: "07:00",
-          message: `Day ${day}: start with health, then open today's roadmap.`,
-          href: "/roadmap",
-        },
-        {
-          key: "study-close",
-          time: "10:25",
-          message: `Close the study block with notes and recall for Day ${day}.`,
-          href: "/roadmap",
-        },
-        {
-          key: "role-action",
-          time: "12:25",
-          message:
-            "Save today's verified role scorecard or application evidence.",
-          href: "/roadmap",
-        },
-        {
-          key: "mock",
-          time: "17:25",
-          message: "Start the timed mock and capture one improvement.",
-          href: "/roadmap",
-        },
-        {
-          key: "family",
-          time: "18:00",
-          message: "Protect the two-hour family block; work resumes at 20:30.",
-          href: "/hub",
-        },
-        {
-          key: "closeout",
-          time: "21:30",
-          message:
-            "Verify today's evidence and set the first task for tomorrow.",
-          href: "/roadmap",
-        },
-      ],
+      notifications: isNewPersonalRoutine(date)
+        ? new Date(date + "T12:00:00Z").getUTCDay() === 0
+          ? []
+          : [
+              {
+                key: "launch",
+                time: "07:00",
+                message: `Day ${day}: wake, refresh, exercise and prepare; study begins at 09:00.`,
+                href: "/hub",
+              },
+              {
+                key: "study",
+                time: "09:00",
+                message:
+                  "Open your exact study assignment and recall the prerequisite.",
+                href: "/roadmap",
+              },
+              {
+                key: "lunch",
+                time: "14:00",
+                message: "Lunch until 15:00; preserve the break.",
+                href: "/hub",
+              },
+              {
+                key: "closeout",
+                time: "19:30",
+                message:
+                  "Retain actual evidence and tomorrow's first action; finish by 20:00.",
+                href: "/roadmap",
+              },
+            ]
+        : [
+            {
+              key: "launch",
+              time: "07:00",
+              message: `Day ${day}: start with health, then open today's roadmap.`,
+              href: "/roadmap",
+            },
+            {
+              key: "study-close",
+              time: "10:25",
+              message: `Close the study block with notes and recall for Day ${day}.`,
+              href: "/roadmap",
+            },
+            {
+              key: "role-action",
+              time: "12:25",
+              message:
+                "Save today's verified role scorecard or application evidence.",
+              href: "/roadmap",
+            },
+            {
+              key: "mock",
+              time: "17:25",
+              message: "Start the timed mock and capture one improvement.",
+              href: "/roadmap",
+            },
+            {
+              key: "family",
+              time: "18:00",
+              message:
+                "Protect the two-hour family block; work resumes at 20:30.",
+              href: "/hub",
+            },
+            {
+              key: "closeout",
+              time: "21:30",
+              message:
+                "Verify today's evidence and set the first task for tomorrow.",
+              href: "/roadmap",
+            },
+          ],
       resources: [
         { label: "Assigned chapter", url: primary.studyUrl },
         { label: "Full study curriculum", url: "https://study.buildora.work" },

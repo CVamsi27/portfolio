@@ -10,6 +10,7 @@ import {
   studyAssignmentId,
   STUDY_PLAN_START,
   STUDY_PLAN_END,
+  BALANCED_7AM_SCHEDULE_REVISION,
 } from "../src/lib/job-plan.ts";
 import { isGermanyRoadmap } from "../src/lib/germany-roadmap.ts";
 import {
@@ -1647,6 +1648,142 @@ export function generateStudyDayRoadmap(base, curriculum, options = {}) {
   };
   if (!isGermanyRoadmap(result))
     throw new Error("Forward roadmap failed compatible schema validation");
+  const revision =
+    options.scheduleRevision ?? base.execution?.jobPlan?.scheduleRevision;
+  if (revision) {
+    // Re-authoring content cannot rewrite a day that preceded this clock revision.
+    const retained = new Map(
+      (base.execution?.jobPlan?.version === 3
+        ? base.execution.jobPlan.days
+        : []
+      ).map((d) => [d.date, d]),
+    );
+    result.execution.jobPlan.days = result.execution.jobPlan.days.map((d) =>
+      d.date < revision.effectiveOn && retained.has(d.date)
+        ? structuredClone(retained.get(d.date))
+        : d,
+    );
+    return reviseStudyDaySchedule(
+      result,
+      revision,
+      curriculum.sourceDigest,
+      options,
+    );
+  }
+  return result;
+}
+
+/** Change clock fields, never assignment identity or retained evidence references. */
+export function reviseStudyDaySchedule(
+  plan,
+  revision = BALANCED_7AM_SCHEDULE_REVISION,
+  catalogueDigest,
+  options = {},
+) {
+  if (!isGermanyRoadmap(plan) || plan.execution?.jobPlan?.version !== 3)
+    throw new Error("A valid forward plan is required for a clock revision");
+  if (plan.execution.jobPlan.scheduleRevision) {
+    if (
+      JSON.stringify(plan.execution.jobPlan.scheduleRevision) !==
+      JSON.stringify(revision)
+    )
+      throw new Error("An existing clock revision cannot be silently replaced");
+    return structuredClone(plan);
+  }
+  const result = structuredClone(plan),
+    job = result.execution.jobPlan;
+  job.scheduleRevision = structuredClone(revision);
+  job.days = job.days.map((day) => {
+    if (day.date < revision.effectiveOn) return day;
+    const slots = studyDaySlots(day.date, revision);
+    return {
+      ...day,
+      assignments: day.assignments.map((assignment, index) => {
+        const range = slots[index]?.[0];
+        if (!range || slots[index][1] !== assignment.kind)
+          throw new Error("Clock revision changed assignment identity");
+        const minute = (time) =>
+          Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
+        const [start, end] = range.split("-").map(minute),
+          minutes = end - start;
+        const revised = { ...assignment, range, minutes };
+        if (assignment.kind === "study") {
+          const recall = minutes === 90 ? 15 : 20,
+            reading = minutes === 90 ? 35 : 40,
+            trace = minutes === 90 ? 30 : 40,
+            repair = 10 + (minutes === 120 ? 10 : 0);
+          revised.outcome = assignment.outcome.replace(
+            /within 30 minutes/,
+            `within ${minutes} minutes`,
+          );
+          revised.brief = assignment.brief
+            .replace(/within 30 minutes/g, `within ${minutes} minutes`)
+            .replace(/30-minute block/g, `${minutes}-minute block`);
+          revised.steps = [
+            `Retrieve the prerequisite without notes for ${recall} minutes; preserve an incorrect prediction.`,
+            `Read one linked mechanism selectively for ${reading} minutes. Extra links are references, not a chapter quota.`,
+            `Predict, execute and explain a changed case for ${trace} minutes, including its failure boundary.`,
+            `Use ${repair} minutes to compare the result, correct one misconception and save the next question.`,
+          ];
+        }
+        return revised;
+      }),
+    };
+  });
+  job.sourceDigest = digest(
+    JSON.stringify([
+      job.provenance,
+      catalogueDigest,
+      job.days,
+      job.scheduleRevision,
+    ]),
+  );
+  const byDate = new Map(job.days.map((d) => [d.date, d]));
+  result.execution.days = result.execution.days.map((day) =>
+    day.date < revision.effectiveOn
+      ? day
+      : {
+          ...day,
+          blocks: Object.fromEntries(
+            byDate.get(day.date).assignments.map((a) => [a.kind, a.brief]),
+          ),
+        },
+  );
+  result.execution.assessments = result.execution.assessments.map(
+    (assessment) => {
+      const assignment = byDate
+        .get(assessment.date)
+        ?.assignments.find((a) => a.kind === "assessment" || a.kind === "mock");
+      return assessment.date < revision.effectiveOn || !assignment
+        ? assessment
+        : { ...assessment, time: assignment.range, content: assignment.brief };
+    },
+  );
+  result.allocations = [6, 7, 12, 10, 5, 9.5, 5, 5.5].map((hours, index) => ({
+    ...result.allocations[index],
+    hours,
+  }));
+  result.execution.guides = result.execution.guides.map((guide) =>
+    guide.id !== "design"
+      ? guide
+      : {
+          ...guide,
+          content: `# Current schedule\n\nFrom ${revision.effectiveOn}: wake at 07:00, refresh until 07:30, exercise until 08:30 and bath until 09:00. Study availability is 09:00–14:00 and 15:00–20:00, with lunch 14:00–15:00. Monday–Saturday provides 600 minutes daily and 60 hours per full week; Sunday remains off. Earlier dates retain their original plan (the 26–31 October transition contains 64 historical planned hours). Short recovery pauses fit within each window. Focus on one mechanism, its changed case and actual evidence. Employer rounds replace matching practice. No work is added after 20:00.`,
+        },
+  );
+  result.reviewedOn = "2026-10-29";
+  result.sourceDigest = digest(
+    JSON.stringify([
+      job.sourceDigest,
+      result.weeks,
+      options.roleQueue ?? [],
+      options.campaignMarkdown ?? forwardRole,
+      options.skillMatrix ?? null,
+      options.campaignPresentation ?? null,
+    ]),
+  );
+  if (!isGermanyRoadmap(result))
+    throw new Error("Revised clock failed the forward schema");
   return result;
 }
 export function mapStudyAssignments(plan, matrix) {
@@ -1697,7 +1834,7 @@ export function mapStudyAssignments(plan, matrix) {
 }
 export function studyDayCalendar(plan) {
   return (
-    `# Full-stack remote — 100 study days\n\nVersion 3; timezone Asia/Kolkata. ${plan.startDate}–${plan.endDate}. Sunday free. Elapsed study is not verified readiness.\n\n` +
+    `# Full-stack remote — 100 study days\n\n${plan.execution.jobPlan.scheduleRevision ? `Clock revision: ${plan.execution.jobPlan.scheduleRevision.effectiveOn}; wake 07:00, study 09:00–14:00 / 15:00–20:00, lunch 14:00–15:00. Earlier dates retained. Telegram digest 07:00 IST.\n\n` : ""}Version 3; timezone Asia/Kolkata. ${plan.startDate}–${plan.endDate}. Sunday free. Elapsed study is not verified readiness.\n\n` +
     plan.execution.jobPlan.days
       .map(
         (d, i) =>

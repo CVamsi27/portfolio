@@ -11,7 +11,10 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { applyOwnerRelease } from "./owner-release.ts";
+import {
+  applyOwnerRelease,
+  reviseCareerDigestPreferences,
+} from "./owner-release.ts";
 
 type Row = { key: string; value: unknown; updated_at: string };
 type Write = { key: string; version: string; owner: string };
@@ -340,3 +343,22 @@ for (const mismatch of ["changed row", "untouched row", "row count"] as const) {
     }
   });
 }
+
+test("digest clock migration preserves opt-in, cadence, activation and catch-up choices", () => {
+  const preferences = {
+    version: 1,
+    enabled: true,
+    cadence: "digest-and-learning",
+    digestTime: "06:00",
+    timezone: "Asia/Kolkata",
+    catchUpMinutes: 10,
+    enabledAt: "2026-10-27T12:07:10.097Z",
+  };
+  assert.deepEqual(reviseCareerDigestPreferences(preferences, "07:00"), {
+    ...preferences,
+    digestTime: "07:00",
+  });
+  assert.equal(preferences.digestTime, "06:00");
+  assert.throws(() => reviseCareerDigestPreferences(preferences, "25:00"));
+  assert.throws(() => reviseCareerDigestPreferences(null, "07:00"));
+});

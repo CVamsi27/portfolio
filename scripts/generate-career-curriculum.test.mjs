@@ -4,6 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
+  careerDaySchedule,
   buildCurriculum,
   validateCurriculum,
 } from "./generate-career-curriculum.mjs";
@@ -208,4 +209,27 @@ test("forward catalogue navigation excludes Sundays without assigning the catalo
   );
   assert.match(plan.days[0].mission, /reference|navigation/i);
   assert.equal(plan.days.flatMap((d) => d.chapters).length, plan.chapterCount);
+});
+
+test("catalogue timetable follows the revised windows without changing historical days", () => {
+  const past = careerDaySchedule("2026-10-29"),
+    current = careerDaySchedule("2026-10-30"),
+    sunday = careerDaySchedule("2026-11-01");
+  assert.ok(past["18:00-20:00"]);
+  assert.equal(current["07:00-07:30"].label, "Refresh");
+  assert.equal(current["14:00-15:00"].label, "Lunch");
+  assert.equal(current["09:00-10:30"].minutes, 90);
+  assert.equal(
+    Object.values(current)
+      .filter((b) => b.work)
+      .reduce((n, b) => n + b.minutes, 0),
+    600,
+  );
+  assert.equal(Object.values(sunday).filter((b) => b.work).length, 0);
+  assert.equal(
+    Object.entries(current)
+      .filter(([, b]) => b.work)
+      .some(([range]) => range >= "20:00"),
+    false,
+  );
 });

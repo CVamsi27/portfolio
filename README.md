@@ -228,6 +228,14 @@ Publish the matching frontend through the Git-connected production deployment be
 
 Run the generator, schedule/navigation/evidence unit tests and `e2e/germany-roadmap.spec.ts` alongside the existing navigation, Bible-sync and timetable suites. Verify the authenticated account and Git-connected deployment separately; a successful local-mode render does not prove either.
 
+### Timetable clock revisions
+
+A forward plan can carry `scheduleRevision` version 1 (`balanced-7am`, effective 2026-10-30). Future clock slots fit 09:00–14:00 and 15:00–20:00, Monday–Saturday, with Sunday off. Assignment IDs retain their original time suffix: identity is independent of the visible time. The importer keeps earlier dated objects unchanged and preserves all evidence references. The transition week retains its historical planned hours; complete revised weeks provide 60 hours.
+
+`sync-germany-roadmap.ts --digest-time=07:00` changes only the existing career digest clock, retaining opt-in, cadence, activation and catch-up preferences. `--backup=PATH` selects a fresh backup inside the canonical private workspace; use an ignored recovery directory. Dry-run first, inspect the private diff, then apply and confirm an identical repeat has no changed keys. Database readback, deployed UI and scheduled provider acceptance are separate evidence.
+
+Large cloud records remain available in memory when browser storage quota prevents a local cache. A signed-in workspace shows loading or retry state while its saved plan is unavailable; it does not present a fallback as the downloaded plan. Offline persistence for an oversized record is unavailable until it can be fetched again.
+
 ### Tailored career-plan release
 
 The `/roadmap` Plan view carries the owner-only orientation layer — the private `CAREER-ROADMAP.md` (honest assessment, active loop, two lanes, weekly rhythm, risks) rendered through the roadmap guide. The generator drops the "map of everything" appendix, strips relative private links (https study links stay) and refuses anything outside the canonical private personal workspace. Generate, dry-run, then repeat the exact payload with `--apply`:
