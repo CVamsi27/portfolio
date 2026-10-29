@@ -20,7 +20,7 @@ import { SyncBadge } from "@/components/auth/AuthButton";
 import AuthButton from "@/components/auth/AuthButton";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  applyBackup,
+  applyBackupWithHistory,
   collectBackup,
   downloadBackup,
   fmtKB,
@@ -151,7 +151,7 @@ export default function SettingsPage() {
     if (!file) return;
     try {
       const parsed = JSON.parse(await file.text());
-      const result = applyBackup(parsed);
+      const result = await applyBackupWithHistory(parsed);
       setReport(result);
       notifyStorageChanged();
       if (result.ok) {

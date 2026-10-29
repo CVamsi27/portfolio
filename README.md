@@ -234,7 +234,7 @@ A forward plan can carry `scheduleRevision` version 1 (`balanced-7am`, effective
 
 `sync-germany-roadmap.ts --digest-time=07:00` changes only the existing career digest clock, retaining opt-in, cadence, activation and catch-up preferences. `--backup=PATH` selects a fresh backup inside the canonical private workspace; use an ignored recovery directory. Dry-run first, inspect the private diff, then apply and confirm an identical repeat has no changed keys. Database readback, deployed UI and scheduled provider acceptance are separate evidence.
 
-Large cloud records remain available in memory when browser storage quota prevents a local cache. A signed-in workspace shows loading or retry state while its saved plan is unavailable; it does not present a fallback as the downloaded plan. Offline persistence for an oversized record is unavailable until it can be fetched again.
+Retained roadmap/schedule histories use a versioned gzip envelope in cloud records. Active database fields stay plain for scheduled delivery. Local caches may also compress the active roadmap and timetable days. Decoding checks SHA-256, UTF-8 byte length, field shape and a 64 MiB expansion bound; corruption stops loading/restoring instead of dropping history. Legacy records remain readable, and release tools compare decoded values before deciding whether to write. Large cloud records remain available in memory when browser storage quota prevents a local cache. A signed-in workspace shows loading or retry state while its saved plan is unavailable; it does not present a fallback as the downloaded plan. Offline persistence for an oversized record is unavailable until it can be fetched again.
 
 ### Tailored career-plan release
 

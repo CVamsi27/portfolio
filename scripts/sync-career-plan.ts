@@ -2,6 +2,10 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { assertPrivateWorkspacePath } from "./private-workspace.ts";
+import {
+  decodeTrackerHistoryRows,
+  prepareTrackerHistoryRows,
+} from "./tracker-history-rows.ts";
 import { isDeepStrictEqual } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import { TIMETABLE_OWNER_EMAIL } from "../src/lib/personal-timetable.ts";
@@ -47,19 +51,20 @@ async function run() {
     .select("key,value,updated_at")
     .eq("user_id", owner);
   if (error) throw error;
-  const prior = new Map((before ?? []).map((r) => [r.key, r]));
+  const decodedBefore = await decodeTrackerHistoryRows(before ?? []);
+  const prior = new Map(decodedBefore.map((r) => [r.key, r]));
   const career = prior.get("career_command_center");
   if (!career || typeof career.value !== "object" || career.value === null)
     throw new Error(
       "Existing owner career row required; the release never creates or resets data",
     );
-  const changes = [
+  const { changes } = await prepareTrackerHistoryRows(before ?? [], [
     {
       key: career.key,
       value: mergeCareerPlan(career.value as Record<string, unknown>, plan),
       version: career.updated_at,
     },
-  ].filter((r) => !isDeepStrictEqual(r.value, prior.get(r.key)!.value));
+  ]);
   console.log(
     JSON.stringify(
       {

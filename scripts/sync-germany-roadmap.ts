@@ -1,12 +1,15 @@
 /** Owner-only release: credentials stay in the environment; private payload is never imported by Next.js. */
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
-import { isDeepStrictEqual } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import {
   applyOwnerRelease,
   reviseCareerDigestPreferences,
 } from "./owner-release.ts";
+import {
+  decodeTrackerHistoryRows,
+  prepareTrackerHistoryRows,
+} from "./tracker-history-rows.ts";
 import { TIMETABLE_OWNER_EMAIL } from "../src/lib/personal-timetable.ts";
 import {
   assertPrivateWorkspacePath,
@@ -79,14 +82,15 @@ async function run() {
     .select("key,value,updated_at")
     .eq("user_id", owner);
   if (error) throw error;
-  const prior = new Map((before ?? []).map((r) => [r.key, r]));
+  const decodedBefore = await decodeTrackerHistoryRows(before ?? []);
+  const prior = new Map(decodedBefore.map((r) => [r.key, r]));
   const career = prior.get("career_command_center"),
     timetable = prior.get("timetable_100_days");
   if (!career || !timetable || !Array.isArray(timetable.value?.days))
     throw new Error(
       "Existing owner career and timetable rows required; no reset or new account is created",
     );
-  const changes = [
+  const proposed = [
     {
       key: career.key,
       value: mergeGermanyCareer(career.value, plan),
@@ -115,7 +119,8 @@ async function run() {
           ];
         })()
       : []),
-  ].filter((r) => !isDeepStrictEqual(r.value, prior.get(r.key)!.value));
+  ];
+  const { changes } = await prepareTrackerHistoryRows(before ?? [], proposed);
   const summary = {
     mode: apply ? "apply" : "dry-run",
     ownerResolved: true,
@@ -163,14 +168,16 @@ async function run() {
   });
   if (result.appliedKeys.length === 0) return;
   console.log(
-    `Verified ${result.appliedKeys.length} changed rows and ${result.untouchedRows} untouched owner rows. Backup retained in the canonical private reports directory.`,
+    `Verified ${result.appliedKeys.length} changed rows and ${result.untouchedRows} untouched owner rows. Backup retained in the canonical private workspace.`,
   );
 }
 run().catch((error) => {
   console.error(
     error instanceof Error
       ? error.message
-      : "Owner release failed (request or storage error)",
+      : typeof error === "object" && error && "message" in error
+        ? String(error.message).slice(0, 500)
+        : "Owner release failed (request or storage error)",
   );
   process.exitCode = 1;
 });

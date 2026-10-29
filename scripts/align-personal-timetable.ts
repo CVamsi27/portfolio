@@ -2,6 +2,10 @@ import { alignCampaignTimetable } from "../src/lib/germany-roadmap.ts";
 import { createClient } from "@supabase/supabase-js";
 import { writeFileSync } from "node:fs";
 import { TIMETABLE_OWNER_EMAIL } from "../src/lib/personal-timetable.ts";
+import {
+  decodeTrackerHistoryRows,
+  prepareTrackerHistoryRows,
+} from "./tracker-history-rows.ts";
 
 const canonical = (value: unknown): string =>
   JSON.stringify(value, (_key, item) =>
@@ -56,8 +60,12 @@ const { data: row, error } = await client
   .single();
 if (error || !Array.isArray(row?.value?.days))
   throw new Error("Owner timetable is missing or invalid; no data changed.");
+const [decodedRow] = await decodeTrackerHistoryRows([
+  { key: "timetable_100_days", value: row.value },
+]);
+const previousValue = decodedRow.value;
 const aligned = {
-  ...alignCampaignTimetable(user.email, row.value),
+  ...alignCampaignTimetable(user.email, previousValue),
   timezone: "Asia/Kolkata",
   scheduleSource: "personal/reports/100-day-job-roadmap.md",
   scheduleBudget: {
@@ -69,9 +77,13 @@ const aligned = {
     effectiveOn: "2026-10-12",
   },
 };
+const { changes } = await prepareTrackerHistoryRows(
+  [{ key: "timetable_100_days", value: row.value }],
+  [{ key: "timetable_100_days", value: aligned }],
+);
 const changedDays = aligned.days.filter(
   (day: unknown, index: number) =>
-    canonical(day) !== canonical(row.value.days[index]),
+    canonical(day) !== canonical(previousValue.days[index]),
 ).length;
 console.log(
   JSON.stringify({
@@ -79,26 +91,30 @@ console.log(
     owner: TIMETABLE_OWNER_EMAIL,
     changedDays,
     totalDays: aligned.days.length,
-    rowsToUpdate: 1,
+    rowsToUpdate: changes.length,
     progressPreserved: true,
   }),
 );
-if (apply) {
+if (apply && changes.length) {
+  const wireValue = changes[0].value;
   const backupPath = `/tmp/portfolio-timetable-before-${Date.now()}.json`;
   writeFileSync(backupPath, JSON.stringify(row.value, null, 2), {
     mode: 0o600,
   });
   const { data, error: updateError } = await client
     .from("tracker_data")
-    .update({ value: aligned, updated_at: new Date().toISOString() })
+    .update({ value: wireValue, updated_at: new Date().toISOString() })
     .eq("user_id", user.id)
     .eq("key", "timetable_100_days")
     .eq("updated_at", row.updated_at)
     .select("value")
     .single();
-  if (updateError || JSON.stringify(data?.value) !== JSON.stringify(aligned)) {
+  if (
+    updateError ||
+    JSON.stringify(data?.value) !== JSON.stringify(wireValue)
+  ) {
     // JSONB key ordering can differ; compare canonically for readback.
-    if (updateError || canonical(data?.value) !== canonical(aligned))
+    if (updateError || canonical(data?.value) !== canonical(wireValue))
       throw new Error(
         `Update/readback failed; preserved backup at ${backupPath}.`,
       );

@@ -1,5 +1,9 @@
 import { applyCareerRows, verifyCareerReadback } from "./career-seed-apply.ts";
 import {
+  decodeTrackerHistoryRows,
+  prepareTrackerHistoryRows,
+} from "./tracker-history-rows.ts";
+import {
   isGermanyRoadmap,
   mergeGermanyCareer,
   GERMANY_WEEKLY_TARGETS,
@@ -775,6 +779,7 @@ async function run() {
     );
   let client: ReturnType<typeof createClient> | undefined;
   let userId = "00000000-0000-4000-8000-000000000000";
+  const beforeRaw: Array<{ key: string; value: unknown }> = [];
   const existing: Record<string, unknown> = {};
   if (url && secret && configuredOwnerEmail) {
     client = createClient(url, secret, {
@@ -789,7 +794,9 @@ async function run() {
       .in("key", [...keys]);
     if (error)
       throw new Error(`Unable to read current planner rows: ${error.message}`);
-    for (const row of data ?? []) existing[row.key] = row.value;
+    beforeRaw.push(...(data ?? []));
+    for (const row of await decodeTrackerHistoryRows(beforeRaw))
+      existing[row.key] = row.value;
   } else if (apply) {
     throw new Error("Apply mode requires the configured database.");
   }
@@ -838,6 +845,11 @@ async function run() {
   );
   executionState.legacyClaims = [...claimById.values()];
   const timetable = {
+    ...(existing.timetable_100_days &&
+    typeof existing.timetable_100_days === "object" &&
+    "scheduleHistory" in existing.timetable_100_days
+      ? { scheduleHistory: existing.timetable_100_days.scheduleHistory }
+      : {}),
     ...alignPersonalTimetable(ownerEmail, curriculum),
     timezone: "Asia/Kolkata",
     source: "software-developer-bible",
@@ -865,14 +877,22 @@ async function run() {
     todos,
     reminders,
   };
-  const rows = keys.map((key) => ({
+  const proposedRows = keys.map((key) => ({
     user_id: userId,
     key,
     value: values[key],
   }));
   validateSeedPayload(
-    { ownerEmail, curriculum: curriculum as unknown as CareerCurriculum, rows },
+    {
+      ownerEmail,
+      curriculum: curriculum as unknown as CareerCurriculum,
+      rows: proposedRows,
+    },
     ownerEmail,
+  );
+  const { rows, changes } = await prepareTrackerHistoryRows(
+    beforeRaw,
+    proposedRows,
   );
   console.log(
     JSON.stringify(
@@ -898,7 +918,7 @@ async function run() {
       2,
     ),
   );
-  if (!apply) return;
+  if (!apply || changes.length === 0) return;
   if (!client) throw new Error("Database client was not initialized.");
 
   const writeMode = await applyCareerRows(
