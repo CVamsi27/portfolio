@@ -891,7 +891,7 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
               className="mb-4 text-sm text-muted-foreground"
               aria-label="Timetable dates"
             >
-              {date} – {shiftDay(date, 6)} ·{" "}
+              {weekStart} – {shiftDay(weekStart, 6)} ·{" "}
               {timeZone === "Asia/Kolkata" ? "IST" : timeZone}
             </p>
             {jobDays.length || frame.length ? (
