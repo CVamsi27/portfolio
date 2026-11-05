@@ -25,6 +25,8 @@ node --experimental-strip-types scripts/export-career-research.ts \
 
 The optional liveness file uses `asOfClientDate` and `results: [{url,status}]`. Exact matching selected URLs update availability and its check date; they cannot establish location eligibility or add unselected roles. Conflicting checks are rejected. Input and output must resolve inside the canonical private personal repository. Exports use a new file with mode `0600`; an existing output is never overwritten. Personal data is not imported by the Next.js bundle.
 
+Exporter tests create the canonical private directory if absent and use removable synthetic fixtures within it, so a clean CI machine needs no personal repository checkout. The production path checks and fresh-file requirement remain active during those CLI tests.
+
 ## Signed-in release boundary
 
 Local mode works without Supabase. Configured signed-in writes remain disabled until `NEXT_PUBLIC_CAREER_WORKFLOW_ENABLED=true` is built into a migrated and verified release.

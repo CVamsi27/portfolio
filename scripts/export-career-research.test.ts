@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { before } from "node:test";
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -15,6 +16,11 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(homedir(), "repos", "personal");
+before(() => {
+  // Exercise the real CLI's canonical-path checks on clean CI machines too.
+  // Each case writes only synthetic files in its own removable temp directory.
+  mkdirSync(root, { recursive: true, mode: 0o700 });
+});
 const script = fileURLToPath(
   new URL("./export-career-research.ts", import.meta.url),
 );
