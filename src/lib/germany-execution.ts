@@ -567,7 +567,7 @@ export function annotateGermanySchedule<
 function isForwardExecution(e: GermanyExecution): boolean {
   try {
     if (
-      e.jobPlan?.version !== 3 ||
+      (e.jobPlan?.version !== 3 && e.jobPlan?.version !== 4) ||
       !isJobPlan(e.jobPlan) ||
       !/^[a-f0-9]{64}$/.test(e.assessmentVersion) ||
       e.days.length !== 100 ||

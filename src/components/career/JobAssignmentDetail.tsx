@@ -9,7 +9,7 @@ import {
 import type { CareerExecutionEntry } from "@/lib/career-roadmap";
 import RoadmapGuide from "./RoadmapGuide";
 export function assignmentDayId(a: JobAssignment) {
-  return a.id.startsWith("fullstack:")
+  return a.id.startsWith("fullstack:") || a.id.startsWith("income-first:")
     ? `fullstack:2026-10-26:day:${a.date}`
     : `germany:2026:day:${a.date}`;
 }

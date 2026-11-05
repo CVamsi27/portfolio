@@ -278,6 +278,7 @@ test.describe("redesign guards — Today leads with the next action", () => {
 
   test("an open day keeps a single plan action", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.clock.setFixedTime(new Date("2026-10-05T03:00:00Z"));
     await seed(page);
     await page.goto("/hub");
     await expect(

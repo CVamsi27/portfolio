@@ -17,11 +17,15 @@ import { validProgram, validNutritionDay } from "./nutrition-program";
 import { validMealTemplate, validPreparedBatch } from "./nutrition-reuse";
 import { validPortion } from "./nutrition-catalog";
 import { decodeTrackerHistory } from "./tracker-history";
+import { validCareerCollection } from "./career-workflow";
 import {
   validCareerTelegramPreferences,
   type CareerTelegramPreferences,
 } from "./career-telegram";
 const SCOPED_KEYS = [
+  "career:research",
+  "career:opportunities",
+  "career:activities",
   "plan:blocks",
   "plan:days",
   "nutrition:entries",
@@ -46,6 +50,9 @@ function storageKey(key: string, legacy = false) {
     : `vk:${key}`;
 }
 const KEYS = [
+  "career:research",
+  "career:opportunities",
+  "career:activities",
   "prefs",
   "fasting",
   "fasting:history",
@@ -472,6 +479,16 @@ function applyValidatedBackup(backup: unknown): ImportReport {
   for (const key of SCOPED_KEYS) {
     if (!(key in data)) continue;
     const value = data[key];
+    if (key.startsWith("career:")) {
+      if (!validCareerCollection(key, value))
+        return {
+          ok: false,
+          error: `Invalid ${key} collection. Nothing imported.`,
+          keysRestored: [],
+          keysSkipped: [],
+        };
+      continue;
+    }
     if (key === "personal:guard-opt-in") {
       if (typeof value !== "boolean")
         return {

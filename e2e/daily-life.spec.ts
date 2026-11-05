@@ -3,7 +3,8 @@ import { seed } from "./helpers";
 test("Plan schedules a task and Today opens the exact task without duplicating it", async ({
   page,
 }) => {
-  const date = new Date().toISOString().slice(0, 10);
+  await page.clock.setFixedTime(new Date("2026-10-05T03:00:00Z"));
+  const date = "2026-10-05";
   await seed(page, {
     "vk:todos": [
       {
@@ -293,7 +294,8 @@ test("planning backup round-trips blocks and rejects mismatched IDs before any w
 test("task scheduling opens its exact ID and an overlap requires review before saving", async ({
   page,
 }) => {
-  const date = new Date().toISOString().slice(0, 10);
+  await page.clock.setFixedTime(new Date("2026-10-05T03:00:00Z"));
+  const date = "2026-10-05";
   const task = {
     id: "task",
     text: "Selected task",

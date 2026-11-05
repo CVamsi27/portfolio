@@ -172,7 +172,7 @@ test("open Today updates its plan across midnight", async ({ page }) => {
 
 test("Roadmap leaves its timetable in Today and keeps curriculum outputs", async ({ page }) => {
   await setup(page);
-  await page.goto("/roadmap");
+  await page.goto("/roadmap?view=roadmap");
   await expect(page.getByRole("region", { name: "Today's timetable" })).toHaveCount(0);
   await page.getByRole("button", { name: "Curriculum", exact: true }).click();
   await expect(page.getByRole("region", { name: "Day schedule" })).toHaveCount(0);

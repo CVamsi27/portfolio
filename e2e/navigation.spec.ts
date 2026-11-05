@@ -156,7 +156,7 @@ test.describe("navigation & shell", () => {
     await expect(
       rail
         .getByTestId("tracker-primary-nav")
-        .getByRole("link", { name: "Roadmap", exact: true }),
+        .getByRole("link", { name: "Career", exact: true }),
     ).toHaveAttribute("href", "/roadmap");
     await expect(
       rail.getByRole("button", { name: "Tools menu", exact: true }),

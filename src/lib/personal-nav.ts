@@ -35,8 +35,8 @@ export const PERSONAL_PRIMARY_NAV: readonly PersonalNavItem[] = [
   {
     id: "roadmap",
     href: "/roadmap",
-    label: "Roadmap",
-    short: "Roadmap",
+    label: "Career",
+    short: "Career",
     icon: "book",
   },
   {

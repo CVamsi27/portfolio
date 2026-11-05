@@ -1,10 +1,15 @@
 import {
   balancedStudyDaySlots,
+  incomeFirstDaySlots,
   isBalancedScheduleRevision,
+  isIncomeFirstScheduleRevision,
   isCalendarDate,
   type PersonalScheduleRevision,
 } from "./personal-timetable.ts";
-export { BALANCED_7AM_SCHEDULE_REVISION } from "./personal-timetable.ts";
+export {
+  BALANCED_7AM_SCHEDULE_REVISION,
+  INCOME_FIRST_SCHEDULE_REVISION,
+} from "./personal-timetable.ts";
 export const jobKinds = [
   "study",
   "project",
@@ -45,8 +50,9 @@ export interface JobAssignment {
   provenance?: string;
 }
 export interface JobPlan {
-  version: 1 | 2 | 3;
+  version: 1 | 2 | 3 | 4;
   scheduleRevision?: PersonalScheduleRevision;
+  previousScheduleRevision?: PersonalScheduleRevision;
   endDate?: string;
   studyDayCount?: number;
   catalogueChapterIds?: string[];
@@ -56,7 +62,7 @@ export interface JobPlan {
   provenance?: string;
   effectiveOn: string;
   timezone: "Asia/Kolkata";
-  weeklyMinutes: 3600;
+  weeklyMinutes: 3600 | 1920;
   sourceDigest: string;
   days: Array<{ date: string; assignments: JobAssignment[] }>;
 }
@@ -103,7 +109,7 @@ export function urgentJobSlots(date: string): Array<[string, JobKind]> {
 export function isJobPlan(value: unknown): value is JobPlan {
   if (!value || typeof value !== "object") return false;
   const p = value as JobPlan;
-  if (p.version === 3) return isStudyDayJobPlan(p);
+  if (p.version === 3 || p.version === 4) return isStudyDayJobPlan(p);
   try {
     if (
       (p.version !== 1 && p.version !== 2) ||
@@ -263,6 +269,8 @@ export function studyDaySlots(
   date: string,
   revision?: PersonalScheduleRevision,
 ): Array<[string, JobKind]> {
+  if (isIncomeFirstScheduleRevision(revision) && date >= revision.effectiveOn)
+    return incomeFirstDaySlots(date);
   if (isBalancedScheduleRevision(revision) && date >= revision.effectiveOn)
     return balancedStudyDaySlots(date);
   const weekday = new Date(date + "T12:00:00Z").getUTCDay();
@@ -300,16 +308,24 @@ export function studyAssignmentId(
 ): string {
   return `fullstack:${STUDY_PLAN_START}:day:${date}:assignment:${kind}:${range.slice(0, 5).replace(":", "")}`;
 }
+export function incomeFirstAssignmentId(date: string, kind: JobKind): string {
+  return `income-first:2026-11-05:day:${date}:assignment:${kind}`;
+}
 function isStudyDayJobPlan(plan: JobPlan): boolean {
   try {
+    const income = plan.version === 4;
     if (
       plan.effectiveOn !== STUDY_PLAN_START ||
       plan.endDate !== STUDY_PLAN_END ||
       plan.studyDayCount !== 100 ||
       plan.timezone !== "Asia/Kolkata" ||
-      plan.weeklyMinutes !== 3600 ||
-      (plan.scheduleRevision !== undefined &&
-        !isBalancedScheduleRevision(plan.scheduleRevision)) ||
+      plan.weeklyMinutes !== (income ? 1920 : 3600) ||
+      (income
+        ? !isIncomeFirstScheduleRevision(plan.scheduleRevision) ||
+          (plan.previousScheduleRevision !== undefined &&
+            !isBalancedScheduleRevision(plan.previousScheduleRevision))
+        : plan.scheduleRevision !== undefined &&
+          !isBalancedScheduleRevision(plan.scheduleRevision)) ||
       !/^[a-f0-9]{64}$/.test(plan.sourceDigest) ||
       !text(plan.provenance) ||
       !Array.isArray(plan.catalogueChapterIds) ||
@@ -335,7 +351,14 @@ function isStudyDayJobPlan(plan: JobPlan): boolean {
     const chapters = new Set(plan.catalogueChapterIds);
     const ids = new Set<string>();
     return plan.days.every((day, index) => {
-      const slots = studyDaySlots(day.date, plan.scheduleRevision);
+      const incomeDay =
+        income && day.date >= plan.scheduleRevision!.effectiveOn;
+      const slots = incomeDay
+        ? incomeFirstDaySlots(day.date)
+        : studyDaySlots(
+            day.date,
+            income ? plan.previousScheduleRevision : plan.scheduleRevision,
+          );
       const identitySlots = studyDaySlots(day.date);
       if (day.date !== dates[index] || day.assignments.length !== slots.length)
         return false;
@@ -348,7 +371,10 @@ function isStudyDayJobPlan(plan: JobPlan): boolean {
           a.kind !== kind ||
           a.range !== range ||
           a.minutes !== end - start ||
-          a.id !== studyAssignmentId(day.date, kind, identitySlots[i][0]) ||
+          a.id !==
+            (incomeDay
+              ? incomeFirstAssignmentId(day.date, kind)
+              : studyAssignmentId(day.date, kind, identitySlots[i][0])) ||
           ids.has(a.id) ||
           ![
             a.title,
@@ -389,11 +415,19 @@ function isStudyDayJobPlan(plan: JobPlan): boolean {
       }
       return (
         total ===
-        (plan.scheduleRevision && day.date >= plan.scheduleRevision.effectiveOn
-          ? 600
-          : slots.length === 6
-            ? 300
-            : 660)
+        (incomeDay
+          ? new Date(`${day.date}T12:00:00Z`).getUTCDay() === 6
+            ? 120
+            : 360
+          : (income ? plan.previousScheduleRevision : plan.scheduleRevision) &&
+              day.date >=
+                (income
+                  ? plan.previousScheduleRevision
+                  : plan.scheduleRevision)!.effectiveOn
+            ? 600
+            : slots.length === 6
+              ? 300
+              : 660)
       );
     });
   } catch {

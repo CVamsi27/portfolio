@@ -1,5 +1,31 @@
 # UI/UX redesign review
 
+## Career visual correction after owner feedback — 5 November 2026
+
+The owner described the initial result as generic. A fresh in-app-browser audit followed the actual next-action flow at 1280×850: Today → Career queue → Sprinto role details. The existing teal tokens, Space Grotesk/Inter type and all data semantics remain the design boundary.
+
+| Step | Captured issue | Correction |
+| --- | --- | --- |
+| 1 · Today | Three identical task cards gave repetitive text equal prominence. | One ordered work list, with a larger company name and filled action for the first priority; subsequent actions use smaller type and quiet links. |
+| 2 · Career | Separate heading, instructional copy, chips, field labels and filter rows consumed most of the first screen. | Remove the repeated visible heading in a populated queue, join search/type/filter controls, and use a compact company-first list. Counts and selected filters remain visible. |
+| 3 · Role details | Boxed facts, a full-width external-link button and a long repeated source URL competed with the actual content. | Flat metadata, an action group with a compact Open role button and descriptive source link; retain evidence, questions and editable records. |
+
+Review and Progress also use a shared numeric ledger instead of six independent cards. These are presentation refinements; no application stage, employer fact or private activity was changed. Current-run source captures are saved as `01-queue-before.jpg`, `02-today-before.jpg` and `03-detail-before.jpg` in ignored `artifacts/ui-ux/career-workflow-2026-11-05/`, with matching `*-after.jpg` captures.
+
+Screenshot evidence supports the hierarchy findings, not complete accessibility compliance. Existing browser tests verify keyboard/dialog behavior, URL context, import safety and action logging; the added scan regression checks that a real role is available before scrolling on desktop and 320px layouts. Dark-mode and responsive verification results are recorded after the final build below.
+
+Verification: 473 full-suite browser cases passed, followed by 24 targeted cases after final role captions and mobile button alignment. All 40 career domain tests passed, as did TypeScript, ESLint, production build and whitespace checks. Manual 1280px and 320px checks covered light/dark themes; the 320px screens had no horizontal page overflow. The source queue stayed at seven researched roles and no real activity was logged. Theme and viewport overrides were restored. Latest Today proof: `02-today-after.jpg`; mobile proof: `08-today-mobile-light.jpg`. Deployment and authenticated-cloud checks remain separate.
+
+## Career workflow extension — 5 November 2026
+
+The follow-up refinement adds counted one-click queue views, plain-language stage labels and an inline employer-check form. Search and selected-role context stay in the URL. A research correction preserves application history and unsent drafts; a clarified opening becomes ready only through the separate preparation action. The queue chips scroll horizontally at narrow widths and retain visible keyboard focus.
+
+Refinement verification: all 471 browser cases and 199 unit/compatibility checks pass, alongside 5 isolated PostgreSQL checks, production build, TypeScript and lint. Manual review covered the 320px and desktop queue plus cancelling the employer-check form. The local snapshot remains seven opportunities, with no real application or payment events created. Screenshot: ignored `artifacts/ui-ux/career-workflow-2026-11-05/career-queue-refined.jpg`.
+
+The career workflow keeps NOVA's existing visual tokens and adds a responsive opportunity queue, selected-role dialogs, reviewed imports, practical preparation and actual outcome review. Career is reachable directly in primary navigation; existing `/roadmap` resource URLs remain valid. Today gives three specific next actions before supporting health/routine records. Plan supports the income-first 32-hour revision, including no-plan local mode, and Progress reports actual applications, conversations, proposals and payments without combining currencies.
+
+Research availability, eligibility and actual hiring stages are independent. Opening/copying a draft is not a submission. Source dates older than seven days request review without automatically closing a role. Empty states offer Import research and Add an opportunity instead of requiring a study plan. New dialogs use the shared focus trap and restore their opener even when initially mounted open. See [data and release instructions](career-workflow-data.md) for the migration, feature gate, private exporter and verification boundary.
+
 Reviewed 2026-10-03. Scope: the public portfolio and NOVA workspace. The approved [design](superpowers/specs/2026-10-03-ui-ux-redesign-design.md) and [implementation plan](superpowers/plans/2026-10-03-ui-ux-redesign.md) describe the delivery contract.
 
 ## Implemented improvements

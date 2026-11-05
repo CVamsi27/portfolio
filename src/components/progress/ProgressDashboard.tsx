@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import ProgressChart from "./ProgressChart";
 import ImportedHealthTrends from "./ImportedHealthTrends";
 import PageHeader from "@/components/trackers/PageHeader";
+import CareerOutcomesSummary from "@/components/career/CareerOutcomesSummary";
 const health: ProgressMetric[] = [
   "weight",
   "energy",
@@ -115,6 +116,7 @@ export default function ProgressDashboard() {
           </div>
         }
       />
+      <CareerOutcomesSummary date={data.end} />
       <ProgressChart
         metric={chosen}
         endDate={through}

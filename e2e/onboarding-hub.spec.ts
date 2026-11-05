@@ -210,6 +210,7 @@ test.describe("hub command center", () => {
   test("empty day shows no invented records or commitments", async ({
     page,
   }) => {
+    await page.clock.setFixedTime(new Date("2026-10-05T03:00:00Z"));
     await seed(page);
     await page.goto("/trackers");
     await expect(page.getByTestId("progress-rail")).toHaveCount(0);

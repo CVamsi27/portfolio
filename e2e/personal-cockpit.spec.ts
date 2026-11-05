@@ -45,7 +45,7 @@ test.describe("personal today cockpit", () => {
     for (const [label, href] of [
       ["Today", "/hub"],
       ["Plan", "/plan"],
-      ["Roadmap", "/roadmap"],
+      ["Career", "/roadmap"],
       ["Health", "/health"],
       ["Progress", "/dashboard"],
     ] as const) {

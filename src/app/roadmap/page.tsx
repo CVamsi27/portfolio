@@ -1,5 +1,8 @@
 "use client";
 import { useWorkspaceView } from "@/lib/use-workspace-view";
+import CareerWorkspace, {
+  type CareerView,
+} from "@/components/career/workflow/CareerWorkspace";
 
 import { Suspense, useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
@@ -2000,9 +2003,17 @@ function MotivationHero({
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 function RoadmapTitle() {
-  return useSearchParams().get("panel") === "exams" ? "Exams" : "Roadmap";
+  return useSearchParams().get("panel") === "exams" ? "Exams" : "Career";
 }
 export default function RoadmapPage() {
+  return (
+    <Suspense fallback={<p role="status">Loading Career…</p>}>
+      <RoadmapContent />
+    </Suspense>
+  );
+}
+function RoadmapContent() {
+  const routerView = useSearchParams().get("view");
   const { user } = useAuth();
   const { value: timetable } = useSyncedStorage<Timetable | null>(
     "timetable_100_days",
@@ -2026,6 +2037,9 @@ export default function RoadmapPage() {
   const [search, setSearch] = useState("");
   const [section, setSection] = useWorkspaceView(
     [
+      "opportunities",
+      "practice",
+      "weekly-review",
       "roadmap",
       "plan",
       "execution",
@@ -2035,7 +2049,8 @@ export default function RoadmapPage() {
       "germany",
       "outreach",
     ],
-    "roadmap",
+    "opportunities",
+    routerView,
   );
   const [revisionDeckOpen, setRevisionDeckOpen] = useState(false);
   const [revisionGateOpen, setRevisionGateOpen] = useState(false);
@@ -2305,12 +2320,31 @@ export default function RoadmapPage() {
     },
   ];
 
+  if (["opportunities", "practice", "weekly-review"].includes(section)) {
+    return (
+      <RequireAuth>
+        <PersonalShell
+          icon="book"
+          title="Career"
+          subtitle={null}
+          eyebrow="NOVA // Career"
+        >
+          <Suspense
+            fallback={<p role="status">Loading your career workspace…</p>}
+          >
+            <CareerWorkspace view={section as CareerView} onView={setSection} />
+          </Suspense>
+        </PersonalShell>
+      </RequireAuth>
+    );
+  }
+
   return (
     <RequireAuth>
       <PersonalShell
         icon="book"
         title={
-          <Suspense fallback="Roadmap">
+          <Suspense fallback="Career">
             <RoadmapTitle />
           </Suspense>
         }
@@ -2318,6 +2352,9 @@ export default function RoadmapPage() {
         eyebrow="NOVA // Execution"
         context={<MetricSummary metric="study" context="today" />}
       >
+        <Link href="/roadmap?view=opportunities" className="inline-action mb-3">
+          ← Opportunity queue
+        </Link>
         <nav className="workspace-views" aria-label="Roadmap views">
           <button
             aria-pressed={section === "roadmap"}
