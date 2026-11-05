@@ -64,6 +64,14 @@ import HabitChecklist from "@/components/personal/HabitChecklist";
 import FocusSprint from "@/components/trackers/FocusSprint";
 import { displayWeight } from "@/lib/health";
 import Modal from "@/components/trackers/Modal";
+import CareerNextActions from "@/components/career/CareerNextActions";
+import { careerWritesEnabled } from "@/lib/career-workflow";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  incomeFirstPersonalSchedule,
+  INCOME_FIRST_SCHEDULE_REVISION,
+  isIncomeFirstScheduleRevision,
+} from "@/lib/personal-timetable";
 import TimetableAgenda, { TimetableWeek } from "./TimetableAgenda";
 const deviceZone = () =>
   Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
@@ -154,6 +162,15 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
     EMPTY_CAREER_EXECUTION_STATE,
   );
   const germany = roadmapForDate(career.value, date);
+  const careerWorkflowEnabled = careerWritesEnabled(
+    isSupabaseConfigured(),
+    process.env.NEXT_PUBLIC_CAREER_WORKFLOW_ENABLED,
+  );
+  const incomeScheduleActive =
+    germany?.execution?.jobPlan?.version === 4 ||
+    (!germany &&
+      careerWorkflowEnabled &&
+      Boolean(incomeFirstPersonalSchedule(date)));
   const germanyAssignments = germany?.execution
     ? datedAssignments(germany.execution, date)
     : {};
@@ -168,9 +185,14 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
   )
     .map((d) => ({
       date: d,
-      assignments: modules.value.study
-        ? jobAssignments(roadmapForDate(career.value, d)?.execution?.jobPlan, d)
-        : [],
+      assignments:
+        modules.value.study ||
+        roadmapForDate(career.value, d)?.execution?.jobPlan?.version === 4
+          ? jobAssignments(
+              roadmapForDate(career.value, d)?.execution?.jobPlan,
+              d,
+            )
+          : [],
     }))
     .filter((d) => d.assignments.length > 0);
   const planningWeek = planning && view === "week";
@@ -185,11 +207,21 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
     : [shiftDay(date, -1), date, shiftDay(date, 1)];
   const fixedBlocks = (sourceDate: string) => {
     const datedPlan = roadmapForDate(career.value, sourceDate);
-    const prescribed = modules.value.study
-      ? personalSchedule(user?.email, sourceDate)
-      : undefined;
+    const revision = datedPlan?.execution?.jobPlan?.scheduleRevision;
+    const incomeFallback =
+      !datedPlan && careerWorkflowEnabled
+        ? incomeFirstPersonalSchedule(sourceDate)
+        : undefined;
+    const showIncomeSchedule =
+      datedPlan?.execution?.jobPlan?.version === 4 || Boolean(incomeFallback);
+    const prescribed = showIncomeSchedule
+      ? (personalSchedule(user?.email, sourceDate, revision) ??
+        incomeFirstPersonalSchedule(sourceDate))
+      : modules.value.study
+        ? personalSchedule(user?.email, sourceDate, revision)
+        : undefined;
     const storedDay = timetable.value?.days?.find((d) => d.date === sourceDate);
-    return modules.value.study
+    return modules.value.study || showIncomeSchedule
       ? timetableBlocks(
           sourceDate,
           datedPlan?.execution
@@ -227,15 +259,22 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
     date: day,
     rows: rowsForDay(day),
   }));
-  const frameForDay = (day: string) =>
-    modules.value.study &&
-    isNewPersonalRoutine(day) &&
-    (user?.email?.trim().toLowerCase() === TIMETABLE_OWNER_EMAIL ||
-      isBalancedScheduleRevision(
-        roadmapForDate(career.value, day)?.execution?.jobPlan?.scheduleRevision,
-      ))
-      ? personalDayFrame(day)
+  const frameForDay = (day: string) => {
+    const datedPlan = roadmapForDate(career.value, day);
+    const revision = datedPlan?.execution?.jobPlan?.scheduleRevision;
+    const incomeFallback =
+      !datedPlan &&
+      careerWorkflowEnabled &&
+      Boolean(incomeFirstPersonalSchedule(day));
+    if (incomeFallback || isIncomeFirstScheduleRevision(revision))
+      return personalDayFrame(day, revision ?? INCOME_FIRST_SCHEDULE_REVISION);
+    return modules.value.study &&
+      isNewPersonalRoutine(day) &&
+      (user?.email?.trim().toLowerCase() === TIMETABLE_OWNER_EMAIL ||
+        isBalancedScheduleRevision(revision))
+      ? personalDayFrame(day, revision)
       : [];
+  };
   const frame = frameForDay(date);
   const weekFrames = Object.fromEntries(
     weekDays.map((day) => [day, frameForDay(day)]),
@@ -431,7 +470,9 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
           <small>
             {agendaStatus(row, date, today, now)}
             {row.block?.id.startsWith("owner:")
-              ? " · Bible timetable (IST)"
+              ? incomeScheduleActive
+                ? " · Career plan (IST)"
+                : " · Bible timetable (IST)"
               : ""}
           </small>
         )}
@@ -546,7 +587,9 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
         <TodayAgendaRow
           key={row.id}
           row={row}
-          timeZone={timeZone}
+          timeZone={
+            fixedSchedule ? (row.block?.timeZone ?? "Asia/Kolkata") : timeZone
+          }
           outcome={assignment?.outcome}
           evidenceStatus={
             assignment
@@ -568,7 +611,9 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
               hour: "2-digit",
               minute: "2-digit",
               hour12: false,
-              timeZone,
+              timeZone: fixedSchedule
+                ? (row.block?.timeZone ?? "Asia/Kolkata")
+                : timeZone,
             }).format(row.at)}
           </time>
           <small>
@@ -786,6 +831,22 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
           </header>
         </>
       )}
+      {!planning && <CareerNextActions date={date} />}
+      {planning && incomeScheduleActive && (
+        <section
+          className="rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-1"
+          aria-label="Income-first plan"
+        >
+          <h2 className="font-semibold">
+            Income-first plan · 32 hours per full week
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Six hours Monday–Friday, two hours Saturday, Sunday off. Interviews
+            and paid work replace preparation. Earlier dates retain their
+            recorded schedule.
+          </p>
+        </section>
+      )}
       {!planning && date === today && <TodaySetupCard />}
       {!planning && (
         <section
@@ -951,7 +1012,9 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
                   <p>
                     {frame.length
                       ? frame.some((block) => block.kind === "study")
-                        ? "07:00 start · Two study windows · IST"
+                        ? incomeScheduleActive
+                          ? "07:00 start · Career work blocks · IST"
+                          : "07:00 start · Two study windows · IST"
                         : "Sunday off · Personal routine · IST"
                       : "Your commitments, in time order"}
                   </p>

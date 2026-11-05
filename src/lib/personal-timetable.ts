@@ -12,16 +12,34 @@ export const BALANCED_7AM_SCHEDULE_REVISION = {
   effectiveOn: "2026-10-30",
   profile: "balanced-7am",
 } as const;
-export type PersonalScheduleRevision = typeof BALANCED_7AM_SCHEDULE_REVISION;
+export const INCOME_FIRST_SCHEDULE_REVISION = {
+  version: 2,
+  effectiveOn: "2026-11-05",
+  profile: "income-first",
+} as const;
+export type PersonalScheduleRevision =
+  | typeof BALANCED_7AM_SCHEDULE_REVISION
+  | typeof INCOME_FIRST_SCHEDULE_REVISION;
 export function isBalancedScheduleRevision(
   value: unknown,
-): value is PersonalScheduleRevision {
+): value is typeof BALANCED_7AM_SCHEDULE_REVISION {
   if (!value || typeof value !== "object") return false;
   const revision = value as PersonalScheduleRevision;
   return (
     revision.version === 1 &&
     revision.effectiveOn === "2026-10-30" &&
     revision.profile === "balanced-7am"
+  );
+}
+export function isIncomeFirstScheduleRevision(
+  value: unknown,
+): value is typeof INCOME_FIRST_SCHEDULE_REVISION {
+  if (!value || typeof value !== "object") return false;
+  const revision = value as PersonalScheduleRevision;
+  return (
+    revision.version === 2 &&
+    revision.effectiveOn === "2026-11-05" &&
+    revision.profile === "income-first"
   );
 }
 export function isNewPersonalRoutine(date: string): boolean {
@@ -36,8 +54,26 @@ export type PersonalFrameBlock = {
   label: string;
   kind: "study" | "exercise" | "event";
 };
-export function personalDayFrame(date: string): PersonalFrameBlock[] {
+export function personalDayFrame(
+  date: string,
+  revision?: PersonalScheduleRevision,
+): PersonalFrameBlock[] {
   if (!isNewPersonalRoutine(date)) return [];
+  if (isIncomeFirstScheduleRevision(revision) && date >= revision.effectiveOn) {
+    const work = Object.entries(incomeFirstPersonalSchedule(date) ?? {}).map(
+      ([range, block]) => ({
+        id: `income-first:${range.slice(0, 5)}`,
+        startLocal: range.slice(0, 5),
+        durationMinutes: block.minutes,
+        label: block.label,
+        kind: "study" as const,
+      }),
+    );
+    return [
+      ...personalDayFrame(date).filter((block) => block.kind !== "study"),
+      ...work,
+    ].sort((a, b) => a.startLocal.localeCompare(b.startLocal));
+  }
   const sunday = new Date(`${date}T12:00:00Z`).getUTCDay() === 0;
   return [
     {
@@ -106,6 +142,62 @@ type PersonalWorkKind =
   | "funnel"
   | "mock"
   | "planning";
+/** The income campaign is a versioned choice; legacy callers keep their clocks. */
+export function incomeFirstDaySlots(
+  date: string,
+): Array<[string, PersonalWorkKind]> {
+  if (
+    !isCalendarDate(date) ||
+    date < INCOME_FIRST_SCHEDULE_REVISION.effectiveOn
+  )
+    return [];
+  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+  if (weekday === 0) return [];
+  if (weekday === 6) return [["09:00-11:00", "review"]];
+  return [
+    ["09:00-11:00", "applications"],
+    ["11:15-12:45", "network"],
+    ["13:00-14:00", "project"],
+    ["15:00-16:00", "coding"],
+    ["16:00-16:30", "review"],
+  ];
+}
+export function incomeFirstPersonalSchedule(
+  date: string,
+): PersonalSchedule | undefined {
+  if (
+    !isCalendarDate(date) ||
+    date < INCOME_FIRST_SCHEDULE_REVISION.effectiveOn
+  )
+    return undefined;
+  const labels: Partial<Record<PersonalWorkKind, string>> = {
+    applications: "Applications and hiring replies",
+    network: "Contracts and referral conversations",
+    project: "Paid delivery or existing project proof",
+    coding: "Practical interview preparation",
+    review:
+      new Date(`${date}T12:00:00Z`).getUTCDay() === 6
+        ? "Weekly review or a mock interview"
+        : "Follow-ups and records",
+  };
+  return Object.fromEntries(
+    incomeFirstDaySlots(date).map(([range, kind]) => {
+      const [start, end] = range
+        .split("-")
+        .map((time) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3)));
+      return [
+        range,
+        {
+          label: labels[kind]!,
+          minutes: end - start,
+          work: true,
+          output:
+            "Record actual actions and next steps. Interviews and paid delivery replace preparation; elapsed time does not count as a submission or payment.",
+        },
+      ];
+    }),
+  );
+}
 /** Clock slots are separate from the historical assignment identity. */
 export function balancedStudyDaySlots(
   date: string,
@@ -346,6 +438,7 @@ export function isCalendarDate(date: string): boolean {
 export function personalSchedule(
   email: string | null | undefined,
   date: string,
+  revision?: PersonalScheduleRevision,
 ): PersonalSchedule | undefined {
   if (
     email?.trim().toLowerCase() !== TIMETABLE_OWNER_EMAIL ||
@@ -354,6 +447,8 @@ export function personalSchedule(
   )
     return undefined;
   const day = new Date(`${date}T12:00:00Z`).getUTCDay();
+  if (isIncomeFirstScheduleRevision(revision) && date >= revision.effectiveOn)
+    return incomeFirstPersonalSchedule(date);
   if (isNewPersonalRoutine(date)) return balancedPersonalSchedule(date);
   if (date < "2026-10-12") return day === 0 || day === 6 ? weekend : weekday;
   if (day === 0) return {};

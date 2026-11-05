@@ -68,7 +68,7 @@ export default function GermanyRoadmap({
   const position = campaignPosition(plan, date),
     week = plan.weeks[position.week - 1];
   const schedule =
-    personalSchedule(email, date) ??
+    personalSchedule(email, date, plan.execution?.jobPlan?.scheduleRevision) ??
     days.find((d) => d.date === date)?.schedule ??
     {};
   const recovery =

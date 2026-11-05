@@ -9,11 +9,26 @@ import { useAuth } from "@/lib/auth-store";
 import { useUserPrefs } from "@/lib/user-prefs";
 import { usePersonalProgress } from "@/lib/use-personal-progress";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import { useGoalState, useJournal, useNow, useTodos } from "@/lib/tracker-store";
-import { normalizeWeeklyCommitments, type WeeklyCommitment } from "@/lib/trackers";
+import {
+  useGoalState,
+  useJournal,
+  useNow,
+  useTodos,
+} from "@/lib/tracker-store";
+import {
+  normalizeWeeklyCommitments,
+  type WeeklyCommitment,
+} from "@/lib/trackers";
 import { calendarZone, shiftDay, validDay } from "@/lib/day-plan";
 import { containingWeek } from "@/lib/day-presentation";
-import { personalSchedule } from "@/lib/personal-timetable";
+import {
+  incomeFirstPersonalSchedule,
+  personalSchedule,
+} from "@/lib/personal-timetable";
+import { roadmapForDate, type GermanyRoadmap } from "@/lib/germany-roadmap";
+import { annotateGermanySchedule } from "@/lib/germany-execution";
+import { careerWritesEnabled } from "@/lib/career-workflow";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { zonedDate } from "@/lib/routine-reminders";
 import type { RecoveryEntry } from "@/components/personal/RecoveryTracker";
 
@@ -146,15 +161,34 @@ export default function WeeklyReview() {
   const timetable = useSyncedStorage<{
     days: Array<{ date: string; schedule?: Record<string, unknown> }>;
   } | null>("timetable_100_days", null);
+  const career = useSyncedStorage<{
+    germanyRoadmap?: GermanyRoadmap;
+    roadmapHistory?: GermanyRoadmap[];
+  } | null>("career_command_center", null);
+  const careerEnabled = careerWritesEnabled(
+    isSupabaseConfigured(),
+    process.env.NEXT_PUBLIC_CAREER_WORKFLOW_ENABLED,
+  );
   const end = validDay(params.get("date")) ? params.get("date")! : today;
   const { data } = usePersonalProgress(14, end);
   const week = data.days.slice(7);
   const previous = data.days.slice(0, 7);
   const weekStart = week[0]?.date ?? end;
   const scheduledCount = (date: string) => {
-    const prescribed = personalSchedule(user?.email, date);
-    const stored = timetable.value?.days?.find((day) => day.date === date)
-      ?.schedule;
+    const selectedPlan = roadmapForDate(career.value, date);
+    const legacy = personalSchedule(
+      user?.email,
+      date,
+      selectedPlan?.execution?.jobPlan?.scheduleRevision,
+    );
+    const prescribed = selectedPlan?.execution
+      ? annotateGermanySchedule(selectedPlan.execution, date, legacy ?? {})
+      : careerEnabled
+        ? (incomeFirstPersonalSchedule(date) ?? legacy)
+        : legacy;
+    const stored = timetable.value?.days?.find(
+      (day) => day.date === date,
+    )?.schedule;
     return Object.keys(prescribed ?? stored ?? {}).length;
   };
   const nextWeekOf = shiftDay(containingWeek(end)[0], 7);
@@ -189,9 +223,7 @@ export default function WeeklyReview() {
   const stillOpen = todos.value.filter(
     (task) => !task.done && task.date >= weekStart && task.date <= end,
   );
-  const milestonesDone = Object.values(
-    goals.value.milestonesByCategory ?? {},
-  )
+  const milestonesDone = Object.values(goals.value.milestonesByCategory ?? {})
     .flat()
     .filter(
       (milestone) =>
@@ -233,7 +265,9 @@ export default function WeeklyReview() {
     if (before === null || before === undefined) return value;
     const change = current - before;
     if (Math.abs(change) < (digits ? 0.05 : 0.5)) return `${value} · steady`;
-    const size = digits ? Math.abs(change).toFixed(digits) : String(Math.round(Math.abs(change)));
+    const size = digits
+      ? Math.abs(change).toFixed(digits)
+      : String(Math.round(Math.abs(change)));
     return `${value} · ${change > 0 ? "+" : "−"}${size}${unit} vs last week`;
   };
 
@@ -332,7 +366,10 @@ export default function WeeklyReview() {
         />
       </section>
 
-      <section className="workspace-panel" aria-label="3 — Tasks and milestones">
+      <section
+        className="workspace-panel"
+        aria-label="3 — Tasks and milestones"
+      >
         <h2>Tasks &amp; milestones</h2>
         <dl className="weekly-review-groups">
           <div>

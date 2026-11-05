@@ -19,6 +19,10 @@ import {
 } from "./tracker-history.ts";
 import { parseStoredValue } from "./local-parse.ts";
 import { useAuth, currentAuthUserId } from "./auth-store.ts";
+import {
+  CAREER_COLLECTIONS,
+  trackerKeyWritesEnabled,
+} from "./career-workflow.ts";
 
 export type SyncStatus =
   | "local-only" // no Supabase env configured, or signed out
@@ -427,6 +431,13 @@ export function useSyncedStorage<T>(
   const { user, configured } = useAuth();
   const scoped = options?.accountScoped !== false;
   const records = options?.records === true;
+  const canWrite =
+    !(CAREER_COLLECTIONS as readonly string[]).includes(key) ||
+    trackerKeyWritesEnabled(
+      key,
+      isSupabaseConfigured(),
+      process.env.NEXT_PUBLIC_CAREER_WORKFLOW_ENABLED,
+    );
   const localKey = scopedLocalKey(key, user?.id ?? null, configured, scoped);
   const metaKey = scoped && configured ? `${localKey}:meta` : `vk:meta:${key}`;
   // Stable identity for the empty-state snapshot (inline literals differ per render).
@@ -492,7 +503,8 @@ export function useSyncedStorage<T>(
         }
         if (!cancelled)
           setStatus(
-            window.localStorage.getItem(`${localKey}:pending`) === "true"
+            canWrite &&
+              window.localStorage.getItem(`${localKey}:pending`) === "true"
               ? "syncing"
               : "synced",
           );
@@ -561,7 +573,7 @@ export function useSyncedStorage<T>(
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, user?.id, localKey, metaKey, records]);
+  }, [key, user?.id, localKey, metaKey, records, canWrite]);
 
   // Push — debounced or immediate, in the write path
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -573,7 +585,7 @@ export function useSyncedStorage<T>(
   );
   const push = useCallback(
     (next: T, immediate = false) => {
-      if (!isSupabaseConfigured()) return;
+      if (!isSupabaseConfigured() || !canWrite) return;
       const sb = getSupabase();
       if (!sb) return;
       if (pushTimer.current) clearTimeout(pushTimer.current);
@@ -660,11 +672,11 @@ export function useSyncedStorage<T>(
         pushTimer.current = setTimeout(doPush, debounceMs);
       }
     },
-    [key, metaKey, localKey, records, scoped, user?.id, initial],
+    [key, metaKey, localKey, records, scoped, user?.id, initial, canWrite],
   );
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !canWrite) return;
     const retry = () => {
       if (currentAuthUserId() !== user.id) return;
       if (window.localStorage.getItem(`${localKey}:pending`) === "true")
@@ -692,10 +704,14 @@ export function useSyncedStorage<T>(
       window.removeEventListener("storage", stored);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [records, user, localKey, initial, push]);
+  }, [records, user, localKey, initial, push, canWrite]);
 
   const setValue = useCallback(
     (next: T | ((prev: T) => T), options?: { immediate?: boolean }) => {
+      if (!canWrite)
+        throw new Error(
+          "Career writes are disabled until the migration and cloud checks are verified.",
+        );
       if (scoped && configured && !user) return;
       const prev = mounted ? readLocal(localKey, initial) : initial;
       const resolved =
@@ -717,7 +733,7 @@ export function useSyncedStorage<T>(
       window.localStorage.setItem(metaKey, String(Date.now()));
       push(resolved, options?.immediate);
     },
-    [key, localKey, metaKey, initial, push, scoped, configured, user],
+    [key, localKey, metaKey, initial, push, scoped, configured, user, canWrite],
   );
 
   return { value, setValue, status, user } as const;

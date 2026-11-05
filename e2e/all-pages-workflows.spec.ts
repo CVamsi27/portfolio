@@ -201,7 +201,7 @@ test("Learning keeps curriculum search out of the current study flow", async ({
   page,
 }) => {
   await seed(page);
-  await page.goto("/roadmap");
+  await page.goto("/roadmap?view=roadmap");
   await expect(page.getByLabel("Search roadmap", { exact: true })).toBeHidden();
   await page.getByRole("button", { name: "Curriculum", exact: true }).click();
   await expect(

@@ -64,7 +64,14 @@ export function useDialogFocus(open: boolean, onClose: () => void) {
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!open || !dialog) return;
-    const opener = openerRef.current;
+    // A conditionally mounted dialog can begin open, so it never ran the
+    // closed-state focus listener. Capture its opener before moving focus.
+    const active = document.activeElement;
+    const opener = openerRef.current?.isConnected
+      ? openerRef.current
+      : active instanceof HTMLElement && !dialog.contains(active)
+        ? active
+        : null;
     if (dialogs.length === 0) {
       originalOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";

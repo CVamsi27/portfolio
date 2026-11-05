@@ -131,7 +131,7 @@ async function setup(page: import("@playwright/test").Page) {
       archivedItems: [],
     },
   });
-  await page.goto("/roadmap?date=2026-10-12");
+  await page.goto("/roadmap?view=roadmap&date=2026-10-12");
 }
 test("dated assignments open contextual study links and retain a scored attempt after reload", async ({
   page,

@@ -158,7 +158,10 @@ export function mergeGermanyCareer(
         ...GERMANY_CHECKLIST_UPDATES,
         "germany-language": {
           ...GERMANY_CHECKLIST_UPDATES["germany-language"],
-          text: `Practice German for ${targets.germanPracticeMinutes / 5} minutes each weekday; record listening, speaking and writing. Claim a certified level only after earning it.`,
+          text:
+            plan.execution?.jobPlan?.version === 4
+              ? "German is optional in the income-first campaign. Keep existing language evidence and claim a certified level only after earning it."
+              : `Practice German for ${targets.germanPracticeMinutes / 5} minutes each weekday; record listening, speaking and writing. Claim a certified level only after earning it.`,
         },
       }
     : GERMANY_CHECKLIST_UPDATES;
@@ -509,6 +512,8 @@ function isForwardRoadmap(plan: GermanyRoadmap): boolean {
         ))
     )
       return false;
+    // New imports must be safe to merge, not merely have a plausible total.
+    if (plan.execution.jobPlan!.version === 4) urgentWeeklyTargets(plan);
     const dates = plan.execution.jobPlan!.days.map((d) => d.date);
     return (
       plan.weeks.every(
@@ -534,7 +539,8 @@ function isForwardRoadmap(plan: GermanyRoadmap): boolean {
           Number.isFinite(a.hours) &&
           a.hours >= 0,
       ) &&
-      plan.allocations.reduce((n, a) => n + a.hours, 0) === 60 &&
+      plan.allocations.reduce((n, a) => n + a.hours, 0) ===
+        (plan.execution.jobPlan!.version === 4 ? 32 : 60) &&
       Array.isArray(plan.catalogueChapterIds) &&
       JSON.stringify(plan.catalogueChapterIds) ===
         JSON.stringify(plan.execution.jobPlan!.catalogueChapterIds) &&
@@ -558,8 +564,10 @@ function alignForwardTimetable<
   };
   const job = plan.execution!.jobPlan!;
   const effectiveOn = job.scheduleRevision?.effectiveOn ?? job.effectiveOn;
-  const weekdayMinutes = job.scheduleRevision ? 600 : 660;
-  const saturdayMinutes = job.scheduleRevision ? 600 : 300;
+  const weekdayMinutes =
+    job.version === 4 ? 360 : job.scheduleRevision ? 600 : 660;
+  const saturdayMinutes =
+    job.version === 4 ? 120 : job.scheduleRevision ? 600 : 300;
   const byDate = new Map(previous.days.map((day) => [day.date, day]));
   const days = [...previous.days];
   const date = new Date(plan.startDate + "T12:00:00Z");
@@ -598,13 +606,13 @@ function alignForwardTimetable<
       weekday: weekdayMinutes,
       saturday: saturdayMinutes,
       sunday: 0,
-      week: 3600,
+      week: job.weeklyMinutes,
     },
     scheduleBudget: {
       weekdayFocusedMinutes: weekdayMinutes,
       saturdayFocusedMinutes: saturdayMinutes,
       sundayFocusedMinutes: 0,
-      weeklyFocusedMinutes: 3600,
+      weeklyFocusedMinutes: job.weeklyMinutes,
       effectiveOn,
     },
     days: days

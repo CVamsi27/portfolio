@@ -14,7 +14,7 @@ test("audio break opens honest YouTube Music destinations and closes cleanly", a
   page,
 }) => {
   await seed(page);
-  await page.goto("/roadmap");
+  await page.goto("/roadmap?view=roadmap");
   const opener = page.getByRole("button", {
     name: "Curriculum actions",
     exact: true,
@@ -46,7 +46,7 @@ test("break timer survives hidden time and pause without changing focus records"
 }) => {
   await page.setViewportSize({ width: 320, height: 750 });
   await seed(page);
-  await page.goto("/roadmap");
+  await page.goto("/roadmap?view=roadmap");
   await openBreak(page);
   const dialog = page.getByRole("dialog", { name: "Listen on YouTube Music" });
   await page.clock.install();
@@ -101,7 +101,7 @@ test("saved YouTube blocklists permit the exact Music destination", async ({
   await page.route("https://music.youtube.com/**", (route) =>
     route.fulfill({ body: "Podcast destination" }),
   );
-  await page.goto("/roadmap");
+  await page.goto("/roadmap?view=roadmap");
   await openBreak(page);
   const popupPromise = page.waitForEvent("popup");
   await page

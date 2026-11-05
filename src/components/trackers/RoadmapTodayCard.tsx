@@ -4,7 +4,14 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { useAuth } from "@/lib/auth-store";
-import { personalSchedule } from "@/lib/personal-timetable";
+import {
+  incomeFirstPersonalSchedule,
+  personalSchedule,
+} from "@/lib/personal-timetable";
+import { roadmapForDate, type GermanyRoadmap } from "@/lib/germany-roadmap";
+import { annotateGermanySchedule } from "@/lib/germany-execution";
+import { careerWritesEnabled } from "@/lib/career-workflow";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { dateKey } from "@/lib/trackers";
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleRing } from "@/components/trackers/Ring";
@@ -97,12 +104,28 @@ const TOPIC_COLOR: Record<string, string> = {
 
 export default function RoadmapTodayCard() {
   const { user } = useAuth();
-  const aligned = personalSchedule(
+  const todayIST = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+  }).format(new Date());
+  const career = useSyncedStorage<{
+    germanyRoadmap?: GermanyRoadmap;
+    roadmapHistory?: GermanyRoadmap[];
+  } | null>("career_command_center", null);
+  const selectedPlan = roadmapForDate(career.value, todayIST);
+  const legacy = personalSchedule(
     user?.email,
-    new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(
-      new Date(),
-    ),
+    todayIST,
+    selectedPlan?.execution?.jobPlan?.scheduleRevision,
   );
+  const careerEnabled = careerWritesEnabled(
+    isSupabaseConfigured(),
+    process.env.NEXT_PUBLIC_CAREER_WORKFLOW_ENABLED,
+  );
+  const aligned = selectedPlan?.execution
+    ? annotateGermanySchedule(selectedPlan.execution, todayIST, legacy ?? {})
+    : careerEnabled
+      ? (incomeFirstPersonalSchedule(todayIST) ?? legacy)
+      : legacy;
   const { value: timetable, setValue: setTimetable } =
     useSyncedStorage<Timetable | null>("timetable_100_days", null);
   const { value: completedChapters } = useSyncedStorage<

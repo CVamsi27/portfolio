@@ -35,7 +35,7 @@ test("shows Bible priorities and the generated snapshot without losing evidence"
     },
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/roadmap");
+  await page.goto("/roadmap?view=roadmap");
   await expect(
     page
       .getByText(

@@ -289,7 +289,7 @@ test.describe("personal roadmap", () => {
         archivedItems: [],
       },
     });
-    await page.goto("/roadmap");
+    await page.goto("/roadmap?view=roadmap");
     await expect(page.getByText("Study in this order")).toBeVisible();
     await expect(
       page.getByRole("button", { name: /^Execution Context Role:/ }),

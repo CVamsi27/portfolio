@@ -67,7 +67,7 @@ async function setup(page: import("@playwright/test").Page, theme?: string) {
   });
   if (theme)
     await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
-  await page.goto("/roadmap");
+  await page.goto("/roadmap?view=roadmap");
 }
 test("promotes the roadmap and preserves evidence through reload without auto-verification", async ({
   page,
@@ -138,7 +138,7 @@ for (const width of [320, 390, 768, 1440])
         const dock = page.getByTestId("mobile-command-dock");
         await expect(dock.getByRole("link")).toHaveCount(5);
         await expect(
-          dock.getByRole("link", { name: "Roadmap", exact: true }),
+          dock.getByRole("link", { name: "Career", exact: true }),
         ).toHaveAttribute("aria-current", "page");
         await expect(dock.locator('[aria-current="page"]')).toHaveCount(1);
         for (const link of await dock.getByRole("link").all()) {

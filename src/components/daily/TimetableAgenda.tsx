@@ -62,6 +62,7 @@ export default function TimetableAgenda({
               <details
                 data-testid={`study-window-${block.id}`}
                 className="group min-w-0"
+                open={block.id.startsWith("income-first:") || undefined}
               >
                 <summary className="flex min-h-11 cursor-pointer list-none items-start gap-3 [&::-webkit-details-marker]:hidden">
                   <span className="min-w-0 flex-1">
@@ -71,7 +72,7 @@ export default function TimetableAgenda({
                     <small className="mt-1 block text-xs leading-5 text-muted-foreground sm:text-sm">
                       {range} · {duration(block.durationMinutes)} ·{" "}
                       {children.length
-                        ? `${children.length} assignments`
+                        ? `${children.length} ${children.length === 1 ? "assignment" : "assignments"}`
                         : "Open study time"}
                     </small>
                   </span>
@@ -169,7 +170,7 @@ export function TimetableWeek({
                 {sunday && !studyMinutes
                   ? "Sunday off"
                   : studyMinutes
-                    ? `${duration(studyMinutes)} study`
+                    ? `${duration(studyMinutes)} ${frame.some((block) => block.id.startsWith("income-first:")) ? "career work" : "study"}`
                     : `${day.rows.length} commitments`}
               </span>
               <ChevronDown

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export function useWorkspaceView<T extends string>(
   views: readonly T[],
   fallback: T,
+  routerView?: string | null,
 ) {
   const [view, update] = useState<T>(fallback);
   const key = views.join(",");
@@ -18,7 +19,7 @@ export function useWorkspaceView<T extends string>(
     sync();
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
-  }, [key, fallback]);
+  }, [key, fallback, routerView]);
   const setView = (next: T) => {
     if (!views.includes(next)) return;
     const query = new URLSearchParams(window.location.search);

@@ -29,7 +29,8 @@ test("the Plan tab renders the tailored plan from the career row", async ({
 }) => {
   await seed(page, { "vk:career_command_center": { plan } });
   await page.goto("/roadmap");
-  await page.getByRole("button", { name: "Plan", exact: true }).click();
+  await page.getByText("Resources", { exact: true }).click();
+  await page.getByRole("link", { name: "Career plan guide", exact: true }).click();
   await expect(page).toHaveURL(/view=plan/);
   const view = page.getByTestId("career-plan");
   await expect(view).toBeVisible();
@@ -48,7 +49,8 @@ test("a career row without the plan shows the owner-only notice", async ({
 }) => {
   await seed(page, { "vk:career_command_center": { reviewedOn: "2026-10-10" } });
   await page.goto("/roadmap");
-  await page.getByRole("button", { name: "Plan", exact: true }).click();
+  await page.getByText("Resources", { exact: true }).click();
+  await page.getByRole("link", { name: "Career plan guide", exact: true }).click();
   await expect(
     page.getByText("The tailored career plan is private to the owner account."),
   ).toBeVisible();
