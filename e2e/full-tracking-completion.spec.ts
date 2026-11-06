@@ -41,7 +41,8 @@ test("task deletion and completed cleanup offer undo, and dates are editable", a
 test("Today and task focus open the intended task in the shared Plan workspace", async ({
   page,
 }) => {
-  await seed(page, { "vk:todos": [task] });
+  await page.clock.setFixedTime(new Date("2026-10-05T03:00:00Z"));
+  await seed(page, { "vk:todos": [{ ...task, date: "2026-10-05" }] });
   await page.goto("/hub");
   await page
     .getByRole("link", { name: "Start focused work", exact: true })

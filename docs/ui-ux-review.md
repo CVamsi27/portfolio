@@ -1,5 +1,16 @@
 # UI/UX redesign review
 
+## Career desk — 6 November 2026
+
+The owner still found the prior dashboard treatment generic. This iteration uses the [Anti-AI-UI design checklist](https://github.com/Vanszs/Anti-AI-UI/blob/main/Anti-AI-SLop/SKILL.md) to change the interaction and hierarchy, with the existing NOVA teal and type families.
+
+- **Career:** An ordered role index and a persistent reading pane share the screen from 660px. The pane uses the selected role's actual fit, unresolved question, source date, eligibility and next action. Selecting an index entry preserves search and filters; the full opportunity editor still opens explicitly and restores focus. Phones keep a single list and the same editor.
+- **Today:** The first task has a solid ink surface with the exact role, effort, action and relevant evidence. The next two actions remain in flat rows. Real role text provides the visual and informational emphasis; no decorative assets or motion were added.
+
+Visual review covered 1280px, the 685px in-app pane and 320px, including both themes. The new ink combinations measured 13.02:1 for body text, 9.00:1 for muted text and 9.73:1 for the action foreground/background. Captures in ignored `artifacts/ui-ux/career-desk-2026-11-06/` show the existing private shortlist; no source payload or activity was changed.
+
+The final local run passed all 475 browser cases, TypeScript, lint and the production build. The new tests cover switching between two openings at the same company, preserving selection and search after reload, returning focus from the editor, and showing the first role's evidence on Today. Three existing unscheduled-task cases now use a fixed pre-campaign date to isolate that behavior from live hiring hours.
+
 ## Career visual correction after owner feedback — 5 November 2026
 
 The owner described the initial result as generic. A fresh in-app-browser audit followed the actual next-action flow at 1280×850: Today → Career queue → Sprinto role details. The existing teal tokens, Space Grotesk/Inter type and all data semantics remain the design boundary.

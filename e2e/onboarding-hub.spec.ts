@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { seed, daysAgoKey, workoutCell } from "./helpers";
+import { seed, workoutCell } from "./helpers";
 
 test.describe("onboarding questionnaire", () => {
   test("relocation asks for a neutral destination and confirms the chosen goal", async ({
@@ -116,8 +116,9 @@ test.describe("hub command center", () => {
   test("Today cockpit, quick logging, and details render from seeded data", async ({
     page,
   }) => {
-    const now = Date.now();
-    const today = daysAgoKey(0);
+    const now = Date.parse("2026-10-05T03:00:00Z");
+    await page.clock.setFixedTime(new Date(now));
+    const today = "2026-10-05";
     await seed(page, {
       // One fast yesterday (~16h) and one active fast today.
       "vk:fasting:history": [
@@ -136,7 +137,7 @@ test.describe("hub command center", () => {
       },
       // Squats logged today (anchor: workout) + one past session for last-session hints.
       "vk:workouts": {
-        [daysAgoKey(3)]: { squats: workoutCell(10, 60) },
+        "2026-10-02": { squats: workoutCell(10, 60) },
         [today]: { squats: workoutCell(12, 62.5, false) },
       },
       // One P1 task done today, one open (anchor: tasks).

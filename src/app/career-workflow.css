@@ -236,19 +236,12 @@ textarea.career-input {
   border-radius: 0.5rem;
   overflow: hidden;
 }
-.career-list-head,
 .career-row {
   display: grid;
-  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 0.8rem;
   align-items: center;
   padding: 0.9rem 1rem;
-}
-.career-list-head {
-  background: transparent;
-  padding-block: 0.6rem;
-  font-size: 0.75rem;
-  color: var(--color-muted-foreground);
 }
 .career-row {
   background: var(--color-card);
@@ -269,9 +262,6 @@ textarea.career-input {
 .career-stage {
   font-size: 0.8125rem;
   font-weight: 550;
-}
-.career-row-review {
-  padding-inline: 0.5rem;
 }
 .career-row + .career-row {
   border-top: 1px solid var(--color-border);
@@ -458,114 +448,6 @@ textarea.career-input {
   justify-content: space-between;
   gap: 0.75rem;
 }
-.career-brief {
-  padding: 1.5rem;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 0.65rem;
-}
-.career-brief-header {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.2rem;
-}
-.career-brief-header h2 {
-  font-size: 0.875rem;
-  font-weight: 650;
-}
-.career-brief-header p,
-.career-brief-order,
-.career-brief-action > span {
-  color: var(--color-muted-foreground);
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-.career-brief-header p {
-  margin-top: 0.25rem;
-}
-.career-brief-list {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-.career-brief-list > li {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr) auto;
-  align-items: center;
-  column-gap: 1.5rem;
-  row-gap: 0.35rem;
-  padding-block: 0.9rem;
-}
-.career-brief-list > li:first-child {
-  padding-top: 0;
-  padding-bottom: 1.3rem;
-}
-.career-brief-list > li + li {
-  border-top: 1px solid var(--color-border);
-}
-.career-brief-order {
-  grid-column: 1;
-  grid-row: 1;
-}
-.career-brief-company {
-  grid-column: 1;
-  grid-row: 2 / span 2;
-  font-family: var(--font-display);
-  overflow-wrap: anywhere;
-  line-height: 1.15;
-  font-weight: 550;
-}
-.career-brief-lead .career-brief-company {
-  font-size: clamp(2rem, 4vw, 2.75rem);
-  letter-spacing: -0.04em;
-  color: var(--color-primary);
-}
-.career-brief-role {
-  display: block;
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: 0;
-  color: var(--color-muted-foreground);
-  margin-top: 0.4rem;
-}
-.career-brief-list h3 {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  font-size: 0.9375rem;
-  font-weight: 550;
-  line-height: 1.5;
-}
-.career-brief-reason {
-  grid-column: 2;
-  grid-row: 3;
-  font-size: 0.75rem;
-  color: var(--color-muted-foreground);
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-.career-brief-action {
-  grid-column: 3;
-  grid-row: 1 / span 3;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
-  gap: 0.25rem;
-}
-.career-brief-next .career-brief-company {
-  font-size: 1.125rem;
-}
-.career-brief-footnote {
-  color: var(--color-muted-foreground);
-  font-size: 0.75rem;
-  line-height: 1.6;
-  border-top: 1px solid var(--color-border);
-  margin-top: 0.25rem;
-  padding-top: 0.8rem;
-}
 .career-resources summary {
   min-height: 44px;
   cursor: pointer;
@@ -605,20 +487,12 @@ textarea.career-input {
   .career-filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .career-list-head {
-    display: none;
-  }
   .career-row {
     grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
     gap: 0.8rem;
   }
 }
 @media (max-width: 560px) {
-  .career-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    padding: 1rem;
-  }
   .career-filters,
   .career-form-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -660,41 +534,6 @@ textarea.career-input {
   }
   .career-open {
     grid-column: 1 / -1;
-  }
-  .career-row .career-row-meta:nth-child(2) {
-    grid-column: 1;
-  }
-  .career-row-review {
-    grid-column: 2;
-    grid-row: 2 / span 2;
-  }
-  .career-brief {
-    padding: 1rem;
-  }
-  .career-brief-header {
-    gap: 0.5rem;
-    margin-bottom: 1.2rem;
-  }
-  .career-brief-header > a {
-    font-size: 0.75rem;
-    padding-inline: 0;
-    gap: 0.25rem;
-    white-space: nowrap;
-  }
-  .career-brief-list > li {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.4rem;
-    justify-items: start;
-  }
-  .career-brief-list > li > * {
-    grid-column: auto;
-    grid-row: auto;
-  }
-  .career-brief-action {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: 0.25rem;
-    margin-top: 0.4rem;
   }
   .career-outcomes {
     padding: 1rem;
