@@ -2,7 +2,9 @@ import { expect, test } from "@playwright/test";
 import { seed } from "./helpers";
 
 test("Today leads with a task action and preserves goal records", async ({ page }) => {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = Date.parse("2026-10-05T03:00:00Z");
+  await page.clock.setFixedTime(new Date(now));
+  const today = "2026-10-05";
   await seed(page, {
     "vk:prefs": {
       name: "Test User",
@@ -27,11 +29,11 @@ test("Today leads with a task action and preserves goal records", async ({ page 
         id: "focus_1",
         label: "Choose a neighborhood",
         plannedMinutes: 25,
-        startedAt: Date.now() - 25 * 60_000,
-        endedAt: Date.now(),
+        startedAt: now - 25 * 60_000,
+        endedAt: now,
         durationMinutes: 25,
         status: "completed",
-        createdAt: Date.now(),
+        createdAt: now,
       },
     ],
   });

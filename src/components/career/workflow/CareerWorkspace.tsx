@@ -31,9 +31,11 @@ import {
 import ResearchImport from "./ResearchImport";
 import OpportunityForm from "./OpportunityForm";
 import OpportunityDetail from "./OpportunityDetail";
+import OpportunityBrief from "./OpportunityBrief";
 import CareerPractice from "./CareerPractice";
 import CareerWeeklyReview from "./CareerWeeklyReview";
 import "@/app/career-workflow.css";
+import "@/app/career-desk.css";
 
 export type CareerView = "opportunities" | "practice" | "weekly-review";
 const viewLabels: Record<CareerView, string> = {
@@ -143,6 +145,9 @@ export default function CareerWorkspace({
     workflow.opportunities.status,
     workflow.activities.status,
   ].some((status) => status === "error");
+  const preview =
+    visibleRoles.find((role) => role.id === params.get("brief")) ??
+    visibleRoles[0];
   return (
     <div className="career-workflow" data-testid="career-workflow">
       <div className="career-toolbar">
@@ -376,69 +381,103 @@ export default function CareerWorkspace({
                   </button>
                 </div>
               )}
-              {visibleRoles.length ? (
-                <div className="career-list">
-                  <div className="career-list-head" aria-hidden>
-                    <span>Company and role</span>
-                    <span>Eligibility and source</span>
-                    <span>Actual stage</span>
-                    <span>Next step</span>
-                  </div>
-                  {visibleRoles.map((role) => {
-                    const opportunity =
-                      records[role.id] ?? newOpportunity(role, 0);
-                    return (
-                      <article className="career-row" key={role.id}>
-                        <button
-                          className="career-open"
-                          aria-label={`Open ${role.company} ${role.title}`}
-                          onClick={() => query({ role: role.id })}
+              {preview ? (
+                <div className="career-desk">
+                  <div className="career-list career-index">
+                    <div className="career-index-caption" aria-hidden>
+                      Role index
+                    </div>
+                    {visibleRoles.map((role) => {
+                      const opportunity =
+                        records[role.id] ?? newOpportunity(role, 0);
+                      return (
+                        <article
+                          className="career-row"
+                          key={role.id}
+                          data-preview={preview.id === role.id}
                         >
-                          <strong>{role.company}</strong>
-                          <span>{role.title}</span>
-                          <small className="career-help">
-                            {role.location} ·{" "}
-                            {role.kind === "contract"
-                              ? "Contract"
-                              : "Employment"}
-                          </small>
-                        </button>
-                        <div className="career-row-meta">
-                          <span
-                            className={`career-badge ${role.eligibility === "eligible" ? "career-badge-positive" : "career-badge-warning"}`}
+                          <button
+                            className="career-preview-entry"
+                            aria-label={`Preview ${role.company} ${role.title}`}
+                            aria-controls="career-role-brief"
+                            aria-pressed={preview.id === role.id}
+                            onClick={() => query({ brief: role.id })}
                           >
-                            {role.eligibility === "clarify"
-                              ? "Clarify eligibility"
-                              : role.eligibility === "eligible"
-                                ? "Eligible"
-                                : "Not eligible"}
-                          </span>
-                          <small className="career-help">
-                            {role.availability} ·{" "}
-                            {availabilityNeedsReview(role, today)
-                              ? "Recheck source"
-                              : `Checked ${role.checkedOn}`}
-                          </small>
-                        </div>
-                        <div className="career-row-meta">
-                          <span className="career-stage">
-                            {CAREER_STAGE_LABELS[opportunity.stage]}
-                          </span>
-                          {opportunity.followUpOn && (
+                            <span className="career-index-priority">
+                              {opportunity.priority}
+                            </span>
+                            <span className="career-index-label">
+                              <strong>{role.company}</strong>
+                              <span>{role.title}</span>
+                              <small>
+                                {CAREER_STAGE_LABELS[opportunity.stage]}
+                              </small>
+                            </span>
+                          </button>
+                          <button
+                            className="career-open"
+                            aria-label={`Open ${role.company} ${role.title}`}
+                            onClick={() =>
+                              query({ role: role.id, brief: role.id })
+                            }
+                          >
+                            <span className="career-entry-label">
+                              <strong>{role.company}</strong>
+                              <span>{role.title}</span>
+                              <small className="career-help">
+                                {role.location} ·{" "}
+                                {role.kind === "contract"
+                                  ? "Contract"
+                                  : "Employment"}
+                              </small>
+                            </span>
+                            <ArrowUpRight
+                              size={16}
+                              className="career-entry-arrow"
+                              aria-hidden
+                            />
+                          </button>
+                          <div className="career-row-meta">
+                            <span
+                              className={`career-badge ${role.eligibility === "eligible" ? "career-badge-positive" : "career-badge-warning"}`}
+                            >
+                              {role.eligibility === "clarify"
+                                ? "Clarify eligibility"
+                                : role.eligibility === "eligible"
+                                  ? "Eligible"
+                                  : "Not eligible"}
+                            </span>
                             <small className="career-help">
-                              Follow up {opportunity.followUpOn}
+                              {role.availability} ·{" "}
+                              {availabilityNeedsReview(role, today)
+                                ? "Recheck source"
+                                : `Checked ${role.checkedOn}`}
                             </small>
-                          )}
-                        </div>
-                        <button
-                          className="career-button career-button-quiet career-row-review"
-                          onClick={() => query({ role: role.id })}
-                        >
-                          Review <ArrowUpRight size={15} aria-hidden />
-                        </button>
-                      </article>
-                    );
-                  })}
+                          </div>
+                          <div className="career-row-meta">
+                            <span className="career-stage">
+                              {CAREER_STAGE_LABELS[opportunity.stage]}
+                            </span>
+                            {opportunity.followUpOn && (
+                              <small className="career-help">
+                                Follow up {opportunity.followUpOn}
+                              </small>
+                            )}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                  <OpportunityBrief
+                    role={preview}
+                    opportunity={
+                      records[preview.id] ?? newOpportunity(preview, 0)
+                    }
+                    today={today}
+                    onOpen={() =>
+                      query({ role: preview.id, brief: preview.id })
+                    }
+                  />
                 </div>
               ) : (
                 <section className="career-empty">
@@ -583,7 +622,7 @@ export default function CareerWorkspace({
             )}
           today={today}
           enabled={workflow.enabled}
-          onClose={() => query({ role: null })}
+          onClose={() => query({ role: null, brief: selectedRole.id })}
           onSave={workflow.saveOpportunity}
           onActivity={workflow.addActivity}
           onResearchCheck={(check) =>
