@@ -34,11 +34,17 @@ import OpportunityDetail from "./OpportunityDetail";
 import OpportunityBrief from "./OpportunityBrief";
 import CareerPractice from "./CareerPractice";
 import CareerWeeklyReview from "./CareerWeeklyReview";
+import InterviewSprint from "./InterviewSprint";
 import "@/app/career-workflow.css";
 import "@/app/career-desk.css";
 
-export type CareerView = "opportunities" | "practice" | "weekly-review";
+export type CareerView =
+  | "interview"
+  | "opportunities"
+  | "practice"
+  | "weekly-review";
 const viewLabels: Record<CareerView, string> = {
+  interview: "Interview sprint",
   opportunities: "Opportunities",
   practice: "Practice",
   "weekly-review": "Weekly review",
@@ -193,6 +199,7 @@ export default function CareerWorkspace({
           {error}
         </p>
       )}
+      {view === "interview" && <InterviewSprint />}
       {view === "opportunities" && (
         <>
           <div className="career-heading career-queue-heading">

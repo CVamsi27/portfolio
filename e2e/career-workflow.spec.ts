@@ -11,6 +11,31 @@ test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-11-05T09:00:00Z"));
 });
 
+test("interview sprint exposes the income gate, ten-day slice and defense gates", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/roadmap?view=interview");
+  const sprint = page.getByTestId("interview-sprint");
+  await expect(sprint).toBeVisible();
+  await expect(sprint).toContainText("Income first, then one defensible slice");
+  await expect(sprint).toContainText("27 November 2026");
+  await expect(sprint).toContainText("30 November–10 December 2026");
+  await expect(sprint).toContainText("Five-attempt retry");
+  await expect(sprint).toContainText("Readiness gates");
+  await expect(
+    sprint.getByRole("link", { name: /RLS Rehearsal/ }),
+  ).toHaveAttribute("href", "https://github.com/CVamsi27/rls-rehearsal");
+});
+
+test("the interview sprint is a first-class Career view", async ({ page }) => {
+  await seed(page);
+  await page.goto("/roadmap");
+  await page.getByRole("button", { name: "Interview sprint" }).click();
+  await expect(page).toHaveURL(/view=interview/);
+  await expect(page.getByTestId("interview-sprint")).toBeVisible();
+});
+
 test("backfilled applications keep a later reply's follow-up cleared in the editor", async ({
   page,
 }) => {

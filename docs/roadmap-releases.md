@@ -54,3 +54,9 @@ The optional AI practice now points to the canonical AI safety/governance, promp
 The v4 income revision changes future work from 5 November onward to 32 hours per full week: five six-hour weekdays, one two-hour Saturday review/mock, Sunday off. The original 100-day horizon remains through 18 February 2027. Earlier assignment objects and evidence identities remain intact. The transition week contains earlier workload as recorded; only its new-revision portion is 14 hours. Full new weeks contain 1,920 minutes. The 30 November income checkpoint does not revert the schedule afterward.
 
 Career opportunity management is independent of generated plans. New account-scoped research, opportunity and activity collections use reviewed imports, explicit event logging and record-level timestamp merges. Sources and user edits remain separate. Local mode and private export preparation do not constitute a production release. See [career data and release](career-workflow-data.md) for migration 0016 and the gated cloud verification process.
+
+## Interview-ready sprint view — 12 November 2026
+
+`/roadmap?view=interview` is a first-class Career view. It makes the current sequencing visible: Phase 0 keeps applications and paid contracts ahead of the project until the income trigger; Phase 1 is a ten-working-day extension of RLS Rehearsal covering closure evidence, a transactional outbox, a five-attempt retry budget, lease fencing, dead-letter replay and delivery metrics; the final day is a timed defense. Five readiness gates cover the project, resume claims, interview rounds, independent feedback and logistics.
+
+The view renders static, generic roadmap content from `src/data/interview-ready-sprint.ts`. It reads no private account rows and writes no records, so the detailed personal schedule remains in the private workspace. The companion public repository is `CVamsi27/rls-rehearsal`; its fast path lives in `docs/learning-plan.md`.

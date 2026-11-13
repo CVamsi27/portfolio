@@ -2037,6 +2037,7 @@ function RoadmapContent() {
   const [search, setSearch] = useState("");
   const [section, setSection] = useWorkspaceView(
     [
+      "interview",
       "opportunities",
       "practice",
       "weekly-review",
@@ -2320,7 +2321,11 @@ function RoadmapContent() {
     },
   ];
 
-  if (["opportunities", "practice", "weekly-review"].includes(section)) {
+  if (
+    ["interview", "opportunities", "practice", "weekly-review"].includes(
+      section,
+    )
+  ) {
     return (
       <RequireAuth>
         <PersonalShell
