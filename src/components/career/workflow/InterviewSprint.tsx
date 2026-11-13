@@ -10,6 +10,9 @@ import {
 import { interviewReadySprint as sprint } from "@/data/interview-ready-sprint";
 
 export default function InterviewSprint() {
+  const phases = sprint.phases ?? [];
+  const days = sprint.days ?? [];
+  const gates = sprint.gates ?? [];
   return (
     <div className="career-stack" data-testid="interview-sprint">
       <div className="career-heading">
@@ -59,7 +62,7 @@ export default function InterviewSprint() {
       </dl>
 
       <section className="career-sprint-phases" aria-label="Sprint phases">
-        {sprint.phases.map((phase) => (
+        {phases.map((phase) => (
           <article className="career-sprint-phase" key={phase.id}>
             <header>
               <div>
@@ -75,7 +78,7 @@ export default function InterviewSprint() {
             </header>
             <p className="career-help">{phase.summary}</p>
             <ul>
-              {phase.points.map((point) => (
+              {(phase.points ?? []).map((point) => (
                 <li key={point}>{point}</li>
               ))}
             </ul>
@@ -96,7 +99,7 @@ export default function InterviewSprint() {
           </div>
         </div>
         <ol className="career-sprint-days">
-          {sprint.days.map((day) => (
+          {days.map((day) => (
             <li className="career-sprint-day" key={day.day}>
               <span aria-hidden>{String(day.day).padStart(2, "0")}</span>
               <div>
@@ -113,7 +116,7 @@ export default function InterviewSprint() {
       <section className="career-stack" aria-labelledby="sprint-gates-title">
         <h3 id="sprint-gates-title">Readiness gates</h3>
         <ol className="career-sprint-gates">
-          {sprint.gates.map((gate) => (
+          {gates.map((gate) => (
             <li key={gate}>{gate}</li>
           ))}
         </ol>

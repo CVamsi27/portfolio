@@ -251,8 +251,93 @@ interface CareerData {
   };
   verificationChecklist?: {
     label: string;
-    items: string[];
+    items: VerificationChecklistItem[];
   };
+}
+
+type VerificationChecklistItem =
+  | string
+  | { id?: string; text?: string; label?: string };
+
+function asArray<T>(value: T[] | undefined | null): T[] {
+  return Array.isArray(value) ? value : [];
+}
+
+/**
+ * Stored career records predate several fields. Normalise them once here so a
+ * legacy row can never reach a render-time `.map()` on `undefined`.
+ */
+function normalizeCareerData(value: CareerData | null): CareerData | null {
+  if (!value || typeof value !== "object") return null;
+  const targetRoles = value.targetRoles ?? ({} as CareerData["targetRoles"]);
+  const resume = value.resumeAnalysis ?? ({} as CareerData["resumeAnalysis"]);
+  const resources = value.motivationalResources;
+  return {
+    ...value,
+    resumeAnalysis: {
+      ...resume,
+      strengths: asArray(resume.strengths),
+      gaps: asArray(resume.gaps),
+    },
+    targetRoles: {
+      ...targetRoles,
+      germany: asArray(targetRoles.germany),
+      remote: asArray(targetRoles.remote),
+      remoteEU: asArray(targetRoles.remoteEU),
+      remoteIndia: asArray(targetRoles.remoteIndia),
+    },
+    outreachTemplates:
+      value.outreachTemplates ?? ({} as CareerData["outreachTemplates"]),
+    germanyChecklist: asArray(value.germanyChecklist),
+    weeklyTargets: value.weeklyTargets ?? {},
+    verificationChecklist: value.verificationChecklist
+      ? {
+          ...value.verificationChecklist,
+          label: value.verificationChecklist.label || "Verification checklist",
+          items: normalizeVerificationItems(value.verificationChecklist.items),
+        }
+      : undefined,
+    motivationalResources: resources
+      ? {
+          ...resources,
+          inspiration: asArray(resources.inspiration),
+          jobBoards: asArray(resources.jobBoards),
+          mockInterview: asArray(resources.mockInterview),
+          oss: asArray(resources.oss),
+        }
+      : undefined,
+  };
+}
+
+function normalizeVerificationItems(
+  items: VerificationChecklistItem[] | undefined | null,
+): Array<{ id: string; text: string }> {
+  if (!Array.isArray(items)) return [];
+  const seen = new Set<string>();
+  return items.flatMap((item, index) => {
+    const record =
+      item && typeof item === "object"
+        ? (item as { id?: unknown; text?: unknown; label?: unknown })
+        : null;
+    const text =
+      typeof item === "string"
+        ? item
+        : typeof record?.text === "string"
+          ? record.text
+          : typeof record?.label === "string"
+            ? record.label
+            : "";
+    if (!text.trim()) return [];
+    const base =
+      typeof record?.id === "string" && record.id.trim()
+        ? record.id
+        : `verify-${index}`;
+    let id = base;
+    let suffix = 1;
+    while (seen.has(id)) id = `${base}-${suffix++}`;
+    seen.add(id);
+    return [{ id, text }];
+  });
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -1154,7 +1239,7 @@ function ResumeSection({ data }: { data: CareerData["resumeAnalysis"] }) {
         </div>
         {tab === "strengths" && (
           <div className="space-y-2">
-            {data.strengths.map((s, i) => (
+            {asArray(data.strengths).map((s, i) => (
               <div
                 key={i}
                 className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3"
@@ -1174,7 +1259,7 @@ function ResumeSection({ data }: { data: CareerData["resumeAnalysis"] }) {
         )}
         {tab === "gaps" && (
           <div className="space-y-2">
-            {data.gaps.map((g, i) => (
+            {asArray(data.gaps).map((g, i) => (
               <div
                 key={i}
                 className={`rounded-lg border p-3 ${g.urgency === "critical" ? "border-rose-500/30 bg-rose-500/8" : g.urgency === "high" ? "border-amber-500/30 bg-amber-500/8" : "border-border/40 bg-card/40"}`}
@@ -1206,7 +1291,7 @@ function RolesSection({
 }) {
   type Tab = "germany" | "remoteEU" | "remoteIndia";
   const tabs: Array<{ key: Tab; label: string; count: number }> = [
-    { key: "germany", label: "Germany", count: data.germany.length },
+    { key: "germany", label: "Germany", count: asArray(data.germany).length },
     {
       key: "remoteEU",
       label: "Remote · EU/Global",
@@ -1223,10 +1308,10 @@ function RolesSection({
   );
   const list: CareerData["targetRoles"]["germany"] =
     tab === "germany"
-      ? data.germany
+      ? asArray(data.germany)
       : tab === "remoteEU"
-        ? (data.remoteEU ?? [])
-        : (data.remoteIndia ?? data.remote ?? []);
+        ? asArray(data.remoteEU)
+        : asArray(data.remoteIndia ?? data.remote);
   return (
     <Card variant="dossier">
       <CardContent className="p-5">
@@ -1535,7 +1620,7 @@ function VerificationSection({
   data: NonNullable<CareerData["verificationChecklist"]>;
 }) {
   const [checked, setChecked] = useState<Set<string>>(new Set());
-  const items = data.items;
+  const items = normalizeVerificationItems(data.items);
   const done = checked.size;
   return (
     <Card variant="dossier" className="ring-1 ring-emerald-500/30">
@@ -1556,8 +1641,7 @@ function VerificationSection({
           />
         </div>
         <div className="space-y-1.5">
-          {items.map((text, i) => {
-            const id = `verify-${i}`;
+          {items.map(({ id, text }) => {
             const isDone = checked.has(id);
             return (
               <button
@@ -2019,8 +2103,12 @@ function RoadmapContent() {
     "timetable_100_days",
     null,
   );
-  const { value: career, setValue: setCareer } =
+  const { value: storedCareer, setValue: setCareer } =
     useSyncedStorage<CareerData | null>("career_command_center", null);
+  const career = useMemo(
+    () => normalizeCareerData(storedCareer),
+    [storedCareer],
+  );
   const { value: executionState, setValue: setExecutionState } =
     useSyncedStorage<CareerExecutionState>(
       "career_execution_state",
@@ -2272,7 +2360,7 @@ function RoadmapContent() {
     if (!career) return;
     setCareer({
       ...career,
-      germanyChecklist: career.germanyChecklist.map((i) =>
+      germanyChecklist: asArray(career.germanyChecklist).map((i) =>
         i.id === id
           ? {
               ...i,
@@ -3533,7 +3621,7 @@ function RoadmapContent() {
                   </h2>
                 </div>
                 <div className="space-y-2">
-                  {career.targetRoles.germany.map((r) => (
+                  {asArray(career.targetRoles.germany).map((r) => (
                     <a
                       key={r.company}
                       href={r.link}

@@ -36,6 +36,78 @@ test("the interview sprint is a first-class Career view", async ({ page }) => {
   await expect(page.getByTestId("interview-sprint")).toBeVisible();
 });
 
+test("legacy career records render object-shaped checklist items", async ({
+  page,
+}) => {
+  await seed(page, {
+    "vk:career_command_center": {
+      version: 1,
+      resumeAnalysis: {
+        strengths: [
+          { item: "Legacy strength", impact: "Ships inspected work", fitScore: 8 },
+        ],
+        gaps: [
+          { item: "Legacy gap", action: "Rehearse the fix", urgency: "high" },
+        ],
+      },
+      targetRoles: {
+        germany: [
+          {
+            company: "Sample GmbH",
+            role: "Product Engineer",
+            fitScore: 8,
+            link: "https://example.com/jobs/1",
+            status: "open",
+            notes: "Legacy record",
+          },
+        ],
+        remote: [],
+      },
+      outreachTemplates: {},
+      germanyChecklist: [],
+      weeklyTargets: {},
+      verificationChecklist: {
+        label: "Release verification",
+        items: [
+          { id: "verify-legacy", text: "Legacy checklist item" },
+          "String checklist item",
+        ],
+      },
+    },
+  });
+  await page.goto("/roadmap?view=career");
+  await expect(
+    page.getByText("That section crashed.", { exact: false }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Release verification" }),
+  ).toBeVisible();
+  await expect(page.getByText("Legacy checklist item")).toBeVisible();
+  await expect(page.getByText("String checklist item")).toBeVisible();
+});
+
+test("the Germany view tolerates a legacy record without target-role arrays", async ({
+  page,
+}) => {
+  await seed(page, {
+    "vk:career_command_center": {
+      version: 1,
+      resumeAnalysis: { strengths: [], gaps: [] },
+      targetRoles: { remote: [] },
+      outreachTemplates: {},
+      germanyChecklist: [],
+      weeklyTargets: {},
+    },
+  });
+  await page.goto("/roadmap?view=germany");
+  await expect(
+    page.getByText("That section crashed.", { exact: false }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Top Target Companies" }),
+  ).toBeVisible();
+});
+
 test("backfilled applications keep a later reply's follow-up cleared in the editor", async ({
   page,
 }) => {
