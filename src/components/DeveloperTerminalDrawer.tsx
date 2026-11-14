@@ -155,7 +155,7 @@ export default function DeveloperTerminalDrawer({
           type: "output",
           content: [
             "PRODUCT WORK & ENGINEERING SCOPE:",
-            "  • Docita Healthcare OS:   5 core workflows, scoped APIs, operational dashboard",
+            "  • Docita Healthcare OS:   clinic workflows, scoped APIs, operational dashboard",
             "  • MAQ Software:           API query tuning, reusable React components",
             "  • Cognizant:              4 Distributed Spring Boot microservices, Eureka & JWT routing",
             "  Navigating to Impact section...",

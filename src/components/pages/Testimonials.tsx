@@ -20,7 +20,7 @@ interface Endorsement {
 
 // Self-authored summaries of work; no third-party endorsement is asserted.
 const ENDORSEMENTS: Endorsement[] = [
-  { quote: "End-to-end clinical workflows, scoped APIs, background jobs and an operational dashboard. The case study explains mechanisms, checks and remaining boundaries.", author: "Product implementation", role: "Self-authored project summary", company: "Docita", context: "Healthcare SaaS", metrics: ["5 Core Workflows", "Typed Contracts", "Request Telemetry"] },
+  { quote: "End-to-end clinical workflows, scoped APIs, background jobs and an operational dashboard. The case study explains mechanisms, checks and remaining boundaries.", author: "Product implementation", role: "Self-authored project summary", company: "Docita", context: "Healthcare SaaS", metrics: ["Clinic Workflows", "Typed Contracts", "Request Telemetry"] },
   { quote: "Recruitment and internal-workflow applications, API/query tuning, reusable React interfaces and delivery reviews. Personal contribution is explained through actual work examples.", author: "Engineering experience", role: "Self-authored experience summary", company: "MAQ Software", context: "Enterprise product workflows", metrics: ["TypeScript / React", "API Profiling", "Reviews & Mentoring"] },
   { quote: "Four Spring Boot microservices for product, vendor and checkout workflows during a structured graduate training program.", author: "Graduate program", role: "Self-authored training summary", company: "Cognizant", context: "E-commerce exercise", metrics: ["4 Microservices", "Service Discovery", "JWT Authorization"] },
 ];
