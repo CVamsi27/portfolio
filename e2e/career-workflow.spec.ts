@@ -11,17 +11,20 @@ test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-11-05T09:00:00Z"));
 });
 
-test("interview sprint exposes the income gate, ten-day slice and defense gates", async ({
+test("interview sprint exposes six stages, the income gate and the gated proof", async ({
   page,
 }) => {
   await seed(page);
   await page.goto("/roadmap?view=interview");
   const sprint = page.getByTestId("interview-sprint");
   await expect(sprint).toBeVisible();
-  await expect(sprint).toContainText("Income first, then one defensible slice");
+  await expect(sprint).toContainText("Income first, six stages, one signed offer");
   await expect(sprint).toContainText("27 November 2026");
   await expect(sprint).toContainText("30 November–10 December 2026");
-  await expect(sprint).toContainText("Five-attempt retry");
+  await expect(sprint).toContainText("Flagship proof");
+  await expect(sprint).toContainText("15");
+  await expect(sprint).toContainText("tailored applications");
+  await expect(sprint).toContainText("Foreign write denied");
   await expect(sprint).toContainText("Readiness gates");
   await expect(
     sprint.getByRole("link", { name: /RLS Rehearsal/ }),

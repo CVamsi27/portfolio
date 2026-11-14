@@ -492,7 +492,7 @@ textarea.career-input {
 }
 .career-sprint-facts {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   border-block: 1px solid var(--color-border);
 }
 .career-sprint-facts > div {
@@ -514,7 +514,8 @@ textarea.career-input {
   font-size: 0.95rem;
   font-weight: 600;
 }
-.career-sprint-phases {
+.career-sprint-phases,
+.career-sprint-stages {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.8rem;
@@ -563,6 +564,84 @@ textarea.career-input {
 .career-sprint-status[data-status="gated"] {
   color: var(--color-muted-foreground);
 }
+.career-sprint-status[data-status="next"] {
+  color: var(--color-muted-foreground);
+  border-style: dashed;
+}
+.career-sprint-exit {
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.career-sprint-exit strong {
+  color: var(--color-foreground);
+  font-weight: 650;
+}
+.career-sprint-cadence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.career-sprint-cadence > div {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: var(--color-card);
+}
+.career-sprint-cadence dt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.career-sprint-cadence dt span {
+  flex: 0 0 auto;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--color-muted);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.career-sprint-cadence dd {
+  color: var(--color-muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.career-sprint-targets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.career-sprint-targets li {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: var(--color-card);
+}
+.career-sprint-targets strong {
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.career-sprint-targets span {
+  color: var(--color-muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
 .career-sprint-days {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -609,8 +688,13 @@ textarea.career-input {
 }
 @media (max-width: 900px) {
   .career-sprint-phases,
+  .career-sprint-stages,
+  .career-sprint-cadence,
   .career-sprint-days {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .career-sprint-targets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .career-filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -637,6 +721,9 @@ textarea.career-input {
   .career-sprint-facts > div + div {
     border-left: 0;
     border-top: 1px solid var(--color-border);
+  }
+  .career-sprint-targets {
+    grid-template-columns: minmax(0, 1fr);
   }
   .career-facts {
     grid-template-columns: minmax(0, 1fr);
