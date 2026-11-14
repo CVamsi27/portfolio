@@ -12,13 +12,13 @@ const COMPANY_LOCATIONS: Record<string, string> = {
 };
 
 const COMPANY_HIGHLIGHTS: Record<string, string[]> = {
-  Docita: ["5 Core Workflows", "Operational Dashboard", "Scoped APIs", "Outbox & Queues"],
+  Docita: ["Clinic Workflow Ownership", "Operational Dashboard", "Scoped APIs", "Outbox & Queues"],
   "MAQ Software": ["Recruitment Workflows", "API Query Tuning", "Reusable React UI", "Reviews & Mentoring"],
   Cognizant: ["4 Microservices", "Spring Boot & Eureka", "Zuul Gateway", "E-Commerce"],
 };
 
 const KEY_PHRASES = [
-  "5 core workflows",
+  "healthcare SaaS end to end",
   "PostgreSQL Row-Level Security, deny-by-default ABAC",
   "PostgreSQL queues, transactional outbox, idempotency, retries",
   "tenant-scoped queries, migrations, indexes, pagination, and transactional writes",

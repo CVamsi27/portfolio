@@ -39,7 +39,7 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
     company: "Docita",
     URL: "https://docita.work",
     details: [
-      "Build a multi-tenant healthcare SaaS spanning 5 workflows — scheduling, patient records, prescriptions, billing and inventory — with React/Vite, NestJS and PostgreSQL.",
+      "Build an independent multi-tenant healthcare SaaS end to end, connecting scheduling, patient records, prescriptions, billing and inventory with React/Vite, NestJS and PostgreSQL.",
       "Connect clinical forms to APIs using React Hook Form, Zod and TanStack Query; handle clinic-timezone conversion, input validation, pending/error states and server-state refresh after writes.",
       "Implement clinic-scoped NestJS, Prisma and PostgreSQL APIs and resource policies, configurable Row-Level Security, patient-field encryption and sensitive-data audit hooks.",
       "Implement PostgreSQL-backed jobs with bounded retries, claim fencing and manual dead-letter replay; connect HMAC-verified payment webhooks, transactional invoice updates and selected outbox events.",

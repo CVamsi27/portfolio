@@ -211,7 +211,7 @@ const Projects = () => {
                 Flagship Production System · Indian Healthcare
               </span>
             </div>
-            <span className="portfolio-impact-pill">5 Core Workflows</span>
+            <span className="portfolio-impact-pill">Clinic Workflow Platform</span>
           </div>
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-center">
@@ -240,7 +240,7 @@ const Projects = () => {
                 </div>
                 <div className="flex items-start gap-2 text-xs text-[var(--portfolio-ink)]">
                   <Layers className="h-4 w-4 shrink-0 text-[var(--portfolio-accent)] mt-0.5" />
-                  <span>Sub-100ms NestJS & Prisma APIs</span>
+                  <span>NestJS & Prisma APIs</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs text-[var(--portfolio-ink)]">
                   <Activity className="h-4 w-4 shrink-0 text-[var(--portfolio-accent)] mt-0.5" />
@@ -271,7 +271,7 @@ const Projects = () => {
               <div className="mt-4 space-y-3 border-b border-[var(--portfolio-rule)] pb-4">
                 <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
                   <span className="text-[var(--portfolio-muted)]">Product scope:</span>
-                  <span className="font-semibold text-[var(--portfolio-ink)]">5 clinical workflows</span>
+                  <span className="font-semibold text-[var(--portfolio-ink)]">Clinical workflows</span>
                 </div>
                 <div className="portfolio-flagship-spec-row flex items-center justify-between text-xs">
                   <span className="text-[var(--portfolio-muted)]">Measurement:</span>
