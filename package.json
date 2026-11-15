@@ -11,7 +11,7 @@
     "lint": "eslint src",
     "test:personal-access": "node --experimental-strip-types --test src/lib/personal-access*.test.ts && node --test scripts/personal-service-worker.test.mjs",
     "test:sync": "node --experimental-strip-types --test src/lib/local-parse.test.ts src/lib/record-merge.test.ts src/lib/use-synced-storage.test.ts src/lib/tracker-history.test.ts",
-    "test:share": "node --experimental-strip-types --test src/lib/share-domain.test.ts src/lib/share-repair.test.ts",
+    "test:share": "node --experimental-strip-types --test src/lib/share-domain.test.ts src/lib/share-repair.test.ts src/lib/share-upload.test.ts",
     "test:career-workflow": "node --experimental-strip-types --test src/lib/career-workflow.test.ts src/lib/career-workflow-review.test.ts src/lib/career-queue.test.ts src/lib/income-first-schedule.test.ts scripts/generate-income-first-plan.test.ts scripts/export-career-research.test.ts",
     "test:career-sql": "node --experimental-strip-types --test scripts/career-persistence-sql.test.ts",
     "career:research:export": "node --experimental-strip-types scripts/export-career-research.ts",

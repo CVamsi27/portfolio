@@ -3,8 +3,6 @@ export const MAX_DROP_IMAGES = 6;
 export const CLOUD_IMAGE_LIMIT_BYTES = 5_000_000;
 export const LOCAL_IMAGE_LIMIT_BYTES = 1_200_000;
 export const BROWSER_STORAGE_LIMIT_BYTES = 5_000_000;
-/** An image left inline is part of the synced drop JSON — keep it tiny. */
-export const SYNC_INLINE_IMAGE_LIMIT_BYTES = 400_000;
 
 export type ShareAccessMode = "private" | "public";
 

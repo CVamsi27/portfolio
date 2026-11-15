@@ -53,6 +53,7 @@ import {
   type ShareAccessMode,
 } from "@/lib/share-domain";
 import { compressImageFile } from "@/lib/image-compress";
+import { uploadDropImages } from "@/lib/share-upload";
 import {
   applyImageRepairs,
   inlineImageRepairTargets,
@@ -468,24 +469,32 @@ export default function SharePage() {
       let stored = [...pendingImages];
 
       if (signedIn && stored.length) {
-        const uploaded: string[] = [];
-        let inlineCount = 0;
-        for (let index = 0; index < stored.length; index += 1) {
-          const path = await uploadToStorage(stored[index], `${id}-${index}`);
-          if (path) {
-            uploaded.push(path);
-          } else {
-            uploaded.push(stored[index]);
-            if (isInlineImage(stored[index])) inlineCount += 1;
+        const { paths: uploaded, failed } = await uploadDropImages(
+          stored,
+          (index) => `${id}-${index}`,
+          uploadToStorage,
+        );
+        if (failed > 0) {
+          // Never keep the bytes inline: an oversized synced row is what stopped
+          // images reaching other devices. Release whatever did upload, keep the
+          // selection in the composer, and let the user press Save again.
+          if (uploaded.length) {
+            void getSupabase()
+              ?.storage.from("drops")
+              .remove(uploaded)
+              .then(() => undefined);
           }
+          toast({
+            title:
+              failed === 1
+                ? "One image could not reach the cloud"
+                : `${failed} images could not reach the cloud`,
+            description:
+              "Nothing was saved. Check your connection or Storage setup, then press Save drop again.",
+          });
+          return;
         }
         stored = uploaded;
-        if (inlineCount) {
-          toast({
-            title: "Images could not reach the cloud",
-            description: `${inlineCount === 1 ? "One image stays" : `${inlineCount} images stay`} on this device only. Check the Storage setup and add them again from this device to sync.`,
-          });
-        }
       }
 
       const paths = stored.filter((source) => !isInlineImage(source));
