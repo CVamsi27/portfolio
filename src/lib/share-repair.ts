@@ -33,6 +33,45 @@ export function inlineImageRepairTargets<T extends RepairableDrop>(
   return targets;
 }
 
+export const MAX_REPAIR_ATTEMPTS = 3;
+export const REPAIR_RETRY_MS = 1500;
+
+/**
+ * Upload the inline bytes of each target, retrying the whole pass with a growing
+ * pause so a dropped connection does not leave the bytes inline until the next
+ * visit. Upload names are keyed by drop and index, so a repeat pass overwrites
+ * its own objects instead of duplicating them.
+ */
+export async function repairInlineImages<T extends RepairableDrop>(
+  targets: ImageRepairTarget<T>[],
+  upload: (dataUrl: string, name: string) => Promise<string | null>,
+  sleep: (ms: number) => Promise<void>,
+  attempts = MAX_REPAIR_ATTEMPTS,
+): Promise<{ repairs: Map<string, string[]>; attempts: number }> {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const repairs = new Map<string, string[]>();
+    for (const { drop, sources } of targets) {
+      const next = [...sources];
+      let changed = false;
+      for (let index = 0; index < sources.length; index += 1) {
+        if (!isInlineImage(sources[index])) continue;
+        const path = await upload(
+          sources[index],
+          `repair-${drop.id}-${index}`,
+        );
+        if (path) {
+          next[index] = path;
+          changed = true;
+        }
+      }
+      if (changed) repairs.set(drop.id, next);
+    }
+    if (repairs.size > 0) return { repairs, attempts: attempt };
+    if (attempt < attempts) await sleep(REPAIR_RETRY_MS * attempt);
+  }
+  return { repairs: new Map(), attempts };
+}
+
 /** Replace repaired image lists in place, keeping every other drop untouched. */
 export function applyImageRepairs<T extends RepairableDrop>(
   drops: T[],

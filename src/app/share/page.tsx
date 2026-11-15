@@ -57,6 +57,7 @@ import { uploadDropImages } from "@/lib/share-upload";
 import {
   applyImageRepairs,
   inlineImageRepairTargets,
+  repairInlineImages,
 } from "@/lib/share-repair";
 
 type DropTag = "Note" | "Snippet" | "Image" | "Link";
@@ -817,25 +818,15 @@ export default function SharePage() {
     if (pending.length === 0) return;
     repairStarted.current = true;
     let cancelled = false;
+    let applied = false;
     void (async () => {
-      const repairs = new Map<string, string[]>();
-      for (const { drop, sources } of pending) {
-        const next = [...sources];
-        let ok = false;
-        for (let index = 0; index < sources.length; index += 1) {
-          if (!isInlineImage(sources[index])) continue;
-          const path = await uploadToStorage(
-            sources[index],
-            `repair-${drop.id}-${index}`,
-          );
-          if (path) {
-            next[index] = path;
-            ok = true;
-          }
-        }
-        if (ok) repairs.set(drop.id, next);
-      }
+      const { repairs } = await repairInlineImages(
+        pending,
+        uploadToStorage,
+        (ms) => new Promise<void>((resolve) => setTimeout(resolve, ms)),
+      );
       if (cancelled || repairs.size === 0) return;
+      applied = true;
       try {
         setDrops((current) => applyImageRepairs(current, repairs));
         toast({
@@ -850,6 +841,9 @@ export default function SharePage() {
     })();
     return () => {
       cancelled = true;
+      // An interrupted pass (dependencies changed, or every attempt failed) must
+      // not block the next attempt in this visit.
+      if (!applied) repairStarted.current = false;
     };
   }, [safeDrops, setDrops, signedIn, toast]);
 

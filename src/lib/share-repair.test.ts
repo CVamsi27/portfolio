@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   applyImageRepairs,
   inlineImageRepairTargets,
+  repairInlineImages,
   type RepairableDrop,
 } from "./share-repair.ts";
 
@@ -67,6 +68,67 @@ test("repairs that failed to upload leave the inline bytes in place", () => {
   assert.deepEqual(result[0].images, [inline("one"), "uid/two.jpg"]);
   assert.equal(result[0].imagePath, "uid/two.jpg");
   assert.equal(result[0].image, null);
+});
+
+test("a repair pass uploads every inline image once", async () => {
+  const targets = inlineImageRepairTargets([
+    { id: "a", images: [inline("one"), "uid/kept.jpg"] },
+  ]);
+  const names: string[] = [];
+  const { repairs, attempts } = await repairInlineImages(
+    targets,
+    async (_dataUrl, name) => {
+      names.push(name);
+      return `uid/${name}.png`;
+    },
+    async () => undefined,
+  );
+  assert.equal(attempts, 1);
+  assert.deepEqual(names, ["repair-a-0"]);
+  assert.deepEqual(repairs.get("a"), ["uid/repair-a-0.png", "uid/kept.jpg"]);
+});
+
+test("a repair pass retries after a failed attempt", async () => {
+  const targets = inlineImageRepairTargets([
+    { id: "a", images: [inline("one")] },
+  ]);
+  let calls = 0;
+  const slept: number[] = [];
+  const { repairs, attempts } = await repairInlineImages(
+    targets,
+    async (_dataUrl, name) => {
+      calls += 1;
+      return calls > 1 ? `uid/${name}.png` : null;
+    },
+    async (ms) => {
+      slept.push(ms);
+    },
+  );
+  assert.equal(attempts, 2);
+  assert.deepEqual(slept, [1500]);
+  assert.deepEqual(repairs.get("a"), ["uid/repair-a-0.png"]);
+});
+
+test("a repair pass gives up after the attempt budget", async () => {
+  const targets = inlineImageRepairTargets([
+    { id: "a", images: [inline("one")] },
+  ]);
+  const slept: number[] = [];
+  let uploads = 0;
+  const { repairs, attempts } = await repairInlineImages(
+    targets,
+    async () => {
+      uploads += 1;
+      return null;
+    },
+    async (ms) => {
+      slept.push(ms);
+    },
+  );
+  assert.equal(attempts, 3);
+  assert.equal(uploads, 3);
+  assert.deepEqual(slept, [1500, 3000]);
+  assert.equal(repairs.size, 0);
 });
 
 test("an empty repair table returns the original drops", () => {
