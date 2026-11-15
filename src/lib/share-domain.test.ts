@@ -7,6 +7,7 @@ import {
   imageStoragePath,
   isInlineImage,
   publishedImagePaths,
+  signedUrlTtlSeconds,
   storagePathFromUrl,
 } from "./share-domain.ts";
 
@@ -161,6 +162,19 @@ test("a legacy object URL yields its decoded storage path", () => {
     }),
     ["uid/one two.png"],
   );
+});
+
+test("a signed media URL never outlives the drop", () => {
+  const now = Date.parse("2031-01-02T00:00:00Z");
+  assert.equal(signedUrlTtlSeconds(null, now), 3600);
+  assert.equal(signedUrlTtlSeconds("2031-01-02T05:00:00Z", now), 3600);
+  assert.equal(signedUrlTtlSeconds("2031-01-02T00:10:00Z", now), 600);
+  assert.equal(signedUrlTtlSeconds("2031-01-01T23:00:00Z", now), 0);
+  assert.equal(signedUrlTtlSeconds("2031-01-02T00:00:00Z", now), 0);
+});
+
+test("a malformed expiry signs like an unexpired drop", () => {
+  assert.equal(signedUrlTtlSeconds("not-a-date"), 3600);
 });
 
 test("a row with nothing publishable yields no paths", () => {

@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { publishedImagePaths } from "@/lib/share-domain";
+import { publishedImagePaths, signedUrlTtlSeconds } from "@/lib/share-domain";
 
 type Context = { params: Promise<{ shareId: string }> };
 
@@ -66,11 +66,14 @@ export async function GET(_request: Request, context: Context) {
   }
 
   const paths = publishedImagePaths(row);
+  // Signing for an hour regardless of expiry kept expired drops readable.
+  const ttl = signedUrlTtlSeconds(row.expires_at);
+  if (ttl <= 0) return notFound();
   const imageUrls: string[] = [];
   for (const path of paths) {
     const signed = await supabase.storage
       .from("drops")
-      .createSignedUrl(path, 3600);
+      .createSignedUrl(path, ttl);
     if (!signed.error && signed.data?.signedUrl)
       imageUrls.push(signed.data.signedUrl);
   }

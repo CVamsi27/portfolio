@@ -10,7 +10,7 @@ import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-store";
 import { useToast } from "@/components/ui/use-toast";
 import { Check, Copy, Lock, Users } from "lucide-react";
-import { expiryCopy, storagePathFromUrl } from "@/lib/share-domain";
+import { expiryCopy, publishedImagePaths, signedUrlTtlSeconds } from "@/lib/share-domain";
 
 type SharedRow = {
   text: string;
@@ -37,14 +37,7 @@ const ROW_COLUMNS =
 
 /** Paths for every image on the row, newest schema first. */
 function imagePathsFor(row: SharedRowFields): string[] {
-  const fromArray = (row.image_paths ?? []).filter(Boolean);
-  if (fromArray.length) return [...new Set(fromArray)];
-  if (row.image_path) return [row.image_path];
-  if (row.image_url) {
-    const path = storagePathFromUrl(row.image_url);
-    return path ? [path] : [];
-  }
-  return [];
+  return publishedImagePaths(row);
 }
 
 async function signPaths(
@@ -55,11 +48,12 @@ async function signPaths(
       seconds: number,
     ) => Promise<{ data?: { signedUrl?: string } | null; error?: unknown }>;
   },
+  seconds: number,
 ): Promise<string[]> {
   const urls = await Promise.all(
     paths.map(async (path) => {
       try {
-        const { data, error } = await signer.createSignedUrl(path, 3600);
+        const { data, error } = await signer.createSignedUrl(path, seconds);
         if (error || !data?.signedUrl) return null;
         return data.signedUrl;
       } catch {
@@ -113,9 +107,12 @@ async function fetchSharedDrop(
     if (row.expires_at && new Date(row.expires_at).getTime() <= Date.now())
       return null;
 
+    const ttl = signedUrlTtlSeconds(row.expires_at);
+    if (ttl <= 0) return null;
     const imageUrls = await signPaths(
       imagePathsFor(row),
       sb.storage.from("drops"),
+      ttl,
     );
     return {
       text: row.text,

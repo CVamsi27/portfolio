@@ -146,6 +146,23 @@ export function publishedImagePaths(row: {
   return legacy ? [legacy] : [];
 }
 
+/**
+ * How long a signed media URL may live: never past the drop's own expiry, and
+ * never longer than an hour. A malformed timestamp is treated as no expiry, the
+ * same way the row's expiry check treats it.
+ */
+export const MAX_SIGNED_URL_SECONDS = 3600;
+
+export function signedUrlTtlSeconds(
+  expiresAt: string | null,
+  now = Date.now(),
+): number {
+  if (!expiresAt) return MAX_SIGNED_URL_SECONDS;
+  const remaining = Math.floor((new Date(expiresAt).getTime() - now) / 1000);
+  if (!Number.isFinite(remaining)) return MAX_SIGNED_URL_SECONDS;
+  return Math.max(0, Math.min(MAX_SIGNED_URL_SECONDS, remaining));
+}
+
 export function estimateDataUrlBytes(dataUrl: string): number {
   const comma = dataUrl.indexOf(",");
   const payload = comma === -1 ? dataUrl : dataUrl.slice(comma + 1);
