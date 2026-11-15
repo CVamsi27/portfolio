@@ -15,6 +15,7 @@ import { expiryCopy, publishedImagePaths, signedUrlTtlSeconds } from "@/lib/shar
 type SharedRow = {
   text: string;
   imageUrls: string[];
+  missingImages?: number;
   created_at: string;
   expiresAt: string | null;
   ownerEmail: string | null;
@@ -109,14 +110,12 @@ async function fetchSharedDrop(
 
     const ttl = signedUrlTtlSeconds(row.expires_at);
     if (ttl <= 0) return null;
-    const imageUrls = await signPaths(
-      imagePathsFor(row),
-      sb.storage.from("drops"),
-      ttl,
-    );
+    const paths = imagePathsFor(row);
+    const imageUrls = await signPaths(paths, sb.storage.from("drops"), ttl);
     return {
       text: row.text,
       imageUrls,
+      missingImages: paths.length - imageUrls.length,
       created_at: row.created_at,
       expiresAt: row.expires_at,
       ownerEmail: row.owner_email,
@@ -313,6 +312,16 @@ function SharedDrop({ shareId }: { shareId: string }) {
   return (
     <Card variant="dossier" className="overflow-hidden">
       <Gallery images={row.imageUrls} />
+      {(row.missingImages ?? 0) > 0 && (
+        <p
+          role="status"
+          className="border-b border-border/40 bg-muted/30 px-5 py-2 text-xs text-muted-foreground"
+        >
+          {row.missingImages === 1
+            ? "1 image is no longer available."
+            : `${row.missingImages} images are no longer available.`}
+        </p>
+      )}
       <CardContent className="p-5">
         <header className="flex items-start gap-3">
           <SenderMark email={row.ownerEmail} />

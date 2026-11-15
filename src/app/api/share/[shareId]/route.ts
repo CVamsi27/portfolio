@@ -90,6 +90,8 @@ export async function GET(_request: Request, context: Context) {
       text: row.text,
       imageUrl: imageUrls[0] ?? null,
       imageUrls,
+      // Signed paths can fail individually; say so instead of shrinking quietly.
+      missingImages: paths.length - imageUrls.length,
       created_at: row.created_at,
       expiresAt: row.expires_at,
       ownerEmail: maskEmail(row.owner_email),

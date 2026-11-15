@@ -80,6 +80,26 @@ test.describe("shared drop link", () => {
     await expect(page.getByText(payload.text)).toBeVisible();
   });
 
+  test("says when part of the gallery can no longer be signed", async ({
+    page,
+  }) => {
+    await seed(page);
+    await page.route(apiPattern, (route) =>
+      json(route, {
+        ...payload,
+        imageUrls: [pixel],
+        missingImages: 2,
+        isPublic: true,
+      }),
+    );
+
+    await page.goto(`/share/${shareId}`);
+    await expect(page.getByText(payload.text)).toBeVisible();
+    await expect(
+      page.getByText("2 images are no longer available."),
+    ).toBeVisible();
+  });
+
   test("explains a missing link and retries from the same card", async ({
     page,
   }) => {
