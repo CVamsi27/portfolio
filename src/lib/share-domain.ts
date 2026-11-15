@@ -129,6 +129,23 @@ export function storagePathFromUrl(url: string): string | null {
   return decodeURIComponent(url.slice(index + marker.length).split("?")[0]);
 }
 
+/**
+ * Storage paths a published link may sign: the gallery when 0017 has run, then
+ * the single-image columns, then the legacy object URL. Deployments without the
+ * image_paths column must keep publishing the first image rather than none.
+ */
+export function publishedImagePaths(row: {
+  image_paths?: string[] | null;
+  image_path?: string | null;
+  image_url?: string | null;
+}): string[] {
+  const gallery = (row.image_paths ?? []).filter(Boolean);
+  if (gallery.length) return [...new Set(gallery)];
+  if (row.image_path) return [row.image_path];
+  const legacy = row.image_url ? storagePathFromUrl(row.image_url) : null;
+  return legacy ? [legacy] : [];
+}
+
 export function estimateDataUrlBytes(dataUrl: string): number {
   const comma = dataUrl.indexOf(",");
   const payload = comma === -1 ? dataUrl : dataUrl.slice(comma + 1);

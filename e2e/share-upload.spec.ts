@@ -102,7 +102,10 @@ test.describe("share drop uploads", () => {
     await page.locator('input[type="file"]').setInputFiles(files(8));
 
     await expect(page.getByText("6 of 6 images")).toBeVisible();
-    await expect(page.getByText("Some files were skipped")).toBeVisible();
+    // Exact, because the toast title is echoed inside its aria-live region.
+    await expect(
+      page.getByText("Some files were skipped", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByAltText("Selected image 6")).toBeVisible();
     await expect(page.getByAltText("Selected image 7")).toHaveCount(0);
   });

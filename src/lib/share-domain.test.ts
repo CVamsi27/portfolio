@@ -6,6 +6,7 @@ import {
   dropImageSources,
   imageStoragePath,
   isInlineImage,
+  publishedImagePaths,
   storagePathFromUrl,
 } from "./share-domain.ts";
 
@@ -130,4 +131,45 @@ test("a text-only share sends no image columns", () => {
   });
   assert.equal(payload.image_path, null);
   assert.equal("image_paths" in payload, false);
+});
+
+test("a published link signs every gallery image once", () => {
+  assert.deepEqual(
+    publishedImagePaths({
+      image_paths: ["uid/a.jpg", "uid/b.jpg", "uid/a.jpg"],
+      image_path: "uid/legacy.jpg",
+    }),
+    ["uid/a.jpg", "uid/b.jpg"],
+  );
+});
+
+test("without 0017 the link still publishes the single image", () => {
+  assert.deepEqual(publishedImagePaths({ image_path: "uid/one.jpg" }), [
+    "uid/one.jpg",
+  ]);
+  assert.deepEqual(
+    publishedImagePaths({ image_paths: [], image_path: "uid/one.jpg" }),
+    ["uid/one.jpg"],
+  );
+});
+
+test("a legacy object URL yields its decoded storage path", () => {
+  assert.deepEqual(
+    publishedImagePaths({
+      image_url:
+        "https://project.supabase.co/storage/v1/object/public/drops/uid/one%20two.png?token=abc",
+    }),
+    ["uid/one two.png"],
+  );
+});
+
+test("a row with nothing publishable yields no paths", () => {
+  assert.deepEqual(publishedImagePaths({}), []);
+  assert.deepEqual(
+    publishedImagePaths({
+      image_path: "",
+      image_url: "https://example.com/elsewhere.png",
+    }),
+    [],
+  );
 });

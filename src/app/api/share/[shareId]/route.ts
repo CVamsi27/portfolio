@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { publishedImagePaths } from "@/lib/share-domain";
 
 type Context = { params: Promise<{ shareId: string }> };
 
@@ -16,15 +17,6 @@ function isValidUUID(value: string): boolean {
   );
 }
 
-function storagePathFromUrl(value: string | null): string | null {
-  if (!value) return null;
-  const marker = "/drops/";
-  const index = value.indexOf(marker);
-  return index === -1
-    ? null
-    : decodeURIComponent(value.slice(index + marker.length).split("?")[0]);
-}
-
 type SharedRow = {
   text: string;
   image_path: string | null;
@@ -35,14 +27,6 @@ type SharedRow = {
   owner_email: string | null;
   is_public: boolean;
 };
-
-function imagePathsFor(row: SharedRow): string[] {
-  const fromArray = (row.image_paths ?? []).filter(Boolean);
-  if (fromArray.length) return [...new Set(fromArray)];
-  if (row.image_path) return [row.image_path];
-  const legacy = storagePathFromUrl(row.image_url);
-  return legacy ? [legacy] : [];
-}
 
 export async function GET(_request: Request, context: Context) {
   const { shareId } = await context.params;
@@ -81,7 +65,7 @@ export async function GET(_request: Request, context: Context) {
     return notFound();
   }
 
-  const paths = imagePathsFor(row);
+  const paths = publishedImagePaths(row);
   const imageUrls: string[] = [];
   for (const path of paths) {
     const signed = await supabase.storage
