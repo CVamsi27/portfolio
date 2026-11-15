@@ -6,6 +6,8 @@ import {
   dropImageSources,
   imageStoragePath,
   isInlineImage,
+  maskEmail,
+  ownedImagePaths,
   publishedImagePaths,
   signedUrlTtlSeconds,
   storagePathFromUrl,
@@ -162,6 +164,27 @@ test("a legacy object URL yields its decoded storage path", () => {
     }),
     ["uid/one two.png"],
   );
+});
+
+test("a public link never carries the owner's full address", () => {
+  assert.equal(maskEmail("vamsi@example.com"), "v***@example.com");
+  assert.equal(maskEmail(null), null);
+  assert.equal(maskEmail("no-at-sign"), null);
+  assert.equal(maskEmail("@example.com"), null);
+});
+
+test("only the owner's own folder may be signed", () => {
+  const owner = "11111111-2222-3333-4444-555555555555";
+  assert.deepEqual(
+    ownedImagePaths([`${owner}/a.jpg`, `${owner}/b.jpg`], owner),
+    [`${owner}/a.jpg`, `${owner}/b.jpg`],
+  );
+  assert.deepEqual(
+    ownedImagePaths([`${owner}/a.jpg`, "someone-else/stolen.jpg"], owner),
+    [`${owner}/a.jpg`],
+  );
+  assert.deepEqual(ownedImagePaths(["someone-else/stolen.jpg"], null), []);
+  assert.deepEqual(ownedImagePaths(["owner-prefix-suffix/a.jpg"], owner), []);
 });
 
 test("a signed media URL never outlives the drop", () => {

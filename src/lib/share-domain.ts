@@ -151,6 +151,32 @@ export function publishedImagePaths(row: {
  * never longer than an hour. A malformed timestamp is treated as no expiry, the
  * same way the row's expiry check treats it.
  */
+/**
+ * Public links are readable by anyone holding the URL, so they never carry the
+ * owner's full address. Signed-in viewers of a private link still get it from
+ * the row itself under RLS.
+ */
+export function maskEmail(email: string | null): string | null {
+  if (!email) return null;
+  const [local, domain] = email.split("@");
+  if (!local || !domain) return null;
+  return `${local.slice(0, 1)}***@${domain}`;
+}
+
+/**
+ * Only paths inside the drop owner's folder may be signed. The service role
+ * bypasses RLS, so a row written by any future path with weaker validation must
+ * not be able to mint a URL for someone else's object.
+ */
+export function ownedImagePaths(
+  paths: string[],
+  owner: string | null,
+): string[] {
+  if (!owner) return [];
+  const prefix = `${owner}/`;
+  return paths.filter((path) => path.startsWith(prefix));
+}
+
 export const MAX_SIGNED_URL_SECONDS = 3600;
 
 export function signedUrlTtlSeconds(

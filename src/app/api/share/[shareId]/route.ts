@@ -1,11 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { publishedImagePaths, signedUrlTtlSeconds } from "@/lib/share-domain";
+import {
+  maskEmail,
+  ownedImagePaths,
+  publishedImagePaths,
+  signedUrlTtlSeconds,
+} from "@/lib/share-domain";
 
 type Context = { params: Promise<{ shareId: string }> };
 
 const ROW_COLUMNS =
-  "text, image_path, image_url, created_at, expires_at, owner_email, is_public";
+  "text, image_path, image_url, created_at, expires_at, owner_email, is_public, owner";
 
 function notFound() {
   return NextResponse.json({ error: "Share not found" }, { status: 404 });
@@ -26,6 +31,7 @@ type SharedRow = {
   expires_at: string | null;
   owner_email: string | null;
   is_public: boolean;
+  owner: string | null;
 };
 
 export async function GET(_request: Request, context: Context) {
@@ -65,7 +71,7 @@ export async function GET(_request: Request, context: Context) {
     return notFound();
   }
 
-  const paths = publishedImagePaths(row);
+  const paths = ownedImagePaths(publishedImagePaths(row), row.owner);
   // Signing for an hour regardless of expiry kept expired drops readable.
   const ttl = signedUrlTtlSeconds(row.expires_at);
   if (ttl <= 0) return notFound();
@@ -86,7 +92,7 @@ export async function GET(_request: Request, context: Context) {
       imageUrls,
       created_at: row.created_at,
       expiresAt: row.expires_at,
-      ownerEmail: row.owner_email,
+      ownerEmail: maskEmail(row.owner_email),
     },
     { headers: { "Cache-Control": "private, no-store" } },
   );
