@@ -75,6 +75,9 @@ jobs:
       - name: Personal access boundary tests
         run: pnpm test:personal-access
 
+      - name: Sharing image, payload and repair unit tests
+        run: pnpm test:share
+
       - name: Bundled Germany photograph validation
         run: node --test scripts/germany-motivation.test.mjs
 

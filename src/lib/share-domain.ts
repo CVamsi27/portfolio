@@ -1,7 +1,10 @@
 export const MAX_DROPS = 50;
+export const MAX_DROP_IMAGES = 6;
 export const CLOUD_IMAGE_LIMIT_BYTES = 5_000_000;
 export const LOCAL_IMAGE_LIMIT_BYTES = 1_200_000;
 export const BROWSER_STORAGE_LIMIT_BYTES = 5_000_000;
+/** An image left inline is part of the synced drop JSON — keep it tiny. */
+export const SYNC_INLINE_IMAGE_LIMIT_BYTES = 400_000;
 
 export type ShareAccessMode = "private" | "public";
 
@@ -10,6 +13,7 @@ export type SharedDropPayloadInput = {
   owner: string;
   text: string;
   imagePath: string | null;
+  imagePaths?: string[];
   expiresAt: string | null;
   createdFromDrop: string;
   ownerEmail: string | null;
@@ -19,18 +23,66 @@ export type SharedDropPayloadInput = {
 
 /** Build the row shape expected by the shared_drops RLS policies. */
 export function buildSharedDropPayload(input: SharedDropPayloadInput) {
+  const imagePaths = (
+    input.imagePaths && input.imagePaths.length
+      ? input.imagePaths
+      : input.imagePath
+        ? [input.imagePath]
+        : []
+  ).filter(Boolean);
   return {
     ...(input.id ? { id: input.id } : {}),
     owner: input.owner,
     text: input.text,
     image_url: null,
-    image_path: input.imagePath,
+    image_path: imagePaths[0] ?? input.imagePath,
+    ...(imagePaths.length > 1 ? { image_paths: imagePaths } : {}),
     is_public: input.access === "public",
     expires_at: input.expiresAt,
     created_from_drop: input.createdFromDrop,
     owner_email: input.ownerEmail,
     allowed_emails: input.access === "private" ? input.allowedEmails : [],
   };
+}
+
+export type DropImageFields = {
+  image?: string | null;
+  imagePath?: string | null;
+  images?: string[] | null;
+};
+
+/**
+ * Every image attached to a drop, newest schema first. Drops created before
+ * multi-image support only have `image`, so both shapes must keep working.
+ */
+export function dropImageSources(drop: DropImageFields): string[] {
+  // Repeated picks of the same file are legitimate, so only the legacy
+  // single-image fields are de-duplicated against the gallery.
+  const gallery = (drop.images ?? []).filter(Boolean);
+  const legacy = [...new Set([drop.image, drop.imagePath])].filter(
+    (source): source is string => Boolean(source) && !gallery.includes(source!),
+  );
+  return [...gallery, ...legacy];
+}
+
+export function dropHasImages(drop: DropImageFields): boolean {
+  return dropImageSources(drop).length > 0;
+}
+
+/**
+ * Storage path for an image reference, or null when the image only exists
+ * inline (a data URL). Accepts a bare path, a legacy public object URL, or a
+ * signed URL.
+ */
+export function imageStoragePath(source: string): string | null {
+  if (!source) return null;
+  if (source.startsWith("data:")) return null;
+  if (source.startsWith("http")) return storagePathFromUrl(source);
+  return source;
+}
+
+export function isInlineImage(source: string): boolean {
+  return source.startsWith("data:");
 }
 
 export function normalizeEmail(value: string): string {
@@ -41,7 +93,10 @@ export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(value));
 }
 
-export function accessMode(record: { is_public?: boolean; allowed_emails?: string[] }): ShareAccessMode {
+export function accessMode(record: {
+  is_public?: boolean;
+  allowed_emails?: string[];
+}): ShareAccessMode {
   return record.is_public === true ? "public" : "private";
 }
 

@@ -101,6 +101,7 @@ pnpm dev            # http://localhost:3000 → tracker suite
 | `pnpm test:career-curriculum` | Run curriculum generator tests |
 | `pnpm career:seed` | Validate and preview owner-scoped Supabase rows; dry-run only |
 | `CAREER_OWNER_EMAIL=… pnpm career:seed -- --apply` | Atomically sync five owner-scoped rows and verify readback; keep the email in ignored environment configuration |
+| `pnpm test:share` | Share image sources, payload shape and inline-image repair unit tests |
 | `pnpm test:e2e` | Playwright suite (its `pretest:e2e` hook rebuilds in local mode first) |
 | `pnpm exec playwright test e2e/reduced-motion.spec.ts` | Reduced-motion contract test against the current production build |
 
@@ -145,6 +146,10 @@ confirm deployment or a real Google sign-in.
 
 Run Supabase migrations in order: `0001_tracker_data.sql`, `0002_drops_storage.sql`, `0003_shared_drops.sql`, `0004_shared_allowlist.sql`, `0005_private_share_media.sql`, then `0006_career_roadmap_atomic_sync.sql`. Migration 0006 adds a `SECURITY INVOKER` function with a fixed search path and strict row-key/user validation; only `service_role` can execute it. The career seed defaults to dry-run. After migration 0006 is deployed, configure `CAREER_OWNER_EMAIL`, `SUPABASE_URL`, and `SUPABASE_SECRET_KEY` privately, then run `pnpm career:seed -- --apply`. It reads only the five planner keys, preserves unrelated todos, evidence, and reminder choices, performs one atomic RPC (or one bulk upsert if the function is absent), then compares every value in readback. Never print or commit private account identifiers or service credentials. The share migration makes the `drops` bucket private, adds public/private access mode and storage-path columns, backfills compatible paths, and applies owner/allowlist/expiry RLS.
 
+Apply `0017_share_multi_image.sql` to let a share link publish every image in a multi-image drop; without it the link falls back to the first image and still works.
+
+A drop can hold up to six images. Picked files are compressed on the device (largest edge 1440 px, about 360 KB) before they are stored, so a drop record stays small enough to sync; signed-in saves upload each image to private Storage and keep only its path in the synced record. Drops created before cloud upload worked keep their bytes inline and are re-uploaded the next time the owner opens Sharing on the device that holds them.
+
 Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximately 1.2 MB limit per local-only image, and an approximately 5,000 KB browser-storage display capacity. Expired drops are removed from the active list and cleaned opportunistically. Private links require a matching signed-in email. Public drops keep their explicit access mode and expiry in storage, but every deployed personal website/share API request now also requires an approved Google account. Allowed detail requests use the server route to issue a five-minute signed media URL. Backups include link URL, expiry, allowlist, and access mode metadata, but never storage tokens.
 
 **Conventions.** TypeScript strict, ESLint 0-error/0-warning policy (React Compiler rules included), Radix where it matters, dependency-free primitives for tracker UI (`Ring`, `MiniBars`, `Modal`, `RestTimer` in `src/components/trackers/`).
@@ -157,6 +162,8 @@ The E2E suite (`e2e/`) drives the real production build in local mode on port 41
 pnpm test:e2e                          # full suite
 ./node_modules/.bin/playwright test e2e/workouts.spec.ts
 ./node_modules/.bin/playwright test e2e/share.spec.ts --grep "hard limits|asks for access"
+./node_modules/.bin/playwright test e2e/share-upload.spec.ts e2e/shared-drop.spec.ts
+pnpm test:share                        # share unit tests
 ./node_modules/.bin/playwright test e2e/reduced-motion.spec.ts
 ./node_modules/.bin/playwright test --headed -g "rest timer"
 pnpm lint && pnpm run pretest:e2e       # release gates
