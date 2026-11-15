@@ -148,6 +148,16 @@ Run Supabase migrations in order: `0001_tracker_data.sql`, `0002_drops_storage.s
 
 Apply `0017_share_multi_image.sql` to let a share link publish every image in a multi-image drop; without it the link falls back to the first image and still works.
 
+**Cross-device sharing checklist.** (1) Apply every migration through `0017_share_multi_image.sql`. (2) Confirm the `drops` bucket still exists with `public = false` — migration 0005 owns it, so a bucket deleted by hand breaks uploads and signing. (3) Set the signer key in *every* environment that serves `/api/share/[shareId]`: `SUPABASE_SERVICE_ROLE_KEY` or the server-only `SUPABASE_SECRET_KEY`, never a `NEXT_PUBLIC_*` name. (4) Verify the schema rather than trusting the query cache:
+
+```sql
+select column_name from information_schema.columns
+where table_schema = 'public' and table_name = 'shared_drops'
+  and column_name = 'image_paths';
+```
+
+A missing `image_paths` row means every public link silently publishes one image; a missing signer key means public link pages 404 because the route returns before signing. Neither shows up as a client error. (5) Prove it end to end on two signed-in devices: a multi-image drop created on one must arrive on the other with its gallery, and a published link must render every image in a private browser window. Local-mode E2E covers none of this — it blanks the public Supabase variables and never touches Storage.
+
 A drop can hold up to six images. Picked files are compressed on the device (largest edge 1440 px, about 360 KB) before they are stored, so a drop record stays small enough to sync; signed-in saves upload each image to private Storage and keep only its path in the synced record. Drops created before cloud upload worked keep their bytes inline and are re-uploaded the next time the owner opens Sharing on the device that holds them.
 
 Share enforces 50 active drops, a 5 MB limit per signed-in image, an approximately 1.2 MB limit per local-only image, and an approximately 5,000 KB browser-storage display capacity. Expired drops are removed from the active list and cleaned opportunistically. Private links require a matching signed-in email. Public drops keep their explicit access mode and expiry in storage, but every deployed personal website/share API request now also requires an approved Google account. Allowed detail requests use the server route to issue a five-minute signed media URL. Backups include link URL, expiry, allowlist, and access mode metadata, but never storage tokens.
