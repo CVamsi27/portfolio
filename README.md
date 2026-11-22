@@ -22,6 +22,8 @@ The system is responsive across the supported 320px, 390px, and 430px mobile vie
 
 The [income-first career workflow](docs/career-workflow-data.md) works independently of an imported study plan. Career provides reviewed opportunity imports, separate eligibility and application stages, editable unsent drafts, receipt-backed activity logging, contract terms, practical preparation and weekly outcome review. Today links the next three specific actions; Progress reports actual outcomes and currency-separated payments. The v4 schedule takes effect on 5 November 2026 at 32 hours per full week while preserving previous assignment identities and evidence. Local mode is available; signed-in career writes remain gated until migration 0016 and cloud verification are complete. No production deployment or owner-data import is implied by a local build.
 
+The [career execution plan](docs/career-execution-plan.md) sets the outcome-first operating cadence: paid work first, then interview conversion, then leverage.
+
 The Career Command Center contains a Bible-derived reference catalog, dated execution assignments, evidence-gated completion, role research and user-owned reminders. Catalog version 2 supplies navigation across numbered public chapters and the full-stack role lane; it creates no mandatory chapter checklist. The account's versioned plan supplies the actual daily workload.
 
 ---
