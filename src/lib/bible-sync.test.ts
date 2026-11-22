@@ -61,3 +61,11 @@ test("restored canonical chapters clear the missing marker without changing the 
   assert.notEqual(next[0].chapters[0].catalogueStatus, "missing");
   assert.equal(next[0].date, "2026-10-24");
 });
+
+test("treats a stored day without a chapter list as empty", () => {
+  const legacy = [{ date: "2026-11-22", title: "Legacy day" }];
+  const latest = [{ date: "2026-11-22", chapters: [{ id: "current" }] }];
+  assert.deepEqual(refreshBibleChapters(legacy, latest), [
+    { date: "2026-11-22", title: "Legacy day", chapters: [] },
+  ]);
+});
