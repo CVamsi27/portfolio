@@ -51,20 +51,17 @@ const novaDisplay = Bebas_Neue({
 
 const editorialSerif = Newsreader({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
   style: ["normal", "italic"],
   variable: "--font-editorial-serif",
 });
 
 const editorialSans = DM_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   variable: "--font-editorial-sans",
 });
 
 const editorialMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500"],
   variable: "--font-editorial-mono",
 });
 
