@@ -111,6 +111,8 @@ Do not add "self-hosted Langfuse", "LLM observability", "HIPAA", "production sca
 
 **Sunday 22 November:** off. No catch-up.
 
+**After the first five:** work the secondary and hold list from the private research export. Resolve each eligibility question before preparing a custom application. Run one focused scan on Wednesday and one on Saturday; stop discovery once the week's qualified queue is full.
+
 If you are starting after 21 November, make the next Monday day one and keep the same scoreboard. Do not compress two weeks into one.
 
 ### Daily cadence (Monday–Friday, six hours)
