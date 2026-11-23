@@ -10,6 +10,7 @@ import ActionMenu from "@/components/trackers/ActionMenu";
 import PersonalShell from "@/components/trackers/PersonalShell";
 import ChapterBreadcrumb from "@/components/trackers/ChapterBreadcrumb";
 import MetricSummary from "@/components/progress/MetricSummary";
+import ProgressBar from "@/components/charts/ProgressBar";
 import WorkspaceViews from "@/components/daily/WorkspaceViews";
 import Segmented from "@/components/trackers/Segmented";
 import EmptyState from "@/components/trackers/EmptyState";
@@ -435,6 +436,20 @@ export default function TodoPage() {
           ),
         }}
       >
+        <section className="rounded-2xl border border-border/70 bg-card/90 p-4">
+          <ProgressBar
+            label={`Today's tasks (${today})`}
+            value={safe.filter((t) => t.date === today && t.done).length}
+            max={Math.max(1, safe.filter((t) => t.date === today).length)}
+            unit="done"
+            tone="emerald"
+            hint={
+              overdueTasks.length > 0
+                ? `${overdueTasks.length} overdue task(s) need rescheduling or completion.`
+                : "Zero overdue tasks."
+            }
+          />
+        </section>
         {removedTasks.length > 0 && (
           <p
             role="status"

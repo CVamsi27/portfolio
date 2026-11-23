@@ -39,11 +39,7 @@ test.describe("redesign guards — naming", () => {
   const titles: [string, RegExp][] = [
     ["/todo", /^Tasks$/],
     ["/goal", /^Goals$/],
-    ["/food", /^Food$/],
-    ["/workout-tracking", /^Workouts$/],
-    ["/intermittent-fasting", /^Fasting & eating window$/],
-    ["/weight-loss", /^Body & weight$/],
-    ["/routine", /^Routine reminders$/],
+    ["/health", /^Health$/],
     ["/archive", /^Library$/],
     ["/more", /^Tools$/],
   ];
@@ -63,11 +59,6 @@ test.describe("redesign guards — naming", () => {
   const chapters: [string, string][] = [
     ["/todo", "Plan"],
     ["/goal", "Plan"],
-    ["/food", "Health"],
-    ["/workout-tracking", "Health"],
-    ["/weight-loss", "Health"],
-    ["/intermittent-fasting", "Health"],
-    ["/routine", "Health"],
   ];
 
   for (const [route, chapter] of chapters) {
@@ -84,7 +75,7 @@ test.describe("redesign guards — naming", () => {
 });
 
 test.describe("redesign guards — honest empty states", () => {
-  for (const route of ["/todo", "/goal", "/workout-tracking", "/routine"]) {
+  for (const route of ["/todo", "/goal", "/health"]) {
     test(`${route} shows no negative progress boilerplate when empty`, async ({
       page,
     }) => {
@@ -101,12 +92,7 @@ test.describe("redesign guards — progress strip removed", () => {
   for (const route of [
     "/todo",
     "/goal",
-    "/food",
     "/health",
-    "/weight-loss",
-    "/workout-tracking",
-    "/intermittent-fasting",
-    "/routine",
     "/hub",
     "/plan",
     "/roadmap",
@@ -198,17 +184,17 @@ test.describe("redesign guards — capture affordances", () => {
     );
 
     await page.goto("/health");
-    const water = (await page
-      .getByRole("button", { name: "Water +1", exact: true })
+    const setupTab = (await page
+      .getByRole("link", { name: "Google Health setup", exact: true })
       .boundingBox())!;
     const quickOnHealth = (await page
       .getByTestId("dock-quick-add")
       .boundingBox())!;
     const overlaps =
-      quickOnHealth.x < water.x + water.width &&
-      quickOnHealth.x + quickOnHealth.width > water.x &&
-      quickOnHealth.y < water.y + water.height &&
-      quickOnHealth.y + quickOnHealth.height > water.y;
+      quickOnHealth.x < setupTab.x + setupTab.width &&
+      quickOnHealth.x + quickOnHealth.width > setupTab.x &&
+      quickOnHealth.y < setupTab.y + setupTab.height &&
+      quickOnHealth.y + quickOnHealth.height > setupTab.y;
     expect(overlaps).toBe(false);
   });
 
@@ -224,7 +210,7 @@ test.describe("redesign guards — capture affordances", () => {
     );
   });
 
-  test("QuickSheet Add tab writes a glass of water immediately", async ({
+  test("QuickSheet Add tab exposes career/task capture without manual water/food logging", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -232,18 +218,10 @@ test.describe("redesign guards — capture affordances", () => {
     await page.goto("/hub");
     await page.getByTestId("dock-quick-add").click();
     const sheet = page.getByRole("dialog", { name: /quick add and search/i });
-    await sheet.getByRole("button", { name: "Water +1", exact: true }).click();
-    await expect(sheet.getByRole("status")).toContainText("Water logged");
-    await expect
-      .poll(() =>
-        page.evaluate(() => {
-          const store = JSON.parse(
-            localStorage.getItem("vk:fasting:water") ?? "{}",
-          ) as Record<string, number>;
-          return Object.values(store).reduce((sum, value) => sum + value, 0);
-        }),
-      )
-      .toBe(1);
+    await expect(sheet.getByRole("button", { name: "Add task", exact: true })).toBeVisible();
+    await expect(sheet.getByRole("button", { name: "Add opportunity", exact: true })).toBeVisible();
+    await expect(sheet.getByRole("button", { name: "Water +1", exact: true })).toHaveCount(0);
+    await expect(sheet.getByRole("button", { name: /Log meal|Add food/i })).toHaveCount(0);
   });
 
   test("QuickSheet restores focus to the affordance that opened it", async ({
@@ -335,7 +313,6 @@ test.describe("redesign guards — Today timeline, weekly review and first-run s
     await page.goto("/hub");
     const agenda = page.getByTestId("day-agenda");
     await expect(agenda).toContainText("Draft the case study");
-    await expect(agenda).toContainText("Take vitamin D");
     await expect(agenda.getByTestId("today-session-block")).toContainText(
       "Interview prep deep dive",
     );

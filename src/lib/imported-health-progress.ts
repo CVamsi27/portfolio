@@ -1,3 +1,5 @@
+import type { HealthRecordType } from "./health-connect";
+
 export type ImportedReading = {
   id: string;
   type: string;
@@ -10,16 +12,49 @@ export type ImportedReading = {
   deleted?: boolean;
   startAt?: string;
   endAt?: string;
+  stages?: Array<{ stage: string; startAt: string; endAt: string }>;
   measurementKind?: string;
+  activityType?: string;
+  title?: string;
 };
-export type HealthSourceSelection = Partial<
-  Record<"weight" | "steps" | "sleep", string>
->;
+
+export type HealthSourceSelection = Partial<Record<HealthRecordType, string>>;
+
+export type SleepStageBreakdown = {
+  date: string;
+  deep: number;
+  rem: number;
+  light: number;
+  sleeping: number;
+  awake: number;
+};
+
+export type ExerciseSessionItem = {
+  id: string;
+  date: string;
+  minutes: number;
+  activityType: string;
+  title: string;
+  source: string;
+  measuredAt: string;
+};
+
+const ALL_TYPES = [
+  "weight",
+  "steps",
+  "sleep",
+  "exercise",
+  "active_calories",
+  "hydration",
+  "resting_hr",
+] as const satisfies readonly HealthRecordType[];
+
 const validDate = (date: string) =>
   /^\d{4}-\d{2}-\d{2}$/.test(date) &&
   !date.startsWith("0000-") &&
   Number.isFinite(Date.parse(`${date}T12:00:00Z`)) &&
   new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10) === date;
+
 function valid(row: ImportedReading) {
   if (
     !row ||
@@ -29,21 +64,34 @@ function valid(row: ImportedReading) {
     !row.source ||
     !Number.isFinite(Date.parse(row.measuredAt)) ||
     !Number.isFinite(row.updatedAt) ||
-    !Number.isFinite(row.value)
+    !Number.isFinite(row.value) ||
+    row.value < 0
   )
     return false;
-  return row.type === "weight"
-    ? row.unit === "kg" && row.value > 0 && row.value <= 1000
-    : row.type === "steps"
-      ? row.unit === "count" &&
+  switch (row.type) {
+    case "weight":
+      return row.unit === "kg" && row.value > 0 && row.value <= 1000;
+    case "steps":
+      return (
+        row.unit === "count" &&
         Number.isInteger(row.value) &&
-        row.value >= 0 &&
         row.value <= 1000000
-      : row.type === "sleep" &&
-        row.unit === "minutes" &&
-        row.value >= 0 &&
-        row.value <= 2880;
+      );
+    case "sleep":
+      return row.unit === "minutes" && row.value <= 2880;
+    case "exercise":
+      return row.unit === "minutes" && row.value <= 1440;
+    case "active_calories":
+      return row.unit === "kcal" && row.value <= 50000;
+    case "hydration":
+      return row.unit === "ml" && row.value <= 50000;
+    case "resting_hr":
+      return row.unit === "bpm" && row.value >= 20 && row.value <= 260;
+    default:
+      return false;
+  }
 }
+
 export function importedHealthProgress(
   records: ImportedReading[],
   from: string,
@@ -76,9 +124,8 @@ export function importedHealthProgress(
   const active = [...unique.values()].filter(
     (row) => valid(row) && row.date >= from && row.date <= to,
   );
-  const types = ["weight", "steps", "sleep"] as const;
   const options = Object.fromEntries(
-    types.map((type) => [
+    ALL_TYPES.map((type) => [
       type,
       [
         ...new Set(
@@ -86,29 +133,36 @@ export function importedHealthProgress(
         ),
       ].sort(),
     ]),
-  ) as Record<(typeof types)[number], string[]>;
+  ) as Record<HealthRecordType, string[]>;
   const chosen = Object.fromEntries(
-    types.map((type) => [
+    ALL_TYPES.map((type) => [
       type,
       typeof selection === "string"
         ? selection
         : (selection[type] ?? options[type][0] ?? ""),
     ]),
-  ) as Record<(typeof types)[number], string>;
+  ) as Record<HealthRecordType, string>;
   const days = Array.from({ length: count }, (_, i) =>
     new Date(Date.parse(from) + i * 86400000).toISOString().slice(0, 10),
   );
   const notes: string[] = [];
-  const points = (type: (typeof types)[number]) =>
+
+  const points = (type: HealthRecordType) =>
     days.map((date) => {
       const rows = active.filter(
         (row) =>
           row.type === type && row.source === chosen[type] && row.date === date,
       );
       if (!rows.length) return { date, value: null };
+      if (type === "exercise") {
+        return {
+          date,
+          value: Math.round(rows.reduce((sum, row) => sum + row.value, 0)),
+        };
+      }
       if (type !== "sleep") {
         rows.sort((a, b) =>
-          type === "steps"
+          type === "steps" || type === "active_calories" || type === "hydration"
             ? b.updatedAt - a.updatedAt ||
               Date.parse(b.measuredAt) - Date.parse(a.measuredAt)
             : Date.parse(b.measuredAt) - Date.parse(a.measuredAt) ||
@@ -142,13 +196,77 @@ export function importedHealthProgress(
       }
       return { date, value: rows.reduce((sum, row) => sum + row.value, 0) };
     });
-  const weight = points("weight"),
-    steps = points("steps"),
-    sleep = points("sleep");
+
+  const sleepStagesByDate: Record<string, SleepStageBreakdown> = {};
+  for (const date of days) {
+    const rows = active.filter(
+      (row) =>
+        row.type === "sleep" &&
+        row.source === chosen.sleep &&
+        row.date === date &&
+        Array.isArray(row.stages) &&
+        row.stages.length > 0,
+    );
+    if (!rows.length) continue;
+    const totals: SleepStageBreakdown = {
+      date,
+      deep: 0,
+      rem: 0,
+      light: 0,
+      sleeping: 0,
+      awake: 0,
+    };
+    for (const row of rows) {
+      for (const stage of row.stages ?? []) {
+        const mins = Math.max(
+          0,
+          (Date.parse(stage.endAt) - Date.parse(stage.startAt)) / 60000,
+        );
+        if (!Number.isFinite(mins)) continue;
+        if (stage.stage === "deep") totals.deep += mins;
+        else if (stage.stage === "rem") totals.rem += mins;
+        else if (stage.stage === "light") totals.light += mins;
+        else if (stage.stage === "sleeping") totals.sleeping += mins;
+        else if (stage.stage === "awake" || stage.stage === "out-of-bed")
+          totals.awake += mins;
+      }
+    }
+    sleepStagesByDate[date] = {
+      date,
+      deep: Math.round(totals.deep),
+      rem: Math.round(totals.rem),
+      light: Math.round(totals.light),
+      sleeping: Math.round(totals.sleeping),
+      awake: Math.round(totals.awake),
+    };
+  }
+
+  const exerciseSessionsByDate: Record<string, ExerciseSessionItem[]> = {};
+  for (const row of active) {
+    if (row.type !== "exercise") continue;
+    if (chosen.exercise && row.source !== chosen.exercise) continue;
+    const list = (exerciseSessionsByDate[row.date] ??= []);
+    list.push({
+      id: row.id,
+      date: row.date,
+      minutes: Math.round(row.value),
+      activityType: row.activityType || "Workout",
+      title: row.title || row.activityType || "Workout",
+      source: row.source,
+      measuredAt: row.measuredAt,
+    });
+  }
+
   return {
-    weight,
-    steps,
-    sleep,
+    weight: points("weight"),
+    steps: points("steps"),
+    sleep: points("sleep"),
+    exercise: points("exercise"),
+    active_calories: points("active_calories"),
+    hydration: points("hydration"),
+    resting_hr: points("resting_hr"),
+    sleepStagesByDate,
+    exerciseSessionsByDate,
     notes,
     sources: [...new Set(active.map((row) => row.source))].sort(),
     options,

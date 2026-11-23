@@ -62,7 +62,7 @@ test("Tools dialogs return focus and release background isolation", async ({
   ).toBeFocused();
 });
 
-test("daily recording retains selected-date capture and undo from the quick capture row", async ({
+test("Today renders dense daily commitments cleanly without manual water logging", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -87,20 +87,7 @@ test("daily recording retains selected-date capture and undo from the quick capt
   });
   await page.goto(`/hub?date=${date}`);
   await expect(page.getByTestId("day-agenda")).toContainText("Commitment 10");
-  const actions = page.getByRole("group", { name: "Daily recording actions" });
-  await expect(actions.getByRole("button", { name: "Water +1" })).toBeVisible();
-  await actions.getByRole("button", { name: "Water +1" }).click();
-  expect(
-    await page.evaluate(
-      () => JSON.parse(localStorage.getItem("vk:fasting:water")!)["2026-10-04"],
-    ),
-  ).toBe(1);
-  await actions.getByRole("button", { name: "Undo water" }).click();
-  expect(
-    await page.evaluate(
-      () => JSON.parse(localStorage.getItem("vk:fasting:water")!)["2026-10-04"],
-    ),
-  ).toBe(0);
+  await expect(page.getByRole("button", { name: "Water +1" })).toHaveCount(0);
 });
 
 test("Today and Plan omit the queue while Tasks retains capture and scheduling", async ({
@@ -133,18 +120,11 @@ test("Today and Plan omit the queue while Tasks retains capture and scheduling",
   ).toHaveText("A clear first step");
 });
 
-test("Health keeps food capture beside its record with the selected date and return path", async ({
+test("Health shows Google Health Connect read-only overview without manual food capture", async ({
   page,
 }) => {
   await seed(page);
   await page.goto("/health?date=2026-10-03");
-  const food = page
-    .locator(".health-record-list li")
-    .filter({ has: page.getByText("Food", { exact: true }) });
-  await expect(food).toContainText("No food logged");
-  await food.getByRole("link", { name: "Add food", exact: true }).click();
-  await expect(page).toHaveURL(/type=food&date=2026-10-03/);
-  await expect(
-    page.getByRole("link", { name: "Return to previous page", exact: true }),
-  ).toHaveAttribute("href", "/health?date=2026-10-03");
+  await expect(page.getByText(/Google Health Connect/i).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Add food", exact: true })).toHaveCount(0);
 });

@@ -253,7 +253,7 @@ export default function DeepStudyCockpitModal({
         id: "10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.01-execution-context.md",
         title: "Execution Context",
         studyUrl:
-          "https://study.buildora.work/10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.01-execution-context.md",
+          "https://study.buildora.work/10-frontend/10.1-javascript/01-execution-and-scope/10.1.1.01-execution-context",
         stack: "10-frontend",
         estimatedMinutes: 20,
       }

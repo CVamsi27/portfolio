@@ -193,18 +193,18 @@ const blockedActions = {
 };
 const resource = {
   project:
-    "[Project walkthroughs](https://study.buildora.work/projects/INDEX.md)",
+    "[Project walkthroughs](https://study.buildora.work/projects/)",
   coding: "[Full exercise bank](2026-10-10-germany-daily-curriculum.md)",
   assessment: "[Assessment prompts and rubrics](2026-10-10-germany-exams.md)",
   mock: "[Assessment prompts and rubrics](2026-10-10-germany-exams.md)",
   applications:
-    "[Germany application guidance](https://www.make-it-in-germany.com/en/working-in-germany/job/application) · [Resume claim preparation](https://study.buildora.work/80-lanes-abroad-full-stack/80.18-resume-claim-crosswalk.md)",
+    "[Germany application guidance](https://www.make-it-in-germany.com/en/working-in-germany/job/application) · [Resume claim preparation](https://study.buildora.work/80-lanes-abroad-full-stack/80.18-resume-claim-crosswalk)",
   german: "[Goethe practice](https://www.goethe.de/en/spr/ueb.html)",
   documents:
     "[Official Germany guidance](https://www.make-it-in-germany.com/en/)",
   funnel: "[Company queue and campaign](2026-10-10-germany-campaign.md)",
   proof:
-    "[Project walkthroughs](https://study.buildora.work/projects/INDEX.md)",
+    "[Project walkthroughs](https://study.buildora.work/projects/)",
   planning: "[Campaign guide](2026-10-10-germany-campaign.md)",
   review: "[Study and project guide](2026-10-10-germany-daily-curriculum.md)",
 };
@@ -1439,7 +1439,7 @@ export function generateStudyDayRoadmap(base, curriculum, options = {}) {
         kind,
         title: technical ? `${names[kind]}: ${mechanism}` : names[kind],
         outcome: instruction,
-        brief: `${instruction}\n\n${technical ? links : ["applications", "funnel", "network"].includes(kind) ? "Apply only to a currently live, suitable full-stack remote role. Country labels alone do not establish India eligibility." : "Use the named output within this existing block; retain uncertainty and actual progress."}${kind === "study" && index === 5 ? `\n\n[Async revision](https://study.buildora.work/${js}03-async-concurrency/REVISION.md)` : ""}${kind === "study" ? `\n\nChoose one mechanism within this 30-minute block. Other links are references, not a requirement to master several chapters. Recall earlier attempts from ${recall.join(", ") || "the diagnostic"} within existing time.` : ""}`,
+        brief: `${instruction}\n\n${technical ? links : ["applications", "funnel", "network"].includes(kind) ? "Apply only to a currently live, suitable full-stack remote role. Country labels alone do not establish India eligibility." : "Use the named output within this existing block; retain uncertainty and actual progress."}${kind === "study" && index === 5 ? `\n\n[Async revision](https://study.buildora.work/${js}03-async-concurrency/REVISION)` : ""}${kind === "study" ? `\n\nChoose one mechanism within this 30-minute block. Other links are references, not a requirement to master several chapters. Recall earlier attempts from ${recall.join(", ") || "the diagnostic"} within existing time.` : ""}`,
         steps: technical
           ? technicalSteps
           : [

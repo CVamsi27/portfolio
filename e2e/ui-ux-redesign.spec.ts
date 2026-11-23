@@ -80,8 +80,8 @@ test("form navigation does not promise a save and motivation leads with the save
   page,
 }) => {
   await seed(page);
-  await page.goto("/intermittent-fasting?view=window");
-  await expect(page.getByLabel("First meal time")).toBeVisible();
+  await page.goto("/health");
+  await expect(page.getByText(/Google Health Connect/i).first()).toBeVisible();
   await expect(page.getByTestId("tracker-action-bar")).toHaveCount(0);
   await page.goto("/motivation");
   await expect(
@@ -203,16 +203,12 @@ for (const theme of ["light", "dark"]) {
         "/health",
         "/plan",
         "/review",
-        "/food",
         "/todo",
         "/roadmap",
         "/motivation",
         "/log",
         "/more",
         "/settings",
-        "/weight-loss",
-        "/intermittent-fasting",
-        "/workout-tracking",
         "/goal",
         "/archive",
         "/share",

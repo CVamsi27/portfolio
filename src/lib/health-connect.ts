@@ -1,11 +1,38 @@
 import { createHash } from "node:crypto";
 
+export type HealthRecordType =
+  | "weight"
+  | "steps"
+  | "sleep"
+  | "exercise"
+  | "active_calories"
+  | "hydration"
+  | "resting_hr";
+
+export type HealthRecordUnit =
+  | "kg"
+  | "count"
+  | "minutes"
+  | "kcal"
+  | "ml"
+  | "bpm";
+
+export const HEALTH_RECORD_TYPES: readonly HealthRecordType[] = [
+  "weight",
+  "steps",
+  "sleep",
+  "exercise",
+  "active_calories",
+  "hydration",
+  "resting_hr",
+];
+
 export type HealthRecord = {
   id: string;
-  type: "weight" | "steps" | "sleep";
+  type: HealthRecordType;
   date: string;
   value: number;
-  unit: "kg" | "count" | "minutes";
+  unit: HealthRecordUnit;
   source: string;
   measuredAt: string;
   updatedAt: number;
@@ -15,6 +42,8 @@ export type HealthRecord = {
   endAt?: string;
   stages?: Array<{ stage: string; startAt: string; endAt: string }>;
   measurementKind?: string;
+  activityType?: string;
+  title?: string;
 };
 export const HEALTH_WINDOW_DAYS = 400;
 const DAY = 86400000;
@@ -61,7 +90,7 @@ export function validateHealthBatch(
     if (
       !text(r.id, 250) ||
       !text(r.source, 500) ||
-      !["weight", "steps", "sleep"].includes(r.type) ||
+      !HEALTH_RECORD_TYPES.includes(r.type) ||
       !validHealthDate(r.date) ||
       Date.parse(r.date) < today - HEALTH_WINDOW_DAYS * DAY ||
       Date.parse(r.date) > today + DAY ||
@@ -74,6 +103,8 @@ export function validateHealthBatch(
       r.value < 0 ||
       (r.deleted !== undefined && typeof r.deleted !== "boolean") ||
       (r.measurementKind !== undefined && !text(r.measurementKind, 40)) ||
+      (r.activityType !== undefined && !text(r.activityType, 80)) ||
+      (r.title !== undefined && !text(r.title, 120)) ||
       (r.zoneOffsetSeconds !== undefined &&
         (!Number.isInteger(r.zoneOffsetSeconds) ||
           Math.abs(r.zoneOffsetSeconds) > 64800))
@@ -86,7 +117,13 @@ export function validateHealthBatch(
         (r.unit !== "count" ||
           !Number.isInteger(r.value) ||
           r.value > 1000000)) ||
-      (r.type === "sleep" && (r.unit !== "minutes" || r.value > 2880))
+      (r.type === "sleep" && (r.unit !== "minutes" || r.value > 2880)) ||
+      (r.type === "exercise" && (r.unit !== "minutes" || r.value > 1440)) ||
+      (r.type === "active_calories" &&
+        (r.unit !== "kcal" || r.value > 50000)) ||
+      (r.type === "hydration" && (r.unit !== "ml" || r.value > 50000)) ||
+      (r.type === "resting_hr" &&
+        (r.unit !== "bpm" || r.value < 20 || r.value > 260))
     )
       return false;
     const key = JSON.stringify([r.type, r.source, r.id]);
@@ -102,7 +139,10 @@ export function validateHealthBatch(
       if (r.type === "sleep" && r.value > (end - start) / 60000 + 0.01)
         return false;
     }
-    if (r.zoneOffsetSeconds !== undefined && r.type !== "steps") {
+    if (
+      r.zoneOffsetSeconds !== undefined &&
+      !["steps", "active_calories", "hydration"].includes(r.type)
+    ) {
       const waking =
         r.type === "sleep" ? (r.endAt ?? r.measuredAt) : r.measuredAt;
       if (

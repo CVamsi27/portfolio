@@ -28,7 +28,9 @@ test("health pairing reviews permissions and displays server errors without clai
     page.getByRole("button", { name: "Connect device", exact: true }),
   ).toBeDisabled();
   await page
-    .getByLabel("Allow this device to import weight, steps and sleep read-only")
+    .getByLabel(
+      /Allow this device to import Google Health Connect metrics read-only/,
+    )
     .check();
   await page
     .getByRole("button", { name: "Connect device", exact: true })

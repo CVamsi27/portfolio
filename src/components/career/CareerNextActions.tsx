@@ -31,7 +31,7 @@ export default function CareerNextActions({ date }: { date: string }) {
       <header className="career-docket-header">
         <div>
           <h2>Career next actions</h2>
-          <p>Income checkpoint · 30 November</p>
+          <p>Phase 0 Sprint · 23 Nov – 4 Dec 2026</p>
         </div>
         <Link
           className="career-button career-button-quiet"

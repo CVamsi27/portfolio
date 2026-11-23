@@ -40,7 +40,7 @@ function Inline({ text, context = {} }: { text: string; context?: Context }) {
             return (
               <a
                 key={i}
-                href="https://study.buildora.work/80-lanes-abroad-full-stack/80.29-topic-brushup-roadmap.md"
+                href="https://study.buildora.work/80-lanes-abroad-full-stack/80.29-topic-brushup-roadmap"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary underline underline-offset-4"

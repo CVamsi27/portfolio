@@ -1,17 +1,5 @@
-"use client";
-import RequireAuth from "@/components/auth/RequireAuth";
-import PersonalShell from "@/components/trackers/PersonalShell";
-import FoodTracker from "@/components/nutrition/FoodTracker";
-export default function FoodPage() {
-  return (
-    <RequireAuth>
-      <PersonalShell
-        icon="scale"
-        title={null}
-        subtitle={null}
-      >
-        <FoodTracker />
-      </PersonalShell>
-    </RequireAuth>
-  );
+import { redirect } from "next/navigation";
+
+export default function RetiredFoodPage() {
+  redirect("/health?notice=retired-manual");
 }

@@ -1,10 +1,25 @@
+import type {
+  HealthRecordType,
+  HealthRecordUnit,
+} from "./health-connect";
+
+const VALID_TYPES: readonly HealthRecordType[] = [
+  "weight",
+  "steps",
+  "sleep",
+  "exercise",
+  "active_calories",
+  "hydration",
+  "resting_hr",
+];
+
 // Portable archives intentionally contain no owner binding or device credentials.
 export type TransferRecord = {
   id: string;
-  type: "weight" | "steps" | "sleep";
+  type: HealthRecordType;
   date: string;
   value: number;
-  unit: "kg" | "count" | "minutes";
+  unit: HealthRecordUnit;
   source: string;
   measuredAt: string;
   updatedAt: number;
@@ -15,6 +30,8 @@ export type TransferRecord = {
   endAt?: string;
   stages?: Array<{ stage: string; startAt: string; endAt: string }>;
   measurementKind?: string;
+  activityType?: string;
+  title?: string;
 };
 export type HealthArchive = {
   format: "nova-health-connect";
@@ -38,6 +55,8 @@ const fields = [
   "endAt",
   "stages",
   "measurementKind",
+  "activityType",
+  "title",
 ];
 const day = (v: unknown): v is string =>
   typeof v === "string" &&
@@ -85,11 +104,13 @@ export function parseHealthArchive(value: unknown): HealthArchive {
       r.updatedAt > Date.now() + 86400000 ||
       !Number.isFinite(r.value) ||
       r.value < 0 ||
-      !["weight", "steps", "sleep"].includes(r.type) ||
+      !VALID_TYPES.includes(r.type) ||
       (r.deleted !== undefined && typeof r.deleted !== "boolean") ||
       (r.deviceId !== undefined &&
         !/^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i.test(r.deviceId)) ||
       (r.measurementKind !== undefined && !text(r.measurementKind, 40)) ||
+      (r.activityType !== undefined && !text(r.activityType, 80)) ||
+      (r.title !== undefined && !text(r.title, 120)) ||
       (r.zoneOffsetSeconds !== undefined &&
         (!Number.isInteger(r.zoneOffsetSeconds) ||
           Math.abs(r.zoneOffsetSeconds) > 64800))
@@ -102,7 +123,13 @@ export function parseHealthArchive(value: unknown): HealthArchive {
         (r.unit !== "count" ||
           !Number.isInteger(r.value) ||
           r.value > 1000000)) ||
-      (r.type === "sleep" && (r.unit !== "minutes" || r.value > 2880))
+      (r.type === "sleep" && (r.unit !== "minutes" || r.value > 2880)) ||
+      (r.type === "exercise" && (r.unit !== "minutes" || r.value > 1440)) ||
+      (r.type === "active_calories" &&
+        (r.unit !== "kcal" || r.value > 50000)) ||
+      (r.type === "hydration" && (r.unit !== "ml" || r.value > 50000)) ||
+      (r.type === "resting_hr" &&
+        (r.unit !== "bpm" || r.value < 20 || r.value > 260))
     )
       throw Error("Invalid health units or values.");
     if (

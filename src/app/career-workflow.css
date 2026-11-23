@@ -734,9 +734,17 @@ textarea.career-input {
   .career-today-shortcut {
     display: none;
   }
+  .career-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 0.15rem;
+  }
   .career-tabs button {
-    padding-inline: 0.35rem;
+    padding-inline: 0.4rem;
     font-size: 0.8125rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .career-filterbar {
     grid-template-columns: minmax(0, 1fr) auto;

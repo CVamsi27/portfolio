@@ -17,9 +17,15 @@ export const INCOME_FIRST_SCHEDULE_REVISION = {
   effectiveOn: "2026-11-05",
   profile: "income-first",
 } as const;
+export const HIRING_ENGINE_SCHEDULE_REVISION = {
+  version: 3,
+  effectiveOn: "2026-11-23",
+  profile: "hiring-engine",
+} as const;
 export type PersonalScheduleRevision =
   | typeof BALANCED_7AM_SCHEDULE_REVISION
-  | typeof INCOME_FIRST_SCHEDULE_REVISION;
+  | typeof INCOME_FIRST_SCHEDULE_REVISION
+  | typeof HIRING_ENGINE_SCHEDULE_REVISION;
 export function isBalancedScheduleRevision(
   value: unknown,
 ): value is typeof BALANCED_7AM_SCHEDULE_REVISION {
@@ -33,13 +39,18 @@ export function isBalancedScheduleRevision(
 }
 export function isIncomeFirstScheduleRevision(
   value: unknown,
-): value is typeof INCOME_FIRST_SCHEDULE_REVISION {
+): value is
+  | typeof INCOME_FIRST_SCHEDULE_REVISION
+  | typeof HIRING_ENGINE_SCHEDULE_REVISION {
   if (!value || typeof value !== "object") return false;
   const revision = value as PersonalScheduleRevision;
   return (
-    revision.version === 2 &&
-    revision.effectiveOn === "2026-11-05" &&
-    revision.profile === "income-first"
+    (revision.version === 2 &&
+      revision.effectiveOn === "2026-11-05" &&
+      revision.profile === "income-first") ||
+    (revision.version === 3 &&
+      revision.effectiveOn === "2026-11-23" &&
+      revision.profile === "hiring-engine")
   );
 }
 export function isNewPersonalRoutine(date: string): boolean {
@@ -170,16 +181,28 @@ export function incomeFirstPersonalSchedule(
     date < INCOME_FIRST_SCHEDULE_REVISION.effectiveOn
   )
     return undefined;
-  const labels: Partial<Record<PersonalWorkKind, string>> = {
-    applications: "Applications and hiring replies",
-    network: "Contracts and referral conversations",
-    project: "Paid delivery or existing project proof",
-    coding: "Practical interview preparation",
-    review:
-      new Date(`${date}T12:00:00Z`).getUTCDay() === 6
-        ? "Weekly review or a mock interview"
-        : "Follow-ups and records",
-  };
+  const labels: Partial<Record<PersonalWorkKind, string>> =
+    date >= HIRING_ENGINE_SCHEDULE_REVISION.effectiveOn
+      ? {
+          applications: "Qualified applications & direct hiring-manager outreach",
+          network: "Warm referrals & paid-diagnostic enquiries",
+          project: "Proof asset packaging (case studies / demos) or client delivery",
+          coding: "5-round interview drill (study.buildora.work)",
+          review:
+            new Date(`${date}T12:00:00Z`).getUTCDay() === 6
+              ? "Weekly funnel audit & 1 timed mock interview"
+              : "5-day follow-ups, pipeline logging & tomorrow's top 3",
+        }
+      : {
+          applications: "Applications and hiring replies",
+          network: "Contracts and referral conversations",
+          project: "Paid delivery or existing project proof",
+          coding: "Practical interview preparation",
+          review:
+            new Date(`${date}T12:00:00Z`).getUTCDay() === 6
+              ? "Weekly review or a mock interview"
+              : "Follow-ups and records",
+        };
   return Object.fromEntries(
     incomeFirstDaySlots(date).map(([range, kind]) => {
       const [start, end] = range

@@ -19,7 +19,14 @@ type Device = {
 type ImportedRecord = {
   id: string;
   deviceId?: string;
-  type: "weight" | "steps" | "sleep";
+  type:
+    | "weight"
+    | "steps"
+    | "sleep"
+    | "exercise"
+    | "active_calories"
+    | "hydration"
+    | "resting_hr";
   date: string;
   value: number;
   unit: string;
@@ -27,6 +34,8 @@ type ImportedRecord = {
   measuredAt: string;
   deleted?: boolean;
   measurementKind?: string;
+  activityType?: string;
+  title?: string;
 };
 async function request(path: string, body?: unknown, owner?: string) {
   const session = await getSupabase()?.auth.getSession();
@@ -241,8 +250,10 @@ function HealthConnectionWorkspace({ date }: { date: string }) {
       <section className="workspace-panel space-y-4">
         <h2>Android Health Connect</h2>
         <p className="text-sm text-muted-foreground">
-          Connect the NOVA Android companion to import weight, daily steps and
-          sleep. Source apps must write these records to Health Connect first.
+          Connect the NOVA Android companion to automatically import daily
+          steps, sleep (with Deep/REM/Light stages), exercise sessions, active
+          calories, body weight, hydration, and resting heart rate read-only
+          from Google Health Connect.
         </p>
         <ol className="list-decimal pl-5 text-sm space-y-2">
           <li>Open the companion on your phone and grant read permissions.</li>
@@ -279,7 +290,8 @@ function HealthConnectionWorkspace({ date }: { date: string }) {
               checked={consent}
               onChange={(event) => setConsent(event.target.checked)}
             />
-            Allow this device to import weight, steps and sleep read-only
+            Allow this device to import Google Health Connect metrics read-only
+            (steps, sleep, weight, exercise, calories, hydration, heart rate)
           </label>
           <Button type="submit" disabled={busy || !consent || !code.trim()}>
             Connect device
