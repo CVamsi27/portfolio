@@ -157,7 +157,7 @@ const Contact = () => {
     <section id="Contact" className="portfolio-section portfolio-contact-section px-5 py-12 sm:px-10 sm:py-16 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="04 / Start a Conversation"
+          eyebrow="07 / Start a Conversation"
           title="Let’s build something durable"
           description="If you are building an important product, modernizing clinical workflows, or need an engineer who can move fluidly between product design and production backend systems, I'd like to hear from you."
         />

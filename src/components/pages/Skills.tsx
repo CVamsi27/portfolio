@@ -137,7 +137,7 @@ const Skills = () => {
     <section id="Capabilities" className="portfolio-section px-5 py-12 sm:px-10 sm:py-16 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="03 / Disciplines & Stack"
+          eyebrow="05 / Disciplines & Stack"
           title="Capabilities & technology shelf"
           description="I care about the seam between a thoughtful interface, a dependable backend architecture, and the team that builds and scales both."
         />
