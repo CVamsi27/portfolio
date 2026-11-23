@@ -24,9 +24,9 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(PermissionController.createRequestPermissionResultContract()) {
             granted ->
             status.text =
-                if (granted.containsAll(HealthReader.permissions))
-                    "Read permissions granted. Pair and Sync now."
-                else "Permission denied or partial. No records have been uploaded."
+                if (granted.containsAll(HealthReader.corePermissions))
+                    "Read permissions granted (${granted.size}/${HealthReader.permissions.size}). Pair and Sync now."
+                else "Core permissions (weight, steps, sleep) required. No records have been uploaded."
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
         content.addView(
             TextView(this).apply {
                 text =
-                    "Read-only weight, daily steps and sleep. Source apps must write data to Health Connect. Foreground sync only; open this app and choose Sync now."
+                    "Read-only Google Health Connect sync: weight, steps, sleep (with stages), exercise sessions, active calories, hydration and resting heart rate. Open this app and tap Sync now."
                 textSize = 16f
             }
         )

@@ -9,6 +9,7 @@ import CompletionToggle from "@/components/trackers/CompletionToggle";
 import PersonalShell from "@/components/trackers/PersonalShell";
 import ChapterBreadcrumb from "@/components/trackers/ChapterBreadcrumb";
 import MetricSummary from "@/components/progress/MetricSummary";
+import ProgressBar from "@/components/charts/ProgressBar";
 import Stat from "@/components/trackers/Stat";
 import Segmented from "@/components/trackers/Segmented";
 import Modal from "@/components/trackers/Modal";
@@ -373,6 +374,17 @@ export default function GoalPage() {
           <h2 className="font-display text-xl font-semibold">
             {displayGoalTitle(prefs)}
           </h2>
+          {milestones.length > 0 && (
+            <section className="rounded-2xl border border-border/70 bg-card/90 p-4">
+              <ProgressBar
+                label="Milestone completion"
+                value={milestones.filter((m) => m.done).length}
+                max={milestones.length}
+                unit="milestones"
+                tone="primary"
+              />
+            </section>
+          )}
           {previousPending ? (
             <div data-testid="weekly-review">
               <Card variant="dossier">

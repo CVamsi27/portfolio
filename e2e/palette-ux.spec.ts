@@ -83,24 +83,19 @@ test("Enter on Clear query keeps portfolio search open", async ({ page }) => {
   await expect(palette.getByLabel("Search commands")).toHaveValue("");
 });
 
-test("ending a fast through search preserves its session", async ({ page }) => {
-  const start = Date.now() - 7200000;
-  await seed(page, {
-    "vk:fasting": { protocolId: "16-8", phase: "fasting", startedAt: start },
-  });
+test("workspace search exposes Google Health Connect setup without manual fasting actions", async ({
+  page,
+}) => {
+  await seed(page);
   const palette = await open(page, "/hub");
+  await palette.getByLabel("Search commands").fill("Google Health");
+  await expect(
+    palette.getByRole("option", { name: /Google Health Connect setup/i }),
+  ).toBeVisible();
   await palette.getByLabel("Search commands").fill("End Current Fast");
-  await palette.getByLabel("Search commands").press("Enter");
-  await expect(page).toHaveURL(/\/intermittent-fasting$/);
-  const history = await page.evaluate(() =>
-    JSON.parse(localStorage.getItem("vk:fasting:history") ?? "[]"),
-  );
-  expect(history).toHaveLength(1);
-  expect(history[0]).toMatchObject({
-    start,
-    protocolId: "16-8",
-    source: "timer",
-  });
+  await expect(
+    palette.getByRole("option", { name: /End Current Fast/i }),
+  ).toHaveCount(0);
 });
 
 test("phone search is available by touch and fits a short screen", async ({

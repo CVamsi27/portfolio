@@ -111,9 +111,9 @@ export default function TimetableAgenda({
                 {block.kind === "exercise" && (
                   <Link
                     className="inline-action"
-                    href={`/workout-tracking?date=${date}`}
+                    href={`/health?date=${date}`}
                   >
-                    Open workout
+                    Google Health
                   </Link>
                 )}
               </div>

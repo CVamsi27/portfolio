@@ -8,7 +8,7 @@ test.describe("public personal portfolio", () => {
       page.getByRole("link", { name: /Vamsi Krishna portfolio/i }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: /Selected work/i })).toBeVisible();
-    await expect(page.locator("[data-project-index]")).toHaveCount(7);
+    await expect(page.locator("[data-project-index]")).toHaveCount(10);
     await expect(page.locator("body")).not.toContainText("Buildora");
     await expect(page.locator("body")).not.toContainText("NOVA//OS");
   });
@@ -73,13 +73,13 @@ test.describe("public personal portfolio", () => {
     // original "~8,000px" target implied -6,046px, but the plan's own listed
     // moves measure -2,771px; deeper cuts would hide visible narrative (see
     // docs/ui-ux-review.md).
-    expect(height).toBeLessThanOrEqual(11_800);
+    expect(height).toBeLessThanOrEqual(13_500);
 
-    // Seven indexed work cards; each detail list sits behind a disclosure.
-    await expect(page.locator("[data-project-index]")).toHaveCount(7);
+    // Ten indexed work cards (7 core + 3 engineering proof repos); each detail list sits behind a disclosure.
+    await expect(page.locator("[data-project-index]")).toHaveCount(10);
     await expect(
       page.locator("[data-project-index] details[data-project-details]"),
-    ).toHaveCount(7);
+    ).toHaveCount(10);
 
     // Architecture shows six curated patterns with the library link.
     await expect(page.locator("[data-pattern-card]")).toHaveCount(6);

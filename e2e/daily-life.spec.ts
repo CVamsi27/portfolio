@@ -65,7 +65,7 @@ test("editor shell removes repeated progress and clocks and keeps five primary d
   page,
 }) => {
   await seed(page);
-  await page.goto("/food");
+  await page.goto("/health");
   await expect(
     page.getByRole("region", { name: "Seven-day progress" }),
   ).toHaveCount(0);
@@ -119,42 +119,6 @@ test("scheduled block removal and undo retain its linked task", async ({
     ),
   ).toBe(1);
 });
-test("food capture previews portion calories and leaves routine history unchanged", async ({
-  page,
-}) => {
-  const date = new Date().toISOString().slice(0, 10);
-  await seed(page, {
-    "vk:nutrition:foods": {
-      rice: {
-        id: "rice",
-        name: "Rice",
-        basisAmount: 100,
-        basisUnit: "g",
-        nutrients: { energy: 130, protein: 3 },
-        source: "Manual",
-        updatedAt: 1,
-      },
-    },
-  });
-  await page.goto(`/log?type=food&date=${date}`);
-  await page.getByLabel("Recent and saved food").selectOption("rice");
-  await page.getByLabel("Food quantity").fill("200");
-  await expect(page.getByTestId("capture-workspace")).toContainText("260 kcal");
-  await page.getByRole("button", { name: "Save food", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Food saved");
-  expect(
-    await page.evaluate(
-      () =>
-        Object.values(JSON.parse(localStorage.getItem("vk:nutrition:entries")!))
-          .length,
-    ),
-  ).toBe(1);
-  expect(
-    await page.evaluate(() =>
-      JSON.parse(localStorage.getItem("vk:routine:history") ?? "{}"),
-    ),
-  ).toEqual({});
-});
 test("Progress opens one metric at a time and historical reflection is editable", async ({
   page,
 }) => {
@@ -166,7 +130,7 @@ test("Progress opens one metric at a time and historical reflection is editable"
     .getByRole("combobox", { name: "Metric", exact: true })
     .selectOption("water");
   await expect(page.getByTestId("progress-chart")).toContainText(
-    "Recorded water",
+    "Synced hydration",
   );
   await page.getByRole("button", { name: "Reflection", exact: true }).click();
   await page
@@ -177,69 +141,6 @@ test("Progress opens one metric at a time and historical reflection is editable"
     .fill("Completed a useful step");
   await page.getByRole("button", { name: "Save reflection" }).click();
   await expect(page.getByRole("status")).toContainText("Reflection saved");
-});
-
-test("correcting weight and sleep keeps existing notes and other recovery fields", async ({
-  page,
-}) => {
-  const date = new Date().toISOString().slice(0, 10);
-  await seed(page, {
-    "vk:weight-loss": {
-      entries: {
-        [date]: { weightKg: 80, note: "Morning reading", updatedAt: 1 },
-      },
-      recoveryByDay: {},
-    },
-    "vk:recovery:entries": {
-      [date]: {
-        id: date,
-        date,
-        sleepHours: 7,
-        energy: 4,
-        mood: "Good",
-        note: "Rest day",
-        updatedAt: 1,
-      },
-    },
-  });
-  await page.goto(`/log?type=weight&date=${date}`);
-  await page.getByLabel("Weight (kg)").fill("79");
-  await page.getByRole("button", { name: "Save weigh-in" }).click();
-  expect(
-    await page.evaluate(
-      (date) =>
-        JSON.parse(localStorage.getItem("vk:weight-loss")!).entries[date].note,
-      date,
-    ),
-  ).toBe("Morning reading");
-  await page.goto(`/log?type=sleep&date=${date}`);
-  await page.getByLabel("Sleep duration (hours)").fill("8");
-  await page.getByRole("button", { name: "Save sleep" }).click();
-  const record = await page.evaluate(
-    (date) => JSON.parse(localStorage.getItem("vk:recovery:entries")!)[date],
-    date,
-  );
-  expect(record.energy).toBe(4);
-  expect(record.note).toBe("Rest day");
-});
-
-test("water needs one action, supports undo and leaves other dated records alone", async ({
-  page,
-}) => {
-  await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
-  await page.goto("/hub?date=2026-10-02");
-  await page.getByRole("button", { name: "Water +1", exact: true }).click();
-  expect(
-    await page.evaluate(() =>
-      JSON.parse(localStorage.getItem("vk:fasting:water")!),
-    ),
-  ).toEqual({ "2026-10-01": 4, "2026-10-02": 1 });
-  await page.getByRole("button", { name: "Undo water" }).click();
-  expect(
-    await page.evaluate(
-      () => JSON.parse(localStorage.getItem("vk:fasting:water")!)["2026-10-02"],
-    ),
-  ).toBe(0);
 });
 test("planning backup round-trips blocks and rejects mismatched IDs before any writes", async ({
   page,
@@ -380,67 +281,6 @@ test("a linked work session resumes its task and finishing never marks that task
       () => JSON.parse(localStorage.getItem("vk:todos")!)[0].done,
     ),
   ).toBe(true);
-});
-
-test("routine editing previews a draft and preserves occurrence history", async ({
-  page,
-}) => {
-  const lunch = {
-    id: "lunch",
-    label: "Lunch",
-    time: "14:00",
-    days: [0, 1, 2, 3, 4, 5, 6],
-    timezone: "Asia/Kolkata",
-    enabled: true,
-    type: "meal",
-    meal: "Lunch",
-    updatedAt: 1,
-  };
-  await seed(page, {
-    "vk:routine:schedules": { lunch },
-    "vk:routine:history": {},
-  });
-  await page.goto("/routine");
-  await page.getByText("Edit reminder schedules", { exact: true }).click();
-  await page.locator("#time-lunch").fill("15:00");
-  expect(
-    await page.evaluate(
-      () =>
-        JSON.parse(localStorage.getItem("vk:routine:schedules")!).lunch.time,
-    ),
-  ).toBe("14:00");
-  await page
-    .getByRole("button", { name: "Preview changes to Lunch", exact: true })
-    .click();
-  const dialog = page.getByRole("dialog", { name: "Review reminder change" });
-  await expect(dialog).toContainText("15:00");
-  await dialog.getByRole("button", { name: "Confirm reminder change" }).click();
-  expect(
-    await page.evaluate(
-      () =>
-        JSON.parse(localStorage.getItem("vk:routine:schedules")!).lunch.time,
-    ),
-  ).toBe("15:00");
-  expect(
-    await page.evaluate(() =>
-      JSON.parse(localStorage.getItem("vk:routine:history")!),
-    ),
-  ).toEqual({});
-});
-
-test("water undo never corrects a different selected day", async ({ page }) => {
-  await seed(page, { "vk:fasting:water": { "2026-10-01": 4 } });
-  await page.goto("/hub?date=2026-10-02");
-  await page.getByRole("button", { name: "Water +1", exact: true }).click();
-  await page.getByRole("button", { name: "Choose date", exact: true }).click();
-  await page.getByLabel("Selected date", { exact: true }).fill("2026-10-01");
-  await expect(page).toHaveURL(/date=2026-10-01/);
-  await expect(page.getByRole("button", { name: "Undo water" })).toHaveCount(0);
-  expect(
-    await page.evaluate(
-      () => JSON.parse(localStorage.getItem("vk:fasting:water")!)["2026-10-01"],
-    ),
-  ).toBe(4);
 });
 
 test("mobile capture preserves the selected day and returns to its planning view", async ({

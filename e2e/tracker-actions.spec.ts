@@ -5,8 +5,8 @@ test("shared Add is available without stacking an action bar on every editor", a
 }) => {
   await seed(page);
   for (const route of [
-    "/intermittent-fasting",
-    "/workout-tracking",
+    "/health",
+    "/roadmap",
     "/goal",
     "/todo",
     "/share",
@@ -41,7 +41,7 @@ test("mobile dock has five destinations and dated capture in Tools", async ({
     .click();
   await page
     .getByRole("dialog")
-    .getByRole("button", { name: "Weight", exact: true })
+    .getByRole("button", { name: "Task", exact: true })
     .click();
   await expect(page.getByLabel("Record date")).toHaveValue("2026-10-01");
 });

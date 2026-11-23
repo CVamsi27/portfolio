@@ -130,7 +130,7 @@ test("collapsed study outcomes preserve a complete action sentence and applicati
     assert.equal(p.execution.jobPlan.days[0].assignments[0].outcome, sentence);
     assert.match(
       p.execution.jobPlan.days[3].assignments[2].brief,
-      /https:\/\/study\.buildora\.work\/80-lanes-abroad-full-stack\/80\.18-resume-claim-crosswalk\.md/,
+      /https:\/\/study\.buildora\.work\/80-lanes-abroad-full-stack\/80\.18-resume-claim-crosswalk\)/,
     );
   } finally {
     rmSync(f.temp, { recursive: true, force: true });

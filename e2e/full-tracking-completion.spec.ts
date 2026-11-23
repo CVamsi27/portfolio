@@ -197,26 +197,6 @@ test("invalid active-session backups fail before changing any records", async ({
   ).toEqual([task]);
 });
 
-test("Today keeps the routine compact while all schedule items remain reachable", async ({
-  page,
-}) => {
-  const { routineDefaults } = await import("../src/lib/routine-reminders");
-  await page.clock.install({ time: new Date("2026-10-05T02:00:00Z") });
-  await seed(page, {
-    "vk:routine:schedules": Object.fromEntries(
-      routineDefaults("cvamsik99@gmail.com").map((item) => [item.id, item]),
-    ),
-  });
-  await page.goto("/hub");
-  const routine = page.getByTestId("day-agenda");
-  await expect(routine).toContainText("Omega-3 with lunch");
-  await expect(routine.getByRole("listitem")).toHaveCount(7);
-  await page.goto("/routine");
-  await expect(
-    page.getByText("Omega-3 with lunch", { exact: true }).first(),
-  ).toBeVisible();
-});
-
 test("task capture uses the device calendar date at an IST day boundary", async ({
   browser,
 }) => {

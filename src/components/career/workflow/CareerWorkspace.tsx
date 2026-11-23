@@ -35,18 +35,21 @@ import OpportunityBrief from "./OpportunityBrief";
 import CareerPractice from "./CareerPractice";
 import CareerWeeklyReview from "./CareerWeeklyReview";
 import InterviewSprint from "./InterviewSprint";
+import StudyBibleBrowser from "@/components/career/StudyBibleBrowser";
 import "@/app/career-workflow.css";
 import "@/app/career-desk.css";
 
 export type CareerView =
   | "interview"
+  | "study"
   | "opportunities"
   | "practice"
   | "weekly-review";
 const viewLabels: Record<CareerView, string> = {
   interview: "Interview sprint",
+  study: "Study Bible",
   opportunities: "Opportunities",
-  practice: "Practice",
+  practice: "Practice drills",
   "weekly-review": "Weekly review",
 };
 
@@ -200,6 +203,7 @@ export default function CareerWorkspace({
         </p>
       )}
       {view === "interview" && <InterviewSprint />}
+      {view === "study" && <StudyBibleBrowser />}
       {view === "opportunities" && (
         <>
           <div className="career-heading career-queue-heading">

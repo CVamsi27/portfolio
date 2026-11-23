@@ -36,14 +36,15 @@ export default async function TrackerLandingPage({
         )}
         <header>
           <p className="text-sm font-semibold text-primary">
-            NOVA · Your personal workspace
+            NOVA · Personal Career &amp; Execution OS
           </p>
           <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight sm:text-6xl">
-            Run your day.
+            Execute your day. Land the role.
           </h1>
           <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-            Goals, routines, focus — alongside meals, movement and reminders.
-            One place to decide what’s next and record what happened.
+            Your daily hiring engine, verified Study Bible roadmap, visual
+            analytics, and read-only Google Health Connect dashboard — in one
+            focused workspace.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link className="inline-action nova-welcome-primary" href="/hub">
@@ -57,16 +58,16 @@ export default async function TrackerLandingPage({
         <div className="nova-welcome-grid">
           {[
             [
-              "Today",
-              "See your next commitment, tasks and reminders. Add a meal, water or weigh-in without losing your place.",
+              "Today & Plan",
+              "Run your 32-hour hiring timetable, track daily progress bars, launch focus sprints, and jump straight into today's study chapter.",
             ],
             [
-              "Plan",
-              "Arrange work and exercise around your day. Keep a weekly outline and return to the task you started.",
+              "Career & Study Bible",
+              "Manage your opportunity pipeline, 5-round interview drills, project defenses, and 600 verified study.buildora.work chapters by stack.",
             ],
             [
-              "Health & progress",
-              "Review the food, workouts, weight and sleep you actually recorded. Missing data stays unrecorded.",
+              "Google Health & Analytics",
+              "Review auto-synced steps, sleep stages, workouts, and weight from Google Health Connect alongside hiring funnel and consistency graphs.",
             ],
           ].map(([title, body]) => (
             <section key={title}>
@@ -78,7 +79,7 @@ export default async function TrackerLandingPage({
           ))}
         </div>
         <p className="text-sm text-muted-foreground">
-          Your workspace is personal. Cloud sync requires sign-in and configured
+          Your workspace is private. Cloud sync requires sign-in and configured
           services; local records stay on the device where you saved them.
         </p>
       </div>

@@ -1,6 +1,5 @@
 "use client";
 import WorldClockStrip from "@/components/trackers/WorldClockStrip";
-import MealWindowRetention from "@/components/trackers/MealWindowRetention";
 import HealthConnections from "@/components/health/HealthConnections";
 import { dateKey } from "@/lib/trackers";
 import TelegramDelivery from "@/components/personal/TelegramDelivery";
@@ -44,7 +43,6 @@ import { useLockdownPreferences } from "@/lib/lockdown-store";
 import {
   useUserPrefs,
   DEFAULT_USER_PREFS,
-  WORKOUT_SPLITS,
   type UserPrefs,
 } from "@/lib/user-prefs";
 import {
@@ -587,9 +585,8 @@ export default function SettingsPage() {
             <summary>World clocks</summary>
             <WorldClockStrip />
           </details>
-          <MealWindowRetention />
-          <details className="workspace-disclosure">
-            <summary>Health devices and imports</summary>
+          <details className="workspace-disclosure" open>
+            <summary>Google Health Connect devices and imports</summary>
             <HealthConnections date={dateKey()} />
           </details>
           {user && (
@@ -762,34 +759,10 @@ export default function SettingsPage() {
                   </span>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium">Workout split</label>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      {WORKOUT_SPLITS.map((s) => (
-                        <button
-                          key={s.id}
-                          onClick={() =>
-                            setPrefs({ ...prefs, workoutSplit: s.id })
-                          }
-                          className={cn(
-                            "rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all",
-                            prefs.workoutSplit === s.id
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border/60 text-muted-foreground hover:border-primary/40",
-                          )}
-                        >
-                          {s.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
                 <p className="text-xs text-muted-foreground">
-                  Weight unit, goal category, metric label/target and fasting
-                  protocol are edited on their tracker pages where they&apos;re
-                  used. Re-run the full questionnaire from the hub.
+                  Health metrics sync automatically via Google Health Connect.
+                  Goal category and metric targets can be adjusted directly on
+                  the Goals page.
                 </p>
               </CardContent>
             </Card>

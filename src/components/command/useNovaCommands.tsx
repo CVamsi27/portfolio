@@ -1,31 +1,21 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
+  Activity,
   Archive,
   BookOpen,
-  Compass,
-  Droplets,
-  Dumbbell,
+  Briefcase,
   Flag,
-  Flame,
-  Headphones,
   Keyboard,
   ListTodo,
   Moon,
   PenLine,
   Plus,
-  RotateCcw,
-  Scale,
-  Settings,
-  Share2,
-  ShieldAlert,
-  ShieldCheck,
   Sun,
-  Timer,
-  Utensils,
+  Target,
   Zap,
 } from "lucide-react";
 import { TrackerIcon } from "@/components/trackers/icons";
@@ -34,17 +24,9 @@ import {
   PERSONAL_TOOLS_NAV,
   type PersonalNavItem,
 } from "@/lib/personal-nav";
-import {
-  useFasting,
-  useFastingHistory,
-  useGoalState,
-  useNow,
-  useTodos,
-} from "@/lib/tracker-store";
+import { useGoalState, useTodos } from "@/lib/tracker-store";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
-import { GOAL_CATEGORIES, useUserPrefs } from "@/lib/user-prefs";
-import { calendarZone } from "@/lib/day-plan";
-import { zonedDate } from "@/lib/routine-reminders";
+import { GOAL_CATEGORIES } from "@/lib/user-prefs";
 import type { ArchiveItem } from "@/lib/archive";
 import type { CompletedChapterRecord } from "@/lib/study-focus";
 import type { CaptureItem, CommandItem } from "./types";
@@ -59,23 +41,24 @@ const NAV_TITLES: Partial<Record<PersonalNavItem["id"], string>> = {
 };
 
 const NAV_SUBTITLES: Partial<Record<PersonalNavItem["id"], string>> = {
-  roadmap: "Daily study, evidence and career progress",
-  today: "Daily next move & momentum",
+  roadmap: "Nov 23 hiring sprint, study.buildora.work links & pipeline",
+  today: "Daily cockpit, schedule & Google Health snapshot",
+  health: "Auto-synced Google Health Connect dashboard",
+  review: "Hiring funnel, study mastery bars, heatmap & health trends",
 };
 
 const NAV_KEYWORDS: Partial<Record<PersonalNavItem["id"], string[]>> = {
-  roadmap: ["roadmap", "career", "curriculum", "study"],
-  today: ["hub", "today", "home", "dashboard"],
-  plan: ["plan", "focus", "sprint"],
-  health: ["health", "records", "recovery"],
-  review: ["progress", "dashboard", "trends"],
+  roadmap: ["roadmap", "career", "curriculum", "study", "jobs", "interview"],
+  today: ["hub", "today", "home", "cockpit"],
+  plan: ["plan", "focus", "sprint", "timetable"],
+  health: ["health", "google health", "steps", "sleep", "weight", "connect"],
+  review: ["progress", "dashboard", "analytics", "graphs", "trends", "funnel"],
   motivation: ["motivation", "focus", "goal", "inspiration"],
   archive: ["library", "notes", "links", "quotes", "bookmarks"],
   sharing: ["share", "sharing", "drops", "collaborate"],
   settings: ["settings", "backup", "restore", "sync", "preferences"],
 };
 
-/** Extra chapter destinations that are not part of the rail itself. */
 const EXTRA_NAV = [
   {
     id: "tasks",
@@ -86,77 +69,53 @@ const EXTRA_NAV = [
     keywords: ["tasks", "todo", "to-do"],
   },
   {
-    id: "food",
-    href: "/food",
-    title: "Food",
-    subtitle: "Diary, targets and nutrition insights",
-    icon: Utensils,
-    keywords: ["food", "calories", "protein", "meals", "nutrition"],
+    id: "goals",
+    href: "/goal",
+    title: "Goals & milestones",
+    subtitle: "Track career milestones and daily target metrics",
+    icon: Target,
+    keywords: ["goal", "goals", "milestones", "target"],
   },
   {
-    id: "workouts",
-    href: "/workout-tracking",
-    title: "Workouts",
-    subtitle: "Split builder, exercises, weights & sets",
-    icon: Dumbbell,
-    keywords: ["workout", "training", "gym", "exercises", "sets", "reps"],
+    id: "health-connections",
+    href: "/health?view=connections",
+    title: "Google Health Connect setup",
+    subtitle: "Pair Android companion or import Health Connect JSON",
+    icon: Activity,
+    keywords: ["google health", "health connect", "android", "pair", "sync"],
   },
   {
-    id: "body",
-    href: "/weight-loss",
-    title: "Body & weight",
-    subtitle: "Daily weigh-in, energy, sleep & soreness",
-    icon: Scale,
-    keywords: ["weight", "weigh-in", "recovery", "sleep", "energy"],
-  },
-  {
-    id: "fasting",
-    href: "/intermittent-fasting",
-    title: "Fasting & eating window",
-    subtitle: "Meal windows & fasting rhythm",
-    icon: Timer,
-    keywords: ["fast", "fasting", "meals", "eating", "window", "16:8"],
-  },
-  {
-    id: "routine",
-    href: "/routine",
-    title: "Routine reminders",
-    subtitle: "Habits, reminders and their history",
-    icon: Timer,
-    keywords: ["routine", "reminders", "habits"],
+    id: "study-bible",
+    href: "/roadmap?view=study",
+    title: "Study Bible mastery",
+    subtitle: "600 verified study.buildora.work chapters by stack",
+    icon: BookOpen,
+    keywords: ["study", "bible", "chapters", "javascript", "postgres", "system design"],
   },
   {
     id: "log",
     href: "/log",
-    title: "Add a record",
-    subtitle: "One-stop check-in for tasks, weight & notes",
+    title: "Quick capture",
+    subtitle: "Add a task, career note, or daily reflection",
     icon: Plus,
-    keywords: ["log", "record", "capture", "checkin"],
+    keywords: ["log", "capture", "note", "task", "reflection"],
   },
   {
     id: "detailed-review",
     href: "/review",
-    title: "Detailed review",
-    subtitle: "Reflect on the week with your saved records",
+    title: "Weekly review",
+    subtitle: "Funnel scoreboard, lessons & Monday priorities",
     icon: BookOpen,
     keywords: ["review", "reflection", "journal", "weekly"],
   },
 ] as const;
 
-/**
- * The NOVA command registry: surface-aware navigation from the shared nav
- * source, searchable records from the personal stores, runnable actions and
- * the local captures used by the QuickSheet Add tab.
- */
 export default function useNovaCommands(): {
   items: CommandItem[];
   captureItems: CaptureItem[];
 } {
   const router = useRouter();
   const { resolvedTheme: theme, setTheme } = useTheme();
-  const { value: fasting, setValue: setFasting } = useFasting();
-  const { setValue: setHistory } = useFastingHistory();
-  const { prefs } = useUserPrefs();
   const { value: todos } = useTodos();
   const { value: goal } = useGoalState();
   const { value: archive } = useSyncedStorage<ArchiveItem[]>(
@@ -167,45 +126,9 @@ export default function useNovaCommands(): {
     "study:completed_chapters",
     [],
   );
-  const { setValue: setWater } = useSyncedStorage<Record<string, number>>(
-    "fasting:water",
-    {},
-  );
-  const now = useNow(60_000);
-
-  const todayKey = zonedDate(now, calendarZone(prefs.timeZone));
-
-  const addWater = useCallback(() => {
-    setWater((prev) => {
-      const current = prev ?? {};
-      return { ...current, [todayKey]: (current[todayKey] ?? 0) + 1 };
-    });
-  }, [setWater, todayKey]);
-
-  const isFasting =
-    fasting?.phase === "fasting" && typeof fasting.startedAt === "number";
 
   const captureItems = useMemo<CaptureItem[]>(
     () => [
-      {
-        id: "water",
-        label: "Water +1",
-        icon: Droplets,
-        run: addWater,
-        confirm: "Water logged",
-      },
-      {
-        id: "food",
-        label: "Log food",
-        icon: Utensils,
-        run: () => router.push("/log?type=food"),
-      },
-      {
-        id: "weight",
-        label: "Record weight",
-        icon: Scale,
-        run: () => router.push(`/log?type=weight&date=${todayKey}`),
-      },
       {
         id: "task",
         label: "Add task",
@@ -213,16 +136,16 @@ export default function useNovaCommands(): {
         run: () => router.push("/log?type=task"),
       },
       {
-        id: "note",
-        label: "Write a note",
-        icon: PenLine,
-        run: () => router.push("/log?type=note"),
+        id: "opportunity",
+        label: "Add opportunity",
+        icon: Briefcase,
+        run: () => router.push("/roadmap?view=opportunities&add=1"),
       },
       {
-        id: "journal",
-        label: "Write reflection",
-        icon: BookOpen,
-        run: () => router.push("/log?view=journal"),
+        id: "drill",
+        label: "Log drill",
+        icon: Target,
+        run: () => router.push("/roadmap?view=practice"),
       },
       {
         id: "focus",
@@ -230,8 +153,20 @@ export default function useNovaCommands(): {
         icon: Zap,
         run: () => router.push("/plan?view=focus"),
       },
+      {
+        id: "note",
+        label: "Write note",
+        icon: PenLine,
+        run: () => router.push("/log?type=note"),
+      },
+      {
+        id: "journal",
+        label: "Daily reflection",
+        icon: BookOpen,
+        run: () => router.push("/log?view=journal"),
+      },
     ],
-    [addWater, router, todayKey],
+    [router],
   );
 
   const items = useMemo<CommandItem[]>(() => {
@@ -242,7 +177,8 @@ export default function useNovaCommands(): {
       id: `nav-${entry.id}`,
       category: "Navigation",
       title: NAV_TITLES[entry.id] ?? entry.label,
-      subtitle: NAV_SUBTITLES[entry.id] ?? entry.description ?? "Open your personal tracker",
+      subtitle:
+        NAV_SUBTITLES[entry.id] ?? entry.description ?? "Open workspace view",
       icon: navIcon(entry),
       keywords: NAV_KEYWORDS[entry.id] ?? [
         entry.label.toLowerCase(),
@@ -295,7 +231,7 @@ export default function useNovaCommands(): {
           id: `record-chapter-${chapter.chapterId}`,
           category: "Records" as const,
           title: chapter.chapterTitle,
-          subtitle: `Day ${chapter.day} · ${chapter.stack}`,
+          subtitle: `Mastered · ${chapter.stack}`,
           icon: BookOpen,
           keywords: [
             "study",
@@ -303,12 +239,13 @@ export default function useNovaCommands(): {
             chapter.stack.toLowerCase(),
             chapter.chapterTitle.toLowerCase(),
           ],
-          run: () => router.push("/roadmap?view=curriculum"),
+          run: () => router.push("/roadmap?view=study"),
         })),
       ...(archive ?? []).slice(0, 20).map((entry) => ({
         id: `record-library-${entry.id}`,
         category: "Records" as const,
-        title: entry.body.replace(/\s+/g, " ").trim().slice(0, 80) || "Saved item",
+        title:
+          entry.body.replace(/\s+/g, " ").trim().slice(0, 80) || "Saved item",
         subtitle: `Library · ${entry.kind}`,
         icon: Archive,
         keywords: ["library", entry.kind, ...entry.tags],
@@ -317,33 +254,6 @@ export default function useNovaCommands(): {
     ];
 
     const actions: CommandItem[] = [
-      {
-        id: "action-capture-water",
-        category: "Actions",
-        title: "Log a glass of water",
-        subtitle: "Records today's water immediately",
-        icon: Droplets,
-        keywords: ["water", "hydration", "glass", "drink"],
-        run: addWater,
-      },
-      {
-        id: "action-capture-food",
-        category: "Actions",
-        title: "Log food",
-        subtitle: "Open the food capture",
-        icon: Utensils,
-        keywords: ["food", "eat", "meal", "calories"],
-        run: () => router.push("/log?type=food"),
-      },
-      {
-        id: "action-log-weight",
-        category: "Actions",
-        title: "Record Today's Weigh-in",
-        subtitle: "Log weight & recovery signals",
-        icon: Scale,
-        keywords: ["weight", "log weight", "scale", "recovery"],
-        run: () => router.push(`/log?type=weight&date=${todayKey}`),
-      },
       {
         id: "action-start-task",
         category: "Actions",
@@ -354,142 +264,37 @@ export default function useNovaCommands(): {
         run: () => router.push("/log?type=task"),
       },
       {
+        id: "action-add-opportunity",
+        category: "Actions",
+        title: "Add a job or contract opportunity",
+        subtitle: "Log a new role in your hiring pipeline",
+        icon: Briefcase,
+        keywords: ["job", "role", "opportunity", "apply", "contract"],
+        run: () => router.push("/roadmap?view=opportunities&add=1"),
+      },
+      {
+        id: "action-log-drill",
+        category: "Actions",
+        title: "Log an interview drill",
+        subtitle: "Record original attempt, gap & changed case",
+        icon: Target,
+        keywords: ["drill", "practice", "interview", "mock"],
+        run: () => router.push("/roadmap?view=practice"),
+      },
+      {
         id: "action-write-note",
         category: "Actions",
-        title: "Write a note",
-        subtitle: "Save a private note to your Library",
+        title: "Write a career or study note",
+        subtitle: "Save a quick note to your journal",
         icon: PenLine,
         keywords: ["note", "write", "capture"],
         run: () => router.push("/log?type=note"),
       },
       {
-        id: "action-deep-study",
-        category: "Actions",
-        title: "Launch Deep Study Cockpit (Anti-Distraction Shield)",
-        subtitle:
-          "Focus reader with tab-switch guard, attention checks & study.buildora.work curriculum",
-        icon: ShieldCheck,
-        keywords: [
-          "study",
-          "focus",
-          "distraction",
-          "cockpit",
-          "deep study",
-          "lockdown",
-          "attention",
-          "bible",
-        ],
-        run: () => {
-          window.dispatchEvent(new CustomEvent("portfolio-open-study-cockpit"));
-        },
-      },
-      {
-        id: "action-germany-shield",
-        category: "Actions",
-        title: "Germany Goal Guardian & Distraction Shield",
-        subtitle:
-          "Allowlist (buildora, notion, github), social media blocklist & 1h lockdown",
-        icon: ShieldAlert,
-        keywords: [
-          "distraction",
-          "blocklist",
-          "allowlist",
-          "germany",
-          "shield",
-          "social media",
-          "lockdown",
-          "guardian",
-          "dreams",
-        ],
-        run: () => {
-          window.dispatchEvent(
-            new CustomEvent("portfolio-trigger-distraction-shield", {
-              detail: { url: "https://instagram.com" },
-            }),
-          );
-        },
-      },
-      {
-        id: "action-revision-gate",
-        category: "Actions",
-        title:
-          "Active Recall Spaced Repetition Gate (Full-Screen Invariants Drill)",
-        subtitle:
-          "Full-screen opaque recall screen with curriculum interview questions & Ebbinghaus intervals",
-        icon: RotateCcw,
-        keywords: [
-          "revision",
-          "recall",
-          "spaced repetition",
-          "ebbinghaus",
-          "gate",
-          "drill",
-          "invariants",
-          "refresh",
-          "opaque",
-        ],
-        run: () => {
-          window.dispatchEvent(new CustomEvent("portfolio-open-revision-deck"));
-        },
-      },
-      {
-        id: "action-break-lounge",
-        category: "Actions",
-        title: "Mindful Break Lounge (YouTube Music & Top 10 Tech Podcasts)",
-        subtitle:
-          "5–15m audio-only break: deep focus soundscapes, lo-fi beats, or world-class tech podcasts",
-        icon: Headphones,
-        keywords: [
-          "break",
-          "music",
-          "youtube music",
-          "podcast",
-          "audio",
-          "rest",
-          "lofi",
-          "relax",
-          "listen",
-        ],
-        run: () => {
-          window.dispatchEvent(new CustomEvent("portfolio-open-break-lounge"));
-        },
-      },
-      {
-        id: "action-toggle-fast",
-        category: "Actions",
-        title: isFasting ? "End Current Fast" : "Start New Fast",
-        subtitle: isFasting
-          ? "Close active fasting window"
-          : "Begin fasting countdown",
-        icon: Timer,
-        keywords: ["fast", "start fast", "stop fast", "end fast", "meal"],
-        run: () => {
-          if (isFasting && fasting && typeof fasting.startedAt === "number") {
-            const endedAt = Date.now();
-            const entry = {
-              id: `fast_${endedAt.toString(36)}`,
-              start: fasting.startedAt,
-              end: endedAt,
-              protocolId: fasting.protocolId,
-              source: "timer" as const,
-            };
-            setHistory((previous) => [...(previous ?? []), entry]);
-            setFasting({ ...fasting, startedAt: null });
-          } else {
-            setFasting({
-              protocolId: fasting?.protocolId ?? "16-8",
-              phase: "fasting",
-              startedAt: Date.now(),
-            });
-          }
-          router.push("/intermittent-fasting");
-        },
-      },
-      {
         id: "action-start-focus",
         category: "Actions",
         title: "Start focus session",
-        subtitle: "Choose a session and start when ready",
+        subtitle: "Launch a timed deep-work sprint",
         icon: Zap,
         keywords: ["focus", "sprint", "pomodoro", "timer", "deep work"],
         run: () => router.push("/plan?view=focus"),
@@ -521,21 +326,7 @@ export default function useNovaCommands(): {
     ];
 
     return [...navigation, ...extras, ...records, ...actions, ...preferences];
-  }, [
-    addWater,
-    chapters,
-    archive,
-    fasting,
-    goal,
-    isFasting,
-    router,
-    setFasting,
-    setHistory,
-    setTheme,
-    theme,
-    todayKey,
-    todos,
-  ]);
+  }, [archive, chapters, goal, router, setTheme, theme, todos]);
 
   return { items, captureItems };
 }

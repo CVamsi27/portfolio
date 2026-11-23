@@ -1,15 +1,18 @@
 "use client";
 import { useSyncedStorage } from "./use-synced-storage";
+
 export const DEFAULT_MODULES = {
-  food: true,
-  routine: true,
+  food: false,
+  routine: false,
   study: true,
   recovery: false,
   habits: false,
   fasting: false,
-  movement: true,
+  movement: false,
 };
+
 export type PersonalModules = typeof DEFAULT_MODULES;
+
 export function usePersonalModules() {
   return useSyncedStorage<PersonalModules>(
     "personal:modules",

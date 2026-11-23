@@ -30,51 +30,6 @@ test.describe("personal roadmap", () => {
     expect(await manifest.json()).toMatchObject({ start_url: "/hub" });
   });
 
-  test("records a daily weigh-in and surfaces the weight-loss tracker", async ({
-    page,
-  }) => {
-    await seed(page, {
-      "vk:prefs": {
-        name: "Test User",
-        goalCategory: "weightloss",
-        goalTitle: "Reach 75 kg",
-        weightUnit: "kg",
-        fastingEnabled: true,
-        fastingProtocolId: "16-8",
-        workoutDaysPerWeek: 4,
-        workoutSplit: "fullbody",
-        motivationStyle: "health",
-        motivationPersonalization: "goal",
-        customSplitDays: [],
-        questionnaireDone: true,
-      },
-    });
-
-    await page.goto("/weight-loss");
-    await expect(
-      page.getByRole("heading", { name: /body & weight/i }),
-    ).toBeVisible();
-    await page.getByLabel(/today'?s weight/i).fill("82.4");
-    await page.getByRole("button", { name: /save weigh-in/i }).click();
-    await expect(
-      page.getByRole("heading", { name: "Logged 82.4 kg" }),
-    ).toBeVisible();
-
-    await page.goto("/hub");
-    await page.goto("/health");
-    await expect(
-      page.getByRole("link", { name: "Body", exact: true }),
-    ).toHaveAttribute("href", /\/weight-loss\?date=\d{4}-\d{2}-\d{2}/);
-    expect(
-      await page.evaluate(
-        () =>
-          Object.values(
-            JSON.parse(localStorage.getItem("vk:weight-loss")!).entries,
-          )[0],
-      ),
-    ).toMatchObject({ weightKg: 82.4 });
-  });
-
   test("keeps the mobile hub focused without clocks or a progress rail", async ({
     page,
   }) => {
@@ -187,23 +142,6 @@ test.describe("personal roadmap", () => {
     await expect(
       page.getByRole("img", { name: /old image reference image unavailable/i }),
     ).toBeVisible();
-  });
-
-  test("shows a recovery cue when the active weight-loss goal needs a check-in", async ({
-    page,
-  }) => {
-    await seed(page, {
-      "vk:prefs": {
-        name: "Test User",
-        goalCategory: "weightloss",
-        goalTitle: "Reach 75 kg",
-        weightUnit: "kg",
-        questionnaireDone: true,
-      },
-      "vk:weight-loss": { entries: {}, recoveryByDay: {} },
-    });
-    await page.goto("/health?view=recovery");
-    await expect(page.getByLabel("Sleep duration (hours)")).toBeVisible();
   });
 
   test("offers recovery after an incomplete weekly commitment", async ({

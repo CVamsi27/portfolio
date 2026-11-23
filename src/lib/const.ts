@@ -83,6 +83,27 @@ export const PROJECTS: Projects[] = [
     URL: "https://docita.work",
   },
   {
+    title: "RLS Rehearsal",
+    description: "Executable PostgreSQL tenant-isolation harness, CLI, and GitHub Action with a control pass that disables RLS to prove the assertion catches leaks",
+    tech: "TypeScript, PostgreSQL, Row-Level Security, NestJS, CLI, GitHub Actions, Docker",
+    gitLink: "https://github.com/CVamsi27/rls-rehearsal",
+    URL: "",
+  },
+  {
+    title: "Retryglass",
+    description: "Crash-point sweep for BullMQ workers that distinguishes duplicate vs lost same-job side effects and turns them into reproducible Vitest cases",
+    tech: "TypeScript, Node.js, BullMQ, Redis, Vitest, Idempotency",
+    gitLink: "https://github.com/CVamsi27/retryglass",
+    URL: "",
+  },
+  {
+    title: "Developer Pain Lab",
+    description: "Failure-path verification suite uniting Retryglass, Deployproof, Rolloutproof, and Revokeproof around executable failure evidence",
+    tech: "TypeScript, PostgreSQL, Node.js, BullMQ, Playwright, Vitest",
+    gitLink: "https://github.com/CVamsi27/developer-pain-lab",
+    URL: "",
+  },
+  {
     title: "Senior Full Stack Bible",
     description: "A structured technical study library connecting mechanisms, worked examples, separate revision and practical interview preparation",
     tech: "TypeScript, Python, Jekyll, Cloudflare Pages, Markdown AST, Automated Verification Gates",

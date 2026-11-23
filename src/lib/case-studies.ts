@@ -87,6 +87,125 @@ export const CASE_STUDIES: CaseStudy[] = [
     ],
   },
   {
+    slug: "rls-rehearsal",
+    project: "RLS Rehearsal",
+    title: "RLS Rehearsal",
+    category: "PostgreSQL Security & CI Tooling",
+    role: "Author & maintainer — harness, CLI, control pass and GitHub Action",
+    period: "2026",
+    summary:
+      "Executable multi-tenant isolation verification for PostgreSQL Row-Level Security: fails CI when an unfiltered query crosses a tenant boundary, and proves the test itself is load-bearing via a failing control pass.",
+    problem: [
+      "A single forgotten workspace filter in a multi-tenant SaaS query exposes another customer's rows, and standard mocked-repository unit tests pass right through it.",
+      "Even when integration tests exist, a poorly scoped superuser role or bypassed RLS policy can give false green confidence.",
+    ],
+    approach: [
+      "Seed two synthetic tenants into the same PostgreSQL tables under a non-privileged role and run explicit cross-tenant read and write assertions inside rolled-back transactions.",
+      "Include an explicit control pass that disables RLS in a disposable database so the exact same assertion must fail loudly — proving the policy is genuinely load-bearing.",
+      "Packaged as a CLI (`rls-rehearsal`) and GitHub Action with safety guards that refuse remote or privileged database targets.",
+    ],
+    architecture: [
+      "Disposable PostgreSQL harness executing scoped role + session settings (`SET ROLE`, JWT/tenant claims)",
+      "Cross-tenant read/write isolation matrix wrapped in rollback-safe transactions",
+      "Control-mode failure verification proving the test detects a disabled or broken policy",
+      "Machine-readable JSON / Markdown / JUnit reports for CI pipelines",
+    ],
+    verification:
+      "Automated checks verify the isolation matrix passes under active RLS and fails when the control pass disables RLS on tested paths. It is an alpha tool against synthetic fixtures — not a penetration test and not full coverage of every query path.",
+    patternIds: ["rls-abac"],
+    references: [
+      {
+        label: "RLS Rehearsal on GitHub",
+        url: "https://github.com/CVamsi27/rls-rehearsal",
+      },
+      {
+        label: "PostgreSQL RLS Study Guide",
+        url: "https://study.buildora.work/20-backend/20.4-database/01-postgresql-foundations/20.4.1.06-row-level-security",
+      },
+    ],
+  },
+  {
+    slug: "retryglass",
+    project: "Retryglass",
+    title: "Retryglass",
+    category: "Queue Reliability & Failure Testing",
+    role: "Author & maintainer — crash-point sweep & Vitest reproduction generator",
+    period: "2026",
+    summary:
+      "Crash-point sweep for BullMQ workers that surfaces duplicate and lost same-job side effects and compiles them into reproducible Vitest cases.",
+    problem: [
+      "Background workers commonly apply an external side effect (sending an email, charging an invoice, writing a ledger row) and crash before acknowledging the job — causing the retry to duplicate the effect.",
+      "Conversely, acknowledging too early or swallowing errors silently drops work. Both bugs are invisible in happy-path tests.",
+    ],
+    approach: [
+      "Instrument a local BullMQ worker with deterministic crash-point sweeps before and after effect boundaries.",
+      "Classify observed outcomes strictly into duplicate effects vs lost effects using a business idempotency key.",
+      "Generate a failing Vitest reproduction case that stays red until bounded retries, idempotency guards, or reconciliation are added.",
+    ],
+    architecture: [
+      "Deterministic crash-point injector across BullMQ job execution stages",
+      "Duplicate vs lost effect classifier keyed on business-level idempotency keys",
+      "Reproducible Vitest scenario output for regression locking in CI",
+    ],
+    verification:
+      "Verified on synthetic invoice and notification fixtures with a local BullMQ worker (v0.1.0-alpha.2). It proves determinism and same-job retry safety on modeled crash points — not production cluster throughput or broker failure modes.",
+    patternIds: ["transactional-outbox", "distributed-lock"],
+    references: [
+      {
+        label: "Retryglass on GitHub",
+        url: "https://github.com/CVamsi27/retryglass",
+      },
+      {
+        label: "Idempotency & Retry Deep Dive",
+        url: "https://study.buildora.work/30-architecture/30.3-infra-patterns/02-failure-and-recovery/30.3.2.06-idempotency-retry-deep-dive",
+      },
+    ],
+  },
+  {
+    slug: "developer-pain-lab",
+    project: "Developer Pain Lab",
+    title: "Developer Pain Lab",
+    category: "Executable Failure Verification Suite",
+    role: "Author & researcher — unified failure-path verification suite",
+    period: "2026",
+    summary:
+      "Research frame and tool index uniting four focused failure-path checks — Retryglass, Deployproof, Rolloutproof, and Revokeproof — around one thesis: executable failure evidence beats claims.",
+    problem: [
+      "Most teams test the happy path while real production incidents cluster around four unverified seams: retried jobs, packaged artifacts missing source files, migration rollbacks, and open sessions retaining access after revocation.",
+    ],
+    approach: [
+      "Retryglass: sweeps BullMQ crash points to catch duplicate or lost same-job effects.",
+      "Deployproof: verifies whether a built Node output folder still secretly imports files from the source repository.",
+      "Rolloutproof: rehearses migration-first deployments and application rollback compatibility against disposable PostgreSQL.",
+      "Revokeproof: runs a browser-driven check verifying whether an already-open session loses access immediately after revocation.",
+    ],
+    architecture: [
+      "Four independent, small CLI/harness repositories sharing one failure-first verification model",
+      "Deterministic local fixtures with explicit failing controls so every check proves it can catch the failure it targets",
+    ],
+    verification:
+      "All four repositories are public alpha releases with passing local test suites and documented limits. External production adoption is unvalidated and explicitly labelled as such.",
+    patternIds: ["transactional-outbox", "rls-abac"],
+    references: [
+      {
+        label: "Developer Pain Lab Index",
+        url: "https://github.com/CVamsi27/developer-pain-lab",
+      },
+      {
+        label: "Deployproof on GitHub",
+        url: "https://github.com/CVamsi27/deployproof",
+      },
+      {
+        label: "Rolloutproof on GitHub",
+        url: "https://github.com/CVamsi27/rolloutproof",
+      },
+      {
+        label: "Revokeproof on GitHub",
+        url: "https://github.com/CVamsi27/revokeproof",
+      },
+    ],
+  },
+  {
     slug: "senior-full-stack-bible",
     project: "Senior Full Stack Bible",
     title: "Senior Full Stack Bible",

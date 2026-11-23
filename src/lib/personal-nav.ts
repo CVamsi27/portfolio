@@ -86,7 +86,7 @@ export const PERSONAL_TOOLS_NAV: readonly PersonalNavItem[] = [
     label: "Settings",
     short: "Settings",
     icon: "settings",
-    description: "Modules, optional protection, sync and data backup.",
+    description: "Google Health Connect, notifications, sync and data backup.",
   },
 ];
 

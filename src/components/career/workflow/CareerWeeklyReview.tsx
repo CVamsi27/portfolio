@@ -8,6 +8,7 @@ import {
   type CareerOpportunities,
   type CareerActivities,
 } from "@/lib/career-workflow";
+import ProgressBar from "@/components/charts/ProgressBar";
 
 export default function CareerWeeklyReview({
   research,
@@ -79,18 +80,49 @@ export default function CareerWeeklyReview({
           <p className="career-help">No payment recorded this week.</p>
         )}
       </section>
+      <section className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-3">
+        <h3 className="font-display text-sm font-semibold">
+          Weekly targets progress (Week of {review.start})
+        </h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ProgressBar
+            label="Applications"
+            value={review.applications}
+            max={15}
+            tone="primary"
+          />
+          <ProgressBar
+            label="Warm / referrals"
+            value={review.outreaches}
+            max={10}
+            tone="sky"
+          />
+          <ProgressBar
+            label="Contracts"
+            value={review.proposals}
+            max={5}
+            tone="amber"
+          />
+          <ProgressBar
+            label="Interviews"
+            value={review.interviews}
+            max={2}
+            tone="emerald"
+          />
+        </div>
+      </section>
       <section className="career-review-section">
-        <h3>13 November checkpoint</h3>
+        <h3>5-day cohort &amp; Phase 0 gate (4 December)</h3>
         <p className="career-help">
           {review.matureOutreach} application or outreach records are at least
           five weekdays old. Recent pending applications remain pending.
         </p>
         <p className="career-help">
           {review.checkpointDue && !review.hasBookedConversation
-            ? "No booked interview or client conversation is recorded for that mature cohort. Review one CV/message batch with a trusted former colleague and shift the proof block toward warm paid-work outreach."
+            ? "No booked interview or client conversation is recorded for that mature cohort. Audit your CV tailoring (--focus) and outreach message before sending the next 15-application batch."
             : review.hasBookedConversation
-              ? "A conversation or interview is recorded for the reviewed cohort. Prepare for its actual requirements and retain the remaining pending records."
-              : "Review this cohort on 13 November. Check actual replies and booked conversations before changing your approach."}
+              ? "A conversation or interview is recorded for the reviewed cohort. Protect round prep (5-round study.buildora.work rotation) and follow up on pending leads after 5 business days."
+              : "Check reply rate once your first 15 applications from 23 November pass five business days; target ≥10% reply rate before scaling volume."}
         </p>
       </section>
       <section className="career-stack">

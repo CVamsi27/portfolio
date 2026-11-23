@@ -7,7 +7,7 @@ test("shows Bible priorities and the generated snapshot without losing evidence"
 }) => {
   const today = curriculum.days[0];
   const id = "historical-reading-evidence";
-  await page.clock.install({ time: new Date("2026-10-26T09:00:00+05:30") });
+  await page.clock.install({ time: new Date(`${today.date}T09:00:00+05:30`) });
   await seed(page, {
     "vk:timetable_100_days": {
       days: [

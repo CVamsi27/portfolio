@@ -159,8 +159,8 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         } else if (k === "v") {
           router.push("/dashboard");
           e.preventDefault();
-        } else if (k === "n") {
-          router.push("/food");
+        } else if (k === "t") {
+          router.push("/todo");
           e.preventDefault();
         } else if (k === "m") {
           router.push("/more");
@@ -171,11 +171,8 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         } else if (k === "l") {
           router.push("/log");
           e.preventDefault();
-        } else if (k === "w") {
-          router.push("/workout-tracking");
-          e.preventDefault();
-        } else if (k === "i") {
-          router.push("/intermittent-fasting");
+        } else if (k === "c") {
+          router.push("/roadmap?view=study");
           e.preventDefault();
         } else if (k === "g") {
           router.push("/goal");

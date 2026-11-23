@@ -1,8 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-/** Mirrors the seven projects in `const.ts`, in case-study order. */
+/** Mirrors the ten projects in `const.ts`, in case-study order. */
 const SLUGS = [
   "docita",
+  "rls-rehearsal",
+  "retryglass",
+  "developer-pain-lab",
   "senior-full-stack-bible",
   "teamops",
   "super-tic-tac-toe",

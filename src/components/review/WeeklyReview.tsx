@@ -27,7 +27,10 @@ import {
 } from "@/lib/personal-timetable";
 import { roadmapForDate, type GermanyRoadmap } from "@/lib/germany-roadmap";
 import { annotateGermanySchedule } from "@/lib/germany-execution";
-import { careerWritesEnabled } from "@/lib/career-workflow";
+import { careerReview, careerWritesEnabled } from "@/lib/career-workflow";
+import { useCareerWorkflow } from "@/lib/career-workflow-store";
+import { useHealthConnectSummary } from "@/lib/use-health-connect-summary";
+import ProgressBar from "@/components/charts/ProgressBar";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { zonedDate } from "@/lib/routine-reminders";
 import type { RecoveryEntry } from "@/components/personal/RecoveryTracker";
@@ -322,6 +325,8 @@ export default function WeeklyReview() {
       </p>
       {notice && <p role="status">{notice}</p>}
 
+      <WeeklyCareerHealthStrip end={end} />
+
       <section className="workspace-panel" aria-label="1 — Week at a glance">
         <h2>Week at a glance</h2>
         <ul className="weekly-review-days">
@@ -485,5 +490,77 @@ export default function WeeklyReview() {
         )}
       </section>
     </div>
+  );
+}
+
+function WeeklyCareerHealthStrip({ end }: { end: string }) {
+  const workflow = useCareerWorkflow();
+  const careerStats = careerReview(workflow.activities.value, end);
+  const health = useHealthConnectSummary(7, end);
+  const replyPct =
+    careerStats.applications > 0
+      ? Math.round(
+          (careerStats.conversations / careerStats.applications) * 100,
+        )
+      : null;
+
+  return (
+    <section
+      className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
+      aria-label="Weekly hiring scoreboard and Google Health averages"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-base font-semibold">
+          Hiring Scoreboard &amp; Google Health (7d)
+        </h2>
+        {replyPct !== null && (
+          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+            {replyPct}% reply rate
+          </span>
+        )}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ProgressBar
+          label="Applications"
+          value={careerStats.applications}
+          max={15}
+          tone="primary"
+        />
+        <ProgressBar
+          label="Warm / referrals"
+          value={careerStats.outreaches}
+          max={10}
+          tone="sky"
+        />
+        <ProgressBar
+          label="Contracts"
+          value={careerStats.proposals}
+          max={5}
+          tone="amber"
+        />
+        <ProgressBar
+          label="Interviews"
+          value={careerStats.interviews}
+          max={2}
+          tone="emerald"
+        />
+      </div>
+      <div className="flex flex-wrap gap-4 border-t border-border/50 pt-3 text-xs text-muted-foreground">
+        <span>
+          <strong>Google Health 7d avg:</strong>{" "}
+          {health.summary.avgSteps !== null
+            ? `${Math.round(health.summary.avgSteps).toLocaleString()} steps/d`
+            : "No steps synced"}
+        </span>
+        <span>
+          {health.summary.avgSleepMinutes !== null
+            ? `${(health.summary.avgSleepMinutes / 60).toFixed(1)}h sleep/night`
+            : "No sleep synced"}
+        </span>
+        {health.summary.avgExerciseMinutes !== null && (
+          <span>{Math.round(health.summary.avgExerciseMinutes)}m exercise/d</span>
+        )}
+      </div>
+    </section>
   );
 }

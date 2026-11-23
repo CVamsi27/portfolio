@@ -11,23 +11,20 @@ test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-11-05T09:00:00Z"));
 });
 
-test("interview sprint exposes six stages, the income gate and the gated proof", async ({
+test("interview sprint exposes the Nov 23 hiring phases, rotation and proof repos", async ({
   page,
 }) => {
   await seed(page);
   await page.goto("/roadmap?view=interview");
   const sprint = page.getByTestId("interview-sprint");
   await expect(sprint).toBeVisible();
-  await expect(sprint).toContainText("Income first, six stages, one signed offer");
-  await expect(sprint).toContainText("27 November 2026");
-  await expect(sprint).toContainText("30 November–10 December 2026");
-  await expect(sprint).toContainText("Flagship proof");
-  await expect(sprint).toContainText("15");
-  await expect(sprint).toContainText("tailored applications");
-  await expect(sprint).toContainText("Foreign write denied");
-  await expect(sprint).toContainText("Readiness gates");
+  await expect(sprint).toContainText("23 November 2026");
+  await expect(sprint).toContainText("18 February 2027");
+  await expect(sprint).toContainText("Phase 0");
+  await expect(sprint).toContainText("5-Round Senior Interview Rotation");
+  await expect(sprint).toContainText("Pre-Interview Rapid Cheatsheets");
   await expect(
-    sprint.getByRole("link", { name: /RLS Rehearsal/ }),
+    sprint.getByRole("link", { name: /RLS Rehearsal/ }).first(),
   ).toHaveAttribute("href", "https://github.com/CVamsi27/rls-rehearsal");
 });
 

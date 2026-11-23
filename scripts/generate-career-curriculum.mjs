@@ -253,7 +253,13 @@ function readChapter(path, bibleRoot, studyBaseUrl) {
   }
   const titleCase = (value) => value[0].toUpperCase() + value.slice(1);
   const chapterPath = relative(bibleRoot, path).split(sep).join("/");
-  const studyPath = chapterPath.split("/").map(encodeURIComponent).join("/");
+  const cleanStudyPath = chapterPath
+    .replace(/\/INDEX\.md$/i, "/")
+    .replace(/\.md$/i, "");
+  const studyPath = cleanStudyPath
+    .split("/")
+    .map((segment) => (segment ? encodeURIComponent(segment) : ""))
+    .join("/");
   const stack = chapterPath.split("/")[0];
   return {
     id: chapterPath,
@@ -572,15 +578,18 @@ function checklistFor(date, chapter, day, practiceTask, roleTask, oss) {
 
 export function validateCurriculum(curriculum) {
   if (curriculum?.version === 2) {
+    const validStarts = new Set(["2026-10-26", "2026-11-23"]);
+    const dates = validStarts.has(curriculum.startDate)
+      ? weekdayDates(curriculum.startDate, 100)
+      : [];
     if (
-      curriculum.startDate !== "2026-10-26" ||
-      curriculum.endDate !== "2027-02-18" ||
+      !validStarts.has(curriculum.startDate) ||
+      curriculum.endDate !== dates.at(-1) ||
       curriculum.days.length !== 100 ||
       curriculum.chapters.length !== curriculum.chapterCount ||
       curriculum.navigationOnly !== true
     )
       throw new Error("Invalid catalogue navigation window");
-    const dates = weekdayDates(curriculum.startDate, 100);
     const ids = new Set();
     for (const [i, day] of curriculum.days.entries()) {
       if (
@@ -592,6 +601,8 @@ export function validateCurriculum(curriculum) {
         throw new Error("Catalogue groups are navigation, not assignments");
       for (const c of day.chapters) {
         if (ids.has(c.id)) throw new Error("Duplicate catalogue chapter");
+        if (c.studyUrl.endsWith(".md"))
+          throw new Error(`Study URL must omit .md extension: ${c.studyUrl}`);
         ids.add(c.id);
       }
     }
@@ -693,7 +704,10 @@ export function buildCurriculum({
 }) {
   const root = resolve(bibleRoot);
   if (!existsSync(root)) throw new Error(`Bible root does not exist: ${root}`);
-  if (startDate === "2026-10-26" && dayCount === 100) {
+  if (
+    (startDate === "2026-10-26" || startDate === "2026-11-23") &&
+    dayCount === 100
+  ) {
     const legacy = buildCurriculum({
       bibleRoot,
       startDate: "2026-09-30",
@@ -708,39 +722,55 @@ export function buildCurriculum({
       endDate: dates.at(-1),
       navigationOnly: true,
       chapters: legacy.days.flatMap((day) => day.chapters),
-      days: legacy.days.map((day, index) => ({
-        ...day,
-        id: `catalogue:${index + 1}`,
-        date: dates[index],
-        navigationOnly: true,
-        activation: false,
-        oSSProject: "Use the active contribution assignment",
-        ossTrack: {
-          project: "Active contribution",
-          action: "Use the dated assignment and actual contribution scope.",
-        },
-        mockInterviewPlatform:
-          "Use the current reviewed rubric and permitted tools",
-        founderOutreachTarget:
-          "Use the active private outreach plan and actual contact history",
-        title: `Reference group ${index + 1}: ${day.title}`,
-        schedule: {},
-        checklist: [],
-        mission:
-          "Catalogue navigation only. Choose a reference relevant to a dated assignment; reading a group does not establish mastery or create extra daily work.",
-        practiceTask:
-          "Use the separately dated assignment and its actual acceptance check.",
-        steps: [
-          "Browse canonical references relevant to the active task.",
-          "Record skill evidence against the active assignment, not against an elapsed date.",
-        ],
-        roleTrack: {
-          lane: "Full-stack engineering",
-          action: "Use the active full-stack remote qualification assignment.",
-        },
-        notifications: [],
-        resources: day.resources.slice(0, 2),
-      })),
+      days: legacy.days.map((day, index) => {
+        const primary = day.chapters[0];
+        const essentialTitles = day.chapters
+          .filter((c) => c.rolePriority === "Essential")
+          .map((c) => c.title);
+        const focusTitles = (
+          essentialTitles.length ? essentialTitles : day.chapters.map((c) => c.title)
+        ).slice(0, 3);
+        return {
+          ...day,
+          id: `catalogue:${index + 1}`,
+          date: dates[index],
+          navigationOnly: true,
+          activation: false,
+          oSSProject: "Active proof & contribution",
+          ossTrack: {
+            project: "RLS Rehearsal / Retryglass / active proof",
+            action:
+              "Tie any OSS or proof update directly to an active interview conversation or case study.",
+          },
+          mockInterviewPlatform:
+            "Pramp / Exponent peer mock or timed 3-minute recorded explanation",
+          founderOutreachTarget:
+            "Pair today's applications with direct engineering-manager or founder outreach referencing concrete proof",
+          title: `Reference group ${index + 1}: ${day.title}`,
+          schedule: {},
+          checklist: [],
+          mission: `Catalogue navigation & targeted drill for ${focusTitles.join(", ")}. Read only the Essential pages needed for your active interview round, then close the tab and explain the invariant, failure mode, and verification step unaided.`,
+          practiceTask: `25m unaided drill on ${primary.title} (${day.practiceTask}) → 10m verify against study.buildora.work → 20m changed-case repair → 5m notes.`,
+          steps: [
+            `Open ${primary.title} on study.buildora.work and scan the invariant, trade-offs, and failure modes.`,
+            `Attempt a 25-minute unaided implementation or spoken architecture walkthrough covering: ${focusTitles.join("; ")}.`,
+            "Verify against the canonical chapter, fix one concrete gap on a changed edge case, and record what failed.",
+          ],
+          roleTrack: {
+            lane: "Senior Full-Stack Engineer (React / TypeScript / NestJS / PostgreSQL)",
+            action:
+              "Keep daily applications & direct hiring-manager outreach ahead of study; use this reference group for your 60-minute prep block.",
+          },
+          notifications: [],
+          resources: [
+            ...day.chapters.slice(0, 3).map((ch) => ({
+              label: ch.title,
+              url: ch.studyUrl,
+            })),
+            { label: "Bible Roadmap", url: "https://study.buildora.work/ROADMAP" },
+          ],
+        };
+      }),
     });
   }
   if (startDate !== "2026-09-30" || dayCount !== 100)

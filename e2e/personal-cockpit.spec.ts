@@ -76,7 +76,6 @@ test.describe("personal today cockpit", () => {
     await expect(page.getByRole("status")).toContainText(
       "Saved on this device",
     );
-    await page.getByRole("button", { name: "Change type" }).click();
     await page.getByRole("button", { name: "Note", exact: true }).click();
     await page
       .getByLabel("Note", { exact: true })

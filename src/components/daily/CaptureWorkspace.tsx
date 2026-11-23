@@ -1,39 +1,29 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useTodos, useJournal, useGoalState } from "@/lib/tracker-store";
-import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { useUserPrefs, metricFor } from "@/lib/user-prefs";
-import {
-  DEFAULT_WEIGHT_LOSS_STATE,
-  inputToKg,
-  type WeightLossState,
-} from "@/lib/health";
 import { calendarZone, validDay } from "@/lib/day-plan";
 import { zonedDate } from "@/lib/routine-reminders";
-import type { RecoveryEntry } from "@/components/personal/RecoveryTracker";
-import FoodQuickCapture from "./FoodQuickCapture";
+
 const types = [
-  ["food", "Food"],
-  ["water", "Water"],
-  ["weight", "Weight"],
-  ["exercise", "Exercise"],
-  ["sleep", "Sleep & recovery"],
   ["task", "Task"],
-  ["metric", "Goal metric"],
   ["note", "Note"],
+  ["metric", "Goal Metric"],
 ] as const;
+
 export function safeReturn(value: string | null | undefined) {
   return value &&
-    /^\/(hub|trackers|plan|todo|health|food|weight-loss|workout-tracking|intermittent-fasting|dashboard|review|goal|roadmap|archive)([/?#]|$)/.test(
+    /^\/(hub|trackers|plan|todo|health|dashboard|review|goal|roadmap|archive)([/?#]|$)/.test(
       value,
     )
     ? value
     : "/hub";
 }
+
 export default function CaptureWorkspace({
   initialType = "",
   initialDate,
@@ -47,10 +37,9 @@ export default function CaptureWorkspace({
   returnTo?: string;
   onDirty?: (dirty: boolean) => void;
 }) {
-  const router = useRouter();
   const { prefs } = useUserPrefs();
   const [type, setType] = useState(
-    types.some(([id]) => id === initialType) ? initialType : "",
+    types.some(([id]) => id === initialType) ? initialType : "task",
   );
   const [date, setDate] = useState(
     validDay(initialDate)
@@ -59,42 +48,30 @@ export default function CaptureWorkspace({
   );
   const [text, setText] = useState("");
   const [amount, setAmount] = useState("");
+  const [priority, setPriority] = useState<"P1" | "P2" | "P3">("P2");
+  const [tag, setTag] = useState<"Work" | "Deep Work" | "Goal" | "Personal">(
+    "Work",
+  );
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [energy, setEnergy] = useState("");
-  const [mood, setMood] = useState("");
-  const [foodDirty, setFoodDirty] = useState(false);
-  const [undoWater, setUndoWater] = useState(false);
-  const tasks = useTodos(),
-    journal = useJournal(),
-    goal = useGoalState(),
-    water = useSyncedStorage<Record<string, number>>("fasting:water", {}),
-    weight = useSyncedStorage<WeightLossState>(
-      "weight-loss",
-      DEFAULT_WEIGHT_LOSS_STATE,
-    ),
-    recovery = useSyncedStorage<Record<string, RecoveryEntry>>(
-      "recovery:entries",
-      {},
-      { accountScoped: true, records: true },
-    );
+
+  const tasks = useTodos();
+  const journal = useJournal();
+  const goal = useGoalState();
   const metric = metricFor(prefs);
   const back = safeReturn(returnTo);
-  const name =
-    back.startsWith("/hub") || back.startsWith("/trackers")
-      ? "Today"
-      : "previous page";
+
   const dirty = (v: string) => {
     setText(v);
     onDirty?.(Boolean(v.trim() || amount));
   };
+
   const save = () => {
     setError("");
     if (!validDay(date)) {
       setError("Choose a valid date.");
       return;
     }
-    const n = Number(amount);
     try {
       if (type === "task") {
         if (!text.trim()) throw Error("Enter a task name.");
@@ -104,339 +81,209 @@ export default function CaptureWorkspace({
             id: crypto.randomUUID(),
             text: text.trim(),
             date,
-            priority: "P2",
-            tag: "Personal",
+            priority,
+            tag,
             done: false,
             createdAt: Date.now(),
           },
         ]);
+        setMessage("Saved on this device.");
       } else if (type === "note") {
         if (!text.trim()) throw Error("Enter a note.");
         journal.setValue((previous) => ({
           ...previous,
           [date]: {
             win: previous[date]?.win ?? "",
-            learned: previous[date]?.learned ?? "",
-            focus: previous[date]?.focus
-              ? [previous[date].focus, text.trim()].join("\n")
+            learned: previous[date]?.learned
+              ? `${previous[date].learned}\n${text.trim()}`
               : text.trim(),
+            focus: previous[date]?.focus ?? "",
             updatedAt: Date.now(),
           },
         }));
-      } else if (type === "weight") {
-        const kg = inputToKg(n, prefs.weightUnit);
-        if (!amount.trim() || !Number.isFinite(kg) || kg < 20 || kg > 300)
-          throw Error(`Enter a valid weight in ${prefs.weightUnit}.`);
-        weight.setValue((previous) => ({
-          ...previous,
-          entries: {
-            ...previous.entries,
-            [date]: {
-              ...previous.entries[date],
-              weightKg: kg,
-              updatedAt: Math.max(
-                Date.now(),
-                (previous.entries[date]?.updatedAt ?? 0) + 1,
-              ),
-            },
-          },
-        }));
+        setMessage("Saved on this device.");
       } else if (type === "metric") {
-        if (!amount.trim() || !Number.isFinite(n) || n < 0)
-          throw Error("Enter a non-negative amount.");
+        const n = Number(amount);
+        if (!Number.isFinite(n) || n < 0)
+          throw Error(`Enter a valid number for ${metric.label}.`);
         goal.setValue((previous) => ({
           ...previous,
-          metricByDay: {
-            ...previous.metricByDay,
-            [date]: (previous.metricByDay?.[date] ?? 0) + n,
-          },
+          metricByDay: { ...(previous?.metricByDay ?? {}), [date]: n },
         }));
-      } else if (type === "sleep") {
-        if (!amount.trim() || !Number.isFinite(n) || n < 0 || n > 24)
-          throw Error("Enter sleep between 0 and 24 hours.");
-        recovery.setValue((previous) => ({
-          ...previous,
-          [date]: {
-            id: date,
-            date,
-            energy: null,
-            mood: "",
-            ...(previous[date]?.deleted ? {} : previous[date]),
-            sleepHours: n,
-            ...(energy ? { energy: Number(energy) } : {}),
-            ...(mood ? { mood } : {}),
-            note: text.trim() || previous[date]?.note || "",
-            deleted: false,
-            updatedAt: Math.max(
-              Date.now(),
-              (previous[date]?.updatedAt ?? 0) + 1,
-            ),
-          },
-        }));
+        setMessage("Saved on this device.");
       }
       setText("");
       setAmount("");
-      setEnergy("");
-      setMood("");
       onDirty?.(false);
-      setMessage("Saved on this device.");
-    } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "Unable to save. Your draft is retained.",
-      );
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not save.");
     }
   };
+
   return (
-    <div className="capture-workspace" data-testid="capture-workspace">
-      {!type ? (
-        <>
-          <h2>What would you like to add?</h2>
-          <div className="capture-type-grid">
+    <div className="space-y-5" data-testid="capture-workspace">
+      <section className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Capture type">
             {types.map(([id, label]) => (
-              <Button
+              <button
                 key={id}
-                variant="outline"
+                type="button"
+                aria-pressed={type === id}
                 onClick={() => {
-                  if (id === "exercise") {
-                    router.push(
-                      `/workout-tracking?date=${date}&returnTo=${encodeURIComponent(back)}`,
-                    );
-                    return;
-                  }
                   setType(id);
+                  setError("");
                   setMessage("");
                 }}
+                className={`min-h-10 rounded-xl px-4 text-sm font-medium transition-colors ${
+                  type === id
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border/70 bg-background text-muted-foreground hover:text-foreground"
+                }`}
               >
                 {label}
-              </Button>
+              </button>
             ))}
           </div>
-        </>
-      ) : (
-        <>
-          <div className="workspace-heading">
-            <h2>{types.find(([id]) => id === type)?.[1]}</h2>
-            {!initialType && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  if (
-                    (text || amount || energy || mood || foodDirty) &&
-                    !window.confirm("Discard the unsaved entry?")
-                  )
-                    return;
-                  setType("");
-                  setText("");
-                  setAmount("");
-                  setEnergy("");
-                  setMood("");
-                  setFoodDirty(false);
-                  onDirty?.(false);
-                }}
-              >
-                Change type
-              </Button>
-            )}
-          </div>
+          <Link
+            href={`/log?view=journal&date=${date}`}
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            Open Daily Reflection →
+          </Link>
+        </div>
+
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            save();
+          }}
+        >
           {!fixedDate && (
-            <label className="field-label">
-              Date
+            <label className="field-label max-w-xs">
+              Record date
               <Input
-                aria-label="Record date"
                 type="date"
                 value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </label>
+          )}
+
+          {type === "task" && (
+            <>
+              <label className="field-label">
+                Task name
+                <Input
+                  value={text}
+                  onChange={(e) => dirty(e.target.value)}
+                  placeholder="e.g. Follow up with Acme engineering manager"
+                  maxLength={300}
+                />
+              </label>
+              <div className="flex flex-wrap gap-3">
+                <label className="field-label">
+                  Priority
+                  <select
+                    className="mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    value={priority}
+                    onChange={(e) =>
+                      setPriority(e.target.value as "P1" | "P2" | "P3")
+                    }
+                  >
+                    <option value="P1">P1 · Urgent</option>
+                    <option value="P2">P2 · Normal</option>
+                    <option value="P3">P3 · Low</option>
+                  </select>
+                </label>
+                <label className="field-label">
+                  Category
+                  <select
+                    className="mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    value={tag}
+                    onChange={(e) =>
+                      setTag(
+                        e.target.value as "Work" | "Deep Work" | "Goal" | "Personal",
+                      )
+                    }
+                  >
+                    <option value="Work">Career / Work</option>
+                    <option value="Deep Work">Study / Deep Work</option>
+                    <option value="Goal">Goal / Proof</option>
+                    <option value="Personal">Personal</option>
+                  </select>
+                </label>
+              </div>
+            </>
+          )}
+
+          {type === "note" && (
+            <label className="field-label">
+              Note
+              <Textarea
+                rows={4}
+                value={text}
+                onChange={(e) => dirty(e.target.value)}
+                placeholder="Capture an interview takeaway, architecture note, or follow-up detail…"
+                maxLength={2000}
+              />
+            </label>
+          )}
+
+          {type === "metric" && (
+            <label className="field-label max-w-xs">
+              {metric.label} (target {metric.target})
+              <Input
+                type="number"
+                min="0"
+                step="any"
+                value={amount}
                 onChange={(e) => {
-                  if (validDay(e.target.value)) {
-                    setDate(e.target.value);
-                    setUndoWater(false);
-                    setMessage("");
-                  }
+                  setAmount(e.target.value);
+                  onDirty?.(Boolean(e.target.value));
                 }}
               />
             </label>
           )}
-          {type === "food" ? (
-            <FoodQuickCapture
-              date={date}
-              onDirty={(value) => {
-                setFoodDirty(value);
-                onDirty?.(value);
-              }}
-            />
-          ) : type === "exercise" ? (
-            <>
-              <p>Record sets and exercises in the workout workspace.</p>
-              <Button asChild>
-                <Link
-                  href={`/workout-tracking?date=${date}&returnTo=${encodeURIComponent(back)}`}
-                >
-                  Open workout session
-                </Link>
-              </Button>
-            </>
-          ) : type === "water" ? (
-            <>
-              <p>
-                {water.value[date] ?? 0} glasses recorded for {date}.
-              </p>
-              <Button
-                onClick={() => {
-                  water.setValue((p) => ({ ...p, [date]: (p[date] ?? 0) + 1 }));
-                  setUndoWater(true);
-                  setMessage("Added one glass.");
-                }}
-              >
-                Add one glass
-              </Button>
-              {undoWater && (
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    water.setValue((p) => ({
-                      ...p,
-                      [date]: Math.max(0, (p[date] ?? 0) - 1),
-                    }));
-                    setUndoWater(false);
-                    setMessage("Water entry undone.");
-                  }}
-                >
-                  Undo water
-                </Button>
-              )}
-            </>
-          ) : (
-            <form
-              noValidate
-              className="capture-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                save();
-              }}
-            >
-              {(type === "task" || type === "note" || type === "sleep") && (
-                <label className="field-label">
-                  {type === "task"
-                    ? "Task name"
-                    : type === "sleep"
-                      ? "Optional note"
-                      : "Note"}
-                  <Input
-                    aria-label={
-                      type === "task"
-                        ? "Task name"
-                        : type === "sleep"
-                          ? "Optional note"
-                          : "Note"
-                    }
-                    value={text}
-                    onChange={(e) => dirty(e.target.value)}
-                    maxLength={2000}
-                  />
-                </label>
-              )}
-              {["weight", "metric", "sleep"].includes(type) && (
-                <label className="field-label">
-                  {type === "weight"
-                    ? `Weight (${prefs.weightUnit})`
-                    : type === "sleep"
-                      ? "Sleep duration (hours)"
-                      : metric.label}
-                  <Input
-                    aria-label={
-                      type === "weight"
-                        ? `Weight (${prefs.weightUnit})`
-                        : type === "sleep"
-                          ? "Sleep duration (hours)"
-                          : metric.label
-                    }
-                    aria-invalid={Boolean(error)}
-                    type="number"
-                    step="any"
-                    min="0"
-                    value={amount}
-                    onChange={(e) => {
-                      setAmount(e.target.value);
-                      onDirty?.(Boolean(text || e.target.value));
-                    }}
-                  />
-                </label>
-              )}
-              {type === "weight" && weight.value.entries[date] && (
-                <p className="text-sm text-muted-foreground">
-                  Saving corrects the existing reading for this date.
-                </p>
-              )}
-              {type === "sleep" && (
-                <details>
-                  <summary>Optional recovery details</summary>
-                  <label className="field-label">
-                    Energy
-                    <select
-                      aria-label="Energy"
-                      value={energy}
-                      onChange={(e) => {
-                        setEnergy(e.target.value);
-                        onDirty?.(true);
-                      }}
-                    >
-                      <option value="">Keep existing / not recorded</option>
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <option key={n} value={n}>
-                          {n} of 5
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="field-label">
-                    Mood
-                    <select
-                      aria-label="Mood"
-                      value={mood}
-                      onChange={(e) => {
-                        setMood(e.target.value);
-                        onDirty?.(true);
-                      }}
-                    >
-                      <option value="">Keep existing / not recorded</option>
-                      {["Low", "Okay", "Good"].map((v) => (
-                        <option key={v}>{v}</option>
-                      ))}
-                    </select>
-                  </label>
-                </details>
-              )}
-              <Button type="submit">
-                {type === "task"
-                  ? "Save task"
-                  : type === "note"
-                    ? "Save note"
-                    : type === "weight"
-                      ? "Save weigh-in"
-                      : type === "sleep"
-                        ? "Save sleep"
-                        : "Save goal metric"}
-              </Button>
-            </form>
+
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
           )}
-        </>
-      )}
-      {error && <p role="alert">{error}</p>}
-      {message && <p role="status">{message}</p>}
-      <Link
-        className="capture-return"
-        href={back}
-        onClick={(e) => {
-          if (
-            (text || amount || energy || mood || foodDirty) &&
-            !window.confirm("Discard the unsaved entry?")
-          )
-            e.preventDefault();
-        }}
-      >
-        Return to {name}
-      </Link>
+          {message && (
+            <p role="status" className="text-sm text-emerald-600 dark:text-emerald-400">
+              {message}
+            </p>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit">
+              {type === "task"
+                ? "Save task"
+                : type === "note"
+                  ? "Save note"
+                  : "Save metric"}
+            </Button>
+            <Link
+              href={back}
+              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 px-4 text-sm font-medium text-foreground hover:bg-muted/50"
+            >
+              {back === "/hub" ? "Return to Today" : "Return to previous page"}
+            </Link>
+          </div>
+        </form>
+      </section>
+
+      <p className="text-xs text-muted-foreground">
+        Health metrics (steps, sleep, workouts, weight, hydration, heart rate)
+        sync automatically from{" "}
+        <Link href="/health" className="text-primary underline">
+          Google Health Connect
+        </Link>{" "}
+        — manual food, water, and exercise logging has been removed.
+      </p>
     </div>
   );
 }

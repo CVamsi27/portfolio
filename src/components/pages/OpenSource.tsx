@@ -23,6 +23,40 @@ interface RepoItem {
 
 const REPOSITORIES: RepoItem[] = [
   {
+    id: "rls-rehearsal",
+    name: "RLS Rehearsal",
+    repo: "CVamsi27/rls-rehearsal",
+    description:
+      "Executable PostgreSQL Row-Level Security harness, CLI, and GitHub Action that fails CI when an unfiltered read crosses a tenant boundary—with a failing control pass proving the assertion is load-bearing.",
+    highlights: [
+      "Two synthetic tenants sharing PostgreSQL tables under scoped roles and session claims",
+      "Explicit control pass disables RLS in a disposable database to prove the test catches leaks",
+      "Safety guards refuse remote or privileged targets; emits JSON, Markdown, and JUnit CI reports",
+      "Honest scope: alpha release proving tested policy paths, not a full penetration test",
+    ],
+    metrics: "PostgreSQL RLS · Executable Isolation · CLI & GitHub Action",
+    tech: ["TypeScript", "PostgreSQL", "NestJS", "GitHub Actions", "Docker"],
+    githubUrl: "https://github.com/CVamsi27/rls-rehearsal",
+    featured: true,
+  },
+  {
+    id: "retryglass",
+    name: "Retryglass",
+    repo: "CVamsi27/retryglass",
+    description:
+      "Crash-point sweep for BullMQ workers that distinguishes duplicate vs lost same-job side effects and emits reproducible Vitest regression cases.",
+    highlights: [
+      "Sweeps crash points before and after external effect boundaries in local BullMQ workers",
+      "Distinguishes duplicate side effects from silently lost jobs using business idempotency keys",
+      "Turns failures into reproducible Vitest tests that stay red until fixed",
+      "Part of the Developer Pain Lab executable failure-evidence suite (0.1.0-alpha.2)",
+    ],
+    metrics: "BullMQ · Crash-Point Sweep · Vitest Repro",
+    tech: ["TypeScript", "Node.js", "BullMQ", "Redis", "Vitest"],
+    githubUrl: "https://github.com/CVamsi27/retryglass",
+    featured: true,
+  },
+  {
     id: "software-developer-bible",
     name: "Senior Full Stack Bible",
     repo: "CVamsi27/software-developer-bible",
@@ -38,77 +72,41 @@ const REPOSITORIES: RepoItem[] = [
     tech: ["TypeScript", "Python", "Cloudflare Pages", "Jekyll", "AST Parsers"],
     githubUrl: "https://github.com/CVamsi27/software-developer-bible",
     liveUrl: "https://study.buildora.work",
-    featured: true,
   },
   {
-    id: "teamops",
-    name: "TeamOps Collaborative Engine",
-    repo: "CVamsi27/teamops",
+    id: "developer-pain-lab",
+    name: "Developer Pain Lab Suite",
+    repo: "CVamsi27/developer-pain-lab",
     description:
-      "Real-time task synchronization engine and microservices architecture supporting live multi-client coordination.",
+      "Failure-path verification suite combining Retryglass, Deployproof, Rolloutproof, and Revokeproof around executable failure evidence.",
     highlights: [
-      "WebSocket event flow for task mutations; measured latency needs a defined workload",
-      "Outbox/reconnect boundary to test with crashes, duplicate delivery and replay",
-      "Multi-tenant PostgreSQL isolation with Prisma ORM data modeling",
-      "Authentication and RBAC paths with explicit verification boundaries",
+      "Deployproof: catches built Node output folders that still import from source repositories",
+      "Rolloutproof: rehearses migration-first deployments and application rollback safety on PostgreSQL",
+      "Revokeproof: browser-driven check verifying open connections lose access after revocation",
+      "Honest alpha documentation with reproducible local fixtures and explicit scope limits",
     ],
-    metrics: "WebSockets · NestJS Microservices · Real-Time Canvas",
-    tech: ["Next.js 15", "NestJS", "TypeScript", "PostgreSQL", "Prisma"],
-    githubUrl: "https://github.com/CVamsi27/teamops",
-    liveUrl: "https://teamops.buildora.work/",
-  },
-  {
-    id: "super-tic-tac-toe",
-    name: "Super Tic Tac Toe & Minimax AI",
-    repo: "CVamsi27/super-tic-tac-toe",
-    description:
-      "Strategic 9-board nested Tic Tac Toe featuring a recursive depth-first Minimax AI engine with alpha-beta pruning.",
-    highlights: [
-      "State-space search exploring game trees with evaluation heuristics",
-      "Unbeatable AI in 3x3 mode and tactical evaluation for 9-grid nested boards",
-      "Touch interactions designed for mobile viewports",
-      "Clean separation between algorithmic game loop and presentation layer",
-    ],
-    metrics: "Game Tree Algorithm · Minimax AI · Touch Interaction",
-    tech: ["React", "Next.js", "TypeScript", "Tailwind CSS"],
-    githubUrl: "https://github.com/CVamsi27/super-tic-tac-toe",
-    liveUrl: "https://super-tic-tac-toe.buildora.work/",
-  },
-  {
-    id: "digital-library",
-    name: "Digital Library Type-Safe Contracts",
-    repo: "CVamsi27/digital-library",
-    description:
-      "Full-stack bookstore with end-to-end type safety spanning client requests, API routes, and database schema.",
-    highlights: [
-      "Zero-code-gen type sharing across network boundary using tRPC contracts",
-      "Runtime schema parsing with Zod ensuring strict input validation",
-      "Optimistic UI mutations with TanStack Query caching and invalidation",
-      "Relational querying and migrations with Prisma on PostgreSQL",
-    ],
-    metrics: "End-to-End Type Safety · tRPC · Zod · PostgreSQL",
-    tech: ["React", "Next.js", "TypeScript", "tRPC", "Zod", "Prisma"],
-    githubUrl: "https://github.com/CVamsi27/digital-library",
-    liveUrl: "https://digital-library.buildora.work/",
+    metrics: "Deployproof · Rolloutproof · Revokeproof · Retryglass",
+    tech: ["TypeScript", "PostgreSQL", "Node.js", "Playwright", "Vitest"],
+    githubUrl: "https://github.com/CVamsi27/developer-pain-lab",
   },
 ];
 
 const CONTRIBUTION_TRACKS = [
   {
-    project: "Langfuse",
-    scope: "LLM Observability & Evaluation",
+    project: "Deployproof",
+    scope: "Artifact Packaging Verification",
     description:
-      "Open-source LLM engineering platform. Track prompt latency, evaluation metrics, and tracing integrations in TypeScript.",
-    url: "https://github.com/langfuse/langfuse",
-    tag: "AI Engineering & Observability",
+      "Verifies whether a built Node output directory still leaks imports back to the source repository, reporting the exact missing path and import chain.",
+    url: "https://github.com/CVamsi27/deployproof",
+    tag: "Owned Tool · 0.1.0-alpha.3",
   },
   {
-    project: "Lightdash",
-    scope: "Business Intelligence Semantic Layer",
+    project: "Rolloutproof & Revokeproof",
+    scope: "Rollback & Session Revocation Checks",
     description:
-      "Open-source BI on dbt. Community discussions on metric definition schemas and semantic layer query performance.",
-    url: "https://github.com/lightdash/lightdash",
-    tag: "Data Platforms",
+      "Disposable PostgreSQL migration/rollback rehearsals (Rolloutproof) and browser-driven open-session revocation checks (Revokeproof).",
+    url: "https://github.com/CVamsi27/rolloutproof",
+    tag: "Owned Tools · Alpha",
   },
 ];
 

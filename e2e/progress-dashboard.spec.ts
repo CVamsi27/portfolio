@@ -128,8 +128,8 @@ test("empty progress offers recording without fabricated trends and retains navi
   const lead = page.getByTestId("progress-chart");
   await expect(lead).toContainText("Start your weight trend");
   await expect(lead.locator("svg[role=img]")).toHaveCount(0);
-  await lead.getByRole("link", { name: "Record weight", exact: true }).click();
-  await expect(page).toHaveURL(/\/weight-loss\?date=2026-10-04$/);
+  await lead.getByRole("link", { name: "Open Google Health", exact: true }).click();
+  await expect(page).toHaveURL(/\/health\?date=2026-10-04$/);
   await expect(
     page.getByRole("region", { name: "Seven-day progress" }),
   ).toHaveCount(0);
@@ -203,35 +203,4 @@ test("Plan links to Tasks so a chosen task starts focus without changing complet
       () => JSON.parse(localStorage.getItem("vk:todos")!)[1].done,
     ),
   ).toBe(false);
-});
-
-test("weight history supports dated corrections and undo without losing other readings", async ({
-  page,
-}) => {
-  await records(page);
-  await page.goto("/weight-loss");
-  const date = page.getByLabel("Record date", { exact: true });
-  await expect(date).toBeVisible();
-  await date.fill("2026-10-01");
-  await page.getByLabel("Recorded weight", { exact: true }).fill("81");
-  await page
-    .getByRole("button", { name: "Save weigh-in", exact: true })
-    .click();
-  await expect(page.getByRole("status")).toContainText("Saved weigh-in");
-  const row = page
-    .getByTestId("weight-history")
-    .getByRole("listitem")
-    .filter({ hasText: "2026-10-01" });
-  await expect(row).toContainText("81 kg");
-  await row.getByRole("button", { name: "Remove" }).click();
-  await page.getByRole("button", { name: "Undo weight removal" }).click();
-  await expect(row).toContainText("81 kg");
-  expect(
-    await page.evaluate(
-      () =>
-        JSON.parse(localStorage.getItem("vk:weight-loss")!).entries[
-          "2026-10-04"
-        ].weightKg,
-    ),
-  ).toBe(80);
 });

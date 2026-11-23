@@ -2126,6 +2126,7 @@ function RoadmapContent() {
   const [section, setSection] = useWorkspaceView(
     [
       "interview",
+      "study",
       "opportunities",
       "practice",
       "weekly-review",
@@ -2410,9 +2411,13 @@ function RoadmapContent() {
   ];
 
   if (
-    ["interview", "opportunities", "practice", "weekly-review"].includes(
-      section,
-    )
+    [
+      "interview",
+      "study",
+      "opportunities",
+      "practice",
+      "weekly-review",
+    ].includes(section)
   ) {
     return (
       <RequireAuth>

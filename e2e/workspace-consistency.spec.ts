@@ -8,29 +8,9 @@ for (const screen of [
     anchor: ".workspace-views",
   },
   {
-    path: "/intermittent-fasting?date=2026-10-03",
-    label: "Selected date",
-    anchor: ".workspace-views",
-  },
-  {
-    path: "/weight-loss?date=2026-10-03",
-    label: "Record date",
-    anchor: "#weight-entry",
-  },
-  {
-    path: "/food?date=2026-10-03&view=diary",
-    label: "Record date",
-    anchor: ".workspace-views",
-  },
-  {
     path: "/dashboard?date=2026-10-03",
     label: "Through date",
     anchor: '[data-testid="progress-chart"]',
-  },
-  {
-    path: "/workout-tracking?date=2026-10-03",
-    label: "Selected date",
-    anchor: ".workspace-views",
   },
 ]) {
   test(`${screen.path} keeps its date before page content and preserves selection`, async ({

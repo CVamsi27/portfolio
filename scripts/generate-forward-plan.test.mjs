@@ -73,7 +73,7 @@ test("new revision has 100 Monday–Saturday study days, exact capacities and pr
   );
   assert.match(
     days[5].assignments.find((a) => a.kind === "study").brief,
-    /REVISION.md/,
+    /03-async-concurrency\/REVISION\)/,
   );
   assert.equal(plan.execution.jobPlan.version, 3);
 });
@@ -369,7 +369,11 @@ test("AI practice links the safety and evaluation mechanisms its saved evidence 
       [expected],
       `${date}: the AI task needs its actual canonical mechanism`,
     );
-    assert.ok(study.brief.includes(`https://study.buildora.work/${expected}`));
+    assert.ok(
+      study.brief.includes(
+        `https://study.buildora.work/${expected.replace(/\.md$/, "")}`,
+      ),
+    );
   }
 });
 

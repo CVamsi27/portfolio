@@ -5,23 +5,32 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import PersonalShell from "@/components/trackers/PersonalShell";
 import CaptureWorkspace from "@/components/daily/CaptureWorkspace";
 import JournalWorkspace from "@/components/daily/JournalWorkspace";
+
+const RETIRED_HEALTH_TYPES = new Set([
+  "food",
+  "water",
+  "exercise",
+  "weight",
+  "sleep",
+]);
+
 function CapturePage() {
   const params = useSearchParams();
   const router = useRouter();
+  const requestedType = params.get("type") ?? "";
   useEffect(() => {
-    if (params.get("type") === "exercise") {
-      const q = new URLSearchParams(params.toString());
-      q.delete("type");
-      router.replace(`/workout-tracking?${q}`);
+    if (RETIRED_HEALTH_TYPES.has(requestedType)) {
+      router.replace("/health?notice=retired-manual");
     }
-  }, [params, router]);
+  }, [requestedType, router]);
   return (
     <RequireAuth>
       <PersonalShell
         icon="log"
         title={
-          params.get("view") === "journal" ? "Daily reflection" : "Add a record"
+          params.get("view") === "journal" ? "Daily reflection" : "Quick capture"
         }
+        eyebrow="Capture"
         subtitle={null}
       >
         {params.get("view") === "journal" ? (
@@ -29,7 +38,7 @@ function CapturePage() {
         ) : (
           <CaptureWorkspace
             key={params.toString()}
-            initialType={params.get("type") ?? ""}
+            initialType={requestedType}
             initialDate={params.get("date") ?? undefined}
             returnTo={params.get("returnTo") ?? "/hub"}
           />
@@ -38,6 +47,7 @@ function CapturePage() {
     </RequireAuth>
   );
 }
+
 export default function LogPage() {
   return (
     <Suspense fallback={<p>Loading capture…</p>}>

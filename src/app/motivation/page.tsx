@@ -17,6 +17,7 @@ import {
 } from "@/lib/tracker-store";
 import { useSyncedStorage } from "@/lib/use-synced-storage";
 import { goalEncouragement } from "@/lib/goal-motivation";
+import ProgressBar from "@/components/charts/ProgressBar";
 
 export default function MotivationPage() {
   useMigrateGoal();
@@ -89,6 +90,18 @@ export default function MotivationPage() {
         eyebrow="Your purpose"
         subtitle={null}
       >
+        {milestones.length > 0 && (
+          <section className="rounded-2xl border border-border/70 bg-card/90 p-4">
+            <ProgressBar
+              label="Goal milestone momentum"
+              value={completed}
+              max={milestones.length}
+              unit="milestones"
+              tone="primary"
+              hint={next ? `Next up: ${next}` : "All milestones completed."}
+            />
+          </section>
+        )}
         <FocusScene
           goalTitle={displayGoalTitle(prefs)}
           why={encouragement.why}

@@ -1,30 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { seed } from "./helpers";
 
-test("workout controls are contextual and History and Plan survive reload", async ({
-  page,
-}) => {
-  await seed(page);
-  await page.goto("/workout-tracking?date=2026-10-03");
-  await expect(page.getByRole("group", { name: "Weight unit" })).toBeHidden();
-  await page.getByRole("button", { name: "History", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Personal records", exact: true }),
-  ).toHaveCount(0);
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "History", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "Plan", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Workout plan", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("group", { name: "Weight unit", exact: true }),
-  ).toBeVisible();
-  await expect(page).toHaveURL(/date=2026-10-03.*view=plan/);
-});
-
 test("Library leads with retrieval and New item opens a focused capture", async ({
   page,
 }) => {
@@ -45,32 +21,8 @@ test("Library leads with retrieval and New item opens a focused capture", async 
   await expect(page.getByLabel("Search library")).toBeVisible();
 });
 
-test("Water is the default and meal window/history are deliberate views", async ({
-  page,
-}) => {
+test("Tasks retains the selected view across reload", async ({ page }) => {
   await seed(page);
-  await page.goto("/intermittent-fasting");
-  await expect(page.getByLabel("First meal time")).toBeHidden();
-  await page
-    .getByRole("button", { name: "Eating window", exact: true })
-    .click();
-  await expect(page.getByLabel("First meal time")).toBeVisible();
-  await page.reload();
-  await expect(page.getByLabel("First meal time")).toBeVisible();
-  await page.getByRole("button", { name: "History", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "History", exact: true }),
-  ).toBeVisible();
-});
-
-test("Routine and Tasks retain the selected view", async ({ page }) => {
-  await seed(page);
-  await page.goto("/routine");
-  await page.getByRole("button", { name: "History", exact: true }).click();
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "History", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
   await page.goto("/todo");
   await page.getByRole("button", { name: /^Completed/ }).click();
   await page.reload();
@@ -118,43 +70,6 @@ test("Goal shows milestones with its purpose and keeps the selected view", async
   ).toHaveAttribute("aria-pressed", "true");
 });
 
-test("Food exposes the selected view to assistive technology after reload", async ({
-  page,
-}) => {
-  await seed(page);
-  await page.goto("/food?date=2026-10-03&view=nutrients");
-  await expect(
-    page.getByRole("button", { name: "Nutrients", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "Diary", exact: true }).click();
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Diary", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByLabel("Record date", { exact: true })).toHaveValue(
-    "2026-10-03",
-  );
-});
-
-test("changing the food diary date survives reload", async ({ page }) => {
-  await seed(page);
-  await page.goto("/food?date=2026-10-03&view=diary");
-  const dateInput = page.getByLabel("Record date", { exact: true });
-  // A pre-hydration fill is discarded when React attaches, so retry until the
-  // controlled input keeps the typed value and the URL follows it.
-  await expect(async () => {
-    await dateInput.fill("2026-10-02");
-    await expect(dateInput).toHaveValue("2026-10-02", { timeout: 1000 });
-    await expect(page).toHaveURL(/[?&]date=2026-10-02(?:&|$)/, {
-      timeout: 1000,
-    });
-  }).toPass();
-  await page.reload();
-  await expect(page.getByLabel("Record date", { exact: true })).toHaveValue(
-    "2026-10-02",
-  );
-});
-
 test("discarding a Library draft starts the next capture empty", async ({
   page,
 }) => {
@@ -167,34 +82,6 @@ test("discarding a Library draft starts the next capture empty", async ({
   await expect(page.getByRole("dialog")).toBeHidden();
   await page.getByRole("button", { name: "New item", exact: true }).click();
   await expect(page.getByLabel("Capture", { exact: true })).toHaveValue("");
-});
-
-test("workout date changes survive reload", async ({ page }) => {
-  await seed(page);
-  await page.goto("/workout-tracking?date=2026-10-03");
-  const dateInput = page.getByLabel("Selected date", { exact: true });
-  // A pre-hydration fill is discarded when React attaches, so retry until the
-  // controlled input keeps the typed value.
-  await expect(async () => {
-    await dateInput.fill("2026-10-02");
-    await expect(dateInput).toHaveValue("2026-10-02", { timeout: 1000 });
-  }).toPass();
-  await page.reload();
-  await expect(page.getByLabel("Selected date", { exact: true })).toHaveValue(
-    "2026-10-02",
-  );
-});
-
-test("finishing capture from Today returns to Today", async ({ page }) => {
-  await seed(page);
-  await page.goto("/workout-tracking?date=2026-10-03&returnTo=%2Fhub");
-  await page
-    .getByRole("button", { name: "Review and finish workout", exact: true })
-    .click();
-  await page
-    .getByRole("link", { name: "Done · return to previous page", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/hub$/);
 });
 
 test("Learning keeps curriculum search out of the current study flow", async ({

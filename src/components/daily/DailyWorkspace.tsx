@@ -49,7 +49,6 @@ import {
 } from "@/lib/personal-timetable";
 import { useRoutine } from "@/lib/routine-store";
 import { usePersonalModules } from "@/lib/personal-modules";
-import { usePersonalProgress } from "@/lib/use-personal-progress";
 import { useWorkSession } from "@/lib/work-session-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,14 +57,26 @@ import WeekDateStrip from "./WeekDateStrip";
 import TodayAgendaRow from "./TodayAgendaRow";
 import TodaySetupCard from "./TodaySetupCard";
 import { agendaPeriod, agendaStatus } from "@/lib/day-presentation";
-import { ArrowRight } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  ArrowUpRight,
+  BookOpen,
+  Footprints,
+  Moon,
+  Scale,
+} from "lucide-react";
 import MetricSummary from "@/components/progress/MetricSummary";
 import HabitChecklist from "@/components/personal/HabitChecklist";
 import FocusSprint from "@/components/trackers/FocusSprint";
 import { displayWeight } from "@/lib/health";
 import Modal from "@/components/trackers/Modal";
 import CareerNextActions from "@/components/career/CareerNextActions";
-import { careerWritesEnabled } from "@/lib/career-workflow";
+import { careerReview, careerWritesEnabled } from "@/lib/career-workflow";
+import { useCareerWorkflow } from "@/lib/career-workflow-store";
+import { useHealthConnectSummary } from "@/lib/use-health-connect-summary";
+import ProgressBar from "@/components/charts/ProgressBar";
+import { interviewReadySprint } from "@/data/interview-ready-sprint";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   incomeFirstPersonalSchedule,
@@ -119,10 +130,13 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
     routine = useRoutine(),
     modules = usePersonalModules(),
     work = useWorkSession();
-  const water = useSyncedStorage<Record<string, number>>("fasting:water", {});
-  const [waterUndo, setWaterUndo] = useState<string | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const { data: records } = usePersonalProgress(1, date);
+  const workflow = useCareerWorkflow();
+  const careerStats = careerReview(workflow.activities.value, date);
+  const healthSummary = useHealthConnectSummary(7, date);
+  const sprintDay =
+    interviewReadySprint.days.find((d) => d.isoDate === date) ??
+    interviewReadySprint.days[0];
   const [editing, setEditing] = useState<PlanBlock | null>(null),
     [editor, setEditor] = useState(Boolean(params.get("schedule"))),
     [error, setError] = useState(""),
@@ -847,6 +861,77 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
           </p>
         </section>
       )}
+      {!planning && (
+        <section
+          aria-label="Daily and weekly progress"
+          className="rounded-2xl border border-border/70 bg-card/90 p-4 space-y-4"
+        >
+          <ProgressBar
+            label="Today's execution progress"
+            value={completed.length}
+            max={Math.max(1, completed.length + incomplete.length)}
+            unit="blocks"
+            tone="primary"
+          />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 pt-1">
+            <ProgressBar
+              label="Applications (wk)"
+              value={careerStats.applications}
+              max={15}
+              tone="primary"
+              compact
+            />
+            <ProgressBar
+              label="Warm outreach (wk)"
+              value={careerStats.outreaches}
+              max={10}
+              tone="sky"
+              compact
+            />
+            <ProgressBar
+              label="Contracts (wk)"
+              value={careerStats.proposals}
+              max={5}
+              tone="amber"
+              compact
+            />
+            <ProgressBar
+              label="Interviews (wk)"
+              value={careerStats.interviews}
+              max={2}
+              tone="emerald"
+              compact
+            />
+          </div>
+          {sprintDay && (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-3 text-xs">
+              <div className="min-w-0">
+                <span className="font-semibold text-primary">
+                  {sprintDay.date} Focus:
+                </span>{" "}
+                <span className="text-foreground font-medium">
+                  {sprintDay.build}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {sprintDay.links.slice(0, 2).map((linkItem) => (
+                  <a
+                    key={linkItem.url}
+                    href={linkItem.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-background px-2.5 py-1 text-[11px] font-medium hover:border-primary/50 hover:text-primary"
+                  >
+                    <BookOpen className="h-3 w-3 text-primary" />
+                    {linkItem.label}
+                    <ArrowUpRight className="h-3 w-3 opacity-60" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
       {!planning && date === today && <TodaySetupCard />}
       {!planning && (
         <section
@@ -1134,89 +1219,106 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
       )}
       {!planning && (
         <>
-          <section className="daily-utilities">
-            <div
-              className="daily-quick-actions"
-              role="group"
-              aria-label="Daily recording actions"
-            >
-              <Button
-                variant="outline"
-                onClick={() => {
-                  water.setValue((p) => ({ ...p, [date]: (p[date] ?? 0) + 1 }));
-                  setWaterUndo(date);
-                  setMessage("Added one glass of water.");
-                }}
+          <section
+            aria-label="Google Health Connect snapshot"
+            className="rounded-2xl border border-border/70 bg-card/90 p-4 space-y-3"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-emerald-500" />
+                <h2 className="font-display text-sm font-semibold">
+                  Google Health · {date}
+                </h2>
+              </div>
+              <Link
+                href={`/health?date=${date}`}
+                className="text-xs font-medium text-primary hover:underline"
               >
-                Water +1
-              </Button>
-              {waterUndo === date && (
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    water.setValue((p) => ({
-                      ...p,
-                      [date]: Math.max(0, (p[date] ?? 0) - 1),
-                    }));
-                    setWaterUndo(null);
-                    setMessage("Water addition undone.");
-                  }}
-                >
-                  Undo water
-                </Button>
-              )}
-              {modules.value.food && <Link href={addUrl("food")}>Food</Link>}
-              <Link href={addUrl("weight")}>Weight</Link>
-              <Link href={addUrl("note")}>Note</Link>
+                {healthSummary.connectedDevice
+                  ? "Open Health graphs →"
+                  : "Connect Google Health →"}
+              </Link>
             </div>
-            <section
-              data-editorial-telemetry
-              className="recorded-strip"
-              aria-label="Recorded for this day"
-            >
-              <strong>Recorded</strong>
-              <span>
-                {modules.value.food
-                  ? `${records.foodCount} food entries · `
-                  : ""}
-                {modules.value.movement
-                  ? `${records.exerciseCount} exercises · `
-                  : ""}
-                {records.latestWeight
-                  ? displayWeight(records.latestWeight.value, prefs.weightUnit)
-                  : "No weigh-in"}
-              </span>
-              <Link href={`/health?date=${date}`}>Edit records →</Link>
-            </section>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
+              <div className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <Footprints className="h-3.5 w-3.5 text-emerald-500" /> Steps
+                </span>
+                <p className="font-display text-base font-bold tabular-nums">
+                  {healthSummary.summary.todaySteps !== null
+                    ? healthSummary.summary.todaySteps.toLocaleString()
+                    : "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <Moon className="h-3.5 w-3.5 text-violet-500" /> Sleep
+                </span>
+                <p className="font-display text-base font-bold tabular-nums">
+                  {healthSummary.summary.todaySleepMinutes !== null
+                    ? `${(healthSummary.summary.todaySleepMinutes / 60).toFixed(1)}h`
+                    : "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <Activity className="h-3.5 w-3.5 text-amber-500" /> Exercise
+                </span>
+                <p className="font-display text-base font-bold tabular-nums">
+                  {healthSummary.summary.todayExerciseMinutes !== null
+                    ? `${healthSummary.summary.todayExerciseMinutes}m`
+                    : "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <Scale className="h-3.5 w-3.5 text-sky-500" /> Weight
+                </span>
+                <p className="font-display text-base font-bold tabular-nums">
+                  {healthSummary.summary.latestWeight?.value != null
+                    ? displayWeight(
+                        healthSummary.summary.latestWeight.value,
+                        prefs.weightUnit,
+                      )
+                    : "—"}
+                </p>
+              </div>
+            </div>
           </section>
-          {modules.value.study &&
-            germany?.execution &&
-            Object.keys(germanyAssignments).length > 0 && (
-              <details className="daily-utilities">
-                <summary>Study &amp; career</summary>
-                <Link
-                  className="capture-return"
-                  href={`/roadmap?view=roadmap&panel=today&date=${date}`}
-                >
-                  Open detailed assignments and study links
-                </Link>
-              </details>
-            )}
+
+          <section className="flex flex-wrap items-center gap-2">
+            <Link
+              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium hover:border-primary/50"
+              href={addUrl("task")}
+            >
+              + Add task
+            </Link>
+            <Link
+              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium hover:border-primary/50"
+              href={addUrl("note")}
+            >
+              + Career note
+            </Link>
+            <Link
+              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium hover:border-primary/50"
+              href={`/log?view=journal&date=${date}`}
+            >
+              Daily reflection →
+            </Link>
+            <Link
+              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium hover:border-primary/50"
+              href={`/review?date=${date}`}
+            >
+              Weekly review →
+            </Link>
+          </section>
+
           {modules.value.habits && date === today && (
             <details className="daily-utilities">
               <summary>Habits</summary>
               <HabitChecklist />
             </details>
           )}
-          <Link
-            className="capture-return"
-            href={`/log?view=journal&date=${date}`}
-          >
-            Review this day →
-          </Link>
-          <Link className="capture-return" href={`/review?date=${date}`}>
-            Weekly review →
-          </Link>
         </>
       )}
       <Modal

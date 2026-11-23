@@ -3,6 +3,10 @@ package work.buildora.healthsync
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
+import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
+import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.HydrationRecord
+import androidx.health.connect.client.records.RestingHeartRateRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.WeightRecord
@@ -12,17 +16,30 @@ import androidx.health.connect.client.time.TimeRangeFilter
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlin.math.roundToInt
 import org.json.JSONArray
 import org.json.JSONObject
 
 class HealthReader(private val context: Context) {
     companion object {
-        val permissions =
+        val corePermissions =
             setOf(
                 HealthPermission.getReadPermission(WeightRecord::class),
                 HealthPermission.getReadPermission(StepsRecord::class),
                 HealthPermission.getReadPermission(SleepSessionRecord::class),
             )
+        val exercisePermission = HealthPermission.getReadPermission(ExerciseSessionRecord::class)
+        val caloriesPermission = HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class)
+        val hydrationPermission = HealthPermission.getReadPermission(HydrationRecord::class)
+        val restingHrPermission = HealthPermission.getReadPermission(RestingHeartRateRecord::class)
+        val permissions =
+            corePermissions +
+                setOf(
+                    exercisePermission,
+                    caloriesPermission,
+                    hydrationPermission,
+                    restingHrPermission,
+                )
     }
 
     suspend fun read(): List<JSONObject> {
@@ -31,15 +48,15 @@ class HealthReader(private val context: Context) {
         }
         val client = HealthConnectClient.getOrCreate(context)
         val granted = client.permissionController.getGrantedPermissions()
-        check(granted.containsAll(permissions)) {
+        check(granted.containsAll(corePermissions)) {
             "Grant read access to weight, steps and sleep before syncing. Permissions may have been revoked."
         }
-        // Stay inside the default 30-day permission window, with a 24-hour margin.
         val now = Instant.now()
         val zone = ZoneId.systemDefault()
         val today = LocalDate.now(zone)
         val since = now.minusSeconds(29 * 86400L)
         val output = mutableListOf<JSONObject>()
+
         var page: String? = null
         do {
             val response =
@@ -68,6 +85,7 @@ class HealthReader(private val context: Context) {
             }
             page = response.pageToken
         } while (page != null)
+
         page = null
         do {
             val response =
@@ -149,21 +167,94 @@ class HealthReader(private val context: Context) {
             }
             page = response.pageToken
         } while (page != null)
-        // Aggregate rather than sum raw records: Health Connect honors the user's source
-        // priorities.
+
+        if (exercisePermission in granted) {
+            page = null
+            do {
+                val response =
+                    client.readRecords(
+                        ReadRecordsRequest(
+                            ExerciseSessionRecord::class,
+                            TimeRangeFilter.between(since, now),
+                            pageToken = page,
+                            pageSize = 500,
+                        )
+                    )
+                response.records.forEach { record ->
+                    val offset = record.startZoneOffset ?: zone.rules.getOffset(record.startTime)
+                    val minutes =
+                        ((record.endTime.toEpochMilli() - record.startTime.toEpochMilli()) / 60000.0)
+                            .coerceIn(0.0, 1440.0)
+                    val activity = exerciseTypeLabel(record.exerciseType)
+                    val item =
+                        row(
+                                record.metadata.id,
+                                "exercise",
+                                recordedDate(record.startTime, offset),
+                                minutes,
+                                "minutes",
+                                record.metadata.dataOrigin.packageName,
+                                record.startTime,
+                                record.metadata.lastModifiedTime.toEpochMilli(),
+                            )
+                            .put("zoneOffsetSeconds", offset.totalSeconds)
+                            .put("startAt", record.startTime.toString())
+                            .put("endAt", record.endTime.toString())
+                            .put("activityType", activity)
+                    record.title?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                        item.put("title", it.take(120))
+                    }
+                    output += item
+                }
+                page = response.pageToken
+            } while (page != null)
+        }
+
+        if (restingHrPermission in granted) {
+            page = null
+            do {
+                val response =
+                    client.readRecords(
+                        ReadRecordsRequest(
+                            RestingHeartRateRecord::class,
+                            TimeRangeFilter.between(since, now),
+                            pageToken = page,
+                            pageSize = 500,
+                        )
+                    )
+                response.records.forEach { record ->
+                    val offset = record.zoneOffset ?: zone.rules.getOffset(record.time)
+                    output +=
+                        row(
+                                record.metadata.id,
+                                "resting_hr",
+                                recordedDate(record.time, offset),
+                                record.beatsPerMinute.toDouble(),
+                                "bpm",
+                                record.metadata.dataOrigin.packageName,
+                                record.time,
+                                record.metadata.lastModifiedTime.toEpochMilli(),
+                            )
+                            .put("zoneOffsetSeconds", offset.totalSeconds)
+                }
+                page = response.pageToken
+            } while (page != null)
+        }
+
+        // Daily priority aggregates (Steps, Active Calories, Hydration)
         for (daysAgo in 0..27) {
             val date = today.minusDays(daysAgo.toLong())
             val start = date.atStartOfDay(zone).toInstant()
             val end = if (daysAgo == 0) now else date.plusDays(1).atStartOfDay(zone).toInstant()
-            val result =
+            val stepResult =
                 client.aggregate(
                     AggregateRequest(
                         setOf(StepsRecord.COUNT_TOTAL),
                         TimeRangeFilter.between(start, end),
                     )
                 )
-            val count = result[StepsRecord.COUNT_TOTAL]
-            if (count != null)
+            val count = stepResult[StepsRecord.COUNT_TOTAL]
+            if (count != null) {
                 output +=
                     row(
                             "steps:$date:${zone.id}",
@@ -172,7 +263,7 @@ class HealthReader(private val context: Context) {
                             count.toDouble(),
                             "count",
                             "Health Connect priority aggregate · " +
-                                result.dataOrigins
+                                stepResult.dataOrigins
                                     .map { it.packageName }
                                     .sorted()
                                     .joinToString(","),
@@ -183,9 +274,91 @@ class HealthReader(private val context: Context) {
                         .put("startAt", start.toString())
                         .put("endAt", end.toString())
                         .put("measurementKind", "daily-priority-aggregate")
+            }
+
+            if (caloriesPermission in granted) {
+                val calResult =
+                    client.aggregate(
+                        AggregateRequest(
+                            setOf(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL),
+                            TimeRangeFilter.between(start, end),
+                        )
+                    )
+                val kcal = calResult[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
+                if (kcal != null && kcal > 0) {
+                    output +=
+                        row(
+                                "active_calories:$date:${zone.id}",
+                                "active_calories",
+                                date.toString(),
+                                kcal.roundToInt().toDouble(),
+                                "kcal",
+                                "Health Connect priority aggregate · " +
+                                    calResult.dataOrigins
+                                        .map { it.packageName }
+                                        .sorted()
+                                        .joinToString(","),
+                                end,
+                                now.toEpochMilli(),
+                            )
+                            .put("zoneOffsetSeconds", zone.rules.getOffset(end).totalSeconds)
+                            .put("startAt", start.toString())
+                            .put("endAt", end.toString())
+                            .put("measurementKind", "daily-priority-aggregate")
+                }
+            }
+
+            if (hydrationPermission in granted) {
+                val hydResult =
+                    client.aggregate(
+                        AggregateRequest(
+                            setOf(HydrationRecord.VOLUME_TOTAL),
+                            TimeRangeFilter.between(start, end),
+                        )
+                    )
+                val ml = hydResult[HydrationRecord.VOLUME_TOTAL]?.inMilliliters
+                if (ml != null && ml > 0) {
+                    output +=
+                        row(
+                                "hydration:$date:${zone.id}",
+                                "hydration",
+                                date.toString(),
+                                ml.roundToInt().toDouble(),
+                                "ml",
+                                "Health Connect priority aggregate · " +
+                                    hydResult.dataOrigins
+                                        .map { it.packageName }
+                                        .sorted()
+                                        .joinToString(","),
+                                end,
+                                now.toEpochMilli(),
+                            )
+                            .put("zoneOffsetSeconds", zone.rules.getOffset(end).totalSeconds)
+                            .put("startAt", start.toString())
+                            .put("endAt", end.toString())
+                            .put("measurementKind", "daily-priority-aggregate")
+                }
+            }
         }
         return output
     }
+
+    private fun exerciseTypeLabel(type: Int): String =
+        when (type) {
+            ExerciseSessionRecord.EXERCISE_TYPE_WALKING -> "Walking"
+            ExerciseSessionRecord.EXERCISE_TYPE_RUNNING,
+            ExerciseSessionRecord.EXERCISE_TYPE_RUNNING_TREADMILL -> "Running"
+            ExerciseSessionRecord.EXERCISE_TYPE_BIKING,
+            ExerciseSessionRecord.EXERCISE_TYPE_BIKING_STATIONARY -> "Cycling"
+            ExerciseSessionRecord.EXERCISE_TYPE_WEIGHTLIFTING,
+            ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING -> "Strength Training"
+            ExerciseSessionRecord.EXERCISE_TYPE_YOGA -> "Yoga"
+            ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL,
+            ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_OPEN_WATER -> "Swimming"
+            ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING -> "HIIT"
+            ExerciseSessionRecord.EXERCISE_TYPE_BADMINTON -> "Badminton"
+            else -> "Workout"
+        }
 
     private fun row(
         id: String,
