@@ -17,45 +17,45 @@ const CAPABILITIES = [
   {
     title: "Product Engineering",
     icon: Layout,
-    lead: "Pixel-accurate, performant interfaces built with deep design system rigor.",
+    lead: "Precision interfaces built with strict accessibility and design-system rigor.",
     items: [
       "React & Next.js full-stack architectures",
-      "Accessible, keyboard-navigable user flows (WCAG)",
-      "Design systems & component tokens",
-      "TypeScript type safety & strict schemas",
+      "Accessible, keyboard-navigable flows (WCAG)",
+      "Design systems & semantic tokens",
+      "TypeScript strictness & shared schemas",
     ],
   },
   {
     title: "Backend & Systems",
     icon: Server,
-    lead: "High-throughput, reliable APIs and resilient multi-tenant data pipelines.",
+    lead: "Reliable APIs and resilient multi-tenant PostgreSQL data pipelines.",
     items: [
       "NestJS, Express & Node.js microservices",
-      "PostgreSQL schemas, RLS & migration safety",
-      "Transactional Outbox, queues & advisory locks",
-      "Webhook verification and duplicate-effect handling",
+      "PostgreSQL schemas, RLS & safe migrations",
+      "Transactional outbox, queues & locks",
+      "Webhook verification & idempotency",
     ],
   },
   {
     title: "Quality & Infrastructure",
     icon: ShieldCheck,
-    lead: "Meaningful tests and release checks for sensitive product workflows.",
+    lead: "Executable failure-path tests and release checks for sensitive workflows.",
     items: [
-      "Jest, Vitest and Playwright failure-path checks",
-      "Automated CI/CD pipelines with GitHub Actions",
-      "Dockerized environments & snapshot validation",
-      "Sensitive-data audit logging and resource authorization",
+      "Jest, Vitest & Playwright failure-path checks",
+      "Automated CI/CD with GitHub Actions",
+      "Dockerized fixtures & snapshot validation",
+      "Audit logging & resource authorization",
     ],
   },
   {
     title: "Engineering Practice",
     icon: Cpu,
-    lead: "Pragmatic ownership focused on business impact and high team velocity.",
+    lead: "End-to-end ownership focused on durability, clarity, and team velocity.",
     items: [
-      "Full lifecycle feature ownership from spec to deploy",
-      "Clean bounded contexts and decoupled modules",
+      "Full lifecycle ownership from spec to prod",
+      "Clean bounded contexts & decoupled modules",
       "Mentoring engineers through design reviews",
-      "Data-driven p95 performance profiling & tuning",
+      "Data-driven p95 query & latency tuning",
     ],
   },
 ];
@@ -90,7 +90,7 @@ const TECH_CATEGORIES: Record<string, TechCategory> = {
 
 const SHELF_TABS: { id: TechCategory; label: string }[] = [
   { id: "all", label: "All Tools" },
-  { id: "frontend", label: "Frontend & UI" },
+  { id: "frontend", label: "Frontend" },
   { id: "backend", label: "Backend & Data" },
   { id: "devops", label: "DevOps & QA" },
 ];
@@ -111,7 +111,9 @@ const Skills = () => {
 
   const getCount = (id: TechCategory) => {
     const core =
-      id === "all" ? SKILLS.length : SKILLS.filter((s) => TECH_CATEGORIES[s.alt] === id).length;
+      id === "all"
+        ? SKILLS.length
+        : SKILLS.filter((s) => TECH_CATEGORIES[s.alt] === id).length;
     const extra =
       id === "all"
         ? ADDITIONAL_TECH.length
@@ -134,31 +136,32 @@ const Skills = () => {
   const totalTools = filteredCoreSkills.length + filteredExtraSkills.length;
 
   return (
-    <section id="Capabilities" className="portfolio-section px-5 py-12 sm:px-10 sm:py-16 lg:px-16">
+    <section
+      id="Capabilities"
+      className="portfolio-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16"
+    >
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="05 / Disciplines & Stack"
+          eyebrow="05 // Disciplines & Stack"
           title="Capabilities & technology shelf"
-          description="I care about the seam between a thoughtful interface, a dependable backend architecture, and the team that builds and scales both."
+          description="Operating at the seam between a clear product interface, a dependable backend architecture, and the engineering habits that keep both healthy."
         />
 
-        {/* 4 Architectural Pillars */}
+        {/* 4 Architectural Pillars Matrix */}
         <div className="portfolio-capability-grid">
           {CAPABILITIES.map((group, index) => {
             const Icon = group.icon;
             return (
               <Reveal
                 key={group.title}
-                delay={index * 60}
+                delay={index * 45}
                 className="portfolio-capability-group"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-3">
                   <span className="portfolio-index">
                     {String(index + 1).padStart(2, "0")}
                   </span>
-                  <div className="portfolio-capability-group__icon flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)] transition-all duration-200">
-                    <Icon className="h-4 w-4" />
-                  </div>
+                  <Icon className="h-4 w-4 text-[var(--portfolio-muted)]" />
                 </div>
 
                 <h3>{group.title}</h3>
@@ -176,26 +179,30 @@ const Skills = () => {
           })}
         </div>
 
-        {/* Interactive Tech Stack Shelf */}
-        <Reveal delay={120} className="portfolio-tech-shelf">
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--portfolio-rule)] pb-4">
+        {/* Interactive Architectural Tech Shelf */}
+        <Reveal delay={80} className="portfolio-tech-shelf">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--portfolio-rule)] pb-5">
             <div>
-              <p className="portfolio-meta-label">Production Tooling &amp; Libraries</p>
+              <p className="portfolio-meta-label">
+                Production Tooling &amp; Libraries
+              </p>
               <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
-                Core technologies actively deployed across Docita, microservices, and platforms.
+                Core technologies actively deployed across Docita,
+                microservices, and verification harnesses.
               </p>
             </div>
 
-            {/* Category Filter — now with count badges and keyboard nav */}
             <div
               role="tablist"
               aria-label="Filter skills by discipline"
-              className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap scrollbar-none -mx-1 px-1"
+              className="portfolio-filter-tabs"
             >
               {SHELF_TABS.map((tab, i) => (
                 <button
                   key={tab.id}
-                  ref={(el) => { tabRefs.current[i] = el; }}
+                  ref={(el) => {
+                    tabRefs.current[i] = el;
+                  }}
                   type="button"
                   role="tab"
                   aria-selected={activeCategory === tab.id}
@@ -223,27 +230,26 @@ const Skills = () => {
           </div>
 
           <div className="mt-6" key={activeCategory}>
-            {/* Tool count summary */}
-            <div className="mb-4 flex items-center gap-2">
-              <span className="font-utility text-[0.6rem] font-bold uppercase tracking-widest text-[var(--portfolio-muted)]">
-                {totalTools} tool{totalTools !== 1 ? "s" : ""} shown
+            <div className="mb-4 flex items-center gap-3">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--portfolio-muted)]">
+                {totalTools} tool{totalTools !== 1 ? "s" : ""} indexed
               </span>
               <span className="h-px flex-1 bg-[var(--portfolio-rule)]" />
             </div>
 
             {filteredCoreSkills.length > 0 && (
               <>
-                <p className="font-utility text-[0.65rem] font-bold uppercase tracking-wider text-[var(--portfolio-muted)] mb-3">
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--portfolio-muted)]">
                   Core Languages &amp; Frameworks
                 </p>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2">
                   {filteredCoreSkills.map((skill) => (
                     <div key={skill.alt} className="portfolio-tech-chip">
                       <Image
                         src={skill.img}
                         alt={skill.alt}
-                        width={18}
-                        height={18}
+                        width={16}
+                        height={16}
                         className="h-4 w-4 shrink-0 object-contain"
                       />
                       <span>{skill.alt}</span>
@@ -255,10 +261,10 @@ const Skills = () => {
 
             {filteredExtraSkills.length > 0 && (
               <>
-                <p className="font-utility text-[0.65rem] font-bold uppercase tracking-wider text-[var(--portfolio-muted)] mt-6 mb-3">
+                <p className="mb-3 mt-6 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--portfolio-muted)]">
                   Ecosystem &amp; Infrastructure
                 </p>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2">
                   {filteredExtraSkills.map((tool) => (
                     <div key={tool.name} className="portfolio-tech-chip">
                       <Terminal className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
@@ -267,12 +273,6 @@ const Skills = () => {
                   ))}
                 </div>
               </>
-            )}
-
-            {filteredCoreSkills.length === 0 && filteredExtraSkills.length === 0 && (
-              <p className="text-sm text-[var(--portfolio-muted)] py-4">
-                No tools in this category.
-              </p>
             )}
           </div>
         </Reveal>

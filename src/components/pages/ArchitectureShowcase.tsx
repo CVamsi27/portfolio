@@ -2,33 +2,35 @@
 
 import { useState } from "react";
 import { Reveal } from "@/components/common/Reveal";
-import { ArrowUpRight, ChevronRight, Code2, Workflow } from "lucide-react";
+import { SectionHeading } from "@/components/common/SectionHeading";
+import { ArrowUpRight, ChevronRight, Code2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   ARCHITECTURE_PATTERNS,
   SHOWCASE_PATTERN_IDS,
 } from "@/lib/architecture-patterns";
 
-type PatternCategory = "all" | "distributed" | "structural" | "behavioral" | "creational";
+type PatternCategory =
+  | "all"
+  | "distributed"
+  | "structural"
+  | "behavioral"
+  | "creational";
 
-/**
- * The architecture chapter shows a curated six of the pattern set (the full
- * 23-pattern library lives in the Senior Full Stack Bible, linked from the
- * chapter header). Case studies link into the same pattern data by id.
- */
 const SHOWCASED_PATTERNS = SHOWCASE_PATTERN_IDS.flatMap((id) => {
   const pattern = ARCHITECTURE_PATTERNS.find((candidate) => candidate.id === id);
   return pattern ? [pattern] : [];
 });
 
 export default function ArchitectureShowcase() {
-  const [selectedCategory, setSelectedCategory] = useState<PatternCategory>("all");
+  const [selectedCategory, setSelectedCategory] =
+    useState<PatternCategory>("all");
   const [activeSnippet, setActiveSnippet] = useState<string | null>(
     SHOWCASED_PATTERNS[0]?.id ?? null,
   );
 
   const filtered = SHOWCASED_PATTERNS.filter(
-    (p) => selectedCategory === "all" || p.category === selectedCategory
+    (p) => selectedCategory === "all" || p.category === selectedCategory,
   );
 
   return (
@@ -36,184 +38,180 @@ export default function ArchitectureShowcase() {
       id="Architecture"
       aria-label="Systems Architecture and GoF Design Patterns"
       data-chapter-index="02"
-      className="portfolio-chapter relative px-5 py-14 sm:px-10 sm:py-20 lg:px-16"
+      className="relative border-y border-white/12 bg-[#08080a] px-5 py-16 text-[#f4f3ee] sm:px-10 sm:py-24 lg:px-16"
     >
       <div className="relative mx-auto max-w-7xl">
-        <Reveal>
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-semibold text-[var(--portfolio-accent)] uppercase tracking-widest">
-                  02 / ARCHITECTURE &amp; DESIGN PATTERNS
-                </span>
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--portfolio-accent)]" />
-              </div>
-              <h2 className="mt-2 text-2xl sm:text-4xl font-bold tracking-tight text-[var(--portfolio-ink)]">
-                Proven Patterns for High-Stakes Software.
-              </h2>
-              <p className="mt-3 max-w-3xl text-sm sm:text-base leading-relaxed text-[var(--portfolio-muted)]">
-                These patterns explain decisions in my projects and study library. Examples illustrate mechanisms; each project case distinguishes implemented behavior, verification and proposed improvements.
-              </p>
+        <SectionHeading
+          inverted
+          eyebrow="02 // Architecture & Design Patterns"
+          title="Proven patterns for high-stakes software."
+          description="Mechanisms that govern tenant boundaries, crash-safe background delivery, and deterministic state transitions across production systems."
+        />
+
+        {/* Scope Filter Row & Full Library Link */}
+        <Reveal delay={60}>
+          <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap border border-white/15 bg-[#0e0e12]">
+              {(
+                [
+                  ["all", "All"],
+                  ["distributed", "Distributed & Security"],
+                  ["behavioral", "Behavioral"],
+                  ["structural", "Structural"],
+                  ["creational", "Creational"],
+                ] as const
+              ).map(([cat, label], idx, arr) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={cn(
+                    "cursor-pointer px-3.5 py-2 font-mono text-[11px] uppercase tracking-[0.08em] transition-colors",
+                    idx < arr.length - 1 && "border-r border-white/12",
+                    selectedCategory === cat
+                      ? "bg-[#f4f3ee] font-semibold text-[#08080a]"
+                      : "text-[#9c9ca6] hover:text-[#f4f3ee]",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
 
             <a
               href="https://study.buildora.work/30-architecture"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-3.5 py-2 text-xs font-medium text-[var(--portfolio-ink)] hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)] transition-all shrink-0"
+              className="inline-flex items-center gap-1.5 border border-white/20 px-3.5 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-[#f4f3ee] transition-colors hover:border-[#ff3b2f] hover:text-[#ff3b2f]"
             >
-              <span>Explore All 23 Patterns in Bible</span>
+              <span>Explore All 23 Patterns</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
             </a>
           </div>
         </Reveal>
 
-        {/* Filter Pills */}
-        <Reveal delay={80}>
-          <div className="mt-8 flex flex-wrap items-center gap-2 border-b border-[var(--portfolio-rule)] pb-4">
-            <span className="font-utility text-xs text-[var(--portfolio-muted)] mr-2">
-              Filter by scope:
-            </span>
-            {(
-              [
-                ["all", "All Architectures"],
-                ["distributed", "Distributed & Security"],
-                ["behavioral", "Behavioral (GoF)"],
-                ["structural", "Structural (GoF)"],
-                ["creational", "Creational (GoF)"],
-              ] as const
-            ).map(([cat, label]) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={cn(
-                  "rounded-full px-3 py-1 text-xs font-medium transition-all",
-                  selectedCategory === cat
-                    ? "bg-[var(--portfolio-accent)] text-white shadow-xs"
-                    : "border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-muted)] hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-ink)]"
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </Reveal>
-
-        {/* Cards Grid */}
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
+        {/* Border-Collapsed 2-Column Specification Matrix */}
+        <div className="grid gap-px border border-white/15 bg-white/15 md:grid-cols-2">
           {filtered.map((item, idx) => (
-            <Reveal key={item.id} delay={idx * 60}>
-              <div
-                data-pattern-card
-                className="group flex h-full flex-col justify-between rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-5 sm:p-6 transition-all duration-300 hover:border-[var(--portfolio-accent)]/60 hover:shadow-lg"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 border-b border-[var(--portfolio-rule)] pb-3">
-                    <span className="rounded-md bg-[var(--portfolio-blue-soft)] px-2.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--portfolio-accent)] uppercase tracking-wider">
-                      {item.categoryLabel}
+            <div
+              key={item.id}
+              data-pattern-card
+              className="flex h-full flex-col justify-between bg-[#0c0c10] p-6 transition-colors hover:bg-[#111116] sm:p-7"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 border-b border-white/12 pb-3">
+                  <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em]">
+                    <span className="text-[#ff3b2f]">
+                      {String(idx + 1).padStart(2, "0")}
                     </span>
-                    <a
-                      href={item.stackUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 font-utility text-[11px] font-medium text-[var(--portfolio-muted)] hover:text-[var(--portfolio-accent)] transition-colors"
-                      title="Read complete chapter in Senior Full Stack Bible"
-                    >
-                      <span>Study Chapter</span>
-                      <ArrowUpRight className="h-3 w-3" />
-                    </a>
+                    <span className="text-[#8e8e98]">{item.categoryLabel}</span>
                   </div>
-
-                  <h3 className="mt-4 font-display text-lg font-bold text-[var(--portfolio-ink)] group-hover:text-[var(--portfolio-accent)] transition-colors">
-                    {item.name}
-                  </h3>
-
-                  <div className="mt-3 space-y-2 text-xs sm:text-sm">
-                    <div>
-                      <span className="font-semibold text-[var(--portfolio-ink)]">
-                        Problem Invariant:{" "}
-                      </span>
-                      <span className="text-[var(--portfolio-muted)]">
-                        {item.problem}
-                      </span>
-                    </div>
-
-                    <details className="portfolio-disclosure">
-                      <summary>
-                        <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        <span>Architecture solution</span>
-                      </summary>
-                      <p className="portfolio-disclosure-body text-[var(--portfolio-muted)]">
-                        {item.solution}
-                      </p>
-                    </details>
-
-                    <div className="rounded-lg bg-[var(--portfolio-wash)] p-2.5 border border-[var(--portfolio-rule)] mt-3">
-                      <span className="font-mono text-[11px] font-semibold text-[var(--portfolio-accent)]">
-                        Production Application:
-                      </span>
-                      <p className="mt-1 text-xs text-[var(--portfolio-ink)] font-medium">
-                        {item.productionUse}
-                      </p>
-                    </div>
-                  </div>
+                  <a
+                    href={item.stackUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[#9c9ca6] transition-colors hover:text-[#ff3b2f]"
+                  >
+                    <span>Reference</span>
+                    <ArrowUpRight className="h-3 w-3" />
+                  </a>
                 </div>
 
-                {/* Code Preview Drawer Toggle */}
-                <div className="mt-5 border-t border-[var(--portfolio-rule)] pt-4">
-                  <div className="flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveSnippet(activeSnippet === item.id ? null : item.id)
-                      }
-                      className="inline-flex items-center gap-1.5 font-mono text-xs font-medium text-[var(--portfolio-accent)] hover:underline"
-                    >
-                      <Code2 className="h-3.5 w-3.5" />
-                      <span>{activeSnippet === item.id ? "Hide Pattern Code" : "Inspect Pattern Code"}</span>
-                    </button>
-                    <span className="font-mono text-[10px] text-[var(--portfolio-muted)]">
-                      TypeScript
-                    </span>
-                  </div>
+                <h3 className="mt-4 font-display text-2xl leading-tight tracking-[-0.015em] text-[#f4f3ee] sm:text-3xl">
+                  {item.name}
+                </h3>
 
-                  {activeSnippet === item.id && (
-                    <div className="mt-3 overflow-hidden rounded-xl border border-[var(--portfolio-rule)] bg-black/90 p-3 text-[11px] font-mono text-emerald-400 shadow-inner">
-                      <pre className="overflow-x-auto whitespace-pre leading-relaxed">
-                        <code>{item.codeSnippet}</code>
-                      </pre>
-                    </div>
-                  )}
+                <div className="mt-4 space-y-3 text-xs sm:text-sm">
+                  <p className="leading-relaxed text-[#a8a8b2]">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[#f4f3ee]">
+                      Invariant:{" "}
+                    </span>
+                    {item.problem}
+                  </p>
+
+                  <details className="group">
+                    <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[#d4d3ce] hover:text-[#ff3b2f]">
+                      <ChevronRight
+                        className="h-3.5 w-3.5 text-[#ff3b2f] transition-transform group-open:rotate-90"
+                        aria-hidden="true"
+                      />
+                      <span>Architecture solution</span>
+                    </summary>
+                    <p className="mt-2.5 border-l border-[#ff3b2f]/60 pl-3 text-xs leading-relaxed text-[#a8a8b2]">
+                      {item.solution}
+                    </p>
+                  </details>
+
+                  <div className="border border-white/10 bg-[#08080a] p-3">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#ff3b2f]">
+                      Production Use
+                    </span>
+                    <p className="mt-1 text-xs leading-relaxed text-[#e6e5e0]">
+                      {item.productionUse}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </Reveal>
+
+              {/* Code Inspector Toggle */}
+              <div className="mt-5 border-t border-white/12 pt-4">
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActiveSnippet(
+                        activeSnippet === item.id ? null : item.id,
+                      )
+                    }
+                    className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[#f4f3ee] transition-colors hover:text-[#ff3b2f]"
+                  >
+                    <Code2 className="h-3.5 w-3.5 text-[#ff3b2f]" />
+                    <span>
+                      {activeSnippet === item.id
+                        ? "Hide Implementation"
+                        : "Inspect TypeScript"}
+                    </span>
+                  </button>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#6e6e78]">
+                    TS
+                  </span>
+                </div>
+
+                {activeSnippet === item.id && (
+                  <div className="mt-3 overflow-hidden border border-white/12 bg-[#050507] p-3.5 font-mono text-[11px] text-[#e6e5e0]">
+                    <pre className="overflow-x-auto whitespace-pre leading-relaxed">
+                      <code>{item.codeSnippet}</code>
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* Bottom Banner */}
-        <Reveal delay={120}>
-          <div className="mt-12 rounded-2xl border border-[var(--portfolio-rule)] bg-gradient-to-r from-[var(--portfolio-blue-soft)]/50 via-[var(--portfolio-paper)] to-[var(--portfolio-blue-soft)]/30 p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-2">
-                <Workflow className="h-5 w-5 text-[var(--portfolio-accent)]" />
-                <h4 className="font-display text-base sm:text-lg font-bold text-[var(--portfolio-ink)]">
-                  Need a custom system design or architecture review?
-                </h4>
-              </div>
-              <p className="mt-1.5 text-xs sm:text-sm text-[var(--portfolio-muted)] max-w-2xl">
-                I evaluate distributed transactions, multi-tenant RLS data models, real-time sync pipelines, and high-concurrency PostgreSQL performance.
-              </p>
-            </div>
-            <a
-              href="#Contact"
-              className="portfolio-primary-action shrink-0 text-center"
-            >
-              Discuss Your Architecture
-              <ArrowUpRight className="h-4 w-4" />
-            </a>
+        {/* Bottom Architectural Review Strip */}
+        <div className="mt-10 flex flex-col items-start justify-between gap-6 border border-white/15 bg-[#0e0e12] p-6 sm:p-8 md:flex-row md:items-center">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#ff3b2f]">
+              Architecture Advisory
+            </p>
+            <h4 className="mt-1.5 font-display text-2xl text-[#f4f3ee] sm:text-3xl">
+              Need a system design or reliability review?
+            </h4>
+            <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-[#9c9ca6] sm:text-sm">
+              Evaluating multi-tenant PostgreSQL RLS isolation, transactional
+              outbox pipelines, real-time synchronization, and p95 latency
+              bottlenecks.
+            </p>
           </div>
-        </Reveal>
+          <a
+            href="#Contact"
+            className="portfolio-stage-primary-cta shrink-0"
+          >
+            <span>Discuss Architecture</span>
+            <ArrowUpRight className="h-4 w-4" />
+          </a>
+        </div>
       </div>
     </section>
   );
