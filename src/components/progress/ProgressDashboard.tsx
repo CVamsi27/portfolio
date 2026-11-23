@@ -483,6 +483,14 @@ export default function ProgressDashboard() {
             goalLabel="8k goal"
             barColor="fill-emerald-500"
             emptyCopy="Pair your Android phone in Health → Google Health setup to see step trends."
+            headerAction={
+              <Link
+                href={`/health?view=connections&date=${data.end}`}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Connect Google Health →
+              </Link>
+            }
           />
         </section>
 
@@ -494,6 +502,14 @@ export default function ProgressDashboard() {
             unit="kg"
             stroke="#0ea5e9"
             emptyCopy="Weight readings synced via Google Health Connect will chart automatically here."
+            headerAction={
+              <Link
+                href={`/health?view=connections&date=${data.end}`}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Google Health setup →
+              </Link>
+            }
           />
         </section>
       </div>

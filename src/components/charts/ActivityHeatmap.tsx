@@ -18,11 +18,11 @@ function levelFor(count: number): 0 | 1 | 2 | 3 | 4 {
 }
 
 const LEVEL_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: "bg-muted/55 hover:bg-muted",
-  1: "bg-emerald-500/25 hover:bg-emerald-500/40",
-  2: "bg-emerald-500/50 hover:bg-emerald-500/65",
-  3: "bg-emerald-500/75 hover:bg-emerald-500/90",
-  4: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.35)]",
+  0: "bg-muted/85 ring-1 ring-inset ring-border/50 hover:bg-muted dark:bg-muted/55 dark:ring-0",
+  1: "bg-emerald-500/30 hover:bg-emerald-500/45",
+  2: "bg-emerald-500/55 hover:bg-emerald-500/70",
+  3: "bg-emerald-500/80 hover:bg-emerald-500/95",
+  4: "bg-emerald-600 dark:bg-emerald-500",
 };
 
 const WEEKDAY_LABELS = ["Mon", "", "Wed", "", "Fri", "", "Sun"];
@@ -120,13 +120,13 @@ export default function ActivityHeatmap({
           <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px] tabular-nums">
-          <span className="rounded-lg border border-emerald-500/25 bg-emerald-500/12 px-2.5 py-0.5 font-semibold text-emerald-600 dark:text-emerald-400">
+          <span className="rounded-lg border border-emerald-500/25 bg-emerald-500/12 px-2.5 py-0.5 font-semibold text-emerald-700 dark:text-emerald-400">
             {currentStreak}d streak
           </span>
-          <span className="rounded-lg border border-border/60 bg-background/70 px-2.5 py-0.5 text-muted-foreground">
+          <span className="rounded-lg border border-border/70 bg-muted/35 px-2.5 py-0.5 text-muted-foreground dark:bg-background/70">
             Best {bestStreak}d
           </span>
-          <span className="rounded-lg border border-border/60 bg-background/70 px-2.5 py-0.5 text-muted-foreground">
+          <span className="rounded-lg border border-border/70 bg-muted/35 px-2.5 py-0.5 text-muted-foreground dark:bg-background/70">
             {activeDays}/{days.length}d ({activePct}%)
           </span>
         </div>

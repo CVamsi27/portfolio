@@ -185,7 +185,7 @@ export default function TrendChart({
     <div ref={host} className="progress-chart space-y-4">
       {/* Compact 4-Stat Telemetry Summary Strip */}
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <div className="rounded-xl border border-border/60 bg-background/60 px-3 py-2">
+        <div className="rounded-xl border border-border/70 bg-muted/30 px-3 py-2 dark:bg-background/60">
           <p className="text-[11px] font-medium text-muted-foreground">
             {activePoint ? shortProgressDate(activePoint.date) : "Latest"}
           </p>
@@ -197,7 +197,7 @@ export default function TrendChart({
           </p>
         </div>
 
-        <div className="rounded-xl border border-border/60 bg-background/60 px-3 py-2">
+        <div className="rounded-xl border border-border/70 bg-muted/30 px-3 py-2 dark:bg-background/60">
           <p className="text-[11px] font-medium text-muted-foreground">
             {bars ? "Daily avg" : "Period avg"}
           </p>
@@ -209,7 +209,7 @@ export default function TrendChart({
           </p>
         </div>
 
-        <div className="rounded-xl border border-border/60 bg-background/60 px-3 py-2">
+        <div className="rounded-xl border border-border/70 bg-muted/30 px-3 py-2 dark:bg-background/60">
           <p className="text-[11px] font-medium text-muted-foreground">
             {bars ? "Period total" : "Min – Max"}
           </p>
@@ -220,7 +220,7 @@ export default function TrendChart({
           </p>
         </div>
 
-        <div className="rounded-xl border border-border/60 bg-background/60 px-3 py-2">
+        <div className="rounded-xl border border-border/70 bg-muted/30 px-3 py-2 dark:bg-background/60">
           <p className="text-[11px] font-medium text-muted-foreground">
             {activePoint ? "vs Average" : "Period change"}
           </p>
@@ -229,8 +229,8 @@ export default function TrendChart({
               <span
                 className={
                   activePoint.value! >= stats.avg
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-amber-600 dark:text-amber-400"
+                    ? "text-emerald-700 dark:text-emerald-400"
+                    : "text-amber-700 dark:text-amber-400"
                 }
               >
                 {activePoint.value! >= stats.avg ? "+" : ""}
@@ -242,8 +242,8 @@ export default function TrendChart({
                   stats.delta === 0
                     ? "text-muted-foreground"
                     : stats.delta > 0
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-sky-600 dark:text-sky-400"
+                      ? "text-emerald-700 dark:text-emerald-400"
+                      : "text-sky-700 dark:text-sky-400"
                 }
               >
                 {stats.delta > 0 ? "+" : ""}

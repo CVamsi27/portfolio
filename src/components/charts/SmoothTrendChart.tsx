@@ -1,5 +1,5 @@
 "use client";
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import {
   shortProgressDate,
   type TrendPoint,
@@ -51,6 +51,7 @@ export default function SmoothTrendChart({
   stroke = "#38bdf8",
   showMovingAverage = true,
   emptyCopy = "No readings in this range yet.",
+  headerAction,
 }: {
   points: TrendPoint[];
   unit: string;
@@ -59,6 +60,7 @@ export default function SmoothTrendChart({
   stroke?: string;
   showMovingAverage?: boolean;
   emptyCopy?: string;
+  headerAction?: ReactNode;
 }) {
   const gradId = useId().replace(/:/g, "");
   const [hovered, setHovered] = useState<number | null>(null);
@@ -84,17 +86,20 @@ export default function SmoothTrendChart({
   if (!validReadings.length) {
     return (
       <div className="space-y-2.5">
-        <div>
-          {title && (
-            <h4 className="font-display text-sm font-semibold text-foreground">
-              {title}
-            </h4>
-          )}
-          {subtitle && (
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
-          )}
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            {title && (
+              <h4 className="font-display text-sm font-semibold text-foreground">
+                {title}
+              </h4>
+            )}
+            {subtitle && (
+              <p className="text-xs text-muted-foreground">{subtitle}</p>
+            )}
+          </div>
+          {headerAction && <div className="shrink-0">{headerAction}</div>}
         </div>
-        <p className="rounded-xl border border-dashed border-border/60 bg-muted/15 px-4 py-6 text-center text-xs text-muted-foreground">
+        <p className="rounded-xl border border-dashed border-border/70 bg-muted/25 px-4 py-6 text-center text-xs text-muted-foreground">
           {emptyCopy}
         </p>
       </div>
@@ -151,20 +156,20 @@ export default function SmoothTrendChart({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono tabular-nums">
-          <span className="rounded-lg border border-border/60 bg-background/70 px-2 py-0.5 text-foreground">
+          <span className="rounded-lg border border-border/70 bg-muted/35 px-2 py-0.5 text-foreground dark:bg-background/70">
             {active && active.value !== null
               ? `${shortProgressDate(active.date)}: ${fmt(active.value)} ${unit}`
               : `Latest ${fmt(latest.value!)} ${unit}`}
           </span>
-          <span className="rounded-lg border border-border/60 bg-background/70 px-2 py-0.5 text-muted-foreground">
+          <span className="rounded-lg border border-border/70 bg-muted/35 px-2 py-0.5 text-muted-foreground dark:bg-background/70">
             Avg {fmt(avg)}
           </span>
           {delta !== null && (
             <span
               className={`rounded-lg px-2 py-0.5 font-semibold ${
                 delta <= 0
-                  ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
-                  : "bg-sky-500/12 text-sky-600 dark:text-sky-400"
+                  ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-400"
+                  : "bg-sky-500/12 text-sky-700 dark:text-sky-400"
               }`}
             >
               {delta > 0 ? "+" : ""}

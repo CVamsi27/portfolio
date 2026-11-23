@@ -504,6 +504,14 @@ export default function HealthWorkspace() {
                 goalLabel="8k goal"
                 barColor="fill-emerald-500"
                 emptyCopy="No synced steps in this range. Connect your Android phone under Google Health setup."
+                headerAction={
+                  <Link
+                    href={`/health?view=connections&date=${date}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Set up →
+                  </Link>
+                }
               />
             </section>
 
@@ -522,6 +530,14 @@ export default function HealthWorkspace() {
                   { label: "Light / Asleep", color: "#38bdf8" },
                 ]}
                 emptyCopy="No synced sleep sessions in this range."
+                headerAction={
+                  <Link
+                    href={`/health?view=connections&date=${date}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Set up →
+                  </Link>
+                }
               />
             </section>
 
@@ -533,6 +549,14 @@ export default function HealthWorkspace() {
                 unit="kg"
                 stroke="#0ea5e9"
                 emptyCopy="No synced weight readings in this range."
+                headerAction={
+                  <Link
+                    href={`/health?view=connections&date=${date}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Set up →
+                  </Link>
+                }
               />
             </section>
 
@@ -546,6 +570,14 @@ export default function HealthWorkspace() {
                 goalLabel="45m target"
                 barColor="fill-amber-500"
                 emptyCopy="No synced exercise sessions in this range yet."
+                headerAction={
+                  <Link
+                    href={`/health?view=connections&date=${date}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Set up →
+                  </Link>
+                }
               />
             </section>
           </div>

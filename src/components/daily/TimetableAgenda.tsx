@@ -49,11 +49,21 @@ export default function TimetableAgenda({
       {entries.map((entry) => {
         if ("row" in entry) return renderRow(entry.row);
         const { block, children } = entry.group;
+        const singleMatchingChild =
+          block.kind === "study" &&
+          children.length === 1 &&
+          children[0].title.trim().toLowerCase() ===
+            block.label.trim().toLowerCase();
+        if (singleMatchingChild) {
+          return renderRow(children[0]);
+        }
         const range = `${block.startLocal}–${clock(minutesOf(block.startLocal) + block.durationMinutes)}`;
         return (
           <li
             key={block.id}
-            className="grid min-w-0 grid-cols-[4rem_minmax(0,1fr)] gap-3 border-b border-border py-4 sm:grid-cols-[6rem_minmax(0,1fr)] sm:gap-5"
+            className={`grid min-w-0 grid-cols-[4rem_minmax(0,1fr)] gap-3 border-b border-border sm:grid-cols-[6rem_minmax(0,1fr)] sm:gap-5 ${
+              block.kind === "study" ? "py-4" : "py-3"
+            }`}
           >
             <div className="pt-1 text-sm font-semibold tabular-nums text-muted-foreground">
               {block.startLocal}
@@ -99,12 +109,12 @@ export default function TimetableAgenda({
                 </div>
               </details>
             ) : (
-              <div className="flex min-h-11 min-w-0 flex-wrap items-start justify-between gap-x-4 gap-y-1">
+              <div className="flex min-h-10 min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1">
                 <div>
-                  <strong className="block text-sm font-medium sm:text-base">
+                  <strong className="block text-sm font-medium text-foreground/80">
                     {block.label}
                   </strong>
-                  <small className="mt-1 block text-xs text-muted-foreground">
+                  <small className="mt-0.5 block text-xs text-muted-foreground">
                     {range}
                   </small>
                 </div>

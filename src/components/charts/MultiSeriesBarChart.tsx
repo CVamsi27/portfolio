@@ -1,5 +1,5 @@
 "use client";
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export type BarDatum = {
@@ -19,6 +19,7 @@ export default function MultiSeriesBarChart({
   barColor = "fill-primary",
   legend,
   emptyCopy = "No readings in this range yet.",
+  headerAction,
 }: {
   data: BarDatum[];
   unit: string;
@@ -29,6 +30,7 @@ export default function MultiSeriesBarChart({
   barColor?: string;
   legend?: Array<{ label: string; color: string }>;
   emptyCopy?: string;
+  headerAction?: ReactNode;
 }) {
   const gradId = useId().replace(/:/g, "");
   const [hovered, setHovered] = useState<number | null>(null);
@@ -101,23 +103,25 @@ export default function MultiSeriesBarChart({
           </div>
         ) : stats ? (
           <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono tabular-nums">
-            <span className="rounded-lg border border-border/60 bg-background/70 px-2 py-0.5 text-foreground">
+            <span className="rounded-lg border border-border/70 bg-muted/35 px-2 py-0.5 text-foreground dark:bg-background/70">
               Avg {fmt(Math.round(stats.avg))} {unit}
             </span>
-            <span className="rounded-lg border border-border/60 bg-background/70 px-2 py-0.5 text-muted-foreground">
+            <span className="rounded-lg border border-border/70 bg-muted/35 px-2 py-0.5 text-muted-foreground dark:bg-background/70">
               Peak {fmt(stats.peak)}
             </span>
             {stats.hitGoal !== null && (
-              <span className="rounded-lg bg-emerald-500/12 px-2 py-0.5 font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="rounded-lg bg-emerald-500/12 px-2 py-0.5 font-semibold text-emerald-700 dark:text-emerald-400">
                 {stats.hitGoal}/{stats.count} goal
               </span>
             )}
           </div>
+        ) : headerAction ? (
+          <div className="shrink-0">{headerAction}</div>
         ) : null}
       </div>
 
       {!stats ? (
-        <p className="rounded-xl border border-dashed border-border/60 bg-muted/15 px-4 py-6 text-center text-xs text-muted-foreground">
+        <p className="rounded-xl border border-dashed border-border/70 bg-muted/25 px-4 py-6 text-center text-xs text-muted-foreground">
           {emptyCopy}
         </p>
       ) : (

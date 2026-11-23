@@ -17,11 +17,13 @@ export default function MetricSummary({
   metric,
   endDate,
   context,
+  className,
 }: {
   metric: ProgressMetric;
   endDate?: string;
   /** Trailing context, e.g. `today` or the selected day. */
   context?: string;
+  className?: string;
 }) {
   const { data, prefs } = usePersonalProgress(1, endDate);
   const points = metricPoints(data.days, metric, prefs.weightUnit);
@@ -48,5 +50,5 @@ export default function MetricSummary({
     metric === "weight"
       ? `${value.toFixed(1)} ${shownUnit}`
       : `${value} ${shownUnit}`;
-  return <PageSummary parts={[reading, context ?? point.date]} />;
+  return <PageSummary parts={[reading, context ?? point.date]} className={className} />;
 }

@@ -961,6 +961,7 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
         metric="focus"
         endDate={date}
         context={date === today ? "today" : date}
+        className="mt-4 mb-1.5"
       />
       {!planning && (
         <WeekDateStrip date={date} today={today} onChange={setDate} />
@@ -1227,7 +1228,7 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
         <>
           <section
             aria-label="Google Health Connect snapshot"
-            className="rounded-2xl border border-border/70 bg-card/90 p-4 space-y-3"
+            className="mt-6 rounded-2xl border border-border/70 bg-card/90 p-4 space-y-3"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -1237,7 +1238,11 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
                 </h2>
               </div>
               <Link
-                href={`/health?date=${date}`}
+                href={
+                  healthSummary.connectedDevice
+                    ? `/health?date=${date}`
+                    : `/health?view=connections&date=${date}`
+                }
                 className="text-xs font-medium text-primary hover:underline"
               >
                 {healthSummary.connectedDevice
@@ -1245,74 +1250,85 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
                   : "Connect Google Health →"}
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
-              <div className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <Footprints className="h-3.5 w-3.5 text-emerald-500" /> Steps
-                </span>
-                <p className="font-display text-base font-bold tabular-nums">
-                  {healthSummary.summary.todaySteps !== null
-                    ? healthSummary.summary.todaySteps.toLocaleString()
-                    : "—"}
-                </p>
+            {healthSummary.summary.todaySteps !== null ||
+            healthSummary.summary.todaySleepMinutes !== null ||
+            healthSummary.summary.todayExerciseMinutes !== null ||
+            healthSummary.summary.latestWeight?.value != null ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1">
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Footprints className="h-3.5 w-3.5 text-emerald-500" /> Steps
+                  </span>
+                  <p className="font-display text-base font-bold tabular-nums">
+                    {healthSummary.summary.todaySteps !== null
+                      ? healthSummary.summary.todaySteps.toLocaleString()
+                      : "—"}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1">
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Moon className="h-3.5 w-3.5 text-violet-500" /> Sleep
+                  </span>
+                  <p className="font-display text-base font-bold tabular-nums">
+                    {healthSummary.summary.todaySleepMinutes !== null
+                      ? `${(healthSummary.summary.todaySleepMinutes / 60).toFixed(1)}h`
+                      : "—"}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1">
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Activity className="h-3.5 w-3.5 text-amber-500" /> Exercise
+                  </span>
+                  <p className="font-display text-base font-bold tabular-nums">
+                    {healthSummary.summary.todayExerciseMinutes !== null
+                      ? `${healthSummary.summary.todayExerciseMinutes}m`
+                      : "—"}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1">
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Scale className="h-3.5 w-3.5 text-sky-500" /> Weight
+                  </span>
+                  <p className="font-display text-base font-bold tabular-nums">
+                    {healthSummary.summary.latestWeight?.value != null
+                      ? displayWeight(
+                          healthSummary.summary.latestWeight.value,
+                          prefs.weightUnit,
+                        )
+                      : "—"}
+                  </p>
+                </div>
               </div>
-              <div className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <Moon className="h-3.5 w-3.5 text-violet-500" /> Sleep
-                </span>
-                <p className="font-display text-base font-bold tabular-nums">
-                  {healthSummary.summary.todaySleepMinutes !== null
-                    ? `${(healthSummary.summary.todaySleepMinutes / 60).toFixed(1)}h`
-                    : "—"}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <Activity className="h-3.5 w-3.5 text-amber-500" /> Exercise
-                </span>
-                <p className="font-display text-base font-bold tabular-nums">
-                  {healthSummary.summary.todayExerciseMinutes !== null
-                    ? `${healthSummary.summary.todayExerciseMinutes}m`
-                    : "—"}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <Scale className="h-3.5 w-3.5 text-sky-500" /> Weight
-                </span>
-                <p className="font-display text-base font-bold tabular-nums">
-                  {healthSummary.summary.latestWeight?.value != null
-                    ? displayWeight(
-                        healthSummary.summary.latestWeight.value,
-                        prefs.weightUnit,
-                      )
-                    : "—"}
-                </p>
-              </div>
-            </div>
+            ) : (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                No synced vitals recorded for {date}. Pair Google Health Connect
+                on your phone to sync steps, sleep, workouts, and weight
+                automatically.
+              </p>
+            )}
           </section>
 
-          <section className="flex flex-wrap items-center gap-2">
+          <section className="mt-4 flex flex-wrap items-center gap-2">
             <Link
-              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium hover:border-primary/50"
+              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-accent/50"
               href={addUrl("task")}
             >
               + Add task
             </Link>
             <Link
-              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium hover:border-primary/50"
+              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-accent/50"
               href={addUrl("note")}
             >
               + Career note
             </Link>
             <Link
-              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium hover:border-primary/50"
+              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-accent/50"
               href={`/log?view=journal&date=${date}`}
             >
               Daily reflection →
             </Link>
             <Link
-              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium hover:border-primary/50"
+              className="inline-flex min-h-10 items-center rounded-xl border border-border/70 bg-card px-3.5 text-xs font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-accent/50"
               href={`/review?date=${date}`}
             >
               Weekly review →
