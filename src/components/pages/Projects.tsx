@@ -10,17 +10,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import {
   ArrowUpRight,
-  Server,
-  Shield,
-  Layers,
-  Activity,
   ExternalLink,
   Search,
   X,
   Gamepad2,
-  Radio,
   ChevronDown,
-  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DocitaArchitectureModal from "@/components/DocitaArchitectureModal";
@@ -248,56 +242,75 @@ const Projects = () => {
           description="Production systems and engineered products, chosen for the operational problems they solve, their architectural resilience, and the lessons they carry into every codebase."
         />
 
-        {/* Flagship Architectural Dossier: Docita */}
-        <Reveal delay={40} className="portfolio-flagship-card mb-12">
+        {/* Flagship Architectural Dossier: Docita (No glowing dots, no red side stripe) */}
+        <Reveal delay={40} className="portfolio-flagship-card mb-14">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--portfolio-rule)] pb-4">
-            <div className="flex items-center gap-2.5">
-              <span className="portfolio-status-dot" aria-hidden="true" />
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--portfolio-accent)]">
-                Flagship Production System · Healthcare SaaS
-              </span>
-            </div>
-            <span className="portfolio-impact-pill">Clinic Workflow OS</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--portfolio-muted)]">
+              Flagship Production System · Healthcare SaaS
+            </span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--portfolio-muted)]">
+              Clinic Workflow OS
+            </span>
           </div>
 
-          <div className="mt-7 grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-start">
+          <div className="mt-8 grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-start">
             <div>
               <div className="flex flex-wrap items-baseline gap-3">
-                <h3 className="font-display text-4xl leading-none tracking-[-0.02em] text-[var(--portfolio-ink)] sm:text-5xl">
+                <h3 className="font-display text-4xl font-light leading-none tracking-[-0.03em] text-[var(--portfolio-ink)] sm:text-5xl">
                   {flagshipProject.title}
                 </h3>
-                <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--portfolio-muted)]">
+                <span className="font-sans text-xs font-medium text-[var(--portfolio-muted)]">
                   Clinical Operating System
                 </span>
               </div>
 
-              <p className="mt-4 text-sm leading-relaxed text-[var(--portfolio-muted)] sm:text-base sm:leading-7">
+              <p className="mt-5 font-sans text-sm leading-relaxed text-[var(--portfolio-muted)] sm:text-base sm:leading-[1.75]">
                 {flagshipProject.description.replace(/\.$/, "")}. Built to
                 replace fragmented paper workflows with a tenant-isolated
                 clinical platform handling patient records, live queues,
                 diagnoses, digital prescriptions, and multi-tier billing.
               </p>
 
-              <div className="mt-6 grid grid-cols-1 gap-3 border-t border-[var(--portfolio-rule)] pt-5 sm:grid-cols-2">
-                <div className="flex items-start gap-2.5 text-xs text-[var(--portfolio-ink)]">
-                  <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
-                  <span>PostgreSQL RLS &amp; Deny-by-default ABAC</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-xs text-[var(--portfolio-ink)]">
-                  <Server className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
-                  <span>Transactional Outbox &amp; Queues</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-xs text-[var(--portfolio-ink)]">
-                  <Layers className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
-                  <span>NestJS &amp; Prisma APIs</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-xs text-[var(--portfolio-ink)]">
-                  <Activity className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
-                  <span>TanStack Query &amp; Shared Zod Schemas</span>
-                </div>
+              <div className="mt-7 grid grid-cols-1 gap-4 border-t border-[var(--portfolio-rule)] pt-6 sm:grid-cols-2">
+                {[
+                  [
+                    "01",
+                    "Tenant Isolation",
+                    "PostgreSQL RLS & deny-by-default ABAC",
+                  ],
+                  [
+                    "02",
+                    "Durable Delivery",
+                    "Transactional outbox & bounded-retry queues",
+                  ],
+                  [
+                    "03",
+                    "Typed Backend",
+                    "NestJS modular services & Prisma migrations",
+                  ],
+                  [
+                    "04",
+                    "Client State",
+                    "TanStack Query & shared Zod contract validation",
+                  ],
+                ].map(([num, title, desc]) => (
+                  <div key={num} className="space-y-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-mono text-[10px] text-[var(--portfolio-muted)]">
+                        {num}
+                      </span>
+                      <span className="font-sans text-xs font-semibold text-[var(--portfolio-ink)]">
+                        {title}
+                      </span>
+                    </div>
+                    <p className="font-sans text-xs text-[var(--portfolio-muted)]">
+                      {desc}
+                    </p>
+                  </div>
+                ))}
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-1.5">
+              <div className="mt-7 flex flex-wrap items-center gap-1.5">
                 {flagshipProject.tech.split(", ").map((tech) => (
                   <button
                     key={tech}
@@ -318,7 +331,7 @@ const Projects = () => {
               </div>
             </div>
 
-            <div className="border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-5">
+            <div className="border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6">
               <p className="portfolio-meta-label">Specification &amp; Scope</p>
               <div className="mt-4 divide-y divide-[var(--portfolio-rule)] border-y border-[var(--portfolio-rule)]">
                 {[
@@ -329,7 +342,7 @@ const Projects = () => {
                 ].map(([k, v]) => (
                   <div
                     key={k}
-                    className="flex items-center justify-between py-2.5 font-mono text-[11px]"
+                    className="flex items-center justify-between py-2.5 font-sans text-xs"
                   >
                     <span className="text-[var(--portfolio-muted)]">{k}</span>
                     <span className="font-medium text-[var(--portfolio-ink)]">
@@ -339,7 +352,7 @@ const Projects = () => {
                 ))}
               </div>
 
-              <div className="mt-5 flex flex-col gap-2">
+              <div className="mt-6 flex flex-col gap-2.5">
                 <button
                   type="button"
                   onClick={() =>
@@ -350,8 +363,8 @@ const Projects = () => {
                   }
                   className="portfolio-primary-action w-full cursor-pointer"
                 >
-                  <Radio className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
-                  <span>Launch Live Preview</span>
+                  <span>Launch live preview</span>
+                  <ArrowUpRight className="h-3.5 w-3.5" />
                 </button>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -359,28 +372,27 @@ const Projects = () => {
                     href={flagshipProject.URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="portfolio-secondary-action min-h-10 px-2.5 py-2 text-[11px]"
+                    className="portfolio-secondary-action min-h-10 px-3 py-2 text-xs"
                   >
-                    <span>External Tab</span>
+                    <span>Open site</span>
                     <ArrowUpRight className="h-3.5 w-3.5" />
                   </a>
 
                   <button
                     type="button"
                     onClick={() => setArchModalOpen(true)}
-                    className="portfolio-secondary-action min-h-10 cursor-pointer px-2.5 py-2 text-[11px]"
+                    className="portfolio-secondary-action min-h-10 cursor-pointer px-3 py-2 text-xs"
                   >
-                    <Layers className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
                     <span>Architecture</span>
                   </button>
 
                   <Link
                     href={caseStudyHref(flagshipProject.title)}
                     aria-label={`Read the ${flagshipProject.title} case study`}
-                    className="portfolio-secondary-action col-span-2 min-h-10 px-2.5 py-2 text-[11px]"
+                    className="portfolio-secondary-action col-span-2 min-h-10 px-3 py-2 text-xs"
                   >
-                    <FileText className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
                     <span>Read the {flagshipProject.title} case study</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
               </div>
@@ -388,12 +400,12 @@ const Projects = () => {
           </div>
         </Reveal>
 
-        {/* Filter Tabs & Search Bar */}
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Clean Underline Filter Tabs & Search Bar */}
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div
             role="tablist"
             aria-label="Filter projects by category"
-            className="portfolio-filter-tabs"
+            className="portfolio-filter-tabs flex-1"
           >
             {TABS.map((tab, i) => (
               <button
@@ -432,15 +444,15 @@ const Projects = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter by tech or title..."
+              placeholder="Search by tech or title..."
               aria-label="Search projects by title, description, or technology"
-              className="h-10 w-full rounded-none border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] pl-9 pr-8 font-mono text-xs text-[var(--portfolio-ink)] placeholder:text-[var(--portfolio-muted)]/70 focus:border-[var(--portfolio-ink)] focus:outline-none"
+              className="h-10 w-full rounded-full border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] pl-9 pr-8 font-sans text-xs text-[var(--portfolio-ink)] placeholder:text-[var(--portfolio-muted)]/70 focus:border-[var(--portfolio-ink)] focus:outline-none"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--portfolio-muted)] hover:text-[var(--portfolio-accent)]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]"
                 aria-label="Clear search"
               >
                 <X className="h-3.5 w-3.5" />
@@ -451,17 +463,14 @@ const Projects = () => {
 
         {/* Active Filters Strip */}
         {(selectedTech || searchQuery) && (
-          <div className="mb-6 flex flex-wrap items-center gap-2 border border-[var(--portfolio-rule)] bg-[var(--portfolio-wash)] px-3.5 py-2.5 font-mono text-[11px]">
-            <span className="uppercase tracking-[0.12em] text-[var(--portfolio-muted)]">
-              Active:
-            </span>
+          <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-[var(--portfolio-rule)] pb-4 font-sans text-xs">
+            <span className="text-[var(--portfolio-muted)]">Filtered by:</span>
             {selectedTech && (
-              <span className="inline-flex items-center gap-1.5 border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] px-2 py-0.5 text-[var(--portfolio-paper)]">
-                Tech: {selectedTech}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] px-3 py-0.5 text-[var(--portfolio-paper)]">
+                {selectedTech}
                 <button
                   type="button"
                   onClick={() => setSelectedTech(null)}
-                  className="hover:text-[var(--portfolio-accent)]"
                   aria-label="Remove technology filter"
                 >
                   <X className="h-3 w-3" />
@@ -469,12 +478,11 @@ const Projects = () => {
               </span>
             )}
             {searchQuery && (
-              <span className="inline-flex items-center gap-1.5 border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] px-2 py-0.5 text-[var(--portfolio-paper)]">
-                Query: &quot;{searchQuery}&quot;
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] px-3 py-0.5 text-[var(--portfolio-paper)]">
+                &quot;{searchQuery}&quot;
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="hover:text-[var(--portfolio-accent)]"
                   aria-label="Clear search query"
                 >
                   <X className="h-3 w-3" />
@@ -492,20 +500,20 @@ const Projects = () => {
                 setSearchQuery("");
                 setActiveTab("all");
               }}
-              className="ml-auto cursor-pointer uppercase tracking-[0.1em] text-[var(--portfolio-accent)] hover:underline"
+              className="ml-auto cursor-pointer font-medium text-[var(--portfolio-ink)] underline underline-offset-4"
             >
               Reset all
             </button>
           </div>
         )}
 
-        {/* 10-Row Architectural Index Ledger */}
+        {/* 10-Row Open Editorial Index */}
         {filteredProjects.length === 0 ? (
-          <div className="border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] px-6 py-12 text-center">
-            <p className="font-display text-2xl text-[var(--portfolio-ink)]">
+          <div className="border-y border-[var(--portfolio-rule)] py-14 text-center">
+            <p className="font-display text-2xl font-light text-[var(--portfolio-ink)]">
               No matching systems found
             </p>
-            <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
+            <p className="mt-1 font-sans text-xs text-[var(--portfolio-muted)]">
               No projects match the active search or technology filter.
             </p>
             <button
@@ -530,13 +538,9 @@ const Projects = () => {
               return (
                 <Reveal
                   key={project.title}
-                  delay={(index % 3) * 40}
+                  delay={(index % 3) * 35}
                   data-project-index={String(index + 1).padStart(2, "0")}
-                  className={
-                    project.title === "Docita"
-                      ? "portfolio-work-row portfolio-work-row--lead"
-                      : "portfolio-work-row"
-                  }
+                  className="portfolio-work-row"
                 >
                   <div className="portfolio-work-number">
                     {String(index + 1).padStart(2, "0")}
@@ -544,24 +548,15 @@ const Projects = () => {
 
                   <div className="portfolio-work-copy min-w-0">
                     <div className="flex flex-wrap items-baseline justify-between gap-3">
-                      <div className="flex flex-wrap items-center gap-2.5">
+                      <div className="flex flex-wrap items-baseline gap-3">
                         <h3>{project.title}</h3>
                         {extra?.categoryLabel ? (
-                          <span className="portfolio-impact-pill">
+                          <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-muted)]">
                             {extra.categoryLabel}
                           </span>
                         ) : null}
-                        {project.URL && !project.URL.includes("github.com") ? (
-                          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--portfolio-accent)]">
-                            <span
-                              className="h-1.5 w-1.5 bg-[var(--portfolio-accent)]"
-                              aria-hidden="true"
-                            />
-                            Live
-                          </span>
-                        ) : null}
                         {extra?.metrics ? (
-                          <span className="font-mono text-[11px] text-[var(--portfolio-muted)]">
+                          <span className="font-sans text-xs text-[var(--portfolio-muted)]">
                             · {extra.metrics}
                           </span>
                         ) : null}
@@ -570,7 +565,7 @@ const Projects = () => {
                       <Link
                         href={caseStudyHref(project.title)}
                         data-case-study-link={projectSlug(project.title)}
-                        className="inline-flex shrink-0 items-center gap-1 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--portfolio-ink)] transition-colors hover:text-[var(--portfolio-accent)]"
+                        className="inline-flex shrink-0 items-center gap-1 border-b border-transparent pb-0.5 font-sans text-xs font-medium text-[var(--portfolio-ink)] transition-colors hover:border-[var(--portfolio-ink)]"
                         aria-label={`${project.title} case study`}
                       >
                         <span>Case study</span>
@@ -584,19 +579,19 @@ const Projects = () => {
                       data-project-details
                       className="portfolio-work-details mt-4"
                     >
-                      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--portfolio-muted)] transition-colors hover:text-[var(--portfolio-ink)]">
+                      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-sans text-xs font-medium text-[var(--portfolio-muted)] transition-colors hover:text-[var(--portfolio-ink)]">
                         <ChevronDown
-                          className="h-3.5 w-3.5 text-[var(--portfolio-accent)]"
+                          className="h-3.5 w-3.5"
                           aria-hidden="true"
                         />
                         <span>Engineering decisions</span>
                       </summary>
                       <div className="mt-4 border-t border-[var(--portfolio-rule)] pt-4">
                         {extra?.highlights?.length ? (
-                          <ul className="space-y-1.5 text-xs text-[var(--portfolio-muted)]">
+                          <ul className="space-y-1.5 font-sans text-xs text-[var(--portfolio-muted)]">
                             {extra.highlights.map((item) => (
                               <li key={item} className="flex items-start gap-2">
-                                <span className="font-mono text-[var(--portfolio-accent)]">
+                                <span className="text-[var(--portfolio-ink)]">
                                   —
                                 </span>
                                 <span>{item}</span>
@@ -632,10 +627,10 @@ const Projects = () => {
                             <button
                               type="button"
                               onClick={() => setGameModalOpen(true)}
-                              className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs uppercase tracking-[0.08em] text-[var(--portfolio-accent)] hover:underline"
+                              className="inline-flex cursor-pointer items-center gap-1.5 font-sans text-xs font-medium text-[var(--portfolio-ink)] hover:underline"
                             >
                               <Gamepad2 className="h-3.5 w-3.5" />
-                              <span>Play Mini Game</span>
+                              <span>Play mini game</span>
                             </button>
                           ) : null}
 
@@ -649,10 +644,9 @@ const Projects = () => {
                                     url: project.URL,
                                   })
                                 }
-                                className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs uppercase tracking-[0.08em] text-[var(--portfolio-accent)] hover:underline"
+                                className="inline-flex cursor-pointer items-center gap-1.5 font-sans text-xs font-medium text-[var(--portfolio-ink)] hover:underline"
                               >
-                                <Radio className="h-3.5 w-3.5" />
-                                <span>Live Sandbox</span>
+                                <span>Live sandbox</span>
                               </button>
 
                               <a
@@ -690,7 +684,7 @@ const Projects = () => {
                                 icon={faGithub}
                                 className="h-3.5 w-3.5"
                               />
-                              <span>Source Code</span>
+                              <span>Source code</span>
                             </a>
                           ) : null}
                         </div>

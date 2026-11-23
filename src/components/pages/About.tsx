@@ -87,29 +87,25 @@ const About = () => {
       id="Top"
       aria-label="About and Introduction"
       data-chapter-index="00"
-      className="portfolio-hero portfolio-stage-hero relative isolate overflow-hidden px-5 pb-16 pt-8 sm:px-10 sm:pb-20 sm:pt-12 lg:px-16 lg:pb-24 lg:pt-14"
+      className="portfolio-hero portfolio-stage-hero relative isolate overflow-hidden px-5 pb-16 pt-8 sm:px-10 sm:pb-24 sm:pt-12 lg:px-16 lg:pb-28 lg:pt-14"
     >
-      {/* Layer 1: Monochrome wireframe spatial network with surgical scarlet pulses */}
+      {/* Layer 1: Theme-adaptive architectural wireframe topology */}
       <SystemsFieldCanvas />
 
-      {/* Layer 2: Precision architectural drafting grid + dark legibility vignette */}
+      {/* Layer 2: Subtle drafting grid + soft radial vignette */}
       <div aria-hidden="true" className="portfolio-blueprint-grid" />
       <div aria-hidden="true" className="portfolio-stage-vignette" />
 
       <div className="relative z-10 mx-auto max-w-7xl">
-        {/* Top Engineering Telemetry Bar */}
-        <div className="mb-10 flex flex-wrap items-center justify-between gap-3 border-b border-white/15 pb-4">
-          <div className="inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#d4d3ce]">
-            <span className="portfolio-status-dot" aria-hidden="true" />
-            <span className="hidden sm:inline">
-              Open to Remote Full Stack Roles
-            </span>
-            <span className="inline sm:hidden">Remote Full Stack Roles</span>
-          </div>
+        {/* Top Editorial Masthead Rule (No glowing dots) */}
+        <div className="mb-12 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--portfolio-hero-rule)] pb-4">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--portfolio-hero-muted)]">
+            Open to Remote Full Stack Roles
+          </p>
 
-          <div className="flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-[#8e8e98]">
+          <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--portfolio-hero-muted)]">
             <span className="hidden md:inline">
-              00 // SYSTEMS · PRODUCTS · VERIFIED ARCHITECTURE
+              Systems · Products · Verified Architecture
             </span>
             <button
               type="button"
@@ -119,7 +115,7 @@ const About = () => {
                 )
               }
               aria-label={`Cycle name language (currently ${currentTranslation.language})`}
-              className="inline-flex cursor-pointer items-center gap-1.5 border border-white/20 bg-transparent px-2.5 py-1 font-mono text-[10px] text-[#f4f3ee] transition-colors hover:border-[#ff3b2f] hover:text-[#ff3b2f]"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[var(--portfolio-hero-rule)] bg-transparent px-3 py-1 font-sans text-xs font-medium normal-case tracking-normal text-[var(--portfolio-hero-ink)] transition-colors hover:border-[var(--portfolio-hero-ink)]"
               title="Click to cycle name script across languages"
             >
               <Languages className="h-3 w-3" />
@@ -129,14 +125,14 @@ const About = () => {
         </div>
 
         {/* Main 2-Column Editorial Stage Grid */}
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_24.5rem] lg:items-start lg:gap-14">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_24.5rem] lg:items-start lg:gap-16">
           <div className="min-w-0 max-w-3xl">
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#ff3b2f]">
+            <p className="font-mono text-xs uppercase tracking-[0.14em] text-[var(--portfolio-hero-muted)]">
               {currentTranslation.vamsi} {currentTranslation.krishna}{" "}
               {currentTranslation.chandaluri} — Senior Full Stack Engineer
             </p>
 
-            <h1 className="portfolio-stage-title mt-5">
+            <h1 className="portfolio-stage-title mt-6">
               I build software
               <br />
               <span className="portfolio-stage-title-accent">
@@ -144,7 +140,7 @@ const About = () => {
               </span>
             </h1>
 
-            <p className="mt-7 max-w-2xl text-base leading-relaxed text-[#a8a8b2] sm:text-lg sm:leading-8">
+            <p className="mt-7 max-w-2xl font-sans text-base leading-relaxed text-[var(--portfolio-hero-muted)] sm:text-[1.125rem] sm:leading-[1.75]">
               React and TypeScript products, Node.js and NestJS APIs, and
               PostgreSQL workflows—shaped by 5+ years across enterprise
               platforms and an independent healthcare SaaS. Focused on
@@ -152,8 +148,8 @@ const About = () => {
               production reliability.
             </p>
 
-            {/* Stark Monochrome Action Row */}
-            <div className="mt-9 flex flex-col items-stretch gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+            {/* Clean Sentence-Case Action Row */}
+            <div className="mt-10 flex flex-col items-stretch gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
               <a
                 href="#Work"
                 className="portfolio-stage-primary-cta w-full sm:w-auto"
@@ -175,10 +171,10 @@ const About = () => {
                   type="button"
                   variant="outline"
                   onClick={() => setResumeOpen(true)}
-                  className="portfolio-stage-secondary-cta h-auto w-full rounded-none hover:bg-white/10 hover:text-white sm:w-auto"
+                  className="portfolio-stage-secondary-cta h-auto w-full sm:w-auto"
                   title="View interactive résumé modal"
                 >
-                  <FileText className="h-3.5 w-3.5 text-[#ff3b2f]" />
+                  <FileText className="h-3.5 w-3.5" />
                   <span>View resume</span>
                 </Button>
 
@@ -191,12 +187,12 @@ const About = () => {
                 >
                   {copied ? (
                     <>
-                      <Check className="h-3.5 w-3.5 text-[#ff3b2f]" />
+                      <Check className="h-3.5 w-3.5" />
                       <span>Copied</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="h-3.5 w-3.5 text-[#a8a8b2]" />
+                      <Copy className="h-3.5 w-3.5" />
                       <span>Copy email</span>
                     </>
                   )}
@@ -204,9 +200,9 @@ const About = () => {
               </div>
             </div>
 
-            {/* Subtle Scroll Cue */}
+            {/* Quiet Scroll Cue */}
             <div
-              className="mt-10 hidden items-center gap-2 transition-opacity duration-500 sm:flex"
+              className="mt-12 hidden items-center gap-2 transition-opacity duration-500 sm:flex"
               style={{
                 opacity: scrolled ? 0 : 1,
                 pointerEvents: scrolled ? "none" : "auto",
@@ -215,38 +211,32 @@ const About = () => {
               <a
                 href="#Work"
                 aria-label="Scroll to work section"
-                className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[#8e8e98] transition-colors hover:text-[#f4f3ee]"
+                className="inline-flex items-center gap-2 font-sans text-xs font-medium text-[var(--portfolio-hero-muted)] transition-colors hover:text-[var(--portfolio-hero-ink)]"
               >
-                <ChevronDown className="h-3.5 w-3.5 text-[#ff3b2f]" />
+                <ChevronDown className="h-3.5 w-3.5" />
                 <span>Scroll to inspect systems &amp; case studies</span>
               </a>
             </div>
           </div>
 
-          {/* Right Column: Shadowless Architectural Systems Inspector */}
+          {/* Right Column: Typographic Systems Inspector (No Avatar) */}
           <SystemsBlueprintCard onFilterTech={handleFilterByTech} />
         </div>
 
-        {/* Bottom 4-Column Drafting Ledger */}
-        <div className="portfolio-telemetry-grid mt-12">
+        {/* Bottom 4-Column Open Typographic Metrics Ledger */}
+        <div className="portfolio-telemetry-grid mt-16">
           {STATS.map((stat) => (
             <div key={stat.label} className="portfolio-telemetry-card">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[10px] tracking-[0.16em] text-[#ff3b2f]">
-                  {stat.index}
-                </span>
-                <span
-                  className="h-1 w-1 bg-white/30"
-                  aria-hidden="true"
-                />
-              </div>
-              <p className="mt-2 font-display text-4xl leading-none tracking-[-0.02em] text-[#f4f3ee] tabular-nums sm:text-5xl">
+              <span className="font-mono text-[11px] tracking-[0.12em] text-[var(--portfolio-hero-muted)]">
+                {stat.index}
+              </span>
+              <p className="mt-2 font-display text-4xl font-light leading-none tracking-[-0.03em] text-[var(--portfolio-hero-ink)] tabular-nums sm:text-5xl">
                 {stat.value}
               </p>
-              <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#d4d3ce]">
+              <p className="mt-2.5 font-sans text-xs font-semibold text-[var(--portfolio-hero-ink)]">
                 {stat.label}
               </p>
-              <p className="mt-1 line-clamp-1 text-xs text-[#8e8e98]">
+              <p className="mt-1 font-sans text-xs leading-relaxed text-[var(--portfolio-hero-muted)]">
                 {stat.subtext}
               </p>
             </div>

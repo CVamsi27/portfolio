@@ -26,7 +26,7 @@ export function ModeToggle() {
       onClick={toggle}
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
       title={`Switch to ${isDark ? "light" : "dark"} mode`}
-      className="h-9 w-9 rounded-none border border-[var(--portfolio-rule)] bg-transparent text-[var(--portfolio-ink)] transition-colors hover:border-[var(--portfolio-ink)] hover:bg-[var(--portfolio-wash)]"
+      className="h-9 w-9 rounded-full border border-[var(--portfolio-rule)] bg-transparent text-[var(--portfolio-ink)] transition-colors hover:border-[var(--portfolio-ink)] hover:bg-[var(--portfolio-wash)]"
     >
       <span className="relative flex h-3.5 w-3.5 items-center justify-center">
         <Sun
