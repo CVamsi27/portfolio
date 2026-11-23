@@ -49,6 +49,35 @@ const PROJECT_EXTRAS: Record<
       "Shared Zod contracts, runtime validation and TanStack Query server state",
     ],
   },
+  "RLS Rehearsal": {
+    category: "platforms",
+    categoryLabel: "Security & Isolation",
+    metrics: "PostgreSQL RLS · CI Gate",
+    highlights: [
+      "Executable two-tenant PostgreSQL Row-Level Security harness, CLI, and GitHub Action",
+      "Mandatory failing control pass disables RLS in a disposable DB to prove the check catches leaks",
+      "Safety guards refuse privileged or remote targets; emits JSON, Markdown, and JUnit reports",
+    ],
+  },
+  Retryglass: {
+    category: "platforms",
+    categoryLabel: "Queue Reliability",
+    metrics: "BullMQ · Crash-Point Sweep",
+    highlights: [
+      "Sweeps crash points before and after external effect boundaries in local BullMQ workers",
+      "Distinguishes duplicate side effects from silently lost jobs using idempotency keys",
+      "Emits reproducible Vitest regression cases that stay red until the handler is fixed",
+    ],
+  },
+  "Developer Pain Lab": {
+    category: "platforms",
+    categoryLabel: "Verification Suite",
+    metrics: "Deploy · Rollout · Revoke",
+    highlights: [
+      "Executable failure-path verification suite combining Retryglass, Deployproof, Rolloutproof, and Revokeproof",
+      "Catches packaging leaks, unsafe PostgreSQL rollback paths, and lingering revoked sessions",
+    ],
+  },
   "Senior Full Stack Bible": {
     category: "platforms",
     categoryLabel: "Knowledge Engine",
@@ -203,7 +232,7 @@ const Projects = () => {
         />
 
         {/* Flagship Showcase Card: Docita */}
-        <Reveal delay={40} className="portfolio-flagship-card mb-10 sm:mb-16">
+        <Reveal delay={40} className="portfolio-flagship-card portfolio-flagship-blueprint mb-10 sm:mb-14">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--portfolio-rule)] pb-4">
             <div className="flex items-center gap-2">
               <span className="portfolio-status-dot" aria-hidden="true" />

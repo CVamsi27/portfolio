@@ -36,7 +36,7 @@ const Experience = () => {
     <section id="Experience" className="portfolio-section px-5 py-12 sm:px-10 sm:py-16 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="02 / Career Record"
+          eyebrow="04 / Career Record"
           title="Where I have shipped"
           description="Five years of production engineering across healthcare SaaS, high-throughput internal platforms, and enterprise cloud services."
         />
