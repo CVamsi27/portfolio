@@ -12,9 +12,24 @@ const COMPANY_LOCATIONS: Record<string, string> = {
 };
 
 const COMPANY_HIGHLIGHTS: Record<string, string[]> = {
-  Docita: ["Clinic Workflow Ownership", "Operational Dashboard", "Scoped APIs", "Outbox & Queues"],
-  "MAQ Software": ["Recruitment Workflows", "API Query Tuning", "Reusable React UI", "Reviews & Mentoring"],
-  Cognizant: ["4 Microservices", "Spring Boot & Eureka", "Zuul Gateway", "E-Commerce"],
+  Docita: [
+    "Clinic Workflow Ownership",
+    "Operational Dashboard",
+    "Scoped APIs",
+    "Outbox & Queues",
+  ],
+  "MAQ Software": [
+    "Recruitment Workflows",
+    "API Query Tuning",
+    "Reusable React UI",
+    "Reviews & Mentoring",
+  ],
+  Cognizant: [
+    "4 Microservices",
+    "Spring Boot & Eureka",
+    "Zuul Gateway",
+    "E-Commerce",
+  ],
 };
 
 const KEY_PHRASES = [
@@ -33,10 +48,13 @@ const KEY_PHRASES = [
 
 const Experience = () => {
   return (
-    <section id="Experience" className="portfolio-section px-5 py-12 sm:px-10 sm:py-16 lg:px-16">
+    <section
+      id="Experience"
+      className="portfolio-section bg-[var(--portfolio-wash)] px-5 py-16 sm:px-10 sm:py-24 lg:px-16"
+    >
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="04 / Career Record"
+          eyebrow="04 // Career Record"
           title="Where I have shipped"
           description="Five years of production engineering across healthcare SaaS, high-throughput internal platforms, and enterprise cloud services."
         />
@@ -50,14 +68,16 @@ const Experience = () => {
               <ul className="portfolio-experience-details">
                 {value.details.map((detail) => {
                   const phrase = KEY_PHRASES.find((p) =>
-                    detail.toLowerCase().includes(p.toLowerCase())
+                    detail.toLowerCase().includes(p.toLowerCase()),
                   );
 
                   if (!phrase) {
                     return <li key={detail}>{detail}</li>;
                   }
 
-                  const idx = detail.toLowerCase().indexOf(phrase.toLowerCase());
+                  const idx = detail
+                    .toLowerCase()
+                    .indexOf(phrase.toLowerCase());
                   const before = detail.slice(0, idx);
                   const matched = detail.slice(idx, idx + phrase.length);
                   const after = detail.slice(idx + phrase.length);
@@ -65,9 +85,7 @@ const Experience = () => {
                   return (
                     <li key={detail}>
                       {before}
-                      <strong className="font-semibold text-[var(--portfolio-ink)]">
-                        {matched}
-                      </strong>
+                      <strong>{matched}</strong>
                       {after}
                     </li>
                   );
@@ -82,10 +100,16 @@ const Experience = () => {
                     key={tech}
                     type="button"
                     onClick={() => {
-                      window.dispatchEvent(new CustomEvent("portfolio-filter-tech", { detail: tech }));
-                      document.getElementById("Work")?.scrollIntoView({ behavior: "smooth" });
+                      window.dispatchEvent(
+                        new CustomEvent("portfolio-filter-tech", {
+                          detail: tech,
+                        }),
+                      );
+                      document
+                        .getElementById("Work")
+                        ?.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className="portfolio-tag-pill cursor-pointer transition-all hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)]"
+                    className="portfolio-tag-pill cursor-pointer"
                     title={`Filter work projects by ${tech}`}
                   >
                     {tech}
@@ -95,41 +119,50 @@ const Experience = () => {
             );
 
             return (
-              <Reveal key={`${value.company}-${value.duration}`} delay={index * 70}>
+              <Reveal
+                key={`${value.company}-${value.duration}`}
+                delay={index * 50}
+              >
                 {isCurrent ? (
-                  <div className="portfolio-experience-row" data-experience-current>
+                  <div
+                    className="portfolio-experience-row"
+                    data-experience-current
+                  >
                     <div className="portfolio-experience-meta">
-                      <span className="portfolio-index">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="portfolio-index">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
 
                       <a
                         href={value.URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 font-display text-lg font-bold text-[var(--portfolio-ink)] transition-colors hover:text-[var(--portfolio-accent)]"
+                        className="inline-flex items-center gap-1.5 font-display text-2xl font-normal normal-case tracking-[-0.015em] text-[var(--portfolio-ink)] hover:text-[var(--portfolio-accent)]"
                       >
                         <span>{value.company}</span>
                         <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--portfolio-accent)]" />
                       </a>
 
-                      <span className="font-utility text-xs font-semibold text-[var(--portfolio-muted)]">
+                      <span className="font-mono text-xs text-[var(--portfolio-muted)]">
                         {value.duration}
                       </span>
 
                       {COMPANY_LOCATIONS[value.company] ? (
-                        <span className="inline-flex items-center gap-1 font-utility text-[0.62rem] text-[var(--portfolio-muted)]">
+                        <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[var(--portfolio-muted)]">
                           <MapPin className="h-3 w-3 shrink-0 text-[var(--portfolio-accent)]" />
                           <span>{COMPANY_LOCATIONS[value.company]}</span>
                         </span>
                       ) : null}
 
-                      <span className="inline-flex items-center gap-1.5 w-fit">
-                        <span className="portfolio-status-dot" aria-hidden="true" />
-                        <span className="font-utility text-[0.6rem] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                          Current
-                        </span>
+                      <span className="mt-1 inline-flex w-fit items-center gap-1.5 border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-accent)]">
+                        <span
+                          className="h-1.5 w-1.5 bg-[var(--portfolio-accent)]"
+                          aria-hidden="true"
+                        />
+                        Current
                       </span>
 
-                      <div className="mt-2 flex flex-wrap gap-1.5">
+                      <div className="mt-3 flex flex-wrap gap-1.5">
                         {highlights.map((h) => (
                           <span key={h} className="portfolio-impact-pill">
                             {h}
@@ -140,8 +173,10 @@ const Experience = () => {
 
                     <div className="portfolio-experience-body">
                       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:justify-between">
-                        <h3 className="text-2xl sm:text-3xl">{value.title}</h3>
-                        <span className="portfolio-experience-description">{value.description}</span>
+                        <h3>{value.title}</h3>
+                        <span className="portfolio-experience-description">
+                          {value.description}
+                        </span>
                       </div>
 
                       {detailsList}
@@ -150,41 +185,51 @@ const Experience = () => {
                     </div>
                   </div>
                 ) : (
-                  <details data-experience-history className="portfolio-experience-history">
-                    <summary className="portfolio-experience-history-summary group">
-                      <span className="portfolio-index">{String(index + 1).padStart(2, "0")}</span>
-                      <span className="font-display text-base font-bold text-[var(--portfolio-ink)] transition-colors group-hover:text-[var(--portfolio-accent)]">
+                  <details
+                    data-experience-history
+                    className="group border-b border-[var(--portfolio-rule)]"
+                  >
+                    <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 py-5 transition-colors hover:bg-[var(--portfolio-surface)] sm:px-3">
+                      <span className="portfolio-index">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="font-display text-2xl leading-none text-[var(--portfolio-ink)] transition-colors group-hover:text-[var(--portfolio-accent)]">
                         {value.company}
                       </span>
-                      <span className="font-utility text-xs font-semibold text-[var(--portfolio-muted)]">
+                      <span className="font-mono text-xs text-[var(--portfolio-ink)]">
                         {value.title}
                       </span>
-                      <span aria-hidden="true" className="font-utility text-xs text-[var(--portfolio-muted)]">
-                        ·
+                      <span
+                        aria-hidden="true"
+                        className="font-mono text-xs text-[var(--portfolio-muted)]"
+                      >
+                        /
                       </span>
-                      <span className="font-utility text-xs text-[var(--portfolio-muted)]">
+                      <span className="font-mono text-xs text-[var(--portfolio-muted)]">
                         {value.duration}
                       </span>
                       {COMPANY_LOCATIONS[value.company] ? (
-                        <span className="hidden items-center gap-1 font-utility text-[0.62rem] text-[var(--portfolio-muted)] sm:inline-flex">
+                        <span className="hidden items-center gap-1 font-mono text-[11px] text-[var(--portfolio-muted)] sm:inline-flex">
                           <MapPin className="h-3 w-3 shrink-0 text-[var(--portfolio-accent)]" />
                           <span>{COMPANY_LOCATIONS[value.company]}</span>
                         </span>
                       ) : null}
                       <ChevronDown
-                        className="portfolio-experience-history-chevron ml-auto h-4 w-4 shrink-0 self-center text-[var(--portfolio-muted)]"
+                        className="ml-auto h-4 w-4 shrink-0 text-[var(--portfolio-muted)] transition-transform group-open:rotate-180"
                         aria-hidden="true"
                       />
                     </summary>
 
-                    <div className="portfolio-experience-history-body">
-                      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:justify-between">
-                        <span className="portfolio-experience-description">{value.description}</span>
+                    <div className="border-t border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-6">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
+                        <span className="portfolio-experience-description">
+                          {value.description}
+                        </span>
                         <a
                           href={value.URL}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-utility text-xs font-semibold text-[var(--portfolio-accent)] hover:underline"
+                          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-ink)] hover:text-[var(--portfolio-accent)]"
                         >
                           <span>{value.company} profile</span>
                           <ArrowUpRight className="h-3.5 w-3.5" />

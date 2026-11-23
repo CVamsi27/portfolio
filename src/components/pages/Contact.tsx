@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
-  ArrowUpRight,
   Mail,
   Check,
   Copy,
@@ -13,7 +12,6 @@ import {
   MapPin,
   Send,
   Loader2,
-  Sparkles,
   Download,
 } from "lucide-react";
 
@@ -47,10 +45,22 @@ const FormSchema = z.object({
 });
 
 const QUICK_TOPICS = [
-  { label: "Full Stack Role", text: "Hi Vamsi, I'd like to discuss a remote full-stack role with our team..." },
-  { label: "Healthcare / Docita Tech", text: "Hi Vamsi, I was impressed by Docita and would love to learn more about your healthcare architecture..." },
-  { label: "Full Stack Contract", text: "Hi Vamsi, we're looking for a full-stack engineer for a defined remote project..." },
-  { label: "General Chat", text: "Hi Vamsi, I came across your portfolio and wanted to connect..." },
+  {
+    label: "Full Stack Role",
+    text: "Hi Vamsi, I'd like to discuss a remote full-stack role with our team...",
+  },
+  {
+    label: "Healthcare / Docita",
+    text: "Hi Vamsi, I was impressed by Docita and would love to learn more about your healthcare architecture...",
+  },
+  {
+    label: "Contract Engagement",
+    text: "Hi Vamsi, we're looking for a full-stack engineer for a defined remote project...",
+  },
+  {
+    label: "General Inquiry",
+    text: "Hi Vamsi, I came across your portfolio and wanted to connect...",
+  },
 ];
 
 const Contact = () => {
@@ -59,7 +69,6 @@ const Contact = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
-
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -116,7 +125,6 @@ const Contact = () => {
     setActiveTopic(topicLabel);
   };
 
-
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setIsSubmitting(true);
     setSubmitError(null);
@@ -131,19 +139,24 @@ const Contact = () => {
       if (response.ok && (res?.success || res?.status === 200)) {
         toast({
           title: "Message sent successfully!",
-          description: "Thanks for reaching out — I will get back to you shortly.",
+          description:
+            "Thanks for reaching out — I will get back to you shortly.",
         });
         setSubmitted(true);
         form.reset();
       } else {
-        setSubmitError("Your message could not be sent. Try again or email me directly.");
+        setSubmitError(
+          "Your message could not be sent. Try again or email me directly.",
+        );
         toast({
           title: "Message transmission failed",
           description: `Please email me directly at ${CONTACT_EMAIL}`,
         });
       }
     } catch {
-      setSubmitError("Your message could not be sent. Try again or email me directly.");
+      setSubmitError(
+        "Your message could not be sent. Try again or email me directly.",
+      );
       toast({
         title: "Could not send message",
         description: `Please email directly at ${CONTACT_EMAIL}`,
@@ -154,47 +167,49 @@ const Contact = () => {
   };
 
   return (
-    <section id="Contact" className="portfolio-section portfolio-contact-section px-5 py-12 sm:px-10 sm:py-16 lg:px-16">
+    <section
+      id="Contact"
+      className="portfolio-section portfolio-contact-section px-5 py-16 sm:px-10 sm:py-24 lg:px-16"
+    >
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="07 / Start a Conversation"
-          title="Let’s build something durable"
-          description="If you are building an important product, modernizing clinical workflows, or need an engineer who can move fluidly between product design and production backend systems, I'd like to hear from you."
+          eyebrow="07 // Direct Dispatch"
+          title="Let’s build something durable."
+          description="If you are hiring for a remote full-stack role, modernizing operational workflows, or need an engineer fluent from UI to PostgreSQL internals, reach out directly."
         />
 
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-          {/* Left Column: Direct coordinates */}
-          <Reveal direction="left" className="space-y-5 sm:space-y-6">
-            {/* Primary Email Card */}
-            <div className="rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-5 sm:p-6 shadow-xs">
+        <div className="grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
+          {/* Left Column: Direct Coordinates */}
+          <Reveal direction="left" className="space-y-6">
+            <div className="border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-6">
               <p className="portfolio-meta-label">Primary Inbox</p>
 
-              <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="mt-4 flex flex-col gap-4">
                 <a
                   href={`mailto:${CONTACT_EMAIL}`}
-                  className="portfolio-contact-email text-lg sm:text-2xl break-all sm:break-normal"
+                  className="portfolio-contact-email break-all sm:break-normal"
                 >
-                  <Mail className="h-5 w-5 text-[var(--portfolio-accent)] shrink-0" />
+                  <Mail className="h-5 w-5 shrink-0 text-[var(--portfolio-accent)]" />
                   <span>{CONTACT_EMAIL}</span>
                 </a>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={handleCopyEmail}
-                    className="portfolio-copy-action flex-1 sm:flex-initial"
+                    className="portfolio-copy-action"
                     title="Copy email to clipboard"
                     aria-label={`Copy ${CONTACT_EMAIL}`}
                   >
                     {copied ? (
                       <>
-                        <Check className="h-3.5 w-3.5 text-emerald-500" />
-                        <span className="text-emerald-500 font-semibold">Copied!</span>
+                        <Check className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
+                        <span>Copied</span>
                       </>
                     ) : (
                       <>
                         <Copy className="h-3.5 w-3.5" />
-                        <span>Copy</span>
+                        <span>Copy Email</span>
                       </>
                     )}
                   </button>
@@ -202,70 +217,62 @@ const Contact = () => {
                   <button
                     type="button"
                     onClick={handleDownloadVCard}
-                    className="portfolio-copy-action flex-1 sm:flex-initial"
+                    className="portfolio-copy-action"
                     title="Download vCard contact (.vcf)"
                     aria-label="Download vCard contact"
                   >
                     <Download className="h-3.5 w-3.5" />
-                    <span>vCard</span>
+                    <span>Download vCard</span>
                   </button>
                 </div>
               </div>
-
-              <p className="mt-3 text-xs text-[var(--portfolio-muted)]">
-                Email me directly, or use the form.
-              </p>
             </div>
 
-            {/* Availability & Location Card */}
-            <div className="rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 shadow-xs">
+            <div className="border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-6">
               <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-3">
-                <p className="portfolio-meta-label">Location &amp; Availability</p>
-                <span className="inline-flex items-center gap-1.5 portfolio-impact-pill">
+                <p className="portfolio-meta-label">Location &amp; Overlap</p>
+                <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-accent)]">
                   <span className="portfolio-status-dot" aria-hidden="true" />
                   Active
                 </span>
               </div>
 
-              <div className="mt-4 space-y-3 text-xs text-[var(--portfolio-muted)]">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-[var(--portfolio-accent)] shrink-0" />
-                  <span className="text-[var(--portfolio-ink)] font-medium">Hyderabad, India · Remote full-stack roles</span>
+              <div className="mt-4 space-y-3 text-xs leading-relaxed text-[var(--portfolio-muted)]">
+                <div className="flex items-start gap-2.5">
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
+                  <span className="font-medium text-[var(--portfolio-ink)]">
+                    Hyderabad, India · Remote full-stack roles
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-[var(--portfolio-accent)] shrink-0" />
-                  <span>India/global remote; EU/Germany remote with confirmed relocation where required. Working-hour overlap by agreement.</span>
+                <div className="flex items-start gap-2.5">
+                  <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
+                  <span>
+                    India and global remote; EU/Germany remote with relocation
+                    where required. Working-hour overlap by agreement.
+                  </span>
                 </div>
-
-              </div>
-
-              {/* Preferred contact channel */}
-              <div className="mt-4 flex items-center gap-2 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)] px-3 py-2">
-                <span className="font-utility text-[0.6rem] font-bold uppercase tracking-widest text-[var(--portfolio-muted)]">Contact</span>
-                <span className="ml-auto font-display text-sm font-bold text-[var(--portfolio-ink)]">Email</span>
               </div>
 
               <div className="mt-6 border-t border-[var(--portfolio-rule)] pt-4">
-                <p className="portfolio-meta-label mb-2.5">Find Me Online</p>
+                <p className="portfolio-meta-label mb-3">External Channels</p>
                 <Connections />
               </div>
             </div>
           </Reveal>
 
-          {/* Right Column: Direct Message Form */}
+          {/* Right Column: Flat Shadowless Message Form */}
           <Reveal direction="right" className="portfolio-contact-form">
-            <div className="mb-5">
-              <p className="portfolio-meta-label mb-1.5">Message me</p>
-              <h3 className="font-display text-2xl font-bold tracking-tight text-[var(--portfolio-ink)]">
+            <div className="mb-6 border-b border-[var(--portfolio-rule)] pb-4">
+              <p className="portfolio-meta-label">Message Dispatch</p>
+              <h3 className="mt-1.5 font-display text-3xl text-[var(--portfolio-ink)]">
                 Send a message
               </h3>
               <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
-                Select a quick topic or write a custom message below.
+                Pick a topic template or write a direct note below.
               </p>
             </div>
 
-            {/* Quick Topic Pills */}
-            <div className="mb-6 flex flex-wrap gap-2">
+            <div className="mb-6 flex flex-wrap gap-1.5">
               {QUICK_TOPICS.map((topic) => (
                 <button
                   key={topic.label}
@@ -284,7 +291,10 @@ const Contact = () => {
             </div>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="name"
@@ -331,20 +341,14 @@ const Contact = () => {
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel>Message</FormLabel>
-                        <span className={
-                          field.value.length >= 100
-                            ? "font-utility text-[0.6rem] font-semibold text-emerald-500"
-                            : field.value.length >= 50
-                              ? "font-utility text-[0.6rem] text-[var(--portfolio-accent)]"
-                              : "font-utility text-[0.6rem] text-[var(--portfolio-muted)]"
-                        }>
-                          {field.value.length >= 100 ? "Good length" : `${field.value.length} chars`}
+                        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--portfolio-muted)]">
+                          {field.value.length} chars
                         </span>
                       </div>
                       <FormControl>
                         <Textarea
                           className="min-h-[130px] resize-none"
-                          placeholder="Tell me about your product, role, or problem..."
+                          placeholder="Tell me about your product, role, or engineering challenge..."
                           {...field}
                           disabled={isSubmitting}
                         />
@@ -354,36 +358,56 @@ const Contact = () => {
                   )}
                 />
 
-                {submitError ? <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{submitError} <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p> : null}
+                {submitError ? (
+                  <p
+                    role="alert"
+                    className="border border-[var(--portfolio-accent)] bg-[var(--portfolio-blue-soft)] p-3 font-mono text-xs text-[var(--portfolio-ink)]"
+                  >
+                    {submitError}{" "}
+                    <a
+                      className="underline hover:text-[var(--portfolio-accent)]"
+                      href={`mailto:${CONTACT_EMAIL}`}
+                    >
+                      {CONTACT_EMAIL}
+                    </a>
+                  </p>
+                ) : null}
 
                 {submitted ? (
-                  <div role="status" className="portfolio-contact-success">
+                  <div
+                    role="status"
+                    className="border border-[var(--portfolio-rule)] bg-[var(--portfolio-wash)] p-5"
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
-                        <Check className="h-5 w-5" />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] text-[var(--portfolio-paper)]">
+                        <Check className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="font-display text-base font-bold text-[var(--portfolio-ink)] leading-tight">
-                          Message received!
+                        <p className="font-display text-xl text-[var(--portfolio-ink)]">
+                          Message received
                         </p>
-                        <p className="mt-0.5 font-utility text-xs text-[var(--portfolio-muted)]">
-                          I typically reply within 24–48 hours.
+                        <p className="font-mono text-[11px] text-[var(--portfolio-muted)]">
+                          Replies typically within 24–48 hours.
                         </p>
                       </div>
                     </div>
                     <button
                       type="button"
-                      onClick={() => { setSubmitted(false); setActiveTopic(null); form.reset(); }}
-                      className="mt-4 w-full rounded-lg border border-[var(--portfolio-rule)] bg-transparent py-2 font-utility text-xs font-semibold text-[var(--portfolio-muted)] transition-all hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
+                      onClick={() => {
+                        setSubmitted(false);
+                        setActiveTopic(null);
+                        form.reset();
+                      }}
+                      className="portfolio-secondary-action mt-4 w-full cursor-pointer"
                     >
-                      Send another message →
+                      Send another message
                     </button>
                   </div>
                 ) : (
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="portfolio-submit-action w-full cursor-pointer"
+                    className="portfolio-submit-action w-full cursor-pointer rounded-none"
                   >
                     {isSubmitting ? (
                       <>
@@ -393,7 +417,7 @@ const Contact = () => {
                     ) : (
                       <>
                         <span>Send message</span>
-                        <Send className="h-4 w-4" />
+                        <Send className="h-3.5 w-3.5" />
                       </>
                     )}
                   </Button>
@@ -408,4 +432,3 @@ const Contact = () => {
 };
 
 export default Contact;
-

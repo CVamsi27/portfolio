@@ -1,7 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Suspense } from "react";
-import { Bebas_Neue, IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
+import {
+  Bebas_Neue,
+  IBM_Plex_Mono,
+  Instrument_Serif,
+  Inter,
+  JetBrains_Mono,
+  Plus_Jakarta_Sans,
+  Space_Grotesk,
+} from "next/font/google";
 import "./globals.css";
 import "./ui-system.css";
 import "./nova-workspace.css";
@@ -39,6 +47,25 @@ const novaDisplay = Bebas_Neue({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-nova-display",
+});
+
+const editorialSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-editorial-serif",
+});
+
+const editorialSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-editorial-sans",
+});
+
+const editorialMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-editorial-mono",
 });
 
 async function requestBrand() {
@@ -93,7 +120,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export async function generateViewport(): Promise<Viewport> {
   const brand = await requestBrand();
   return {
-    themeColor: brand === TRACKER_BRAND ? TRACKER_BRAND.themeColor : "#0b0d12",
+    themeColor: brand === TRACKER_BRAND ? TRACKER_BRAND.themeColor : "#08080a",
     viewportFit: "cover",
   };
 }
@@ -176,6 +203,9 @@ export default async function RootLayout({
           spaceGrotesk.variable,
           ibmPlexMono.variable,
           novaDisplay.variable,
+          editorialSerif.variable,
+          editorialSans.variable,
+          editorialMono.variable,
           "font-sans antialiased",
           trackerSurface ? "tracker-surface" : "portfolio-surface",
         )}

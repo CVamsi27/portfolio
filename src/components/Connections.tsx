@@ -6,7 +6,7 @@ import {
   faXTwitter,
 } from "@fortawesome/free-brands-svg-icons";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { Code2, BookOpen } from "lucide-react";
+import { Code2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -18,19 +18,13 @@ const Connections = ({
   itemClassName?: string;
 }) => {
   const socialMediaLinks = [
-    {
-      href: "https://study.buildora.work",
-      icon: null,
-      customIcon: BookOpen,
-      label: "Bible",
-    },
-    { href: "https://x.com/Vamsikrishna99C", icon: faXTwitter, label: "X" },
+    { href: "https://github.com/CVamsi27", icon: faGithub, label: "GitHub" },
     {
       href: "https://www.linkedin.com/in/vamsikrishnachandaluri/",
       icon: faLinkedin,
       label: "LinkedIn",
     },
-    { href: "https://github.com/CVamsi27", icon: faGithub, label: "GitHub" },
+    { href: "https://x.com/Vamsikrishna99C", icon: faXTwitter, label: "X" },
     {
       href: "https://mail.google.com/mail/u/0/?fs=1&to=cvamsik99@gmail.com&tf=cm",
       icon: faEnvelope,
@@ -44,13 +38,12 @@ const Connections = ({
     {
       href: "https://leetcode.com/u/cvamsik99/",
       icon: null,
-      customIcon: null,
       label: "LeetCode",
     },
   ];
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+    <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
       {socialMediaLinks.map((link) => (
         <a
           key={link.label}
@@ -58,19 +51,17 @@ const Connections = ({
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
-            "group relative flex h-9 items-center gap-1.5 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-2.5 text-[var(--portfolio-muted)] shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)] hover:text-[var(--portfolio-accent)] hover:shadow-md",
+            "group relative flex h-9 items-center gap-1.5 border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] px-2.5 text-[var(--portfolio-muted)] transition-colors duration-150 hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)]",
             itemClassName,
           )}
           aria-label={link.label}
         >
           {link.icon ? (
             <FontAwesomeIcon icon={link.icon} className="h-3.5 w-3.5 shrink-0" />
-          ) : link.customIcon ? (
-            <link.customIcon className="h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
           ) : (
             <Code2 className="h-3.5 w-3.5 shrink-0" />
           )}
-          <span className="max-w-0 overflow-hidden whitespace-nowrap font-utility text-[0.62rem] font-semibold tracking-wide transition-all duration-200 group-hover:max-w-[5rem]">
+          <span className="max-w-0 overflow-hidden whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.08em] transition-all duration-200 group-hover:max-w-[5.5rem]">
             {link.label}
           </span>
         </a>

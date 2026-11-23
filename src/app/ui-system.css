@@ -111,35 +111,37 @@
     --nova-mist: #abbac8;
   }
 
-  /* ── Public portfolio ──────────────────────────────────────────────── */
+  /* ── Public portfolio (Aria Networks × Onlook architectural editorial) ─ */
   body.portfolio-surface {
-    --portfolio-paper: #f7f9fc;
-    --portfolio-ink: #172b40;
-    --portfolio-muted: #526579;
-    --portfolio-accent: #245cb3;
-    --portfolio-rule: #d8e1ec;
-    --portfolio-blue-soft: #eaf0fa;
+    --portfolio-paper: #f5f4f0;
+    --portfolio-surface: #ffffff;
+    --portfolio-wash: #eceae3;
+    --portfolio-ink: #08080a;
+    --portfolio-muted: #575760;
+    --portfolio-accent: #e03124;
+    --portfolio-rule: #dad7ce;
+    --portfolio-blue-soft: rgba(224, 49, 36, 0.08);
     --color-background: var(--portfolio-paper);
     --color-foreground: var(--portfolio-ink);
-    --color-card: #ffffff;
+    --color-card: var(--portfolio-surface);
     --color-card-foreground: var(--portfolio-ink);
-    --color-popover: #ffffff;
-    --color-popover-foreground: #09090b;
-    --color-primary: var(--portfolio-accent);
-    --color-primary-foreground: #ffffff;
-    --color-secondary: #f4f4f5;
-    --color-secondary-foreground: #18181b;
-    --color-muted: #f4f4f5;
+    --color-popover: var(--portfolio-surface);
+    --color-popover-foreground: var(--portfolio-ink);
+    --color-primary: var(--portfolio-ink);
+    --color-primary-foreground: var(--portfolio-paper);
+    --color-secondary: var(--portfolio-wash);
+    --color-secondary-foreground: var(--portfolio-ink);
+    --color-muted: var(--portfolio-wash);
     --color-muted-foreground: var(--portfolio-muted);
-    --color-accent: #f4f4f5;
-    --color-accent-foreground: #18181b;
+    --color-accent: var(--portfolio-wash);
+    --color-accent-foreground: var(--portfolio-ink);
     --color-border: var(--portfolio-rule);
     --color-input: var(--portfolio-rule);
     --color-ring: var(--portfolio-accent);
-    --color-destructive: #ef4444;
-    --color-destructive-foreground: #fafafa;
+    --color-destructive: #e03124;
+    --color-destructive-foreground: #ffffff;
     --color-dossier-lime: #c8ff3d;
-    --color-dossier-red: #ff3b30;
+    --color-dossier-red: #e03124;
     --color-dossier-violet: #a78bfa;
     --nova-archive: #071014;
     --nova-paper: #f2eee6;
@@ -151,25 +153,34 @@
     --nova-mist: #7d8a94;
   }
   html.dark body.portfolio-surface {
-    --portfolio-paper: #101820;
-    --portfolio-ink: #f1f5f9;
-    --portfolio-muted: #abbac8;
-    --portfolio-accent: #a3c4ff;
-    --portfolio-rule: #354657;
-    --portfolio-blue-soft: #223240;
-    --color-card: #192530;
+    --portfolio-paper: #08080a;
+    --portfolio-surface: #0f0f13;
+    --portfolio-wash: #15151a;
+    --portfolio-ink: #f4f3ee;
+    --portfolio-muted: #94949f;
+    --portfolio-accent: #ff3b2f;
+    --portfolio-rule: #232329;
+    --portfolio-blue-soft: rgba(255, 59, 47, 0.12);
+    --color-background: var(--portfolio-paper);
+    --color-foreground: var(--portfolio-ink);
+    --color-card: var(--portfolio-surface);
     --color-card-foreground: var(--portfolio-ink);
-    --color-popover: #0d0d0f;
-    --color-popover-foreground: #fafafa;
-    --color-primary-foreground: #172b40;
-    --color-secondary: #27272a;
-    --color-secondary-foreground: #fafafa;
-    --color-muted: #27272a;
-    --color-accent: #27272a;
-    --color-accent-foreground: #fafafa;
-    --color-destructive: #fb8895;
-    --color-destructive-foreground: #fafafa;
-    --color-dossier-red: #ff554d;
+    --color-popover: #0c0c10;
+    --color-popover-foreground: #f4f3ee;
+    --color-primary: var(--portfolio-ink);
+    --color-primary-foreground: var(--portfolio-paper);
+    --color-secondary: var(--portfolio-wash);
+    --color-secondary-foreground: var(--portfolio-ink);
+    --color-muted: var(--portfolio-wash);
+    --color-muted-foreground: var(--portfolio-muted);
+    --color-accent: var(--portfolio-wash);
+    --color-accent-foreground: var(--portfolio-ink);
+    --color-border: var(--portfolio-rule);
+    --color-input: var(--portfolio-rule);
+    --color-ring: var(--portfolio-accent);
+    --color-destructive: #ff3b2f;
+    --color-destructive-foreground: #ffffff;
+    --color-dossier-red: #ff3b2f;
     --color-dossier-violet: #b59cff;
   }
 
@@ -183,8 +194,7 @@
   .tracker-surface .editorial-frame::before { content: none; }
   .tracker-surface .dossier-command-rail { --color-dossier-lime: var(--color-primary); background: var(--color-background); }
   .tracker-surface .dossier-command-rail > div:last-of-type { max-width: 76rem; }
-  .dossier-rail-link,
-  .portfolio-surface .dossier-rail-link {
+  .tracker-surface .dossier-rail-link {
     display: inline-flex; align-items: center; min-height: 44px;
     font-family: var(--font-sans); font-size: 14px; font-weight: 500;
     letter-spacing: 0; text-transform: none; border-radius: 10px;
@@ -214,24 +224,8 @@
   [role="dialog"] :is(input, textarea, select) { font-size: 16px; }
   .tracker-surface [role="dialog"] { color: var(--color-foreground); }
 
-  .portfolio-hero__title { font-size: clamp(2.6rem, 5.2vw, 4.75rem); line-height: 1.08; letter-spacing: -0.045em; font-weight: 600; }
-  .portfolio-hero__title--shimmer { background: none; color: var(--portfolio-accent); -webkit-text-fill-color: currentColor; animation: none; }
-  .portfolio-status-pill { animation: none; font-family: var(--font-sans); font-size: 12px; letter-spacing: 0; }
-  .portfolio-hero__wash, .portfolio-hero__ambient { display: none; }
-  .portfolio-hero__aside { background: var(--color-card); box-shadow: none; }
-  .portfolio-section-heading { margin-bottom: 2rem; }
-  .portfolio-section-heading .editorial-statement { max-width: 24ch; font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.15; font-weight: 600; letter-spacing: -0.035em; text-transform: none; }
-  .portfolio-section-heading .editorial-kicker { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.04em; }
-  .portfolio-section-heading::after { display: none; }
   .portfolio-section :is(.portfolio-work-row, .portfolio-flagship-card, .portfolio-capability-group) { box-shadow: none; }
-  .portfolio-surface :is(.portfolio-primary-action, .portfolio-secondary-action, .portfolio-copy-action, .portfolio-submit-action) { min-height: 44px; font-family: var(--font-sans); font-size: 14px; letter-spacing: 0; text-transform: none; box-shadow: none; }
-  .portfolio-primary-action, .portfolio-submit-action { background: var(--portfolio-accent); color: var(--color-primary-foreground); }
-  .portfolio-surface :is(.portfolio-topic-chip, .portfolio-filter-tab, .portfolio-tech-chip) { min-height: 36px; font-family: var(--font-sans); font-size: 12px; }
-  .portfolio-surface :is(.portfolio-meta-label, .portfolio-impact-pill, .portfolio-tag-pill, .portfolio-work-live-badge) { font-size: 12px; letter-spacing: 0.02em; }
-  .portfolio-stat-card :is(.truncate, p) { white-space: normal; overflow: visible; }
-  .portfolio-stat-grid { background: var(--color-card); }
-  .portfolio-surface .portfolio-contact-form { background: var(--color-card); }
-  .portfolio-contact-form :is(input, textarea) { font-size: 16px; }
+  .portfolio-surface .portfolio-contact-form :is(input, textarea) { font-size: 16px; }
   .portfolio-surface .portfolio-contact-form :is(.text-destructive, [role="alert"]) { color: var(--color-destructive); }
 
   @media (max-width: 1023px) {
@@ -267,11 +261,6 @@
   .tracker-surface .personal-content :is(.font-black, .font-extrabold) { font-weight: 600; }
   .tracker-surface .personal-content :is(.font-mono, .font-utility) { letter-spacing: 0; }
   .tracker-surface [data-testid="tracker-action-bar"] + .personal-content { margin-top: 1.25rem; }
-  @media (min-width: 1024px) {
-    .portfolio-surface [data-editorial-index] > a:nth-child(2),
-    .portfolio-surface [data-editorial-index] > a:nth-child(3),
-    .portfolio-surface [data-editorial-index] > a:nth-child(6) { display: none; }
-  }
   @media (max-width: 639px) {
     .tracker-surface .dossier-clock-summary-label { display: inline; }
   }

@@ -17,32 +17,23 @@ export default function VamsiMark({
     <span
       data-testid="vamsi-mark"
       aria-label={label}
-      className={cn("inline-flex items-center gap-2", className)}
+      className={cn("inline-flex items-center gap-2.5", className)}
     >
-      <svg
+      <span
         aria-hidden="true"
-        viewBox="0 0 32 32"
-        className="h-8 w-8 shrink-0"
-        fill="none"
+        className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] font-mono text-[11px] font-semibold tracking-tighter text-[var(--portfolio-paper)]"
       >
-        <rect width="32" height="32" rx="8" fill="currentColor" />
-        <path
-          d="M8 8.5 13.1 23 16 15.2 18.9 23 24 8.5"
-          stroke="var(--portfolio-paper, #f4f1ea)"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M10 24.5h12"
-          stroke="var(--portfolio-accent, #315cff)"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
+        VK
+        <span className="absolute -right-[2px] -top-[2px] h-1.5 w-1.5 bg-[var(--portfolio-accent)]" />
+      </span>
       {!isMark ? (
-        <span className="font-display text-sm font-semibold tracking-[-0.03em]">
-          Vamsi Krishna
+        <span className="flex items-baseline gap-2">
+          <span className="font-display text-xl leading-none tracking-[-0.02em] text-[var(--portfolio-ink)]">
+            Vamsi Krishna
+          </span>
+          <span className="hidden font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--portfolio-muted)] sm:inline">
+            SYS/ENG
+          </span>
         </span>
       ) : null}
     </span>
