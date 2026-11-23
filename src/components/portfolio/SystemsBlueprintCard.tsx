@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import Connections from "../Connections";
@@ -75,7 +75,26 @@ export default function SystemsBlueprintCard({
   onFilterTech: (tech: string) => void;
 }) {
   const [activeId, setActiveId] = useState<BlueprintId>("rls");
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const active = BLUEPRINTS.find((b) => b.id === activeId) ?? BLUEPRINTS[0];
+
+  const handleTabKeyDown = (e: React.KeyboardEvent, index: number) => {
+    let nextIndex: number | null = null;
+    if (e.key === "ArrowRight") {
+      nextIndex = (index + 1) % BLUEPRINTS.length;
+    } else if (e.key === "ArrowLeft") {
+      nextIndex = (index - 1 + BLUEPRINTS.length) % BLUEPRINTS.length;
+    } else if (e.key === "Home") {
+      nextIndex = 0;
+    } else if (e.key === "End") {
+      nextIndex = BLUEPRINTS.length - 1;
+    }
+    if (nextIndex !== null) {
+      e.preventDefault();
+      setActiveId(BLUEPRINTS[nextIndex].id);
+      tabRefs.current[nextIndex]?.focus();
+    }
+  };
 
   return (
     <aside
@@ -116,15 +135,22 @@ export default function SystemsBlueprintCard({
           aria-label="Inspect architecture mechanisms"
           className="mt-2.5 flex border-b border-[var(--portfolio-hero-rule)]"
         >
-          {BLUEPRINTS.map((bp) => {
+          {BLUEPRINTS.map((bp, idx) => {
             const isSelected = bp.id === activeId;
             return (
               <button
                 key={bp.id}
+                ref={(el) => {
+                  tabRefs.current[idx] = el;
+                }}
+                id={`blueprint-tab-${bp.id}`}
                 type="button"
                 role="tab"
                 aria-selected={isSelected}
+                aria-controls={`blueprint-panel-${bp.id}`}
+                tabIndex={isSelected ? 0 : -1}
                 onClick={() => setActiveId(bp.id)}
+                onKeyDown={(e) => handleTabKeyDown(e, idx)}
                 className={`-mb-px flex-1 cursor-pointer border-b-[1.5px] py-2 font-sans text-xs font-medium transition-colors ${
                   isSelected
                     ? "border-[var(--portfolio-hero-ink)] text-[var(--portfolio-hero-ink)]"
@@ -138,7 +164,12 @@ export default function SystemsBlueprintCard({
         </div>
 
         {/* Visual Topology Pipeline */}
-        <div className="mt-4 space-y-3.5">
+        <div
+          role="tabpanel"
+          id={`blueprint-panel-${active.id}`}
+          aria-labelledby={`blueprint-tab-${active.id}`}
+          className="mt-4 space-y-3.5"
+        >
           <div className="flex items-start justify-between gap-2">
             <div>
               <h2 className="font-display text-xl font-light leading-snug tracking-[-0.02em] text-[var(--portfolio-hero-ink)]">

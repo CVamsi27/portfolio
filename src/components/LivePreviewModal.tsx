@@ -79,38 +79,39 @@ export default function LivePreviewModal({
       />
 
       {/* Main Container */}
-      <div className="relative flex flex-col w-full max-w-7xl h-[94dvh] overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="relative flex flex-col w-full max-w-7xl h-[94dvh] overflow-hidden border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-ink)] animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Browser Top Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3 bg-muted/30">
-          {/* Title & Dots */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--portfolio-rule)] px-4 py-3 bg-[var(--portfolio-surface)]">
+          {/* Title & Index */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5" aria-hidden="true">
-              <span className="h-3 w-3 rounded-full bg-rose-500/80" />
-              <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-              <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
-            </div>
+            <span
+              className="hidden sm:inline-flex border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--portfolio-muted)]"
+              aria-hidden="true"
+            >
+              SANDBOX
+            </span>
             <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4 text-primary" />
-              <span className="text-xs sm:text-sm font-semibold text-foreground line-clamp-1">
+              <Globe className="h-4 w-4 text-[var(--portfolio-ink)]" />
+              <span className="font-display text-base font-light tracking-[-0.01em] text-[var(--portfolio-ink)] line-clamp-1">
                 {title}
               </span>
             </div>
           </div>
 
           {/* Browser Address Bar */}
-          <div className="flex-1 max-w-lg hidden md:flex items-center gap-2 rounded-lg border border-border/80 bg-background/70 px-3 py-1.5 text-xs text-muted-foreground shadow-inner">
-            <Lock className="h-3 w-3 text-emerald-500 shrink-0" />
-            <span className="truncate font-mono text-[11px] text-foreground">
+          <div className="flex-1 max-w-lg hidden md:flex items-center gap-2 border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-3 py-1.5 text-xs text-[var(--portfolio-muted)]">
+            <Lock className="h-3 w-3 text-[var(--portfolio-ink)] shrink-0" />
+            <span className="truncate font-mono text-[11px] text-[var(--portfolio-ink)]">
               {url}
             </span>
             <button
               type="button"
               onClick={handleCopy}
-              className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
+              className="ml-auto cursor-pointer text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)] transition-colors"
               title="Copy URL"
             >
               {copied ? (
-                <Check className="h-3 w-3 text-emerald-500" />
+                <Check className="h-3 w-3 text-[var(--portfolio-ink)]" />
               ) : (
                 <Copy className="h-3 w-3" />
               )}
@@ -119,13 +120,13 @@ export default function LivePreviewModal({
 
           {/* Device Switcher & Controls */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="flex items-center rounded-lg border border-border/80 bg-muted/40 p-0.5">
+            <div className="flex items-center border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-0.5">
               <button
                 type="button"
                 onClick={() => setDevice("desktop")}
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors",
-                  device === "desktop" && "bg-card text-foreground shadow-xs font-semibold"
+                  "flex h-11 w-11 cursor-pointer items-center justify-center text-[var(--portfolio-muted)] transition-colors",
+                  device === "desktop" && "bg-[var(--portfolio-wash)] text-[var(--portfolio-ink)] font-semibold"
                 )}
                 title="Desktop View"
               >
@@ -135,8 +136,8 @@ export default function LivePreviewModal({
                 type="button"
                 onClick={() => setDevice("tablet")}
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors",
-                  device === "tablet" && "bg-card text-foreground shadow-xs font-semibold"
+                  "flex h-11 w-11 cursor-pointer items-center justify-center text-[var(--portfolio-muted)] transition-colors",
+                  device === "tablet" && "bg-[var(--portfolio-wash)] text-[var(--portfolio-ink)] font-semibold"
                 )}
                 title="Tablet View (768px)"
               >
@@ -146,8 +147,8 @@ export default function LivePreviewModal({
                 type="button"
                 onClick={() => setDevice("mobile")}
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors",
-                  device === "mobile" && "bg-card text-foreground shadow-xs font-semibold"
+                  "flex h-11 w-11 cursor-pointer items-center justify-center text-[var(--portfolio-muted)] transition-colors",
+                  device === "mobile" && "bg-[var(--portfolio-wash)] text-[var(--portfolio-ink)] font-semibold"
                 )}
                 title="Mobile View (390px)"
               >
@@ -158,7 +159,7 @@ export default function LivePreviewModal({
             <button
               type="button"
               onClick={handleReload}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-muted)] hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)] transition-colors"
               title="Reload Frame"
             >
               <RefreshCw className="h-3.5 w-3.5" />
@@ -168,7 +169,7 @@ export default function LivePreviewModal({
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-2.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] px-4 font-sans text-xs font-medium text-[var(--portfolio-paper)] transition-opacity hover:opacity-85"
               title="Open full site in new tab"
             >
               <ExternalLink className="h-3.5 w-3.5" />
@@ -178,7 +179,7 @@ export default function LivePreviewModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-muted)] hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)] transition-colors"
               aria-label="Close preview"
             >
               <X className="h-4 w-4" />
@@ -187,10 +188,10 @@ export default function LivePreviewModal({
         </div>
 
         {/* Viewport Frame */}
-        <div className="relative flex-1 w-full bg-muted/20 flex items-center justify-center overflow-auto p-2 sm:p-4">
+        <div className="relative flex-1 w-full bg-[var(--portfolio-wash)] flex items-center justify-center overflow-auto p-2 sm:p-4">
           <div
             className={cn(
-              "h-full transition-all duration-300 rounded-xl overflow-hidden shadow-md border border-border/70 bg-background",
+              "h-full transition-all duration-300 overflow-hidden border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)]",
               deviceWidthClasses[device]
             )}
           >
@@ -206,12 +207,9 @@ export default function LivePreviewModal({
         </div>
 
         {/* Status notice */}
-        <div className="flex items-center justify-between border-t border-border/60 px-4 py-2 bg-muted/10 text-[11px] text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            Interactive sandbox preview · Protected sandbox mode
-          </span>
-          <span className="font-mono text-[10px]">Press Esc to close</span>
+        <div className="flex items-center justify-between border-t border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] px-4 py-2 text-[11px] font-mono text-[var(--portfolio-muted)]">
+          <span>Interactive sandbox preview · Isolated iframe session</span>
+          <span className="text-[10px] uppercase tracking-[0.08em]">Press Esc to close</span>
         </div>
       </div>
     </div>,

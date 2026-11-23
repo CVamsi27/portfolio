@@ -180,34 +180,33 @@ const Experience = () => {
                     data-experience-history
                     className="group border-b border-[var(--portfolio-rule)]"
                   >
-                    <summary className="flex cursor-pointer list-none flex-wrap items-baseline gap-x-4 gap-y-2 py-5 transition-colors hover:bg-[var(--portfolio-surface)] sm:px-3">
-                      <span className="portfolio-index">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span className="font-display text-2xl font-light leading-none text-[var(--portfolio-ink)]">
-                        {value.company}
-                      </span>
-                      <span className="font-sans text-xs font-medium text-[var(--portfolio-ink)]">
-                        {value.title}
-                      </span>
-                      <span
-                        aria-hidden="true"
-                        className="font-mono text-xs text-[var(--portfolio-muted)]"
-                      >
-                        /
-                      </span>
-                      <span className="font-mono text-xs text-[var(--portfolio-muted)]">
-                        {value.duration}
-                      </span>
-                      {COMPANY_LOCATIONS[value.company] ? (
-                        <span className="hidden font-sans text-xs text-[var(--portfolio-muted)] sm:inline">
-                          · {COMPANY_LOCATIONS[value.company]}
+                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-4 gap-y-2 py-5 transition-colors hover:bg-[var(--portfolio-surface)] sm:px-3">
+                      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                        <span className="portfolio-index">
+                          {String(index + 1).padStart(2, "0")}
                         </span>
-                      ) : null}
-                      <ChevronDown
-                        className="ml-auto h-4 w-4 shrink-0 self-center text-[var(--portfolio-muted)] transition-transform group-open:rotate-180"
-                        aria-hidden="true"
-                      />
+                        <span className="font-display text-2xl font-light leading-none text-[var(--portfolio-ink)]">
+                          {value.company}
+                        </span>
+                        <span className="font-sans text-xs font-medium text-[var(--portfolio-ink)]">
+                          {value.title}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3 ml-auto">
+                        <span className="font-mono text-xs text-[var(--portfolio-muted)]">
+                          {value.duration}
+                        </span>
+                        {COMPANY_LOCATIONS[value.company] ? (
+                          <span className="hidden font-sans text-xs text-[var(--portfolio-muted)] md:inline">
+                            · {COMPANY_LOCATIONS[value.company]}
+                          </span>
+                        ) : null}
+                        <ChevronDown
+                          className="h-4 w-4 shrink-0 text-[var(--portfolio-muted)] transition-transform group-open:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </div>
                     </summary>
 
                     <div className="border-t border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-6">

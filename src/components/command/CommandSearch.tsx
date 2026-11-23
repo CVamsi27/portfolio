@@ -219,23 +219,23 @@ export default function CommandSearch({
                     }}
                     onMouseEnter={() => setSelectedIndex(index)}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-xl text-left transition-colors",
-                      nova ? "px-3.5 py-2.5" : "justify-between px-3 py-2.5",
+                      "flex w-full items-center gap-3 text-left transition-colors",
+                      nova ? "rounded-xl px-3.5 py-2.5" : "justify-between px-3 py-2.5",
                       isSelected
                         ? nova
                           ? "bg-primary font-semibold text-primary-foreground"
-                          : "bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)]"
+                          : "bg-[var(--portfolio-wash)] text-[var(--portfolio-ink)]"
                         : nova
                           ? "text-foreground hover:bg-muted/60"
-                          : "cursor-pointer text-[var(--portfolio-ink)] hover:bg-muted/40",
+                          : "cursor-pointer text-[var(--portfolio-ink)] hover:bg-[var(--portfolio-surface)]",
                     )}
                   >
                     <span
                       className={cn(
-                        "grid shrink-0 place-items-center rounded-lg",
+                        "grid shrink-0 place-items-center",
                         nova
                           ? cn(
-                              "h-8 w-8",
+                              "h-8 w-8 rounded-lg",
                               isSelected
                                 ? "bg-primary-foreground/15 text-primary-foreground"
                                 : "bg-muted text-primary",
@@ -243,8 +243,8 @@ export default function CommandSearch({
                           : cn(
                               "h-7 w-7 border",
                               isSelected
-                                ? "border-[var(--portfolio-accent)]/40 bg-[var(--portfolio-accent)]/10 text-[var(--portfolio-accent)]"
-                                : "border-[var(--portfolio-rule)] bg-muted/20 text-[var(--portfolio-muted)]",
+                                ? "border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] text-[var(--portfolio-paper)]"
+                                : "border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] text-[var(--portfolio-muted)]",
                             ),
                       )}
                     >

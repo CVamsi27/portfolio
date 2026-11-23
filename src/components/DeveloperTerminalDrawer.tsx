@@ -362,14 +362,16 @@ export default function DeveloperTerminalDrawer({
       />
 
       {/* Terminal Window */}
-      <div className="relative flex h-[82vh] sm:h-[600px] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl border border-[var(--portfolio-rule)] bg-neutral-950 font-mono text-xs shadow-2xl text-neutral-200">
+      <div className="relative flex h-[82vh] sm:h-[600px] w-full max-w-3xl flex-col overflow-hidden border border-[var(--portfolio-arch-rule)] bg-[#0b0b0e] font-mono text-xs text-[#e6e5e0]">
         {/* Terminal Title Bar */}
-        <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900/90 px-4 py-2.5 select-none">
-          <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block" />
-            <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block" />
-            <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block" />
-            <span className="ml-2 font-mono text-[11px] font-semibold text-neutral-400">
+        <div className="flex items-center justify-between border-b border-[var(--portfolio-arch-rule)] bg-[#111114] px-4 py-2.5 select-none">
+          <div className="flex items-center gap-2.5">
+            <Terminal className="h-3.5 w-3.5 text-[#9c9a94]" aria-hidden="true" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#9c9a94]">
+              TTY · 01
+            </span>
+            <span className="h-3 w-px bg-[var(--portfolio-arch-rule)]" aria-hidden="true" />
+            <span className="font-mono text-[11px] font-medium text-[#e6e5e0]">
               vamsi@portfolio:~ (bash)
             </span>
           </div>
@@ -379,7 +381,7 @@ export default function DeveloperTerminalDrawer({
               type="button"
               onClick={() => setLines([])}
               title="Clear terminal buffer"
-              className="p-1 text-neutral-400 hover:text-neutral-200"
+              className="inline-flex h-8 w-8 cursor-pointer items-center justify-center text-[#9c9a94] hover:text-[#f4f3ef]"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -387,7 +389,8 @@ export default function DeveloperTerminalDrawer({
               type="button"
               onClick={onClose}
               title="Close terminal (Esc)"
-              className="p-1 text-neutral-400 hover:text-neutral-200"
+              aria-label="Close terminal"
+              className="inline-flex h-8 w-8 cursor-pointer items-center justify-center text-[#9c9a94] hover:text-[#f4f3ef]"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -401,10 +404,10 @@ export default function DeveloperTerminalDrawer({
               key={idx}
               className={cn(
                 "whitespace-pre-wrap",
-                line.type === "input" && "text-emerald-400 font-bold",
-                line.type === "output" && "text-neutral-300",
-                line.type === "info" && "text-sky-400",
-                line.type === "error" && "text-rose-400",
+                line.type === "input" && "text-[#f4f3ef] font-semibold",
+                line.type === "output" && "text-[#b8b6af]",
+                line.type === "info" && "text-[#d4d2cb]",
+                line.type === "error" && "text-[#e5483b]",
               )}
             >
               {line.content}
@@ -414,8 +417,8 @@ export default function DeveloperTerminalDrawer({
         </div>
 
         {/* Input Bar */}
-        <div className="flex items-center border-t border-neutral-800 bg-neutral-900/60 px-4 py-2.5">
-          <span className="text-emerald-400 font-bold mr-2 select-none">
+        <div className="flex items-center border-t border-[var(--portfolio-arch-rule)] bg-[#111114] px-4 py-2.5">
+          <span className="text-[#f4f3ef] font-semibold mr-2 select-none">
             visitor@vamsi:~$
           </span>
           <input
@@ -425,12 +428,12 @@ export default function DeveloperTerminalDrawer({
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="type 'help' for commands..."
-            className="flex-1 bg-transparent text-neutral-100 placeholder:text-neutral-600 focus:outline-none font-mono text-xs"
+            className="flex-1 bg-transparent text-[#f4f3ef] placeholder:text-[#5c5b57] focus:outline-none font-mono text-xs"
           />
           <button
             type="button"
             onClick={() => handleCommand(inputVal)}
-            className="p-1 text-neutral-400 hover:text-emerald-400"
+            className="cursor-pointer p-1 text-[#9c9a94] hover:text-[#f4f3ef]"
             aria-label="Execute command"
           >
             <CornerDownLeft className="h-3.5 w-3.5" />

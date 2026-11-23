@@ -15,19 +15,19 @@ const SEEDED_NODES: Array<{
   ry: number;
   label?: string;
 }> = [
-  { rx: 0.08, ry: 0.22, label: "EDGE" },
+  { rx: 0.08, ry: 0.22 },
   { rx: 0.24, ry: 0.14 },
-  { rx: 0.42, ry: 0.18, label: "API" },
+  { rx: 0.48, ry: 0.16, label: "API" },
   { rx: 0.16, ry: 0.46 },
-  { rx: 0.34, ry: 0.42, label: "RLS" },
-  { rx: 0.54, ry: 0.32, label: "PG" },
+  { rx: 0.34, ry: 0.42 },
+  { rx: 0.56, ry: 0.30, label: "PG" },
   { rx: 0.68, ry: 0.18 },
-  { rx: 0.84, ry: 0.28, label: "QUEUE" },
-  { rx: 0.12, ry: 0.76 },
-  { rx: 0.29, ry: 0.72, label: "OUTBOX" },
-  { rx: 0.48, ry: 0.64, label: "WORKER" },
-  { rx: 0.66, ry: 0.54 },
-  { rx: 0.78, ry: 0.74, label: "CI" },
+  { rx: 0.86, ry: 0.26, label: "QUEUE" },
+  { rx: 0.12, ry: 0.82 },
+  { rx: 0.30, ry: 0.84, label: "OUTBOX" },
+  { rx: 0.50, ry: 0.78, label: "WORKER" },
+  { rx: 0.66, ry: 0.54, label: "RLS" },
+  { rx: 0.78, ry: 0.80, label: "CI" },
   { rx: 0.91, ry: 0.56 },
 ];
 
@@ -124,8 +124,8 @@ export default function SystemsFieldCanvas() {
         ? "rgba(255, 255, 255, 0.26)"
         : "rgba(13, 13, 15, 0.28)";
       const labelFill = isDark
-        ? "rgba(244, 243, 239, 0.32)"
-        : "rgba(13, 13, 15, 0.34)";
+        ? "rgba(244, 243, 239, 0.22)"
+        : "rgba(13, 13, 15, 0.22)";
 
       // Concentric architectural wireframe ellipses
       ctx.save();
@@ -182,9 +182,14 @@ export default function SystemsFieldCanvas() {
       ctx.font =
         '400 9px "JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
       ctx.fillStyle = labelFill;
+      const showLabels = width >= 900;
       for (const n of nodes) {
-        drawCrosshair(n.x, n.y, n.label ? 3.5 : 2.2);
-        if (n.label) {
+        const canLabel =
+          showLabels &&
+          Boolean(n.label) &&
+          (n.x > width * 0.46 || n.y > height * 0.78);
+        drawCrosshair(n.x, n.y, canLabel ? 3.5 : 2.2);
+        if (canLabel && n.label) {
           ctx.fillText(n.label, n.x + 7, n.y + 3);
         }
       }

@@ -139,6 +139,7 @@ export default async function CaseStudyPage({
           </header>
 
           <section id="problem" className="case-study-section">
+            <span className="case-study-section-index">01 // Context</span>
             <h2>The problem</h2>
             <ul className="case-study-list">
               {study.problem.map((item) => (
@@ -148,6 +149,7 @@ export default async function CaseStudyPage({
           </section>
 
           <section id="approach" className="case-study-section">
+            <span className="case-study-section-index">02 // Decisions</span>
             <h2>The approach</h2>
             <ul className="case-study-list">
               {study.approach.map((item) => (
@@ -157,6 +159,7 @@ export default async function CaseStudyPage({
           </section>
 
           <section id="architecture" className="case-study-section">
+            <span className="case-study-section-index">03 // Structure</span>
             <h2>Architecture highlights</h2>
             <ul className="case-study-list case-study-list--grid">
               {study.architecture.map((item) => (
@@ -166,12 +169,14 @@ export default async function CaseStudyPage({
           </section>
 
           <section id="verification" className="case-study-section">
+            <span className="case-study-section-index">04 // Evidence</span>
             <h2>Verification &amp; limits</h2>
             <p className="case-study-note">{study.verification}</p>
           </section>
 
           {hasRelated ? (
             <section id="patterns" className="case-study-section">
+              <span className="case-study-section-index">05 // References</span>
               <h2>Related patterns</h2>
               <div className="case-study-patterns">
                 {patterns.map((pattern) => (

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { SKILLS } from "@/lib/const";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
+import { cn } from "@/lib/utils";
 
 const CAPABILITIES = [
   {
@@ -233,7 +234,10 @@ const Skills = () => {
                         alt={skill.alt}
                         width={16}
                         height={16}
-                        className="h-4 w-4 shrink-0 object-contain"
+                        className={cn(
+                          "h-4 w-4 shrink-0 object-contain",
+                          skill.alt === "NextJS" && "dark:invert",
+                        )}
                       />
                       <span>{skill.alt}</span>
                     </div>
