@@ -14,12 +14,21 @@ const TONE_RING: Record<ProgressTone, string> = {
 };
 
 const TONE_BG: Record<ProgressTone, string> = {
-  primary: "bg-primary/10 text-primary",
-  emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  sky: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-  violet: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
-  rose: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  primary: "bg-primary/12 text-primary",
+  emerald: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400",
+  amber: "bg-amber-500/12 text-amber-600 dark:text-amber-400",
+  sky: "bg-sky-500/12 text-sky-600 dark:text-sky-400",
+  violet: "bg-violet-500/12 text-violet-600 dark:text-violet-400",
+  rose: "bg-rose-500/12 text-rose-600 dark:text-rose-400",
+};
+
+const TONE_TOP: Record<ProgressTone, string> = {
+  primary: "before:bg-primary/60",
+  emerald: "before:bg-emerald-500/60",
+  amber: "before:bg-amber-500/60",
+  sky: "before:bg-sky-500/60",
+  violet: "before:bg-violet-500/60",
+  rose: "before:bg-rose-500/60",
 };
 
 export default function MetricRingCard({
@@ -65,7 +74,8 @@ export default function MetricRingCard({
   const body = (
     <div
       className={cn(
-        "group relative flex h-full flex-col justify-between gap-3 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-xs transition-all",
+        "group relative flex h-full flex-col justify-between gap-3 overflow-hidden rounded-2xl border border-border/70 bg-card/90 p-4 shadow-xs transition-all before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:opacity-70",
+        TONE_TOP[tone],
         href && "hover:border-primary/40 hover:shadow-md",
         className,
       )}
@@ -76,14 +86,14 @@ export default function MetricRingCard({
             {icon && (
               <span
                 className={cn(
-                  "inline-flex h-7 w-7 items-center justify-center rounded-lg",
+                  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
                   TONE_BG[tone],
                 )}
               >
                 {icon}
               </span>
             )}
-            <p className="text-xs font-medium text-muted-foreground truncate">
+            <p className="truncate text-xs font-medium text-muted-foreground">
               {label}
             </p>
           </div>
@@ -91,7 +101,7 @@ export default function MetricRingCard({
             {value}
           </p>
           {sublabel && (
-            <p className="text-xs text-muted-foreground leading-snug">
+            <p className="text-xs leading-snug text-muted-foreground">
               {sublabel}
             </p>
           )}
@@ -104,15 +114,15 @@ export default function MetricRingCard({
                 cy="24"
                 r={radius}
                 fill="none"
-                strokeWidth="4.5"
-                className="stroke-muted/70"
+                strokeWidth="4.25"
+                className="stroke-muted/60"
               />
               <circle
                 cx="24"
                 cy="24"
                 r={radius}
                 fill="none"
-                strokeWidth="4.5"
+                strokeWidth="4.25"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={dashOffset}
@@ -140,7 +150,7 @@ export default function MetricRingCard({
       )}
 
       {delta && (
-        <span className="inline-flex w-fit items-center rounded-full bg-muted/70 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+        <span className="inline-flex w-fit items-center rounded-md border border-border/60 bg-background/70 px-2 py-0.5 font-mono text-[10px] font-medium text-muted-foreground">
           {delta}
         </span>
       )}

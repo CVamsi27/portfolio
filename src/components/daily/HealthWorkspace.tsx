@@ -414,6 +414,11 @@ export default function HealthWorkspace() {
                   ? `${health.summary.weightDelta > 0 ? "+" : ""}${health.summary.weightDelta} kg vs prior`
                   : null
               }
+              progress={{
+                current: health.summary.latestWeight ? 1 : 0,
+                target: 1,
+              }}
+              ring
               tone="sky"
               icon={<Scale className="h-4 w-4" />}
             />
@@ -489,7 +494,7 @@ export default function HealthWorkspace() {
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2">
-            <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+            <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
               <MultiSeriesBarChart
                 title="Daily steps"
                 subtitle="Google Health Connect priority aggregate"
@@ -502,7 +507,7 @@ export default function HealthWorkspace() {
               />
             </section>
 
-            <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+            <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
               <MultiSeriesBarChart
                 title="Nightly sleep & stages"
                 subtitle="Hours asleep with Deep / REM / Light breakdown when available"
@@ -520,7 +525,7 @@ export default function HealthWorkspace() {
               />
             </section>
 
-            <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+            <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
               <SmoothTrendChart
                 title="Weight trend"
                 subtitle="Synced readings with 7-day moving average"
@@ -531,7 +536,7 @@ export default function HealthWorkspace() {
               />
             </section>
 
-            <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+            <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
               <MultiSeriesBarChart
                 title="Exercise minutes"
                 subtitle="Workouts synced from Google Health Connect"

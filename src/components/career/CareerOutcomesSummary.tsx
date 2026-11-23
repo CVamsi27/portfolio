@@ -13,60 +13,82 @@ export default function CareerOutcomesSummary({ date }: { date: string }) {
   )
     return null;
   const review = careerReview(activities.value, date);
+  const items: Array<[string, number]> = [
+    ["Applications", review.applications],
+    ["Outreach messages", review.outreaches],
+    ["Proposals", review.proposals],
+    ["Conversations", review.conversations],
+    ["Interviews booked", review.interviews],
+    ["Work agreed", review.agreements],
+  ];
+  const paymentEntries = Object.entries(review.payments);
+
   return (
-    <section aria-label="Career outcomes" className="career-outcomes">
+    <section
+      aria-label="Career outcomes"
+      className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-xl font-semibold">
+          <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
             Career outcomes
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Week of {review.start} · recorded through {date}
           </p>
         </div>
         <Link
-          className="inline-action min-h-11"
+          className="inline-flex min-h-9 items-center rounded-xl border border-border/70 bg-background px-3.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
           href={`/roadmap?view=weekly-review&date=${date}`}
         >
           Review career outcomes
         </Link>
       </div>
-      <dl className="career-stat-ledger">
-        {[
-          ["Applications", review.applications],
-          ["Conversations", review.conversations],
-          ["Proposals", review.proposals],
-          ["Outreach messages", review.outreaches],
-          ["Interviews booked", review.interviews],
-          ["Work agreed", review.agreements],
-        ].map(([label, value]) => (
-          <div key={label}>
-            <dt className="text-sm text-muted-foreground">{label}</dt>
-            <dd className="text-2xl font-semibold mt-1">{value}</dd>
+
+      <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+        {items.map(([label, value]) => (
+          <div
+            key={label}
+            className="rounded-xl border border-border/50 bg-muted/25 px-3 py-2.5"
+          >
+            <dt className="text-[11px] font-medium text-muted-foreground truncate">
+              {label}
+            </dt>
+            <dd
+              className={`mt-1 text-xl font-bold tabular-nums tracking-tight ${
+                value > 0 ? "text-foreground" : "text-muted-foreground/70"
+              }`}
+            >
+              {value}
+            </dd>
           </div>
         ))}
       </dl>
-      <div className="career-income-row">
-        <h3 className="font-semibold text-sm">Money received</h3>
-        {Object.keys(review.payments).length ? (
-          <ul className="mt-1 flex flex-wrap gap-x-6 gap-y-2">
-            {Object.entries(review.payments).map(([currency, amount]) => (
-              <li key={currency}>
-                {currency}{" "}
-                {amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            No payment recorded this week.
-          </p>
-        )}
+
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border/50 pt-3">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h3 className="text-xs font-semibold text-foreground">
+            Money received
+          </h3>
+          {paymentEntries.length ? (
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+              {paymentEntries.map(([currency, amount]) => (
+                <li key={currency}>
+                  {currency}{" "}
+                  {amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              No payment recorded this week.
+            </p>
+          )}
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Actual recorded actions only · currencies stay separate.
+        </p>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Actual recorded actions only. Drafts, offers and unpaid invoices do not
-        count as income. Currencies remain separate.
-      </p>
     </section>
   );
 }
