@@ -1,7 +1,6 @@
 "use client";
 
 import { SectionHeading } from "@/components/common/SectionHeading";
-import { Activity, CheckCircle2, ShieldCheck, Zap } from "lucide-react";
 
 interface Endorsement {
   quote: string;
@@ -47,22 +46,18 @@ const TRUST_PILLARS = [
   {
     title: "Durable intent",
     desc: "Trace the business write and event append, then distinguish committed intent from external completion.",
-    icon: Zap,
   },
   {
     title: "Scoped access",
     desc: "Combine resource authorization and database policies, with effective role/context checks.",
-    icon: ShieldCheck,
   },
   {
     title: "Meaningful verification",
     desc: "Use failure-path tests and repository gates to verify specific behavior and report remaining gaps.",
-    icon: CheckCircle2,
   },
   {
     title: "Concurrency reasoning",
     desc: "Test competing operations against a real database before claiming a scheduling or resource invariant.",
-    icon: Activity,
   },
 ];
 
@@ -81,33 +76,31 @@ export default function Testimonials() {
           description="Self-authored summaries of shipped product work and engineering experience—paired with the technical invariants I inspect in every system."
         />
 
-        {/* Editorial 3-Column Hairline Grid */}
-        <div className="grid gap-px border border-[var(--portfolio-rule)] bg-[var(--portfolio-rule)] md:grid-cols-3">
+        {/* Editorial 3-Column Open Top-Ruled Grid */}
+        <div className="grid gap-10 md:grid-cols-3">
           {ENDORSEMENTS.map((item, idx) => (
             <div
               key={item.company}
-              className="flex h-full flex-col justify-between bg-[var(--portfolio-surface)] p-6 sm:p-7"
+              className="flex h-full flex-col justify-between border-t border-[var(--portfolio-rule)] pt-6"
             >
               <div>
-                <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-3 font-mono text-[10px] uppercase tracking-[0.16em]">
-                  <span className="text-[var(--portfolio-accent)]">
-                    {String(idx + 1).padStart(2, "0")} {"//"} {item.company}
+                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-muted)]">
+                  <span>
+                    {String(idx + 1).padStart(2, "0")} · {item.company}
                   </span>
-                  <span className="text-[var(--portfolio-muted)]">
-                    {item.context}
-                  </span>
+                  <span>{item.context}</span>
                 </div>
 
-                <p className="mt-5 font-display text-xl italic leading-snug text-[var(--portfolio-ink)] sm:text-2xl">
+                <p className="mt-5 font-display text-xl font-light italic leading-relaxed text-[var(--portfolio-ink)] sm:text-[1.4rem]">
                   &ldquo;{item.quote}&rdquo;
                 </p>
               </div>
 
               <div className="mt-7 border-t border-[var(--portfolio-rule)] pt-4">
-                <p className="font-mono text-xs font-medium text-[var(--portfolio-ink)]">
+                <p className="font-sans text-xs font-semibold text-[var(--portfolio-ink)]">
                   {item.author}
                 </p>
-                <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--portfolio-muted)]">
+                <p className="mt-0.5 font-sans text-xs text-[var(--portfolio-muted)]">
                   {item.role}
                 </p>
 
@@ -123,10 +116,10 @@ export default function Testimonials() {
           ))}
         </div>
 
-        {/* Engineering Practice 4-Column Specification Strip */}
-        <div className="mt-10 border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)]">
-          <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-[var(--portfolio-rule)] px-6 py-4">
-            <h3 className="font-display text-2xl text-[var(--portfolio-ink)]">
+        {/* Engineering Practice 4-Column Open Ledger */}
+        <div className="mt-16 border-t border-[var(--portfolio-rule)] pt-10">
+          <div className="mb-8 flex flex-wrap items-baseline justify-between gap-3">
+            <h3 className="font-display text-2xl font-light tracking-[-0.02em] text-[var(--portfolio-ink)] sm:text-3xl">
               Engineering Practice
             </h3>
             <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--portfolio-muted)]">
@@ -134,29 +127,23 @@ export default function Testimonials() {
             </p>
           </div>
 
-          <div className="grid gap-px bg-[var(--portfolio-rule)] sm:grid-cols-2 lg:grid-cols-4">
-            {TRUST_PILLARS.map((pillar, idx) => {
-              const Icon = pillar.icon;
-              return (
-                <div
-                  key={pillar.title}
-                  className="bg-[var(--portfolio-surface)] p-5 transition-colors hover:bg-[var(--portfolio-wash)]"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] tracking-[0.16em] text-[var(--portfolio-accent)]">
-                      0{idx + 1}
-                    </span>
-                    <Icon className="h-4 w-4 text-[var(--portfolio-muted)]" />
-                  </div>
-                  <h4 className="mt-3 font-display text-xl text-[var(--portfolio-ink)]">
-                    {pillar.title}
-                  </h4>
-                  <p className="mt-1.5 text-xs leading-relaxed text-[var(--portfolio-muted)]">
-                    {pillar.desc}
-                  </p>
-                </div>
-              );
-            })}
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {TRUST_PILLARS.map((pillar, idx) => (
+              <div
+                key={pillar.title}
+                className="border-t border-[var(--portfolio-rule)] pt-4"
+              >
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[var(--portfolio-muted)]">
+                  0{idx + 1}
+                </span>
+                <h4 className="mt-2 font-display text-xl font-light text-[var(--portfolio-ink)]">
+                  {pillar.title}
+                </h4>
+                <p className="mt-2 font-sans text-xs leading-relaxed text-[var(--portfolio-muted)]">
+                  {pillar.desc}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

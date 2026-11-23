@@ -38,7 +38,7 @@ export default function ArchitectureShowcase() {
       id="Architecture"
       aria-label="Systems Architecture and GoF Design Patterns"
       data-chapter-index="02"
-      className="relative border-y border-white/12 bg-[#08080a] px-5 py-16 text-[#f4f3ee] sm:px-10 sm:py-24 lg:px-16"
+      className="relative border-y border-[var(--portfolio-arch-rule)] bg-[var(--portfolio-arch-bg)] px-5 py-16 text-[var(--portfolio-arch-ink)] sm:px-10 sm:py-24 lg:px-16"
     >
       <div className="relative mx-auto max-w-7xl">
         <SectionHeading
@@ -49,28 +49,27 @@ export default function ArchitectureShowcase() {
         />
 
         {/* Scope Filter Row & Full Library Link */}
-        <Reveal delay={60}>
-          <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap border border-white/15 bg-[#0e0e12]">
+        <Reveal delay={40}>
+          <div className="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--portfolio-arch-rule)] pb-3">
+            <div className="flex flex-wrap gap-5">
               {(
                 [
-                  ["all", "All"],
+                  ["all", "All Patterns"],
                   ["distributed", "Distributed & Security"],
                   ["behavioral", "Behavioral"],
                   ["structural", "Structural"],
                   ["creational", "Creational"],
                 ] as const
-              ).map(([cat, label], idx, arr) => (
+              ).map(([cat, label]) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setSelectedCategory(cat)}
                   className={cn(
-                    "cursor-pointer px-3.5 py-2 font-mono text-[11px] uppercase tracking-[0.08em] transition-colors",
-                    idx < arr.length - 1 && "border-r border-white/12",
+                    "-mb-[13px] cursor-pointer border-b-[1.5px] pb-3 font-sans text-xs font-medium transition-colors",
                     selectedCategory === cat
-                      ? "bg-[#f4f3ee] font-semibold text-[#08080a]"
-                      : "text-[#9c9ca6] hover:text-[#f4f3ee]",
+                      ? "border-[var(--portfolio-arch-ink)] text-[var(--portfolio-arch-ink)]"
+                      : "border-transparent text-[var(--portfolio-arch-muted)] hover:text-[var(--portfolio-arch-ink)]",
                   )}
                 >
                   {label}
@@ -82,7 +81,7 @@ export default function ArchitectureShowcase() {
               href="https://study.buildora.work/30-architecture"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 border border-white/20 px-3.5 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-[#f4f3ee] transition-colors hover:border-[#ff3b2f] hover:text-[#ff3b2f]"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--portfolio-arch-rule)] px-3.5 py-1.5 font-sans text-xs font-medium text-[var(--portfolio-arch-ink)] transition-colors hover:border-[var(--portfolio-arch-ink)]"
             >
               <span>Explore All 23 Patterns</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -91,62 +90,61 @@ export default function ArchitectureShowcase() {
         </Reveal>
 
         {/* Border-Collapsed 2-Column Specification Matrix */}
-        <div className="grid gap-px border border-white/15 bg-white/15 md:grid-cols-2">
+        <div className="grid gap-px border border-[var(--portfolio-arch-rule)] bg-[var(--portfolio-arch-rule)] md:grid-cols-2">
           {filtered.map((item, idx) => (
             <div
               key={item.id}
               data-pattern-card
-              className="flex h-full flex-col justify-between bg-[#0c0c10] p-6 transition-colors hover:bg-[#111116] sm:p-7"
+              className="flex h-full flex-col justify-between bg-[var(--portfolio-arch-bg)] p-6 transition-colors hover:bg-[var(--portfolio-arch-surface)] sm:p-8"
             >
               <div>
-                <div className="flex items-center justify-between gap-2 border-b border-white/12 pb-3">
-                  <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em]">
-                    <span className="text-[#ff3b2f]">
-                      {String(idx + 1).padStart(2, "0")}
-                    </span>
-                    <span className="text-[#8e8e98]">{item.categoryLabel}</span>
+                <div className="flex items-center justify-between gap-2 border-b border-[var(--portfolio-arch-rule)] pb-3">
+                  <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-arch-muted)]">
+                    <span>{String(idx + 1).padStart(2, "0")}</span>
+                    <span>·</span>
+                    <span>{item.categoryLabel}</span>
                   </div>
                   <a
                     href={item.stackUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[#9c9ca6] transition-colors hover:text-[#ff3b2f]"
+                    className="inline-flex items-center gap-1 font-sans text-xs text-[var(--portfolio-arch-muted)] transition-colors hover:text-[var(--portfolio-arch-ink)]"
                   >
                     <span>Reference</span>
                     <ArrowUpRight className="h-3 w-3" />
                   </a>
                 </div>
 
-                <h3 className="mt-4 font-display text-2xl leading-tight tracking-[-0.015em] text-[#f4f3ee] sm:text-3xl">
+                <h3 className="mt-4 font-display text-2xl font-light leading-tight tracking-[-0.02em] text-[var(--portfolio-arch-ink)] sm:text-[1.75rem]">
                   {item.name}
                 </h3>
 
-                <div className="mt-4 space-y-3 text-xs sm:text-sm">
-                  <p className="leading-relaxed text-[#a8a8b2]">
-                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[#f4f3ee]">
+                <div className="mt-4 space-y-3 font-sans text-xs sm:text-sm">
+                  <p className="leading-relaxed text-[var(--portfolio-arch-muted)]">
+                    <span className="font-medium text-[var(--portfolio-arch-ink)]">
                       Invariant:{" "}
                     </span>
                     {item.problem}
                   </p>
 
                   <details className="group">
-                    <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[#d4d3ce] hover:text-[#ff3b2f]">
+                    <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-sans text-xs font-medium text-[var(--portfolio-arch-ink)]">
                       <ChevronRight
-                        className="h-3.5 w-3.5 text-[#ff3b2f] transition-transform group-open:rotate-90"
+                        className="h-3.5 w-3.5 text-[var(--portfolio-arch-muted)] transition-transform group-open:rotate-90"
                         aria-hidden="true"
                       />
                       <span>Architecture solution</span>
                     </summary>
-                    <p className="mt-2.5 border-l border-[#ff3b2f]/60 pl-3 text-xs leading-relaxed text-[#a8a8b2]">
+                    <p className="mt-2.5 border-l border-[var(--portfolio-arch-rule)] pl-3 text-xs leading-relaxed text-[var(--portfolio-arch-muted)]">
                       {item.solution}
                     </p>
                   </details>
 
-                  <div className="border border-white/10 bg-[#08080a] p-3">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#ff3b2f]">
-                      Production Use
+                  <div className="border border-[var(--portfolio-arch-rule)] bg-[var(--portfolio-arch-surface)] p-3.5">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--portfolio-arch-muted)]">
+                      Production Application
                     </span>
-                    <p className="mt-1 text-xs leading-relaxed text-[#e6e5e0]">
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--portfolio-arch-ink)]">
                       {item.productionUse}
                     </p>
                   </div>
@@ -154,7 +152,7 @@ export default function ArchitectureShowcase() {
               </div>
 
               {/* Code Inspector Toggle */}
-              <div className="mt-5 border-t border-white/12 pt-4">
+              <div className="mt-6 border-t border-[var(--portfolio-arch-rule)] pt-4">
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
@@ -163,22 +161,22 @@ export default function ArchitectureShowcase() {
                         activeSnippet === item.id ? null : item.id,
                       )
                     }
-                    className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[#f4f3ee] transition-colors hover:text-[#ff3b2f]"
+                    className="inline-flex cursor-pointer items-center gap-1.5 font-sans text-xs font-medium text-[var(--portfolio-arch-ink)] hover:underline"
                   >
-                    <Code2 className="h-3.5 w-3.5 text-[#ff3b2f]" />
+                    <Code2 className="h-3.5 w-3.5 text-[var(--portfolio-arch-muted)]" />
                     <span>
                       {activeSnippet === item.id
-                        ? "Hide Implementation"
+                        ? "Hide implementation"
                         : "Inspect TypeScript"}
                     </span>
                   </button>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#6e6e78]">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--portfolio-arch-muted)]">
                     TS
                   </span>
                 </div>
 
                 {activeSnippet === item.id && (
-                  <div className="mt-3 overflow-hidden border border-white/12 bg-[#050507] p-3.5 font-mono text-[11px] text-[#e6e5e0]">
+                  <div className="mt-3 overflow-hidden border border-[var(--portfolio-arch-rule)] bg-[#070709] p-4 font-mono text-[11px] text-[#e6e5e0]">
                     <pre className="overflow-x-auto whitespace-pre leading-relaxed">
                       <code>{item.codeSnippet}</code>
                     </pre>
@@ -190,15 +188,15 @@ export default function ArchitectureShowcase() {
         </div>
 
         {/* Bottom Architectural Review Strip */}
-        <div className="mt-10 flex flex-col items-start justify-between gap-6 border border-white/15 bg-[#0e0e12] p-6 sm:p-8 md:flex-row md:items-center">
+        <div className="mt-12 flex flex-col items-start justify-between gap-6 border-t border-[var(--portfolio-arch-rule)] pt-10 md:flex-row md:items-center">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#ff3b2f]">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-arch-muted)]">
               Architecture Advisory
             </p>
-            <h4 className="mt-1.5 font-display text-2xl text-[#f4f3ee] sm:text-3xl">
+            <h4 className="mt-2 font-display text-2xl font-light tracking-[-0.02em] text-[var(--portfolio-arch-ink)] sm:text-3xl">
               Need a system design or reliability review?
             </h4>
-            <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-[#9c9ca6] sm:text-sm">
+            <p className="mt-1.5 max-w-2xl font-sans text-xs leading-relaxed text-[var(--portfolio-arch-muted)] sm:text-sm">
               Evaluating multi-tenant PostgreSQL RLS isolation, transactional
               outbox pipelines, real-time synchronization, and p95 latency
               bottlenecks.
@@ -206,9 +204,9 @@ export default function ArchitectureShowcase() {
           </div>
           <a
             href="#Contact"
-            className="portfolio-stage-primary-cta shrink-0"
+            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-[var(--portfolio-arch-ink)] bg-[var(--portfolio-arch-ink)] px-5 font-sans text-xs font-medium text-[var(--portfolio-arch-bg)] transition-opacity hover:opacity-85"
           >
-            <span>Discuss Architecture</span>
+            <span>Discuss architecture</span>
             <ArrowUpRight className="h-4 w-4" />
           </a>
         </div>

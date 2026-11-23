@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { ArrowUpRight, ChevronRight, Radio } from "lucide-react";
+import { ArrowUpRight, ChevronRight } from "lucide-react";
 import LivePreviewModal from "@/components/LivePreviewModal";
 
 interface RepoItem {
@@ -17,7 +17,6 @@ interface RepoItem {
   tech: string[];
   githubUrl: string;
   liveUrl?: string;
-  featured?: boolean;
 }
 
 const REPOSITORIES: RepoItem[] = [
@@ -36,7 +35,6 @@ const REPOSITORIES: RepoItem[] = [
     metrics: "PostgreSQL RLS · Executable Isolation · CLI & GitHub Action",
     tech: ["TypeScript", "PostgreSQL", "NestJS", "GitHub Actions", "Docker"],
     githubUrl: "https://github.com/CVamsi27/rls-rehearsal",
-    featured: true,
   },
   {
     id: "retryglass",
@@ -53,7 +51,6 @@ const REPOSITORIES: RepoItem[] = [
     metrics: "BullMQ · Crash-Point Sweep · Vitest Repro",
     tech: ["TypeScript", "Node.js", "BullMQ", "Redis", "Vitest"],
     githubUrl: "https://github.com/CVamsi27/retryglass",
-    featured: true,
   },
   {
     id: "software-developer-bible",
@@ -141,60 +138,40 @@ export default function OpenSource() {
           </a>
         </div>
 
-        {/* Border-Collapsed 2-Column Engineering Ledger */}
+        {/* Border-Collapsed 2-Column Engineering Ledger (Zero glowing dots) */}
         <div className="grid gap-px border border-[var(--portfolio-rule)] bg-[var(--portfolio-rule)] md:grid-cols-2">
           {REPOSITORIES.map((repo, idx) => (
             <div
               key={repo.id}
               data-repo-card
-              className="flex h-full flex-col justify-between bg-[var(--portfolio-surface)] p-6 transition-colors hover:bg-[var(--portfolio-wash)] sm:p-7"
+              className="flex h-full flex-col justify-between bg-[var(--portfolio-surface)] p-6 transition-colors hover:bg-[var(--portfolio-wash)] sm:p-8"
             >
               <div>
-                <div className="flex items-center justify-between gap-2 border-b border-[var(--portfolio-rule)] pb-3">
-                  <div className="flex items-center gap-2 font-mono text-[11px] text-[var(--portfolio-ink)]">
-                    <span className="text-[var(--portfolio-accent)]">
-                      {String(idx + 1).padStart(2, "0")}
-                    </span>
-                    <FontAwesomeIcon
-                      icon={faGithub}
-                      className="h-3.5 w-3.5 text-[var(--portfolio-muted)]"
-                    />
-                    <span>{repo.repo}</span>
-                  </div>
-
-                  {repo.featured && (
-                    <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-accent)]">
-                      <span
-                        className="h-1.5 w-1.5 bg-[var(--portfolio-accent)]"
-                        aria-hidden="true"
-                      />
-                      Flagship
-                    </span>
-                  )}
+                <div className="flex items-center justify-between gap-2 border-b border-[var(--portfolio-rule)] pb-3 font-mono text-[11px] text-[var(--portfolio-muted)]">
+                  <span>{String(idx + 1).padStart(2, "0")}</span>
+                  <span>{repo.repo}</span>
                 </div>
 
-                <h3 className="mt-4 font-display text-2xl leading-tight tracking-[-0.015em] text-[var(--portfolio-ink)] sm:text-3xl">
+                <h3 className="mt-4 font-display text-2xl font-light leading-tight tracking-[-0.02em] text-[var(--portfolio-ink)] sm:text-[1.75rem]">
                   {repo.name}
                 </h3>
 
-                <p className="mt-2.5 text-xs leading-relaxed text-[var(--portfolio-muted)] sm:text-sm sm:leading-6">
+                <p className="mt-2.5 font-sans text-xs leading-relaxed text-[var(--portfolio-muted)] sm:text-sm sm:leading-6">
                   {repo.description}
                 </p>
 
                 <details className="group mt-4 border-t border-[var(--portfolio-rule)] pt-3">
-                  <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]">
+                  <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-sans text-xs font-medium text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]">
                     <ChevronRight
-                      className="h-3.5 w-3.5 text-[var(--portfolio-accent)] transition-transform group-open:rotate-90"
+                      className="h-3.5 w-3.5 transition-transform group-open:rotate-90"
                       aria-hidden="true"
                     />
                     <span>Highlights</span>
                   </summary>
-                  <ul className="mt-3 space-y-1.5 text-xs text-[var(--portfolio-ink)]">
+                  <ul className="mt-3 space-y-1.5 font-sans text-xs text-[var(--portfolio-ink)]">
                     {repo.highlights.map((highlight, hIdx) => (
                       <li key={hIdx} className="flex items-start gap-2">
-                        <span className="font-mono text-[var(--portfolio-accent)]">
-                          —
-                        </span>
+                        <span className="text-[var(--portfolio-muted)]">—</span>
                         <span>{highlight}</span>
                       </li>
                     ))}
@@ -210,15 +187,15 @@ export default function OpenSource() {
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-[var(--portfolio-rule)] pt-4">
+              <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-[var(--portfolio-rule)] pt-4 font-sans text-xs font-medium">
                 <a
                   href={repo.githubUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-ink)] transition-colors hover:text-[var(--portfolio-accent)]"
+                  className="inline-flex items-center gap-1.5 text-[var(--portfolio-ink)] hover:underline"
                 >
                   <FontAwesomeIcon icon={faGithub} className="h-3.5 w-3.5" />
-                  <span>Source Code</span>
+                  <span>Source code</span>
                   <ArrowUpRight className="h-3 w-3" />
                 </a>
 
@@ -232,19 +209,18 @@ export default function OpenSource() {
                           url: repo.liveUrl!,
                         })
                       }
-                      className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-accent)] hover:underline"
+                      className="inline-flex cursor-pointer items-center gap-1.5 text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)] hover:underline"
                     >
-                      <Radio className="h-3 w-3" />
-                      <span>Live Sandbox</span>
+                      <span>Live preview</span>
                     </button>
 
                     <a
                       href={repo.liveUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ml-auto inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-muted)] transition-colors hover:text-[var(--portfolio-ink)]"
+                      className="ml-auto inline-flex items-center gap-1 text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]"
                     >
-                      <span>Open Site</span>
+                      <span>Open site</span>
                       <ArrowUpRight className="h-3 w-3" />
                     </a>
                   </>
@@ -258,19 +234,21 @@ export default function OpenSource() {
             <div
               key={item.project}
               data-ecosystem-track
-              className="flex h-full flex-col justify-between bg-[var(--portfolio-wash)] p-6 transition-colors hover:bg-[var(--portfolio-surface)] sm:p-7"
+              className="flex h-full flex-col justify-between bg-[var(--portfolio-wash)] p-6 transition-colors hover:bg-[var(--portfolio-surface)] sm:p-8"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 border-b border-[var(--portfolio-rule)] pb-3">
-                  <span className="font-mono text-xs font-medium text-[var(--portfolio-ink)]">
+                  <span className="font-display text-xl font-light text-[var(--portfolio-ink)]">
                     {item.project}
                   </span>
-                  <span className="portfolio-impact-pill">{item.tag}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--portfolio-muted)]">
+                    {item.tag}
+                  </span>
                 </div>
-                <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--portfolio-accent)]">
-                  Ecosystem Track · {item.scope}
+                <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-muted)]">
+                  {item.scope}
                 </p>
-                <p className="mt-2 text-xs leading-relaxed text-[var(--portfolio-muted)] sm:text-sm">
+                <p className="mt-2 font-sans text-xs leading-relaxed text-[var(--portfolio-muted)] sm:text-sm">
                   {item.description}
                 </p>
               </div>
@@ -278,9 +256,9 @@ export default function OpenSource() {
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-5 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-ink)] transition-colors hover:text-[var(--portfolio-accent)]"
+                className="mt-5 inline-flex items-center gap-1 font-sans text-xs font-medium text-[var(--portfolio-ink)] hover:underline"
               >
-                <span>View Repository</span>
+                <span>View repository</span>
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
             </div>

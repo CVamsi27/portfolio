@@ -4,16 +4,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import {
-  Mail,
-  Check,
-  Copy,
-  Clock,
-  MapPin,
-  Send,
-  Loader2,
-  Download,
-} from "lucide-react";
+import { Check, Copy, Send, Loader2, Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -178,10 +169,10 @@ const Contact = () => {
           description="If you are hiring for a remote full-stack role, modernizing operational workflows, or need an engineer fluent from UI to PostgreSQL internals, reach out directly."
         />
 
-        <div className="grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
-          {/* Left Column: Direct Coordinates */}
-          <Reveal direction="left" className="space-y-6">
-            <div className="border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-6">
+        <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+          {/* Left Column: Clean Editorial Coordinates (Zero glowing dots) */}
+          <Reveal direction="left" className="space-y-8">
+            <div className="border-t border-[var(--portfolio-rule)] pt-6">
               <p className="portfolio-meta-label">Primary Inbox</p>
 
               <div className="mt-4 flex flex-col gap-4">
@@ -189,11 +180,10 @@ const Contact = () => {
                   href={`mailto:${CONTACT_EMAIL}`}
                   className="portfolio-contact-email break-all sm:break-normal"
                 >
-                  <Mail className="h-5 w-5 shrink-0 text-[var(--portfolio-accent)]" />
                   <span>{CONTACT_EMAIL}</span>
                 </a>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <button
                     type="button"
                     onClick={handleCopyEmail}
@@ -203,13 +193,13 @@ const Contact = () => {
                   >
                     {copied ? (
                       <>
-                        <Check className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
+                        <Check className="h-3.5 w-3.5" />
                         <span>Copied</span>
                       </>
                     ) : (
                       <>
                         <Copy className="h-3.5 w-3.5" />
-                        <span>Copy Email</span>
+                        <span>Copy email</span>
                       </>
                     )}
                   </button>
@@ -228,51 +218,36 @@ const Contact = () => {
               </div>
             </div>
 
-            <div className="border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-6">
-              <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-3">
-                <p className="portfolio-meta-label">Location &amp; Overlap</p>
-                <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-accent)]">
-                  <span className="portfolio-status-dot" aria-hidden="true" />
-                  Active
-                </span>
-              </div>
+            <div className="border-t border-[var(--portfolio-rule)] pt-6">
+              <p className="portfolio-meta-label">Location &amp; Overlap</p>
+              <p className="mt-3 font-sans text-sm font-medium text-[var(--portfolio-ink)]">
+                Hyderabad, India · Remote full-stack roles
+              </p>
+              <p className="mt-1.5 font-sans text-xs leading-relaxed text-[var(--portfolio-muted)]">
+                India and global remote; EU/Germany remote with relocation where
+                required. Working-hour overlap by agreement.
+              </p>
+            </div>
 
-              <div className="mt-4 space-y-3 text-xs leading-relaxed text-[var(--portfolio-muted)]">
-                <div className="flex items-start gap-2.5">
-                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
-                  <span className="font-medium text-[var(--portfolio-ink)]">
-                    Hyderabad, India · Remote full-stack roles
-                  </span>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--portfolio-accent)]" />
-                  <span>
-                    India and global remote; EU/Germany remote with relocation
-                    where required. Working-hour overlap by agreement.
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6 border-t border-[var(--portfolio-rule)] pt-4">
-                <p className="portfolio-meta-label mb-3">External Channels</p>
-                <Connections />
-              </div>
+            <div className="border-t border-[var(--portfolio-rule)] pt-6">
+              <p className="portfolio-meta-label mb-3">External Channels</p>
+              <Connections />
             </div>
           </Reveal>
 
-          {/* Right Column: Flat Shadowless Message Form */}
+          {/* Right Column: Serene Architectural Message Form */}
           <Reveal direction="right" className="portfolio-contact-form">
             <div className="mb-6 border-b border-[var(--portfolio-rule)] pb-4">
-              <p className="portfolio-meta-label">Message Dispatch</p>
-              <h3 className="mt-1.5 font-display text-3xl text-[var(--portfolio-ink)]">
+              <p className="portfolio-meta-label">Direct Message</p>
+              <h3 className="mt-2 font-display text-3xl font-light tracking-[-0.025em] text-[var(--portfolio-ink)]">
                 Send a message
               </h3>
-              <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
+              <p className="mt-1 font-sans text-xs text-[var(--portfolio-muted)]">
                 Pick a topic template or write a direct note below.
               </p>
             </div>
 
-            <div className="mb-6 flex flex-wrap gap-1.5">
+            <div className="mb-6 flex flex-wrap gap-2">
               {QUICK_TOPICS.map((topic) => (
                 <button
                   key={topic.label}
@@ -341,7 +316,7 @@ const Contact = () => {
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel>Message</FormLabel>
-                        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--portfolio-muted)]">
+                        <span className="font-mono text-[10px] text-[var(--portfolio-muted)]">
                           {field.value.length} chars
                         </span>
                       </div>
@@ -361,7 +336,7 @@ const Contact = () => {
                 {submitError ? (
                   <p
                     role="alert"
-                    className="border border-[var(--portfolio-accent)] bg-[var(--portfolio-blue-soft)] p-3 font-mono text-xs text-[var(--portfolio-ink)]"
+                    className="border border-[var(--portfolio-accent)] bg-[var(--portfolio-blue-soft)] p-3 font-sans text-xs text-[var(--portfolio-ink)]"
                   >
                     {submitError}{" "}
                     <a
@@ -379,14 +354,14 @@ const Contact = () => {
                     className="border border-[var(--portfolio-rule)] bg-[var(--portfolio-wash)] p-5"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] text-[var(--portfolio-paper)]">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] text-[var(--portfolio-paper)]">
                         <Check className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="font-display text-xl text-[var(--portfolio-ink)]">
+                        <p className="font-display text-xl font-light text-[var(--portfolio-ink)]">
                           Message received
                         </p>
-                        <p className="font-mono text-[11px] text-[var(--portfolio-muted)]">
+                        <p className="font-sans text-xs text-[var(--portfolio-muted)]">
                           Replies typically within 24–48 hours.
                         </p>
                       </div>
@@ -407,7 +382,7 @@ const Contact = () => {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="portfolio-submit-action w-full cursor-pointer rounded-none"
+                    className="portfolio-submit-action w-full cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>

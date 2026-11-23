@@ -40,123 +40,87 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   return (
     <footer
       data-editorial-footer
-      className="border-t border-white/15 bg-[#08080a] text-[#f4f3ee]"
+      className="border-t border-[var(--portfolio-rule)] bg-[var(--portfolio-footer-bg)] text-[var(--portfolio-footer-ink)]"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-10 lg:px-16">
-        {/* Top Monumental Editorial Colophon */}
-        <div className="grid gap-10 border-b border-white/12 py-14 lg:grid-cols-[1.4fr_1fr_1fr] lg:py-16">
+        <div className="grid gap-12 border-b border-[var(--portfolio-footer-rule)] py-16 lg:grid-cols-[1.45fr_1fr_1fr]">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-[#8e8e98]">
-              <span
-                className="inline-block h-1.5 w-1.5 bg-[#ff3b2f]"
-                aria-hidden="true"
-              />
-              <span>Senior Full Stack Engineer · Remote</span>
-            </div>
-            <p className="font-display text-4xl leading-[0.95] tracking-[-0.02em] text-[#f4f3ee] sm:text-5xl">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--portfolio-footer-muted)]">
+              Senior Full Stack Engineer · Remote
+            </p>
+            <p className="font-display text-4xl font-light leading-[0.98] tracking-[-0.025em] sm:text-5xl">
               {PORTFOLIO_BRAND.personName}
             </p>
-            <p className="max-w-md text-sm leading-relaxed text-[#8e8e98]">
+            <p className="max-w-md font-sans text-sm leading-relaxed text-[var(--portfolio-footer-muted)]">
               Architecting multi-tenant web applications, resilient TypeScript
               services, and verifiable PostgreSQL infrastructure.
             </p>
             <a
               href={`mailto:${CONTACT_EMAIL}`}
-              className="inline-flex items-center gap-1.5 border-b border-white/25 pb-0.5 font-mono text-xs text-[#f4f3ee] transition-colors hover:border-[#ff3b2f] hover:text-[#ff3b2f]"
+              className="inline-flex items-center gap-1.5 border-b border-[var(--portfolio-footer-rule)] pb-0.5 font-sans text-sm font-medium transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
             >
               <span>{CONTACT_EMAIL}</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
             </a>
           </div>
 
-          <div className="space-y-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#8e8e98]">
-              Index
+          <div className="space-y-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--portfolio-footer-muted)]">
+              Sections
             </p>
-            <ul className="grid grid-cols-2 gap-y-2 font-mono text-xs text-[#c7c6c0]">
-              <li>
-                <a
-                  href={sectionHref("#Work")}
-                  className="transition-colors hover:text-[#ff3b2f]"
-                >
-                  01 Work
-                </a>
-              </li>
-              <li>
-                <a
-                  href={sectionHref("#Architecture")}
-                  className="transition-colors hover:text-[#ff3b2f]"
-                >
-                  02 Patterns
-                </a>
-              </li>
-              <li>
-                <a
-                  href={sectionHref("#OpenSource")}
-                  className="transition-colors hover:text-[#ff3b2f]"
-                >
-                  03 Open Source
-                </a>
-              </li>
-              <li>
-                <a
-                  href={sectionHref("#Experience")}
-                  className="transition-colors hover:text-[#ff3b2f]"
-                >
-                  04 Experience
-                </a>
-              </li>
-              <li>
-                <a
-                  href={sectionHref("#Capabilities")}
-                  className="transition-colors hover:text-[#ff3b2f]"
-                >
-                  05 Stack
-                </a>
-              </li>
-              <li>
-                <a
-                  href={sectionHref("#Contact")}
-                  className="transition-colors hover:text-[#ff3b2f]"
-                >
-                  07 Contact
-                </a>
-              </li>
+            <ul className="grid grid-cols-2 gap-y-2.5 font-sans text-sm text-[var(--portfolio-footer-muted)]">
+              {[
+                ["Work", "#Work"],
+                ["Architecture", "#Architecture"],
+                ["Open Source", "#OpenSource"],
+                ["Experience", "#Experience"],
+                ["Capabilities", "#Capabilities"],
+                ["Contact", "#Contact"],
+              ].map(([label, anchor]) => (
+                <li key={anchor}>
+                  <a
+                    href={sectionHref(anchor)}
+                    className="transition-colors hover:text-[var(--portfolio-footer-ink)]"
+                  >
+                    {label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
-          <div className="space-y-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#8e8e98]">
-              Documents &amp; Tools
+          <div className="space-y-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--portfolio-footer-muted)]">
+              Documents &amp; Channels
             </p>
-            <div className="flex flex-col items-start gap-2 font-mono text-xs text-[#c7c6c0]">
+            <div className="flex flex-col items-start gap-2.5 font-sans text-sm text-[var(--portfolio-footer-muted)]">
               <a
                 href={RESUME_PATH}
                 download="VamsiKrishna_Resume"
-                className="inline-flex items-center gap-1.5 transition-colors hover:text-[#ff3b2f]"
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--portfolio-footer-ink)]"
               >
                 <span>Resume (PDF)</span>
-                <ArrowUpRight className="h-3 w-3" />
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
               <a
                 href="https://github.com/CVamsi27"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 transition-colors hover:text-[#ff3b2f]"
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--portfolio-footer-ink)]"
               >
                 <span>GitHub (@CVamsi27)</span>
-                <ArrowUpRight className="h-3 w-3" />
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
               <a
                 href="https://www.linkedin.com/in/vamsikrishnachandaluri/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 transition-colors hover:text-[#ff3b2f]"
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--portfolio-footer-ink)]"
               >
                 <span>LinkedIn</span>
-                <ArrowUpRight className="h-3 w-3" />
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
-              <div className="flex items-center gap-4 pt-1 text-[11px] text-[#8e8e98]">
+              <div className="flex items-center gap-4 pt-2 font-mono text-[11px]">
                 <button
                   type="button"
                   onClick={() =>
@@ -164,7 +128,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                       new CustomEvent("portfolio-open-terminal"),
                     )
                   }
-                  className="cursor-pointer transition-colors hover:text-[#f4f3ee]"
+                  className="cursor-pointer transition-colors hover:text-[var(--portfolio-footer-ink)]"
                   title="Open developer CLI terminal (~)"
                 >
                   Terminal (~)
@@ -176,7 +140,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                       new KeyboardEvent("keydown", { key: "?" }),
                     )
                   }
-                  className="cursor-pointer transition-colors hover:text-[#f4f3ee]"
+                  className="cursor-pointer transition-colors hover:text-[var(--portfolio-footer-ink)]"
                   title="Keyboard navigation shortcuts"
                 >
                   Shortcuts (?)
@@ -186,18 +150,17 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
           </div>
         </div>
 
-        {/* Bottom Legal & Return Bar */}
-        <div className="flex flex-col items-center justify-between gap-4 py-6 font-mono text-[11px] text-[#8e8e98] sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 py-6 font-sans text-xs text-[var(--portfolio-footer-muted)] sm:flex-row">
           <p>
-            © {year} {PORTFOLIO_BRAND.personName} · Engineered with Next.js &amp;
-            TypeScript
+            © {year} {PORTFOLIO_BRAND.personName}. Engineered with Next.js &amp;
+            TypeScript.
           </p>
           <a
             href="#Top"
-            className="inline-flex items-center gap-2 border border-white/15 px-3.5 py-1.5 text-[11px] uppercase tracking-[0.12em] text-[#f4f3ee] transition-colors hover:border-[#ff3b2f] hover:text-[#ff3b2f]"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--portfolio-footer-rule)] px-4 py-1.5 text-xs font-medium text-[var(--portfolio-footer-ink)] transition-colors hover:border-[var(--portfolio-footer-ink)]"
           >
             <span>Back to top</span>
-            <ArrowUp className="h-3 w-3" />
+            <ArrowUp className="h-3.5 w-3.5" />
           </a>
         </div>
       </div>

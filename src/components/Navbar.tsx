@@ -426,10 +426,10 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
       {!isTracker && (
         <div
           aria-hidden
-          className="absolute inset-x-0 top-0 h-[2px] bg-transparent"
+          className="absolute inset-x-0 top-0 h-[1.5px] bg-transparent"
         >
           <div
-            className="h-full bg-[var(--portfolio-accent)] transition-[width] duration-150 ease-out"
+            className="h-full bg-[var(--portfolio-ink)] transition-[width] duration-150 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -444,7 +444,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
         <a
           href={isTracker ? "/hub" : "#Top"}
           aria-label={isTracker ? "NOVA home" : "Vamsi Krishna portfolio"}
-          className="shrink-0 transition-opacity hover:opacity-85"
+          className="shrink-0 transition-opacity hover:opacity-75"
         >
           {isTracker ? (
             <NovaMark variant="wordmark" simple label="NOVA" />
@@ -462,11 +462,11 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
             className={
               isTracker
                 ? "nova-primary-links"
-                : "hidden items-center gap-0.5 lg:flex"
+                : "hidden items-center gap-1 lg:flex"
             }
             data-testid={isTracker ? "tracker-primary-nav" : undefined}
           >
-            {desktopMenuItems.map((item, idx) =>
+            {desktopMenuItems.map((item) =>
               isTracker ? (
                 <Link
                   key={item.href}
@@ -495,28 +495,17 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
                   href={item.href}
                   aria-current={isMenuActive(item.href) ? "page" : undefined}
                   className={cn(
-                    "dossier-rail-link relative inline-flex h-16 items-center gap-1.5 px-2.5 font-mono text-[11px] uppercase tracking-[0.1em] transition-colors",
+                    "dossier-rail-link relative inline-flex h-16 items-center px-3 font-sans text-[13px] font-medium tracking-[-0.01em] transition-colors",
                     isMenuActive(item.href)
                       ? "is-active text-[var(--portfolio-ink)]"
                       : "text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]",
                   )}
                 >
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "text-[9px]",
-                      isMenuActive(item.href)
-                        ? "text-[var(--portfolio-accent)]"
-                        : "text-[var(--portfolio-muted)]/60",
-                    )}
-                  >
-                    {String(idx + 1).padStart(2, "0")}
-                  </span>
                   <span>{item.label}</span>
                   {isMenuActive(item.href) ? (
                     <span
                       aria-hidden="true"
-                      className="absolute inset-x-2.5 bottom-0 h-[2px] bg-[var(--portfolio-accent)]"
+                      className="absolute inset-x-3 bottom-0 h-[1.5px] bg-[var(--portfolio-ink)]"
                     />
                   ) : null}
                 </a>
@@ -667,7 +656,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
               type="button"
               onClick={() => setResumeOpen(true)}
               title="View interactive résumé modal"
-              className="hidden h-9 cursor-pointer items-center gap-1.5 border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] px-3 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--portfolio-paper)] transition-colors hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-accent)] hover:text-white sm:inline-flex"
+              className="hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] px-4 font-sans text-xs font-medium text-[var(--portfolio-paper)] transition-opacity hover:opacity-85 sm:inline-flex"
             >
               <FileText className="h-3.5 w-3.5" />
               <span>Resume</span>
@@ -679,12 +668,10 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
               onClick={() => setPortfolioPaletteOpen(true)}
               aria-label="Command Palette (⌘K)"
               title="Command Palette (⌘K)"
-              className="inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 border border-[var(--portfolio-rule)] bg-transparent px-2.5 font-mono text-[11px] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)]"
+              className="inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-[var(--portfolio-rule)] bg-transparent px-3 font-mono text-[11px] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)]"
             >
               <Search className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline text-[10px] tracking-[0.08em]">
-                ⌘K
-              </span>
+              <span className="hidden lg:inline text-[10px]">⌘K</span>
             </button>
           ) : null}
           {!isTracker ? (
@@ -693,7 +680,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
               onClick={() => setTerminalOpen(true)}
               aria-label="Developer Terminal (~)"
               title="Developer Terminal (~)"
-              className="hidden h-9 w-9 cursor-pointer items-center justify-center border border-[var(--portfolio-rule)] bg-transparent text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)] xl:inline-flex"
+              className="hidden h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-transparent bg-transparent text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-rule)] hover:text-[var(--portfolio-ink)] xl:inline-flex"
             >
               <Terminal className="h-3.5 w-3.5" />
             </button>
@@ -704,7 +691,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
               onClick={() => setPortfolioShortcutsOpen(true)}
               aria-label="Keyboard Shortcuts (?)"
               title="Keyboard Shortcuts (?)"
-              className="hidden h-9 w-9 cursor-pointer items-center justify-center border border-[var(--portfolio-rule)] bg-transparent text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)] xl:inline-flex"
+              className="hidden h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-transparent bg-transparent text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-rule)] hover:text-[var(--portfolio-ink)] xl:inline-flex"
             >
               <Keyboard className="h-3.5 w-3.5" />
             </button>

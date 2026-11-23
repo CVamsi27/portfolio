@@ -25,7 +25,7 @@ const HeaderMenu = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-none border border-[var(--portfolio-rule)] bg-transparent text-[var(--portfolio-ink)] transition-colors hover:border-[var(--portfolio-ink)] hover:bg-[var(--portfolio-wash)]"
+            className="h-9 w-9 rounded-full border border-[var(--portfolio-rule)] bg-transparent text-[var(--portfolio-ink)] transition-colors hover:border-[var(--portfolio-ink)] hover:bg-[var(--portfolio-wash)]"
             aria-label={ariaLabel}
           >
             <Menu className="h-4 w-4" />
@@ -34,16 +34,16 @@ const HeaderMenu = ({
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          className="w-56 rounded-none border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-1 shadow-none"
+          className="w-56 rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-1.5 shadow-none"
         >
           {items.map((item, idx) => (
             <DropdownMenuItem key={item.href} asChild>
               <a
                 href={item.href}
-                className="flex w-full cursor-pointer items-center justify-between rounded-none px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-ink)] transition-colors hover:bg-[var(--portfolio-wash)] hover:text-[var(--portfolio-accent)]"
+                className="flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2.5 font-sans text-xs font-medium text-[var(--portfolio-ink)] transition-colors hover:bg-[var(--portfolio-wash)]"
               >
                 <span>{item.label}</span>
-                <span className="text-[10px] text-[var(--portfolio-muted)]">
+                <span className="font-mono text-[10px] text-[var(--portfolio-muted)]">
                   {String(idx + 1).padStart(2, "0")}
                 </span>
               </a>
