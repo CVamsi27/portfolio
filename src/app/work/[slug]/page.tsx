@@ -71,7 +71,7 @@ export default async function CaseStudyPage({
     <EditorialFrame surface="paper" className="min-h-full !p-0">
       <div id="Top" data-public-dossier className="mx-auto w-full max-w-7xl">
         <article className="case-study px-5 pb-16 pt-10 sm:px-10 sm:pb-24 lg:px-16">
-          <Link href="/" className="case-study-back">
+          <Link href="/?#Work" className="case-study-back">
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>All selected work</span>
           </Link>

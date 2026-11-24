@@ -35,7 +35,7 @@ const Footer = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   if (isTracker) return null;
 
   const sectionHref = (anchor: string) =>
-    pathname === "/" ? anchor : `/${anchor}`;
+    pathname === "/" ? anchor : `/?#${anchor}`;
 
   return (
     <footer

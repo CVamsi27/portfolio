@@ -388,8 +388,12 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
     : MENU_LIST.map((m) => {
         const anchor = `#${m.replace(/\s+/g, "")}`;
         // Portfolio sections live on `/`; from sub-pages (e.g. case studies)
-        // the anchors have to point back at the overview.
-        return { label: m, href: pathname === "/" ? anchor : `/${anchor}` };
+        // link back to home + hash so the browser scrolls to the section on
+        // load instead of 404ing on a bare /Work-style route with no index.
+        return {
+          label: m,
+          href: pathname === "/" ? anchor : `/?#${anchor}`,
+        };
       });
 
   const desktopMenuItems = isTracker
@@ -403,7 +407,7 @@ const Navbar = ({ initialIsTracker }: { initialIsTracker?: boolean }) => {
   const isMenuActive = (href: string) =>
     isTracker
       ? isPersonalPrimaryPath(pathname, href)
-      : active === href.replace(/^\/?#/, "");
+      : active === href.split("#")[1];
 
   const openCapture = () => {
     setCaptureContext({
