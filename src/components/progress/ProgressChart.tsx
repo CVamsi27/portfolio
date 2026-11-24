@@ -82,19 +82,30 @@ export default function ProgressChart({
   endDate,
   options,
   onMetric,
+  range: controlledRange,
+  onRangeChange,
 }: {
   metric: ProgressMetric;
   endDate?: string;
   options?: ProgressMetric[];
   onMetric?: (metric: ProgressMetric) => void;
+  range?: 7 | 30 | 90;
+  onRangeChange?: (days: 7 | 30 | 90) => void;
 }) {
   const params = useSearchParams();
   const currentPath = usePathname();
-  const [range, setRange] = useState(() =>
-    [7, 30, 90].includes(Number(params.get("range")))
-      ? Number(params.get("range"))
-      : 30,
-  );
+  const [internalRange, setInternalRange] = useState<7 | 30 | 90>(() => {
+    const parsed = Number(params.get("range"));
+    return parsed === 7 || parsed === 90 ? parsed : 30;
+  });
+  const range = controlledRange ?? internalRange;
+  const setRange = (next: 7 | 30 | 90) => {
+    if (onRangeChange) {
+      onRangeChange(next);
+    } else {
+      setInternalRange(next);
+    }
+  };
   const { data, prefs, syncing, syncError } = usePersonalProgress(
     range,
     endDate,
@@ -114,17 +125,28 @@ export default function ProgressChart({
   const actionHref = `${definition.href}${definition.href.includes("?") ? "&" : "?"}date=${data.end}`;
   return (
     <section
-      className={`workspace-progress-lead${empty ? " is-empty" : ""}`}
+      className={`min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5 shadow-xs space-y-4${empty ? " is-empty" : ""}`}
       aria-label={`${definition.label} progress`}
       data-testid="progress-chart"
     >
-      <div className="workspace-progress-heading">
-        <h2>{definition.label}</h2>
-        <div className="workspace-progress-controls">
+      <div className="workspace-progress-heading flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">
+            {definition.label}
+          </h2>
+          {!empty && (
+            <p className="workspace-progress-period text-xs text-muted-foreground mt-0.5">
+              {data.first} – {data.end}
+              {syncing ? " · Syncing…" : ""}
+            </p>
+          )}
+        </div>
+        <div className="workspace-progress-controls flex flex-wrap items-center gap-2">
           {options && onMetric && (
-            <label>
+            <label className="min-w-0">
               <span className="sr-only">Metric</span>
               <select
+                className="h-9 rounded-xl border border-border/70 bg-background px-3 text-xs font-medium text-foreground shadow-2xs transition-colors hover:border-primary/40 focus:border-primary focus:outline-none"
                 value={metric}
                 onChange={(event) =>
                   onMetric(event.target.value as ProgressMetric)
@@ -138,12 +160,14 @@ export default function ProgressChart({
               </select>
             </label>
           )}
-          <label>
+          <label className="min-w-0">
             <span className="sr-only">Range</span>
             <select
+              className="h-9 rounded-xl border border-border/70 bg-background px-3 text-xs font-medium text-foreground shadow-2xs transition-colors hover:border-primary/40 focus:border-primary focus:outline-none"
               value={range}
               onChange={(event) => {
-                setRange(Number(event.target.value));
+                const next = Number(event.target.value) as 7 | 30 | 90;
+                setRange(next);
                 const url = new URL(window.location.href);
                 url.searchParams.set("range", event.target.value);
                 window.history.replaceState(null, "", url);
@@ -170,24 +194,25 @@ export default function ProgressChart({
         />
       ) : (
         <>
-          <p className="workspace-progress-period">
-            {data.first} – {data.end}
-            {syncing ? " · Syncing…" : ""}
-          </p>
           <TrendChart
             points={points}
             label={definition.label}
             unit={unit}
             bars={definition.bars}
           />
-          <div className="workspace-progress-footer">
-            <span>
+          <div className="workspace-progress-footer flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-3 text-xs text-muted-foreground">
+            <span className="tabular-nums">
               {counts
                 ? `${count} ${unit} in this range`
                 : `${recorded.length}/${range} dated readings · ${unit}`}
             </span>
             {definition.href.split("?")[0] !== currentPath && (
-              <Link href={actionHref}>{definition.action}</Link>
+              <Link
+                className="font-medium text-primary hover:underline"
+                href={actionHref}
+              >
+                {definition.action}
+              </Link>
             )}
           </div>
         </>

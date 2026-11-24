@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import curriculum from "@/data/career-curriculum.json";
@@ -60,6 +60,11 @@ export default function StudyStackBars({
   essentialOnly?: boolean;
   onSelectStack?: (stack: string) => void;
 }) {
+  const [mode, setMode] = useState<"essential" | "all">(
+    essentialOnly ? "essential" : "all",
+  );
+  const isEssential = mode === "essential";
+
   const stacks = useMemo(() => {
     const chapters = curriculum.days.flatMap((d) => d.chapters ?? []);
     const byStack = new Map<
@@ -91,12 +96,16 @@ export default function StudyStackBars({
       });
   }, [completedIds]);
 
-  const totalTarget = stacks.reduce(
-    (sum, s) => sum + (essentialOnly ? s.essential : s.total),
+  const visibleStacks = stacks.filter(
+    (s) => (isEssential ? s.essential : s.total) > 0,
+  );
+
+  const totalTarget = visibleStacks.reduce(
+    (sum, s) => sum + (isEssential ? s.essential : s.total),
     0,
   );
-  const totalDone = stacks.reduce(
-    (sum, s) => sum + (essentialOnly ? s.essentialDone : s.done),
+  const totalDone = visibleStacks.reduce(
+    (sum, s) => sum + (isEssential ? s.essentialDone : s.done),
     0,
   );
 
@@ -108,21 +117,53 @@ export default function StudyStackBars({
             Study Bible mastery by stack
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {essentialOnly
+            {isEssential
               ? "Essential senior-screen chapters mastered across study.buildora.work"
               : "All 600 chapters across study.buildora.work"}
           </p>
         </div>
-        <Link
-          href="/roadmap?view=study"
-          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-        >
-          Open Study Bible <ArrowUpRight className="h-3.5 w-3.5" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <div
+            role="group"
+            aria-label="Study Bible chapter scope"
+            className="inline-flex rounded-lg border border-border/70 bg-muted/40 p-0.5 text-[11px]"
+          >
+            <button
+              type="button"
+              onClick={() => setMode("essential")}
+              aria-pressed={isEssential}
+              className={`rounded-md px-2 py-0.5 font-medium transition-colors cursor-pointer ${
+                isEssential
+                  ? "bg-card text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Essential
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("all")}
+              aria-pressed={!isEssential}
+              className={`rounded-md px-2 py-0.5 font-medium transition-colors cursor-pointer ${
+                !isEssential
+                  ? "bg-card text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All 600
+            </button>
+          </div>
+          <Link
+            href="/roadmap?view=study"
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+          >
+            Open <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
 
       <ProgressBar
-        label={essentialOnly ? "Overall Essential Mastery" : "Overall Bible Mastery"}
+        label={isEssential ? "Overall Essential Mastery" : "Overall Bible Mastery"}
         value={totalDone}
         max={totalTarget}
         unit="chapters"
@@ -130,9 +171,10 @@ export default function StudyStackBars({
       />
 
       <div className="space-y-3 pt-1">
-        {stacks.map((stack) => {
-          const max = essentialOnly ? stack.essential : stack.total;
-          const val = essentialOnly ? stack.essentialDone : stack.done;
+        {visibleStacks.map((stack) => {
+          const max = isEssential ? stack.essential : stack.total;
+          const val = isEssential ? stack.essentialDone : stack.done;
+          const pct = max > 0 ? Math.round((val / max) * 100) : 0;
           return (
             <div key={stack.key} className="group">
               <div className="flex items-center justify-between gap-2 mb-1">
@@ -155,8 +197,8 @@ export default function StudyStackBars({
                     <ArrowUpRight className="h-3 w-3 opacity-60" />
                   </a>
                 )}
-                <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {val}/{max}
+                <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                  {val}/{max} · {pct}%
                 </span>
               </div>
               <ProgressBar value={val} max={max} tone={stack.tone} compact />

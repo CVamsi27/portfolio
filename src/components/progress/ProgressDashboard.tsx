@@ -279,35 +279,14 @@ export default function ProgressDashboard() {
         compact
         eyebrow="Analytics & progress"
         title="Progress"
-        subtitle="Hiring velocity, Study Bible mastery, consistency heatmap, and Google Health Connect trends."
+        subtitle="Clear trends across hiring, deep study, consistency, and Google Health Connect."
         context={
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex rounded-xl border border-border/70 bg-card p-1">
-              {([7, 30, 90] as const).map((days) => (
-                <button
-                  key={days}
-                  type="button"
-                  onClick={() => {
-                    setRange(days);
-                    const url = new URL(window.location.href);
-                    url.searchParams.set("range", String(days));
-                    window.history.replaceState(null, "", url);
-                  }}
-                  className={`rounded-lg px-3 py-1 text-xs font-semibold transition-colors ${
-                    range === days
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {days}d
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap items-center gap-2.5">
             <label className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>Through date</span>
               <Input
                 type="date"
-                className="h-9 w-auto"
+                className="h-9 w-auto rounded-xl"
                 value={data.end}
                 onInput={(event) => changeThrough(event.currentTarget.value)}
                 onChange={(event) => changeThrough(event.currentTarget.value)}
@@ -316,7 +295,7 @@ export default function ProgressDashboard() {
             {through && (
               <button
                 type="button"
-                className="text-xs font-medium text-primary hover:underline"
+                className="rounded-lg border border-border/70 bg-background px-2.5 py-1.5 text-xs font-medium text-primary hover:border-primary/40"
                 onClick={() => {
                   setThrough(undefined);
                   const url = new URL(window.location.href);
@@ -331,70 +310,10 @@ export default function ProgressDashboard() {
         }
       />
 
-      <CareerOutcomesSummary date={data.end} />
-
-      <ProgressChart
-        metric={chosen}
-        endDate={through}
-        options={
-          view === "reflection"
-            ? undefined
-            : view === "work"
-              ? WORK_METRICS
-              : HEALTH_METRICS
-        }
-        onMetric={(next) => updateMetricView(view, next)}
-      />
-
-      <nav className="workspace-views" aria-label="Progress views">
-        {[
-          ["health", "Health"],
-          ["work", "Work & learning"],
-          ["reflection", "Reflection"],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={view === id}
-            onClick={() =>
-              updateMetricView(
-                id,
-                id === "work" ? "focus" : "weight",
-              )
-            }
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
-
-      {view === "reflection" && (
-        <section className="workspace-panel">
-          <div className="flex flex-wrap gap-3">
-            <Link
-              className="inline-action"
-              href={`/log?view=journal&date=${data.end}&returnTo=${encodeURIComponent(`/dashboard?view=reflection&date=${data.end}`)}`}
-            >
-              Write or edit reflection
-            </Link>
-            <Link className="inline-action" href={`/review?date=${data.end}`}>
-              Open the weekly review
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {view === "health" && (
-        <details className="workspace-disclosure">
-          <summary>Imported health records & sources</summary>
-          <ImportedHealthTrends from={data.first} to={data.end} />
-        </details>
-      )}
-
       {/* Top 4 Executive KPI Cards */}
       <section
         aria-label="Key performance indicators"
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4"
       >
         <MetricRingCard
           label="Weekly applications"
@@ -450,14 +369,87 @@ export default function ProgressDashboard() {
         />
       </section>
 
+      {/* Primary Interactive Trend Explorer */}
+      <div className="space-y-3">
+        <nav
+          className="workspace-views"
+          aria-label="Progress views"
+        >
+          {[
+            ["health", "Health"],
+            ["work", "Work & learning"],
+            ["reflection", "Reflection"],
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={view === id}
+              onClick={() =>
+                updateMetricView(
+                  id,
+                  id === "work" ? "focus" : "weight",
+                )
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <ProgressChart
+          metric={chosen}
+          endDate={through}
+          range={range}
+          onRangeChange={(days) => setRange(days)}
+          options={
+            view === "reflection"
+              ? undefined
+              : view === "work"
+                ? WORK_METRICS
+                : HEALTH_METRICS
+          }
+          onMetric={(next) => updateMetricView(view, next)}
+        />
+
+        {view === "reflection" && (
+          <section className="rounded-2xl border border-border/70 bg-card/90 px-5 py-3.5">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                className="inline-action"
+                href={`/log?view=journal&date=${data.end}&returnTo=${encodeURIComponent(`/dashboard?view=reflection&date=${data.end}`)}`}
+              >
+                Write or edit reflection
+              </Link>
+              <Link className="inline-action" href={`/review?date=${data.end}`}>
+                Open the weekly review
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {view === "health" && (
+          <details className="workspace-disclosure">
+            <summary>Imported health records & sources</summary>
+            <ImportedHealthTrends from={data.first} to={data.end} />
+          </details>
+        )}
+      </div>
+
+      {/* Compact Career Outcomes Strip */}
+      <CareerOutcomesSummary date={data.end} />
+
       {/* Primary Analytics Bento Grid */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <HiringFunnelChart
-          stages={funnelStages}
-          title={`Hiring funnel (${data.first} → ${data.end})`}
-          subtitle="Recorded actual sends, outreach, conversations, and interviews"
-        />
-        <StudyStackBars completedIds={completedIdSet} essentialOnly />
+        <div className="min-w-0">
+          <HiringFunnelChart
+            stages={funnelStages}
+            title={`Hiring funnel (${data.first} → ${data.end})`}
+            subtitle="Recorded actual sends, outreach, conversations, and interviews"
+          />
+        </div>
+        <div className="min-w-0">
+          <StudyStackBars completedIds={completedIdSet} essentialOnly />
+        </div>
       </div>
 
       {/* Consistency Heatmap */}
@@ -465,7 +457,7 @@ export default function ProgressDashboard() {
 
       {/* Deep Work + Google Health Trends Grid */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+        <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
           <MultiSeriesBarChart
             title="Daily focus & study minutes"
             subtitle={`${data.first} → ${data.end}`}
@@ -481,7 +473,7 @@ export default function ProgressDashboard() {
           />
         </section>
 
-        <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+        <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
           <MultiSeriesBarChart
             title="Google Health · Daily steps"
             subtitle="Auto-synced priority aggregate"
@@ -491,10 +483,18 @@ export default function ProgressDashboard() {
             goalLabel="8k goal"
             barColor="fill-emerald-500"
             emptyCopy="Pair your Android phone in Health → Google Health setup to see step trends."
+            headerAction={
+              <Link
+                href={`/health?view=connections&date=${data.end}`}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Connect Google Health →
+              </Link>
+            }
           />
         </section>
 
-        <section className="rounded-2xl border border-border/70 bg-card/90 p-5 lg:col-span-2">
+        <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5 lg:col-span-2">
           <SmoothTrendChart
             title="Google Health · Body weight trend"
             subtitle="Synced readings with 7-day moving average"
@@ -502,6 +502,14 @@ export default function ProgressDashboard() {
             unit="kg"
             stroke="#0ea5e9"
             emptyCopy="Weight readings synced via Google Health Connect will chart automatically here."
+            headerAction={
+              <Link
+                href={`/health?view=connections&date=${data.end}`}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Google Health setup →
+              </Link>
+            }
           />
         </section>
       </div>

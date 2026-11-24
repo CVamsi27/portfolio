@@ -414,6 +414,11 @@ export default function HealthWorkspace() {
                   ? `${health.summary.weightDelta > 0 ? "+" : ""}${health.summary.weightDelta} kg vs prior`
                   : null
               }
+              progress={{
+                current: health.summary.latestWeight ? 1 : 0,
+                target: 1,
+              }}
+              ring
               tone="sky"
               icon={<Scale className="h-4 w-4" />}
             />
@@ -489,7 +494,7 @@ export default function HealthWorkspace() {
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2">
-            <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+            <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
               <MultiSeriesBarChart
                 title="Daily steps"
                 subtitle="Google Health Connect priority aggregate"
@@ -499,10 +504,18 @@ export default function HealthWorkspace() {
                 goalLabel="8k goal"
                 barColor="fill-emerald-500"
                 emptyCopy="No synced steps in this range. Connect your Android phone under Google Health setup."
+                headerAction={
+                  <Link
+                    href={`/health?view=connections&date=${date}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Set up →
+                  </Link>
+                }
               />
             </section>
 
-            <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+            <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
               <MultiSeriesBarChart
                 title="Nightly sleep & stages"
                 subtitle="Hours asleep with Deep / REM / Light breakdown when available"
@@ -517,10 +530,18 @@ export default function HealthWorkspace() {
                   { label: "Light / Asleep", color: "#38bdf8" },
                 ]}
                 emptyCopy="No synced sleep sessions in this range."
+                headerAction={
+                  <Link
+                    href={`/health?view=connections&date=${date}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Set up →
+                  </Link>
+                }
               />
             </section>
 
-            <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+            <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
               <SmoothTrendChart
                 title="Weight trend"
                 subtitle="Synced readings with 7-day moving average"
@@ -528,10 +549,18 @@ export default function HealthWorkspace() {
                 unit="kg"
                 stroke="#0ea5e9"
                 emptyCopy="No synced weight readings in this range."
+                headerAction={
+                  <Link
+                    href={`/health?view=connections&date=${date}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Set up →
+                  </Link>
+                }
               />
             </section>
 
-            <section className="rounded-2xl border border-border/70 bg-card/90 p-5">
+            <section className="min-w-0 rounded-2xl border border-border/70 bg-card/90 p-5">
               <MultiSeriesBarChart
                 title="Exercise minutes"
                 subtitle="Workouts synced from Google Health Connect"
@@ -541,6 +570,14 @@ export default function HealthWorkspace() {
                 goalLabel="45m target"
                 barColor="fill-amber-500"
                 emptyCopy="No synced exercise sessions in this range yet."
+                headerAction={
+                  <Link
+                    href={`/health?view=connections&date=${date}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Set up →
+                  </Link>
+                }
               />
             </section>
           </div>
