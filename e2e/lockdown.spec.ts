@@ -58,6 +58,11 @@ test.describe("Personal lockdown", () => {
   });
 
   test("configures and persists an explicit bedtime schedule in Settings", async ({ page }) => {
+    // The browser context runs in UTC. Pick a day two days out so enabling the
+    // lock can never fall inside the window being configured, which would open
+    // the bedtime gate over Settings before the save button can be clicked.
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const safeDay = (new Date().getUTCDay() + 2) % 7;
     await seed(page, {
       "vk:lockdown:preferences": { bedtimeEnabled: false, bedtimeStart: "22:30", bedtimeEnd: "07:00", bedtimeDays: [] },
     });
@@ -68,7 +73,7 @@ test.describe("Personal lockdown", () => {
     await expect(enable).toBeDisabled();
     await page.getByLabel("Bedtime start").fill("22:45");
     await page.getByLabel("Bedtime end").fill("06:45");
-    await page.getByLabel("Bedtime Monday").check();
+    await page.getByLabel(`Bedtime ${dayNames[safeDay]}`).check();
     await expect(enable).toBeEnabled();
     await enable.check();
     await page.getByRole("button", { name: /save bedtime schedule/i }).click();
@@ -78,7 +83,7 @@ test.describe("Personal lockdown", () => {
       bedtimeEnabled: true,
       bedtimeStart: "22:45",
       bedtimeEnd: "06:45",
-      bedtimeDays: [1],
+      bedtimeDays: [safeDay],
     });
   });
 
