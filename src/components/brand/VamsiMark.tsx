@@ -13,29 +13,37 @@ export default function VamsiMark({
 }: VamsiMarkProps) {
   const isMark = variant === "mark";
 
+  if (isMark) {
+    return (
+      <span
+        data-testid="vamsi-mark"
+        aria-label={label}
+        className={cn(
+          "inline-flex h-8 w-8 items-center justify-center border border-[var(--portfolio-rule)] font-display text-sm font-medium text-[var(--portfolio-ink)]",
+          className,
+        )}
+      >
+        VK
+      </span>
+    );
+  }
+
   return (
     <span
       data-testid="vamsi-mark"
       aria-label={label}
-      className={cn("inline-flex items-center gap-2.5", className)}
+      className={cn("inline-flex items-baseline gap-2.5", className)}
     >
+      <span className="font-display text-[1.35rem] font-normal leading-none tracking-[-0.025em] text-[var(--portfolio-ink)]">
+        Vamsi Krishna
+      </span>
       <span
         aria-hidden="true"
-        className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] font-mono text-[11px] font-semibold tracking-tighter text-[var(--portfolio-paper)]"
-      >
-        VK
-        <span className="absolute -right-[2px] -top-[2px] h-1.5 w-1.5 bg-[var(--portfolio-accent)]" />
+        className="hidden h-3 w-px bg-[var(--portfolio-rule)] sm:inline-block"
+      />
+      <span className="hidden font-sans text-xs font-normal tracking-[-0.01em] text-[var(--portfolio-muted)] sm:inline">
+        Full Stack Engineer
       </span>
-      {!isMark ? (
-        <span className="flex items-baseline gap-2">
-          <span className="font-display text-xl leading-none tracking-[-0.02em] text-[var(--portfolio-ink)]">
-            Vamsi Krishna
-          </span>
-          <span className="hidden font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--portfolio-muted)] sm:inline">
-            SYS/ENG
-          </span>
-        </span>
-      ) : null}
     </span>
   );
 }

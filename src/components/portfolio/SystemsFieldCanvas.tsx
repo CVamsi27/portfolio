@@ -8,37 +8,26 @@ type NodePoint = {
   vx: number;
   vy: number;
   label?: string;
-  signal?: boolean;
-  radius: number;
-};
-
-type Pulse = {
-  from: number;
-  to: number;
-  t: number;
-  speed: number;
-  scarlet: boolean;
 };
 
 const SEEDED_NODES: Array<{
   rx: number;
   ry: number;
   label?: string;
-  signal?: boolean;
 }> = [
-  { rx: 0.08, ry: 0.22, label: "EDGE" },
+  { rx: 0.08, ry: 0.22 },
   { rx: 0.24, ry: 0.14 },
-  { rx: 0.42, ry: 0.18, label: "API", signal: true },
+  { rx: 0.48, ry: 0.16, label: "API" },
   { rx: 0.16, ry: 0.46 },
-  { rx: 0.34, ry: 0.42, label: "RLS", signal: true },
-  { rx: 0.54, ry: 0.32, label: "PG" },
+  { rx: 0.34, ry: 0.42 },
+  { rx: 0.56, ry: 0.30, label: "PG" },
   { rx: 0.68, ry: 0.18 },
-  { rx: 0.84, ry: 0.28, label: "QUEUE" },
-  { rx: 0.12, ry: 0.76 },
-  { rx: 0.29, ry: 0.72, label: "OUTBOX", signal: true },
-  { rx: 0.48, ry: 0.64, label: "WORKER" },
-  { rx: 0.66, ry: 0.54 },
-  { rx: 0.78, ry: 0.74, label: "CI" },
+  { rx: 0.86, ry: 0.26, label: "QUEUE" },
+  { rx: 0.12, ry: 0.82 },
+  { rx: 0.30, ry: 0.84, label: "OUTBOX" },
+  { rx: 0.50, ry: 0.78, label: "WORKER" },
+  { rx: 0.66, ry: 0.54, label: "RLS" },
+  { rx: 0.78, ry: 0.80, label: "CI" },
   { rx: 0.91, ry: 0.56 },
 ];
 
@@ -67,8 +56,9 @@ const EDGES: Array<[number, number]> = [
 ];
 
 /**
- * Monochrome architectural wireframe topology with surgical scarlet active telemetry pulses.
- * Respects prefers-reduced-motion and pauses when scrolled offscreen.
+ * Serene, zero-glow architectural wireframe topology that adapts automatically
+ * between Light Mode (delicate graphite lines on studio paper) and Dark Mode
+ * (fine silver wireframes on carbon obsidian). No glowing dots or circles.
  */
 export default function SystemsFieldCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -91,21 +81,10 @@ export default function SystemsFieldCanvas() {
     const nodes: NodePoint[] = SEEDED_NODES.map((seed, idx) => ({
       x: 0,
       y: 0,
-      vx: ((idx % 3) - 1) * 0.055 + (idx % 2 === 0 ? 0.03 : -0.03),
-      vy: (((idx + 1) % 3) - 1) * 0.045,
+      vx: ((idx % 3) - 1) * 0.04 + (idx % 2 === 0 ? 0.02 : -0.02),
+      vy: (((idx + 1) % 3) - 1) * 0.032,
       label: seed.label,
-      signal: seed.signal,
-      radius: seed.signal ? 2.6 : seed.label ? 2.0 : 1.35,
     }));
-
-    const pulses: Pulse[] = [
-      { from: 0, to: 2, t: 0.1, speed: 0.0036, scarlet: true },
-      { from: 2, to: 4, t: 0.45, speed: 0.0031, scarlet: false },
-      { from: 4, to: 5, t: 0.72, speed: 0.0034, scarlet: true },
-      { from: 5, to: 10, t: 0.25, speed: 0.0029, scarlet: false },
-      { from: 9, to: 10, t: 0.6, speed: 0.0035, scarlet: true },
-      { from: 10, to: 12, t: 0.85, speed: 0.0028, scarlet: false },
-    ];
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -122,24 +101,47 @@ export default function SystemsFieldCanvas() {
       });
     };
 
+    const drawCrosshair = (x: number, y: number, size: number) => {
+      ctx.beginPath();
+      ctx.moveTo(x - size, y);
+      ctx.lineTo(x + size, y);
+      ctx.moveTo(x, y - size);
+      ctx.lineTo(x, y + size);
+      ctx.stroke();
+    };
+
     const drawFrame = (animate: boolean) => {
       ctx.clearRect(0, 0, width, height);
 
-      // Architectural concentric coordinate wireframes
+      const isDark = document.documentElement.classList.contains("dark");
+      const arcStroke = isDark
+        ? "rgba(255, 255, 255, 0.05)"
+        : "rgba(13, 13, 15, 0.055)";
+      const edgeStroke = isDark
+        ? "rgba(255, 255, 255, 0.08)"
+        : "rgba(13, 13, 15, 0.085)";
+      const crossStroke = isDark
+        ? "rgba(255, 255, 255, 0.26)"
+        : "rgba(13, 13, 15, 0.28)";
+      const labelFill = isDark
+        ? "rgba(244, 243, 239, 0.22)"
+        : "rgba(13, 13, 15, 0.22)";
+
+      // Concentric architectural wireframe ellipses
       ctx.save();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.055)";
-      ctx.lineWidth = 1;
-      const cx = width * 0.7;
-      const cy = height * 0.48;
+      ctx.strokeStyle = arcStroke;
+      ctx.lineWidth = 0.85;
+      const cx = width * 0.68;
+      const cy = height * 0.46;
       const baseR = Math.max(width, height) * 0.34;
-      for (const mult of [0.55, 0.9, 1.28]) {
+      for (const mult of [0.55, 0.92, 1.3]) {
         ctx.beginPath();
         ctx.ellipse(
           cx,
           cy,
           baseR * mult,
-          baseR * mult * 0.62,
-          -0.2,
+          baseR * mult * 0.6,
+          -0.18,
           0,
           Math.PI * 2,
         );
@@ -147,7 +149,6 @@ export default function SystemsFieldCanvas() {
       }
       ctx.restore();
 
-      // Gentle drift around anchors
       if (animate) {
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
@@ -155,15 +156,15 @@ export default function SystemsFieldCanvas() {
           const anchorY = SEEDED_NODES[i].ry * height;
           n.x += n.vx;
           n.y += n.vy;
-          if (Math.abs(n.x - anchorX) > 14) n.vx *= -1;
-          if (Math.abs(n.y - anchorY) > 10) n.vy *= -1;
+          if (Math.abs(n.x - anchorX) > 12) n.vx *= -1;
+          if (Math.abs(n.y - anchorY) > 9) n.vy *= -1;
         }
       }
 
-      // Crisp straight hairline edges
+      // Fine hairline edges
       ctx.save();
-      ctx.lineWidth = 0.75;
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.095)";
+      ctx.lineWidth = 0.7;
+      ctx.strokeStyle = edgeStroke;
       for (const [aIdx, bIdx] of EDGES) {
         const a = nodes[aIdx];
         const b = nodes[bIdx];
@@ -174,62 +175,22 @@ export default function SystemsFieldCanvas() {
       }
       ctx.restore();
 
-      // Traveling monochrome + surgical scarlet signal nodes
-      for (const p of pulses) {
-        if (animate) {
-          p.t += p.speed;
-          if (p.t >= 1) {
-            p.t = 0;
-            const nextEdge =
-              EDGES.find(([from]) => from === p.to) ??
-              EDGES[(p.from + p.to + 3) % EDGES.length];
-            p.from = nextEdge[0];
-            p.to = nextEdge[1];
-          }
-        }
-        const a = nodes[p.from];
-        const b = nodes[p.to];
-        const px = a.x + (b.x - a.x) * p.t;
-        const py = a.y + (b.y - a.y) * p.t;
-
-        ctx.save();
-        ctx.fillStyle = p.scarlet ? "#ff3b2f" : "rgba(244, 243, 238, 0.85)";
-        ctx.beginPath();
-        ctx.arc(px, py, p.scarlet ? 2.2 : 1.5, 0, Math.PI * 2);
-        ctx.fill();
-        if (p.scarlet) {
-          ctx.strokeStyle = "rgba(255, 59, 47, 0.4)";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.arc(px, py, 6, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-        ctx.restore();
-      }
-
-      // Crisp monochrome + scarlet nodes with monospace labels
+      // Architectural '+' crosshairs at vertices (no glowing dots)
       ctx.save();
+      ctx.strokeStyle = crossStroke;
+      ctx.lineWidth = 0.9;
       ctx.font =
-        '500 9px "JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
+        '400 9px "JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
+      ctx.fillStyle = labelFill;
+      const showLabels = width >= 900;
       for (const n of nodes) {
-        ctx.fillStyle = n.signal ? "#ff3b2f" : "rgba(244, 243, 238, 0.55)";
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        if (n.label) {
-          if (n.signal) {
-            ctx.strokeStyle = "rgba(255, 59, 47, 0.35)";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, n.radius + 4, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-
-          ctx.fillStyle = n.signal
-            ? "rgba(244, 243, 238, 0.58)"
-            : "rgba(244, 243, 238, 0.28)";
-          ctx.fillText(n.label, n.x + 8, n.y + 3);
+        const canLabel =
+          showLabels &&
+          Boolean(n.label) &&
+          (n.x > width * 0.46 || n.y > height * 0.78);
+        drawCrosshair(n.x, n.y, canLabel ? 3.5 : 2.2);
+        if (canLabel && n.label) {
+          ctx.fillText(n.label, n.x + 7, n.y + 3);
         }
       }
       ctx.restore();
@@ -246,6 +207,12 @@ export default function SystemsFieldCanvas() {
     );
     observer.observe(canvas);
 
+    const themeObserver = new MutationObserver(() => drawFrame(false));
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
     window.addEventListener("resize", resize);
 
     if (!reduceMotion) {
@@ -259,6 +226,7 @@ export default function SystemsFieldCanvas() {
     return () => {
       window.removeEventListener("resize", resize);
       observer.disconnect();
+      themeObserver.disconnect();
       if (rafId) window.cancelAnimationFrame(rafId);
     };
   }, []);
@@ -267,7 +235,7 @@ export default function SystemsFieldCanvas() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 h-full w-full opacity-90"
+      className="pointer-events-none absolute inset-0 h-full w-full"
     />
   );
 }

@@ -3,7 +3,7 @@
 import { WORK_EXPERIENCE } from "@/lib/const";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
-import { ArrowUpRight, ChevronDown, MapPin } from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 
 const COMPANY_LOCATIONS: Record<string, string> = {
   Docita: "Remote · Pan-India",
@@ -130,17 +130,17 @@ const Experience = () => {
                   >
                     <div className="portfolio-experience-meta">
                       <span className="portfolio-index">
-                        {String(index + 1).padStart(2, "0")}
+                        {String(index + 1).padStart(2, "0")} · Current Role
                       </span>
 
                       <a
                         href={value.URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 font-display text-2xl font-normal normal-case tracking-[-0.015em] text-[var(--portfolio-ink)] hover:text-[var(--portfolio-accent)]"
+                        className="inline-flex items-center gap-1.5 font-display text-3xl font-light normal-case tracking-[-0.025em] text-[var(--portfolio-ink)] hover:opacity-75"
                       >
                         <span>{value.company}</span>
-                        <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--portfolio-accent)]" />
+                        <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--portfolio-muted)]" />
                       </a>
 
                       <span className="font-mono text-xs text-[var(--portfolio-muted)]">
@@ -148,19 +148,10 @@ const Experience = () => {
                       </span>
 
                       {COMPANY_LOCATIONS[value.company] ? (
-                        <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[var(--portfolio-muted)]">
-                          <MapPin className="h-3 w-3 shrink-0 text-[var(--portfolio-accent)]" />
-                          <span>{COMPANY_LOCATIONS[value.company]}</span>
+                        <span className="font-sans text-xs text-[var(--portfolio-muted)]">
+                          {COMPANY_LOCATIONS[value.company]}
                         </span>
                       ) : null}
-
-                      <span className="mt-1 inline-flex w-fit items-center gap-1.5 border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-accent)]">
-                        <span
-                          className="h-1.5 w-1.5 bg-[var(--portfolio-accent)]"
-                          aria-hidden="true"
-                        />
-                        Current
-                      </span>
 
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         {highlights.map((h) => (
@@ -189,35 +180,33 @@ const Experience = () => {
                     data-experience-history
                     className="group border-b border-[var(--portfolio-rule)]"
                   >
-                    <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 py-5 transition-colors hover:bg-[var(--portfolio-surface)] sm:px-3">
-                      <span className="portfolio-index">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span className="font-display text-2xl leading-none text-[var(--portfolio-ink)] transition-colors group-hover:text-[var(--portfolio-accent)]">
-                        {value.company}
-                      </span>
-                      <span className="font-mono text-xs text-[var(--portfolio-ink)]">
-                        {value.title}
-                      </span>
-                      <span
-                        aria-hidden="true"
-                        className="font-mono text-xs text-[var(--portfolio-muted)]"
-                      >
-                        /
-                      </span>
-                      <span className="font-mono text-xs text-[var(--portfolio-muted)]">
-                        {value.duration}
-                      </span>
-                      {COMPANY_LOCATIONS[value.company] ? (
-                        <span className="hidden items-center gap-1 font-mono text-[11px] text-[var(--portfolio-muted)] sm:inline-flex">
-                          <MapPin className="h-3 w-3 shrink-0 text-[var(--portfolio-accent)]" />
-                          <span>{COMPANY_LOCATIONS[value.company]}</span>
+                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-4 gap-y-2 py-5 transition-colors hover:bg-[var(--portfolio-surface)] sm:px-3">
+                      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                        <span className="portfolio-index">
+                          {String(index + 1).padStart(2, "0")}
                         </span>
-                      ) : null}
-                      <ChevronDown
-                        className="ml-auto h-4 w-4 shrink-0 text-[var(--portfolio-muted)] transition-transform group-open:rotate-180"
-                        aria-hidden="true"
-                      />
+                        <span className="font-display text-2xl font-light leading-none text-[var(--portfolio-ink)]">
+                          {value.company}
+                        </span>
+                        <span className="font-sans text-xs font-medium text-[var(--portfolio-ink)]">
+                          {value.title}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3 ml-auto">
+                        <span className="font-mono text-xs text-[var(--portfolio-muted)]">
+                          {value.duration}
+                        </span>
+                        {COMPANY_LOCATIONS[value.company] ? (
+                          <span className="hidden font-sans text-xs text-[var(--portfolio-muted)] md:inline">
+                            · {COMPANY_LOCATIONS[value.company]}
+                          </span>
+                        ) : null}
+                        <ChevronDown
+                          className="h-4 w-4 shrink-0 text-[var(--portfolio-muted)] transition-transform group-open:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </div>
                     </summary>
 
                     <div className="border-t border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-6">
@@ -229,7 +218,7 @@ const Experience = () => {
                           href={value.URL}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-ink)] hover:text-[var(--portfolio-accent)]"
+                          className="inline-flex items-center gap-1 font-sans text-xs font-medium text-[var(--portfolio-ink)] hover:underline"
                         >
                           <span>{value.company} profile</span>
                           <ArrowUpRight className="h-3.5 w-3.5" />

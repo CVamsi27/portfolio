@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, ShieldCheck, Cpu, Terminal } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import Connections from "../Connections";
 
 type BlueprintId = "rls" | "outbox" | "edge";
@@ -16,7 +15,7 @@ interface Blueprint {
   href: string;
   invariant: string;
   verification: string;
-  hops: Array<{ label: string; detail: string; status: "ok" | "guard" }>;
+  hops: Array<{ step: string; label: string; detail: string }>;
 }
 
 const BLUEPRINTS: Blueprint[] = [
@@ -31,9 +30,9 @@ const BLUEPRINTS: Blueprint[] = [
     verification:
       "Dual-tenant rehearsal + disabled-RLS failing control pass",
     hops: [
-      { label: "JWT Claim", detail: "clinic_id", status: "ok" },
-      { label: "SET LOCAL", detail: "tx scope", status: "ok" },
-      { label: "PG Policy", detail: "deny foreign", status: "guard" },
+      { step: "01", label: "JWT Claim", detail: "clinic_id" },
+      { step: "02", label: "SET LOCAL", detail: "tx scope" },
+      { step: "03", label: "PG Policy", detail: "deny foreign" },
     ],
   },
   {
@@ -47,9 +46,9 @@ const BLUEPRINTS: Blueprint[] = [
     verification:
       "Crash-point sweep before/after external effects → Vitest repro",
     hops: [
-      { label: "DB + Outbox", detail: "1 TX", status: "ok" },
-      { label: "Worker", detail: "idempotency", status: "guard" },
-      { label: "DLQ Replay", detail: "bounded retry", status: "ok" },
+      { step: "01", label: "DB + Outbox", detail: "single tx" },
+      { step: "02", label: "Worker", detail: "idempotency" },
+      { step: "03", label: "DLQ Replay", detail: "bounded retry" },
     ],
   },
   {
@@ -63,9 +62,9 @@ const BLUEPRINTS: Blueprint[] = [
     verification:
       "Host-header E2E boundary checks + baseline security headers",
     hops: [
-      { label: "Edge Proxy", detail: "host match", status: "ok" },
-      { label: "Auth Gate", detail: "owner-only", status: "guard" },
-      { label: "Static/SSR", detail: "typed UI", status: "ok" },
+      { step: "01", label: "Edge Proxy", detail: "host match" },
+      { step: "02", label: "Auth Gate", detail: "owner-only" },
+      { step: "03", label: "Static/SSR", detail: "typed UI" },
     ],
   },
 ];
@@ -76,51 +75,57 @@ export default function SystemsBlueprintCard({
   onFilterTech: (tech: string) => void;
 }) {
   const [activeId, setActiveId] = useState<BlueprintId>("rls");
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const active = BLUEPRINTS.find((b) => b.id === activeId) ?? BLUEPRINTS[0];
+
+  const handleTabKeyDown = (e: React.KeyboardEvent, index: number) => {
+    let nextIndex: number | null = null;
+    if (e.key === "ArrowRight") {
+      nextIndex = (index + 1) % BLUEPRINTS.length;
+    } else if (e.key === "ArrowLeft") {
+      nextIndex = (index - 1 + BLUEPRINTS.length) % BLUEPRINTS.length;
+    } else if (e.key === "Home") {
+      nextIndex = 0;
+    } else if (e.key === "End") {
+      nextIndex = BLUEPRINTS.length - 1;
+    }
+    if (nextIndex !== null) {
+      e.preventDefault();
+      setActiveId(BLUEPRINTS[nextIndex].id);
+      tabRefs.current[nextIndex]?.focus();
+    }
+  };
 
   return (
     <aside
       aria-label="Live systems architecture workbench"
-      className="min-w-0 w-full border border-white/15 bg-[#0c0c0f] p-5 text-[#f4f3ee]"
+      className="min-w-0 w-full border border-[var(--portfolio-hero-rule)] bg-[var(--portfolio-hero-surface)] p-6 text-[var(--portfolio-hero-ink)]"
     >
-      {/* Author Header */}
-      <div className="flex items-center gap-3.5 border-b border-white/12 pb-4">
-        <div className="relative h-12 w-12 shrink-0 overflow-hidden border border-white/20 bg-[#141418]">
-          <Image
-            src="/SE.webp"
-            alt="Vamsi Krishna Chandaluri"
-            width={56}
-            height={56}
-            className="h-full w-full object-cover grayscale contrast-110"
-            priority
-          />
-          <span
-            className="absolute bottom-0 right-0 h-2.5 w-2.5 border border-[#0c0c0f] bg-[#ff3b2f]"
-            title="Active & Available"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-xl leading-none tracking-[-0.01em] text-[#f4f3ee]">
+      {/* Pure Typographic Identity Header (No Avatar Image) */}
+      <div className="border-b border-[var(--portfolio-hero-rule)] pb-4">
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="font-display text-2xl font-light leading-none tracking-[-0.025em] text-[var(--portfolio-hero-ink)]">
             Vamsi Krishna
           </p>
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#ff3b2f]">
-            Senior Full Stack Engineer
-          </p>
-          <p className="mt-0.5 truncate font-mono text-[10px] text-[#8e8e98]">
-            Hyderabad, India · Remote Roles
-          </p>
+          <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--portfolio-hero-muted)]">
+            IST · UTC+5:30
+          </span>
         </div>
+        <p className="mt-1.5 font-sans text-xs font-medium text-[var(--portfolio-hero-ink)]">
+          Senior Full Stack Engineer
+        </p>
+        <p className="mt-0.5 font-sans text-xs text-[var(--portfolio-hero-muted)]">
+          Hyderabad, India · Remote Roles
+        </p>
       </div>
 
       {/* Interactive Blueprint Switcher */}
-      <div className="mt-4">
+      <div className="mt-5">
         <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[#9c9ca6]">
-            <Terminal className="h-3 w-3 text-[#ff3b2f]" />
-            Systems Inspector
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-hero-muted)]">
+            Architecture Mechanisms
           </span>
-          <span className="inline-flex items-center gap-1.5 border border-white/15 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[#f4f3ee]">
-            <span className="h-1.5 w-1.5 bg-[#ff3b2f]" aria-hidden="true" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--portfolio-hero-muted)]">
             Verified
           </span>
         </div>
@@ -128,23 +133,28 @@ export default function SystemsBlueprintCard({
         <div
           role="tablist"
           aria-label="Inspect architecture mechanisms"
-          className="mt-3 grid grid-cols-3 border border-white/15 bg-[#08080a]"
+          className="mt-2.5 flex border-b border-[var(--portfolio-hero-rule)]"
         >
           {BLUEPRINTS.map((bp, idx) => {
             const isSelected = bp.id === activeId;
             return (
               <button
                 key={bp.id}
+                ref={(el) => {
+                  tabRefs.current[idx] = el;
+                }}
+                id={`blueprint-tab-${bp.id}`}
                 type="button"
                 role="tab"
                 aria-selected={isSelected}
+                aria-controls={`blueprint-panel-${bp.id}`}
+                tabIndex={isSelected ? 0 : -1}
                 onClick={() => setActiveId(bp.id)}
-                className={`cursor-pointer px-2 py-2 font-mono text-[10px] uppercase tracking-[0.06em] transition-colors ${
-                  idx < BLUEPRINTS.length - 1 ? "border-r border-white/12" : ""
-                } ${
+                onKeyDown={(e) => handleTabKeyDown(e, idx)}
+                className={`-mb-px flex-1 cursor-pointer border-b-[1.5px] py-2 font-sans text-xs font-medium transition-colors ${
                   isSelected
-                    ? "bg-[#f4f3ee] font-semibold text-[#08080a]"
-                    : "text-[#8e8e98] hover:text-[#f4f3ee]"
+                    ? "border-[var(--portfolio-hero-ink)] text-[var(--portfolio-hero-ink)]"
+                    : "border-transparent text-[var(--portfolio-hero-muted)] hover:text-[var(--portfolio-hero-ink)]"
                 }`}
               >
                 {bp.shortLabel}
@@ -154,74 +164,66 @@ export default function SystemsBlueprintCard({
         </div>
 
         {/* Visual Topology Pipeline */}
-        <div className="mt-3 border border-white/12 bg-[#08080a] p-4">
+        <div
+          role="tabpanel"
+          id={`blueprint-panel-${active.id}`}
+          aria-labelledby={`blueprint-tab-${active.id}`}
+          className="mt-4 space-y-3.5"
+        >
           <div className="flex items-start justify-between gap-2">
-            <h2 className="font-display text-lg leading-tight text-[#f4f3ee]">
-              {active.title}
-            </h2>
+            <div>
+              <h2 className="font-display text-xl font-light leading-snug tracking-[-0.02em] text-[var(--portfolio-hero-ink)]">
+                {active.title}
+              </h2>
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--portfolio-hero-muted)]">
+                {active.system}
+              </p>
+            </div>
             <Link
               href={active.href}
-              className="inline-flex shrink-0 items-center gap-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#ff3b2f] hover:underline"
+              className="inline-flex shrink-0 items-center gap-1 border-b border-[var(--portfolio-hero-rule)] pb-0.5 font-sans text-xs font-medium text-[var(--portfolio-hero-ink)] transition-colors hover:border-[var(--portfolio-hero-ink)]"
             >
-              <span>Inspect</span>
-              <ArrowUpRight className="h-3 w-3" />
+              <span>Case study</span>
+              <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[#8e8e98]">
-            {active.system}
-          </p>
 
           {/* 3-Node Flow Schematic */}
-          <div className="mt-3.5 grid grid-cols-3 items-center gap-1.5">
-            {active.hops.map((hop, idx) => (
+          <div className="grid grid-cols-3 gap-px border border-[var(--portfolio-hero-rule)] bg-[var(--portfolio-hero-rule)]">
+            {active.hops.map((hop) => (
               <div
                 key={hop.label}
-                className={`relative min-w-0 border px-2 py-2 text-center ${
-                  hop.status === "guard"
-                    ? "border-[#ff3b2f]/60 bg-[#ff3b2f]/10"
-                    : "border-white/15 bg-[#111116]"
-                }`}
+                className="min-w-0 bg-[var(--portfolio-hero-bg)] px-2.5 py-2.5"
               >
-                <span className="block truncate font-mono text-[9px] font-semibold uppercase tracking-[0.06em] text-[#f4f3ee]">
+                <span className="block font-mono text-[9px] text-[var(--portfolio-hero-muted)]">
+                  {hop.step}
+                </span>
+                <span className="mt-0.5 block truncate font-sans text-xs font-medium text-[var(--portfolio-hero-ink)]">
                   {hop.label}
                 </span>
-                <span
-                  className={`mt-0.5 block truncate font-mono text-[9px] ${
-                    hop.status === "guard" ? "text-[#ff3b2f]" : "text-[#8e8e98]"
-                  }`}
-                >
+                <span className="block truncate font-mono text-[10px] text-[var(--portfolio-hero-muted)]">
                   {hop.detail}
                 </span>
-                {idx < active.hops.length - 1 && (
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -right-1.5 top-1/2 z-10 -translate-y-1/2 font-mono text-[10px] text-[#6e6e78]"
-                  >
-                    →
-                  </span>
-                )}
               </div>
             ))}
           </div>
 
-          <p className="mt-3.5 text-xs leading-relaxed text-[#b8b8c2]">
+          <p className="font-sans text-xs leading-relaxed text-[var(--portfolio-hero-muted)]">
             {active.invariant}
           </p>
-          <div className="mt-3 flex items-start gap-1.5 border-t border-white/10 pt-2.5 font-mono text-[10px] leading-snug text-[#d4d3ce]">
-            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ff3b2f]" />
-            <span>{active.verification}</span>
-          </div>
+          <p className="border-t border-[var(--portfolio-hero-rule)] pt-2.5 font-mono text-[10px] leading-snug text-[var(--portfolio-hero-muted)]">
+            Check: {active.verification}
+          </p>
         </div>
       </div>
 
       {/* Core Technologies Filter */}
-      <div className="mt-4 border-t border-white/12 pt-4">
+      <div className="mt-5 border-t border-[var(--portfolio-hero-rule)] pt-4">
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[#9c9ca6]">
-            <Cpu className="h-3 w-3 text-[#ff3b2f]" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-hero-muted)]">
             Core Stack
           </span>
-          <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-[#6e6e78]">
+          <span className="font-sans text-[11px] text-[var(--portfolio-hero-muted)]">
             Filter work
           </span>
         </div>
@@ -238,7 +240,7 @@ export default function SystemsBlueprintCard({
               key={tech}
               type="button"
               onClick={() => onFilterTech(tech)}
-              className="cursor-pointer border border-white/15 bg-transparent px-2 py-1 font-mono text-[10px] text-[#d4d3ce] transition-colors hover:border-[#ff3b2f] hover:text-white"
+              className="cursor-pointer rounded-full border border-[var(--portfolio-hero-rule)] bg-transparent px-2.5 py-1 font-sans text-xs font-medium text-[var(--portfolio-hero-muted)] transition-colors hover:border-[var(--portfolio-hero-ink)] hover:text-[var(--portfolio-hero-ink)]"
               title={`View projects built with ${tech}`}
             >
               {tech}
@@ -248,10 +250,7 @@ export default function SystemsBlueprintCard({
       </div>
 
       {/* Channels */}
-      <div className="mt-4 border-t border-white/12 pt-4">
-        <p className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[#9c9ca6]">
-          Channels
-        </p>
+      <div className="mt-5 border-t border-[var(--portfolio-hero-rule)] pt-4">
         <div className="portfolio-obsidian-channels">
           <Connections />
         </div>

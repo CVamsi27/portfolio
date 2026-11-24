@@ -52,10 +52,10 @@ export default function CommandPalette({
       />
       <div
         className={cn(
-          "relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl shadow-2xl",
+          "relative flex w-full max-w-xl flex-col overflow-hidden",
           nova
-            ? "max-h-[calc(100dvh-5rem)] border border-border/70 bg-card shadow-primary/15 outline-none animate-slide-up sm:max-h-[calc(100dvh-7rem)]"
-            : "max-h-[calc(100dvh-2rem)] border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] transition-all sm:max-h-[calc(100dvh-8rem)]",
+            ? "max-h-[calc(100dvh-5rem)] rounded-2xl border border-border/70 bg-card shadow-2xl shadow-primary/15 outline-none animate-slide-up sm:max-h-[calc(100dvh-7rem)]"
+            : "max-h-[calc(100dvh-2rem)] border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-ink)] transition-all sm:max-h-[calc(100dvh-8rem)]",
         )}
       >
         <CommandSearch
@@ -89,15 +89,15 @@ export default function CommandPalette({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between border-t border-[var(--portfolio-rule)] bg-muted/10 px-4 py-2 text-[0.65rem] font-utility text-[var(--portfolio-muted)]">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between border-t border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] px-4 py-2.5 text-[11px] font-mono text-[var(--portfolio-muted)]">
+            <div className="flex items-center gap-2.5">
               <span>↑↓ Navigate</span>
               <span>·</span>
               <span>↵ Select</span>
               <span>·</span>
               <span>Esc Close</span>
             </div>
-            <span className="font-semibold text-[var(--portfolio-accent)]">
+            <span className="uppercase tracking-[0.12em] text-[var(--portfolio-ink)]">
               Command Palette
             </span>
           </div>

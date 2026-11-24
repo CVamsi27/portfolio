@@ -162,27 +162,27 @@ export default function SuperTicTacToeModal({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 shadow-2xl transition-all">
+      <div className="relative w-full max-w-md overflow-hidden border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 text-[var(--portfolio-ink)] transition-all">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)]">
-              <Gamepad2 className="h-5 w-5" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] text-[var(--portfolio-ink)]">
+              <Gamepad2 className="h-4 w-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-display text-base font-bold text-[var(--portfolio-ink)]">
+                <h2 className="font-display text-xl font-light tracking-[-0.02em] text-[var(--portfolio-ink)]">
                   Super Tic Tac Toe
                 </h2>
                 <span className="portfolio-impact-pill">Minimax Engine</span>
               </div>
-              <p className="font-utility text-[0.68rem] text-[var(--portfolio-muted)]">
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--portfolio-muted)]">
                 Zero-dependency game state logic &amp; recursive evaluation
               </p>
             </div>
@@ -192,15 +192,15 @@ export default function SuperTicTacToeModal({
             type="button"
             onClick={onClose}
             aria-label="Close game modal"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]"
+            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)]"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Mode & Score Bar */}
-        <div className="mt-4 flex items-center justify-between rounded-xl border border-[var(--portfolio-rule)] bg-muted/20 p-2.5 text-xs">
-          <div className="flex items-center gap-1.5">
+        <div className="mt-4 flex items-center justify-between border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] p-2 text-xs">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => {
@@ -208,9 +208,9 @@ export default function SuperTicTacToeModal({
                 resetGame();
               }}
               className={cn(
-                "flex items-center gap-1 rounded-lg px-2.5 py-1 font-utility text-xs font-semibold transition-all cursor-pointer",
+                "flex items-center gap-1.5 px-2.5 py-1 font-sans text-xs font-medium transition-colors cursor-pointer",
                 vsAi
-                  ? "bg-[var(--portfolio-accent)] text-white shadow-xs"
+                  ? "bg-[var(--portfolio-ink)] text-[var(--portfolio-paper)]"
                   : "text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]",
               )}
             >
@@ -224,9 +224,9 @@ export default function SuperTicTacToeModal({
                 resetGame();
               }}
               className={cn(
-                "flex items-center gap-1 rounded-lg px-2.5 py-1 font-utility text-xs font-semibold transition-all cursor-pointer",
+                "flex items-center gap-1.5 px-2.5 py-1 font-sans text-xs font-medium transition-colors cursor-pointer",
                 !vsAi
-                  ? "bg-[var(--portfolio-accent)] text-white shadow-xs"
+                  ? "bg-[var(--portfolio-ink)] text-[var(--portfolio-paper)]"
                   : "text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)]",
               )}
             >
@@ -235,7 +235,7 @@ export default function SuperTicTacToeModal({
             </button>
           </div>
 
-          <div className="flex items-center gap-2 font-utility text-[0.68rem] text-[var(--portfolio-muted)]">
+          <div className="flex items-center gap-2 font-mono text-[11px] text-[var(--portfolio-muted)]">
             <span>X: <strong className="text-[var(--portfolio-ink)]">{scores.X}</strong></span>
             <span>·</span>
             <span>O: <strong className="text-[var(--portfolio-ink)]">{scores.O}</strong></span>
@@ -245,20 +245,20 @@ export default function SuperTicTacToeModal({
         </div>
 
         {/* Turn Status */}
-        <div className="mt-3 flex items-center justify-between text-xs">
+        <div className="mt-3 flex items-center justify-between text-xs font-sans">
           <div className="flex items-center gap-2">
             {winner ? (
-              <span className="inline-flex items-center gap-1 font-semibold text-emerald-500">
+              <span className="inline-flex items-center gap-1.5 font-semibold text-[var(--portfolio-ink)]">
                 <Trophy className="h-3.5 w-3.5" />
                 Player {winner} Won!
               </span>
             ) : isDraw ? (
-              <span className="font-semibold text-amber-500">
+              <span className="font-medium text-[var(--portfolio-muted)]">
                 Stalemate! Game is a draw.
               </span>
             ) : (
-              <span className="text-[var(--portfolio-muted)] font-medium">
-                Turn: <strong className="text-[var(--portfolio-accent)]">{isXNext ? "Player X (You)" : vsAi ? "Minimax AI (O)..." : "Player O"}</strong>
+              <span className="text-[var(--portfolio-muted)]">
+                Turn: <strong className="font-semibold text-[var(--portfolio-ink)]">{isXNext ? "Player X (You)" : vsAi ? "Minimax AI (O)..." : "Player O"}</strong>
               </span>
             )}
           </div>
@@ -266,7 +266,7 @@ export default function SuperTicTacToeModal({
           <button
             type="button"
             onClick={resetGame}
-            className="flex items-center gap-1 font-utility text-[0.68rem] text-[var(--portfolio-muted)] hover:text-[var(--portfolio-accent)] cursor-pointer"
+            className="flex items-center gap-1 font-mono text-[11px] text-[var(--portfolio-muted)] hover:text-[var(--portfolio-ink)] cursor-pointer"
           >
             <RotateCcw className="h-3 w-3" />
             <span>Restart</span>
@@ -274,7 +274,7 @@ export default function SuperTicTacToeModal({
         </div>
 
         {/* 3x3 Grid Board */}
-        <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl border border-[var(--portfolio-rule)] bg-muted/30 p-2.5">
+        <div className="mt-4 grid grid-cols-3 gap-px border border-[var(--portfolio-rule)] bg-[var(--portfolio-rule)]">
           {board.map((cell, idx) => {
             const isWinningCell = line?.includes(idx);
             return (
@@ -284,11 +284,11 @@ export default function SuperTicTacToeModal({
                 onClick={() => handleCellClick(idx)}
                 disabled={Boolean(cell || winner || isDraw || (vsAi && !isXNext))}
                 className={cn(
-                  "flex h-20 sm:h-24 w-full items-center justify-center rounded-xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] font-display text-3xl sm:text-4xl font-bold transition-all cursor-pointer disabled:cursor-not-allowed",
-                  !cell && !winner && "hover:border-[var(--portfolio-accent)] hover:bg-[var(--portfolio-blue-soft)]/50",
-                  cell === "X" && "text-[var(--portfolio-accent)]",
-                  cell === "O" && "text-rose-500",
-                  isWinningCell && "border-emerald-500 bg-emerald-500/15 shadow-sm",
+                  "flex h-20 sm:h-24 w-full items-center justify-center bg-[var(--portfolio-surface)] font-display text-3xl sm:text-4xl font-light transition-colors cursor-pointer disabled:cursor-not-allowed",
+                  !cell && !winner && "hover:bg-[var(--portfolio-wash)]",
+                  cell === "X" && "text-[var(--portfolio-ink)]",
+                  cell === "O" && "italic text-[var(--portfolio-muted)]",
+                  isWinningCell && "bg-[var(--portfolio-ink)] !text-[var(--portfolio-paper)]",
                 )}
                 aria-label={`Cell ${idx + 1}, currently ${cell || "empty"}`}
               >
@@ -299,13 +299,13 @@ export default function SuperTicTacToeModal({
         </div>
 
         {/* Footer */}
-        <div className="mt-4 flex items-center justify-between border-t border-[var(--portfolio-rule)] pt-3 text-[0.68rem] font-utility text-[var(--portfolio-muted)]">
-          <span>Minimax explores state tree with alpha-beta pruning</span>
+        <div className="mt-4 flex items-center justify-between border-t border-[var(--portfolio-rule)] pt-3 text-[11px] font-mono text-[var(--portfolio-muted)]">
+          <span>Minimax state-tree search</span>
           <a
             href="https://github.com/CVamsi27/Super-Tic-Tac-Toe"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-[var(--portfolio-accent)] hover:underline"
+            className="font-sans font-medium text-[var(--portfolio-ink)] hover:underline"
           >
             View GitHub Source →
           </a>

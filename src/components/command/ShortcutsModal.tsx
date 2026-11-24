@@ -110,10 +110,10 @@ export default function ShortcutsModal({
       />
       <div
         className={cn(
-          "relative w-full max-w-lg overflow-hidden shadow-2xl outline-none",
+          "relative w-full max-w-lg overflow-hidden outline-none",
           nova
-            ? "animate-slide-up rounded-2xl border border-border/70 bg-card shadow-primary/15"
-            : "rounded-2xl border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 transition-all",
+            ? "animate-slide-up rounded-2xl border border-border/70 bg-card shadow-2xl shadow-primary/15"
+            : "border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] p-6 text-[var(--portfolio-ink)] transition-all",
         )}
       >
         <div
@@ -134,14 +134,14 @@ export default function ShortcutsModal({
               </>
             ) : (
               <>
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] bg-[var(--portfolio-blue-soft)] text-[var(--portfolio-accent)]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] text-[var(--portfolio-ink)]">
                   <Keyboard className="h-4 w-4" />
                 </div>
                 <div>
-                  <h2 className="font-display text-base font-bold text-[var(--portfolio-ink)]">
+                  <h2 className="font-display text-xl font-light tracking-[-0.02em] text-[var(--portfolio-ink)]">
                     Keyboard Shortcuts
                   </h2>
-                  <p className="font-utility text-[0.68rem] text-[var(--portfolio-muted)]">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--portfolio-muted)]">
                     Navigate the portfolio instantly from your keyboard
                   </p>
                 </div>
@@ -155,7 +155,7 @@ export default function ShortcutsModal({
             className={cn(
               nova
                 ? "rounded-lg p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
-                : "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--portfolio-rule)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]",
+                : "flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)]",
             )}
           >
             <X className="h-4 w-4" />
@@ -199,12 +199,12 @@ export default function ShortcutsModal({
             {PORTFOLIO_SHORTCUTS.map((item) => (
               <div
                 key={item.description}
-                className="flex items-center justify-between rounded-lg border border-[var(--portfolio-rule)]/60 bg-muted/20 px-3 py-2 text-xs"
+                className="flex items-center justify-between border border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] px-3 py-2 text-xs"
               >
-                <span className="font-medium text-[var(--portfolio-muted)]">
+                <span className="font-sans font-normal text-[var(--portfolio-muted)]">
                   {item.description}
                 </span>
-                <kbd className="inline-flex min-w-6 items-center justify-center rounded border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-1.5 py-0.5 font-utility text-[0.65rem] font-bold text-[var(--portfolio-accent)] shadow-xs">
+                <kbd className="inline-flex min-w-6 items-center justify-center border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--portfolio-ink)]">
                   {item.keys.join(" ")}
                 </kbd>
               </div>
@@ -221,12 +221,12 @@ export default function ShortcutsModal({
             anytime to toggle this menu.
           </div>
         ) : (
-          <div className="mt-5 flex items-center justify-between border-t border-[var(--portfolio-rule)] pt-4 text-[0.68rem] text-[var(--portfolio-muted)]">
+          <div className="mt-5 flex items-center justify-between border-t border-[var(--portfolio-rule)] pt-4 font-sans text-xs text-[var(--portfolio-muted)]">
             <span>Shortcuts are active when no input is focused</span>
             <button
               type="button"
               onClick={onClose}
-              className="font-utility font-semibold text-[var(--portfolio-accent)] hover:underline"
+              className="cursor-pointer font-medium text-[var(--portfolio-ink)] hover:underline"
             >
               Got it (Esc)
             </button>

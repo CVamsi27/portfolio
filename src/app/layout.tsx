@@ -3,11 +3,11 @@ import { headers } from "next/headers";
 import { Suspense } from "react";
 import {
   Bebas_Neue,
+  DM_Sans,
   IBM_Plex_Mono,
-  Instrument_Serif,
   Inter,
   JetBrains_Mono,
-  Plus_Jakarta_Sans,
+  Newsreader,
   Space_Grotesk,
 } from "next/font/google";
 import "./globals.css";
@@ -49,22 +49,19 @@ const novaDisplay = Bebas_Neue({
   variable: "--font-nova-display",
 });
 
-const editorialSerif = Instrument_Serif({
+const editorialSerif = Newsreader({
   subsets: ["latin"],
-  weight: "400",
   style: ["normal", "italic"],
   variable: "--font-editorial-serif",
 });
 
-const editorialSans = Plus_Jakarta_Sans({
+const editorialSans = DM_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   variable: "--font-editorial-sans",
 });
 
 const editorialMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
   variable: "--font-editorial-mono",
 });
 

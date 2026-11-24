@@ -5,18 +5,11 @@ import Image from "next/image";
 import { SKILLS } from "@/lib/const";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Reveal } from "@/components/common/Reveal";
-import {
-  Layout,
-  Server,
-  ShieldCheck,
-  Cpu,
-  Terminal,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const CAPABILITIES = [
   {
     title: "Product Engineering",
-    icon: Layout,
     lead: "Precision interfaces built with strict accessibility and design-system rigor.",
     items: [
       "React & Next.js full-stack architectures",
@@ -27,7 +20,6 @@ const CAPABILITIES = [
   },
   {
     title: "Backend & Systems",
-    icon: Server,
     lead: "Reliable APIs and resilient multi-tenant PostgreSQL data pipelines.",
     items: [
       "NestJS, Express & Node.js microservices",
@@ -38,7 +30,6 @@ const CAPABILITIES = [
   },
   {
     title: "Quality & Infrastructure",
-    icon: ShieldCheck,
     lead: "Executable failure-path tests and release checks for sensitive workflows.",
     items: [
       "Jest, Vitest & Playwright failure-path checks",
@@ -49,7 +40,6 @@ const CAPABILITIES = [
   },
   {
     title: "Engineering Practice",
-    icon: Cpu,
     lead: "End-to-end ownership focused on durability, clarity, and team velocity.",
     items: [
       "Full lifecycle ownership from spec to prod",
@@ -147,46 +137,40 @@ const Skills = () => {
           description="Operating at the seam between a clear product interface, a dependable backend architecture, and the engineering habits that keep both healthy."
         />
 
-        {/* 4 Architectural Pillars Matrix */}
+        {/* 4 Open Top-Ruled Architectural Pillars */}
         <div className="portfolio-capability-grid">
-          {CAPABILITIES.map((group, index) => {
-            const Icon = group.icon;
-            return (
-              <Reveal
-                key={group.title}
-                delay={index * 45}
-                className="portfolio-capability-group"
-              >
-                <div className="flex items-center justify-between border-b border-[var(--portfolio-rule)] pb-3">
-                  <span className="portfolio-index">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <Icon className="h-4 w-4 text-[var(--portfolio-muted)]" />
-                </div>
+          {CAPABILITIES.map((group, index) => (
+            <Reveal
+              key={group.title}
+              delay={index * 40}
+              className="portfolio-capability-group"
+            >
+              <span className="portfolio-index">
+                {String(index + 1).padStart(2, "0")}
+              </span>
 
-                <h3>{group.title}</h3>
-                <p className="mt-2 text-xs leading-relaxed text-[var(--portfolio-muted)]">
-                  {group.lead}
-                </p>
+              <h3>{group.title}</h3>
+              <p className="mt-2.5 font-sans text-xs leading-relaxed text-[var(--portfolio-muted)]">
+                {group.lead}
+              </p>
 
-                <ul>
-                  {group.items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </Reveal>
-            );
-          })}
+              <ul>
+                {group.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </Reveal>
+          ))}
         </div>
 
         {/* Interactive Architectural Tech Shelf */}
         <Reveal delay={80} className="portfolio-tech-shelf">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--portfolio-rule)] pb-5">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="portfolio-meta-label">
                 Production Tooling &amp; Libraries
               </p>
-              <p className="mt-1 text-xs text-[var(--portfolio-muted)]">
+              <p className="mt-1 font-sans text-xs text-[var(--portfolio-muted)]">
                 Core technologies actively deployed across Docita,
                 microservices, and verification harnesses.
               </p>
@@ -229,9 +213,9 @@ const Skills = () => {
             </div>
           </div>
 
-          <div className="mt-6" key={activeCategory}>
-            <div className="mb-4 flex items-center gap-3">
-              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--portfolio-muted)]">
+          <div className="mt-8" key={activeCategory}>
+            <div className="mb-5 flex items-center gap-3">
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-muted)]">
                 {totalTools} tool{totalTools !== 1 ? "s" : ""} indexed
               </span>
               <span className="h-px flex-1 bg-[var(--portfolio-rule)]" />
@@ -239,7 +223,7 @@ const Skills = () => {
 
             {filteredCoreSkills.length > 0 && (
               <>
-                <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--portfolio-muted)]">
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-muted)]">
                   Core Languages &amp; Frameworks
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -250,7 +234,10 @@ const Skills = () => {
                         alt={skill.alt}
                         width={16}
                         height={16}
-                        className="h-4 w-4 shrink-0 object-contain"
+                        className={cn(
+                          "h-4 w-4 shrink-0 object-contain",
+                          skill.alt === "NextJS" && "dark:invert",
+                        )}
                       />
                       <span>{skill.alt}</span>
                     </div>
@@ -261,13 +248,12 @@ const Skills = () => {
 
             {filteredExtraSkills.length > 0 && (
               <>
-                <p className="mb-3 mt-6 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--portfolio-muted)]">
+                <p className="mb-3 mt-6 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--portfolio-muted)]">
                   Ecosystem &amp; Infrastructure
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {filteredExtraSkills.map((tool) => (
                     <div key={tool.name} className="portfolio-tech-chip">
-                      <Terminal className="h-3.5 w-3.5 text-[var(--portfolio-accent)]" />
                       <span>{tool.name}</span>
                     </div>
                   ))}

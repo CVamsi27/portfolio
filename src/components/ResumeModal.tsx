@@ -32,24 +32,24 @@ export default function ResumeModal({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-background/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal Dialog */}
-      <div className="relative flex flex-col w-full max-w-5xl h-[92dvh] max-h-[900px] overflow-hidden rounded-2xl border border-border/80 bg-card/95 shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="relative flex flex-col w-full max-w-5xl h-[92dvh] max-h-[900px] overflow-hidden border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-ink)] animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 bg-muted/20">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="hidden h-9 w-9 shrink-0 items-center justify-center sm:flex rounded-xl bg-primary/10 text-primary">
-              <FileText className="h-5 w-5" />
+            <div className="hidden h-9 w-9 shrink-0 items-center justify-center sm:flex border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-ink)]">
+              <FileText className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-semibold text-foreground">
+              <h2 className="font-display text-xl font-light tracking-[-0.02em] text-[var(--portfolio-ink)]">
                 Vamsi Krishna Chandaluri — Résumé
               </h2>
-              <p className="text-xs text-muted-foreground font-mono">
+              <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--portfolio-muted)]">
                 Senior Full Stack Engineer · One-page PDF
               </p>
             </div>
@@ -59,10 +59,10 @@ export default function ResumeModal({
             <a
               href={RESUME_PATH}
               download="VamsiKrishna_Resume"
-              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border/80 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] px-4 py-1.5 font-sans text-xs font-medium text-[var(--portfolio-paper)] transition-opacity hover:opacity-85"
               title="Download PDF"
             >
-              <Download className="h-3.5 w-3.5 text-primary" />
+              <Download className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Download</span>
             </a>
 
@@ -70,7 +70,7 @@ export default function ResumeModal({
               href={RESUME_PATH}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border/80 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] px-4 py-1.5 font-sans text-xs font-medium text-[var(--portfolio-ink)] transition-colors hover:border-[var(--portfolio-ink)]"
               title="Open PDF in new tab"
             >
               <ExternalLink className="h-3.5 w-3.5" />
@@ -80,7 +80,7 @@ export default function ResumeModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border border-[var(--portfolio-rule)] bg-[var(--portfolio-paper)] text-[var(--portfolio-muted)] transition-colors hover:border-[var(--portfolio-ink)] hover:text-[var(--portfolio-ink)]"
               aria-label="Close résumé modal"
             >
               <X className="h-4 w-4" />
@@ -89,7 +89,7 @@ export default function ResumeModal({
         </div>
 
         {/* PDF Viewer Frame */}
-        <div className="relative flex-1 w-full bg-muted/30 overflow-hidden">
+        <div className="relative flex-1 w-full bg-[var(--portfolio-wash)] overflow-hidden">
           <iframe
             src={`${RESUME_PATH}#toolbar=1&navpanes=0`}
             title="Vamsi Krishna Chandaluri Resume"
@@ -98,13 +98,13 @@ export default function ResumeModal({
 
           <noscript>
             <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-[var(--portfolio-muted)]">
                 PDF preview requires JavaScript.
               </p>
               <a
                 href={RESUME_PATH}
                 download
-                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground"
+                className="mt-3 inline-flex items-center gap-2 rounded-full border border-[var(--portfolio-ink)] bg-[var(--portfolio-ink)] px-4 py-2 text-xs font-medium text-[var(--portfolio-paper)]"
               >
                 <Download className="h-4 w-4" />
                 Download PDF
@@ -114,19 +114,21 @@ export default function ResumeModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border/60 px-5 py-2.5 bg-muted/10 text-xs text-muted-foreground">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between border-t border-[var(--portfolio-rule)] bg-[var(--portfolio-surface)] px-5 py-2.5 text-xs text-[var(--portfolio-muted)]">
+          <div className="flex items-center gap-3 font-sans">
             <span>Hyderabad, India · Remote full-stack roles</span>
             <span className="hidden sm:inline">·</span>
             <a
               href={`mailto:${CONTACT_EMAIL}`}
-              className="hidden sm:inline-flex items-center gap-1 text-primary hover:underline"
+              className="hidden sm:inline-flex items-center gap-1 text-[var(--portfolio-ink)] hover:underline"
             >
               <Mail className="h-3 w-3" />
               {CONTACT_EMAIL}
             </a>
           </div>
-          <span className="font-mono text-[10px]">Press Esc to close</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.1em]">
+            Press Esc to close
+          </span>
         </div>
       </div>
     </div>,
