@@ -874,6 +874,7 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
                 <strong>{nextCard.title}</strong>
                 <small>{nextCard.meta}</small>
               </div>
+<<<<<<< HEAD
               {!nextActionDuplicatesHeader && (
                 <Link className="nova-next-cta" href={nextCard.href}>
                   {nextCard.cta}
@@ -921,6 +922,27 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
                   tone="emerald"
                   compact
                 />
+              <div className="flex flex-wrap gap-1.5">
+                {sprintDay.links.slice(0, 2).map((linkItem) => (
+                  <a
+                    key={linkItem.url}
+                    href={linkItem.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-background px-2.5 py-1 text-[11px] font-medium hover:border-primary/50 hover:text-primary"
+                  >
+                    <BookOpen className="h-3 w-3 text-primary" />
+                    {linkItem.label}
+                    <ArrowUpRight className="h-3 w-3 opacity-60" />
+                  </a>
+                ))}
+                <Link
+                  href="/roadmap?view=interview"
+                  className="inline-flex items-center gap-1 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/15"
+                >
+                  Full roadmap
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
               </div>
               {sprintDay && (
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-3 text-xs">

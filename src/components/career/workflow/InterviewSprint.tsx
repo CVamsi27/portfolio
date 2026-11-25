@@ -7,7 +7,10 @@ import {
   CalendarDays,
   ChevronDown,
   ChevronUp,
+  Compass,
+  Cpu,
   Flag,
+  FolderGit2,
   Github,
   Globe,
   ListChecks,
@@ -17,6 +20,7 @@ import {
 } from "lucide-react";
 import {
   interviewReadySprint as sprint,
+  type OssRepoVerdict,
   type ResourceLink,
 } from "@/data/interview-ready-sprint";
 import { useCareerWorkflow } from "@/lib/career-workflow-store";
@@ -30,6 +34,16 @@ const statusCopy = {
   gated: "Gated",
   next: "Next",
 } as const;
+
+const verdictStyle: Record<OssRepoVerdict, string> = {
+  "ship-oss":
+    "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  "contribute-upstream":
+    "bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/30",
+  "proof-only":
+    "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+  park: "bg-muted text-muted-foreground border-border/70",
+};
 
 function LinkPill({ item }: { item: ResourceLink }) {
   return (
@@ -56,7 +70,9 @@ export default function InterviewSprint() {
   const workflow = useCareerWorkflow();
   const today = zonedDate(useNow(60_000), "Asia/Kolkata");
   const review = careerReview(workflow.activities.value, today);
-  const [expandedDay, setExpandedDay] = useState<number | null>(1);
+  const [expandedDay, setExpandedDay] = useState<number | null>(
+    () => sprint.days.find((d) => d.isoDate === today)?.day ?? 1,
+  );
 
   const liveCounts: Record<string, number> = {
     applications: review.applications,
@@ -75,7 +91,7 @@ export default function InterviewSprint() {
           <div className="space-y-1.5 max-w-3xl">
             <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
               <Flag className="h-3.5 w-3.5" />
-              Starts Today · {sprint.startDateLabel} → {sprint.endDate}
+              Active Sprint · {sprint.startDateLabel} → {sprint.endDate}
             </p>
             <h2 className="font-display text-2xl font-bold tracking-tight">
               {sprint.headline}
@@ -244,12 +260,12 @@ export default function InterviewSprint() {
         ))}
       </section>
 
-      {/* Day-by-Day Detailed Execution Plan (Starting Mon 23 Nov 2026) */}
+      {/* Day-by-Day Detailed Execution Plan (Mon 23 Nov – Fri 4 Dec 2026) */}
       <section className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4">
         <div>
           <h3 className="font-display text-base font-semibold flex items-center gap-2">
             <ListChecks className="h-4 w-4 text-primary" />
-            Phase 0 Day-by-Day Plan (Starts Today · Mon 23 Nov – Fri 4 Dec)
+            Phase 0 Day-by-Day Plan (Mon 23 Nov – Fri 4 Dec)
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             Click any day for the full step-by-step description, deliverable,
@@ -260,7 +276,7 @@ export default function InterviewSprint() {
         <ol className="space-y-2.5">
           {sprint.days.map((day) => {
             const isToday = day.isoDate === today;
-            const isOpen = expandedDay === day.day || isToday;
+            const isOpen = expandedDay === day.day;
             return (
               <li
                 key={day.day}
@@ -483,6 +499,167 @@ export default function InterviewSprint() {
               <LinkPill key={c.url} item={c} />
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Open-Source & /repos/*proof* Triage */}
+      <section
+        className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
+        aria-label="Open-source and proof repository audit"
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <h3 className="font-display text-base font-semibold flex items-center gap-2">
+              <FolderGit2 className="h-4 w-4 text-primary" />
+              Open-Source &amp; /repos/*proof* Triage (Ship · Upstream · Park)
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              One adopted tool beats five unvalidated alphas. Publish the top 2
+              CLIs to npm, land AI-infra PRs in Langfuse, and park everything
+              else until your startup offer is signed.
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {sprint.ossPortfolio.map((repo) => (
+            <article
+              key={repo.id}
+              className="flex flex-col justify-between rounded-xl border border-border/60 bg-background/60 p-4 space-y-3"
+            >
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-mono text-[11px] font-medium text-muted-foreground">
+                    {repo.repoFolder}
+                  </span>
+                  <span
+                    className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${verdictStyle[repo.verdict]}`}
+                  >
+                    {repo.verdictLabel}
+                  </span>
+                </div>
+                <h4 className="font-display text-sm font-bold">{repo.name}</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Now:</strong>{" "}
+                  {repo.currentState}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Why:</strong> {repo.why}
+                </p>
+                <div className="rounded-lg bg-muted/40 p-2.5 text-xs space-y-1">
+                  <p className="text-foreground">
+                    <strong>Next action:</strong> {repo.nextAction}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    <strong>Target:</strong> {repo.adoptionTarget}
+                  </p>
+                </div>
+              </div>
+              {repo.links.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border/50">
+                  {repo.links.map((l) => (
+                    <LinkPill key={l.url} item={l} />
+                  ))}
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* Future-Proof Skills (2026-2030) */}
+      <section
+        className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
+        aria-label="Future-proof engineering skills"
+      >
+        <div>
+          <h3 className="font-display text-base font-semibold flex items-center gap-2">
+            <Cpu className="h-4 w-4 text-primary" />
+            Future-Proof Engineering Stack (2026–2030)
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Routine CRUD is commoditizing; compound the four durable moats that
+            grow in value alongside AI coding agents and build CTO muscle.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {sprint.futureProofPillars.map((pillar) => (
+            <article
+              key={pillar.id}
+              className="rounded-xl border border-border/60 bg-background/60 p-4 space-y-2.5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="font-display text-sm font-bold">
+                  {pillar.title}
+                </h4>
+                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                  {pillar.horizon}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {pillar.whyDurable}
+              </p>
+              <ul className="space-y-1.5 text-xs text-foreground pt-1">
+                {pillar.concreteMoves.map((move) => (
+                  <li key={move} className="flex items-start gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                    <span>{move}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* 4-Horizon Startup -> CTO Trajectory */}
+      <section
+        className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
+        aria-label="Startup engineer to CTO trajectory"
+      >
+        <div>
+          <h3 className="font-display text-base font-semibold flex items-center gap-2">
+            <Compass className="h-4 w-4 text-primary" />
+            Career North Star · Startup SWE → Retiring as CTO
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Strict sequence: get inside a high-velocity startup first, compound
+            reliability + AI + OSS leverage on real production traffic, then
+            cross from IC → Staff/Head of Eng → CTO.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {sprint.ctoHorizons.map((step) => (
+            <article
+              key={step.id}
+              className="flex flex-col justify-between rounded-xl border border-border/60 bg-background/60 p-4 space-y-3"
+            >
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                    {step.horizon} · {step.timeline}
+                  </span>
+                </div>
+                <h4 className="font-display text-sm font-bold">
+                  {step.roleTarget}
+                </h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {step.objective}
+                </p>
+                <ul className="space-y-1.5 text-xs text-foreground">
+                  {step.milestones.map((m) => (
+                    <li key={m} className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                      <span>{m}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <p className="pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                <strong className="text-foreground">Exit gate:</strong>{" "}
+                {step.exitGate}
+              </p>
+            </article>
+          ))}
         </div>
       </section>
 

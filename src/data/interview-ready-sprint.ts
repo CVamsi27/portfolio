@@ -76,17 +76,55 @@ export type WeeklyBlueprint = {
   links: ResourceLink[];
 };
 
+export type OssRepoVerdict =
+  | "ship-oss"
+  | "contribute-upstream"
+  | "proof-only"
+  | "park";
+
+export type OssPortfolioItem = {
+  id: string;
+  repoFolder: string;
+  name: string;
+  verdict: OssRepoVerdict;
+  verdictLabel: string;
+  currentState: string;
+  why: string;
+  nextAction: string;
+  adoptionTarget: string;
+  links: ResourceLink[];
+};
+
+export type FutureProofPillar = {
+  id: string;
+  title: string;
+  horizon: string;
+  whyDurable: string;
+  concreteMoves: string[];
+};
+
+export type CtoHorizon = {
+  id: string;
+  horizon: string;
+  timeline: string;
+  roleTarget: string;
+  objective: string;
+  milestones: string[];
+  exitGate: string;
+};
+
 /**
- * Hiring-first execution plan anchored to Monday, 23 November 2026.
+ * Startup-first hiring & CTO-track execution plan anchored to Monday, 23 November 2026.
  * Every study link resolves to a verified clean URL on study.buildora.work
  * (checked against repos/software-developer-bible).
  */
 export const interviewReadySprint = {
   startDate: "2026-11-23",
   startDateLabel: "23 November 2026",
-  headline: "Conversations & executable proof first — Senior Full-Stack offer",
+  headline:
+    "Startup seat immediately → Future-proof systems & OSS adoption → CTO track",
   summary:
-    "Anchored to Monday 23 November 2026: run a 32-hour hiring engine (six hours Mon–Fri, two hours Saturday, Sunday off). Every application batch pairs tailored factual resumes with direct hiring-manager outreach, live case studies (Docita, RLS Rehearsal, Retryglass), and a structured 5-round technical drill mapped directly to study.buildora.work.",
+    "Anchored to Monday 23 November 2026: stop spawning new alpha repos and convert your existing proof into a Seed–Series B Senior/Founding SWE offer immediately. Run a 32-hour hiring engine (six hours Mon–Fri, two hours Saturday, Sunday off) pairing direct Founder/CTO outreach with npm publication of your top two proof CLIs (RLS Rehearsal & Deployproof), high-signal upstream PRs in Langfuse (AI observability on your exact TS/Postgres stack), and a 5-round technical rotation.",
   triggerDate: "4 December 2026",
   sprintWindow: "23 November–4 December 2026",
   defenseDate: "18 December 2026",
@@ -94,9 +132,9 @@ export const interviewReadySprint = {
   weeklyCapacity: "32 hours · Sunday off",
   repositoryUrl: "https://github.com/CVamsi27/rls-rehearsal",
   triggerNote:
-    "Diagnostic gate: if fewer than 10 qualified applications are sent by Wednesday, pause study and send. If reply rate is under 10% across any 15-application cohort, audit your CV tailoring and outreach message before sending the next batch.",
+    "Diagnostic gate: zero new side projects until your offer is signed. If fewer than 10 qualified applications + founder notes are sent by Wednesday, pause study and ship outreach. If reply rate is under 10% across 15 startups, audit your pitch and top 3 resume bullets before sending more.",
   frontendNote:
-    "Keep React, TypeScript, React Hook Form, Zod, and TanStack Query sharp through timed machine-coding drills and Docita walkthroughs—do not build new side projects before interviews or paid work are live.",
+    "Keep React, TypeScript, React Hook Form, Zod, and TanStack Query sharp via timed machine-coding drills (practice both unaided and AI-assisted review), while parking Whetstone, Rolloutproof, and Revokeproof until post-offer.",
   quickLinks: [
     {
       label: "Study Bible Roadmap",
@@ -119,13 +157,18 @@ export const interviewReadySprint = {
       kind: "repo",
     },
     {
+      label: "Deployproof Repo",
+      url: "https://github.com/CVamsi27/deployproof",
+      kind: "repo",
+    },
+    {
       label: "Retryglass Repo",
       url: "https://github.com/CVamsi27/retryglass",
       kind: "repo",
     },
     {
-      label: "Developer Pain Lab",
-      url: "https://github.com/CVamsi27/developer-pain-lab",
+      label: "Langfuse Fork",
+      url: "https://github.com/CVamsi27/langfuse",
       kind: "repo",
     },
   ] satisfies ResourceLink[],
@@ -170,18 +213,18 @@ export const interviewReadySprint = {
     {
       id: "phase-0-income-pipeline",
       number: "01",
-      label: "Phase 0 · Pipeline & Proof Launch",
+      label: "Phase 0 · Startup Pipeline, npm Unlock & Upstream OSS",
       window: "23 Nov – 4 Dec 2026",
       status: "active",
       summary:
-        "Launch high-signal dual-track applications (Track A: India Remote / Hyderabad Senior Full-Stack + paid diagnostics; Track B: EU/Germany English tech) backed by live portfolio case studies and direct hiring-manager outreach.",
+        "Target Seed–Series B product startups (India Remote/Bengaluru/Hyderabad + EU/US Remote) directly through CTOs & founders, unlock real npm installs on RLS Rehearsal & Deployproof, and land your first upstream PR via your Langfuse fork.",
       points: [
-        "Publish RLS Rehearsal & Retryglass case studies on buildora.work and regenerate 1-page resumes (EU + Global/India) with --focus fullstack|backend|frontend.",
-        "Send 15 qualified applications per week; pair at least 50% with a direct founder, engineering-manager, or employee referral message linking a concrete proof artifact.",
-        "Send 5 scoped paid-diagnostic enquiries per week (Multi-Tenant RLS Audit or BullMQ Queue Reliability Sweep) with explicit deliverables.",
-        "Track every send separately from drafts and follow up once after 5 business days.",
+        "Send 15 qualified startup applications/week; pair ≥60% with a 4-sentence Founder/CTO note linking /work/docita or /work/rls-rehearsal (plus Trojan-Horse bug/DX Loom for top 5 targets).",
+        "Publish rls-rehearsal@0.3.0 (/repos/tenantproof) and deployproof (/repos/deployproof) to npm so external developers can run npx without GitHub tarball friction.",
+        "Open 1–2 clean, reproducible bug/test PRs upstream in /repos/langfuse (TS/Postgres/LLM observability — instant AI-era hiring proof).",
+        "Freeze new features in rolloutproof, revokeproof, and whetstone until your startup offer is countersigned.",
       ],
-      exit: "≥25 qualified applications sent, ≥20 warm/referral messages, ≥10 contract enquiries, 2 case studies live, ≥3 live screens/calls booked.",
+      exit: "≥25 startup applications sent, ≥20 Founder/CTO notes, rls-rehearsal + deployproof live on npm, ≥1 upstream Langfuse PR opened, ≥3 screens booked.",
       links: [
         {
           label: "Find Startup Roles",
@@ -189,37 +232,37 @@ export const interviewReadySprint = {
           kind: "study",
         },
         {
-          label: "Resume Tips",
-          url: "https://study.buildora.work/00-strategy/00.02-resume-tips",
-          kind: "study",
-        },
-        {
-          label: "Docita Claim Walkthrough",
-          url: "https://study.buildora.work/projects/docita/24-resume-claim-walkthrough",
-          kind: "study",
-        },
-        {
           label: "RLS Rehearsal Case Study",
           url: "https://buildora.work/work/rls-rehearsal",
           kind: "portfolio",
+        },
+        {
+          label: "Deployproof Repo",
+          url: "https://github.com/CVamsi27/deployproof",
+          kind: "repo",
+        },
+        {
+          label: "Langfuse Fork",
+          url: "https://github.com/CVamsi27/langfuse",
+          kind: "repo",
         },
       ],
     },
     {
       id: "phase-1-interview-conversion",
       number: "02",
-      label: "Phase 1 · Interview Conversion & 5-Round Readiness",
+      label: "Phase 1 · Interview Conversion & Real External Users",
       window: "5 Dec – 31 Dec 2026",
       status: "active",
       summary:
-        "Convert recruiter screens into onsite/final loops by rotating timed drills across JS/TS/React, Node/NestJS/PostgreSQL, Senior System Design, DSA coding patterns, and rehearsed 3-minute project defenses.",
+        "Convert startup screens into final loops with 5-round timed drills + 3-minute recorded proof demos, while collecting the first 5+ external developer trials on RLS Rehearsal / Deployproof and merging upstream OSS PRs.",
       points: [
         "Run the 5-round weekday rotation (1h/day): 25m unaided attempt → 10m verified study.buildora.work reference → 20m changed-case repair → 5m notes.",
-        "Record and rehearse 3-minute walkthroughs for Docita (ownership), RLS Rehearsal (tenant safety), and Retryglass (failure recovery).",
-        "Run 1 full timed mock interview every week and log the #1 gap for 48-hour repair.",
-        "When 2+ interview loops are active, dial cold applications down to 5/week and protect round preparation.",
+        "Record and reuse 3-minute walkthroughs for Docita (end-to-end SaaS), RLS Rehearsal (failing control pass), and Retryglass (BullMQ crash sweep).",
+        "Ship Supabase + Drizzle drop-in templates for rls-rehearsal and close the Deployproof trial cohort with real external issue feedback.",
+        "When ≥2 interview loops are active, dial cold outreach down to 5/week and protect technical screen prep + weekly timed mocks.",
       ],
-      exit: "≥3 active technical interview processes or ≥2 paid engagements; 3 recorded project demos; every technical screen debriefed.",
+      exit: "≥3 active startup interview loops or paid engagements; 3 recorded demos; ≥2 merged upstream OSS PRs; first external developer trials logged.",
       links: [
         {
           label: "Tech Screen Patterns",
@@ -246,18 +289,18 @@ export const interviewReadySprint = {
     {
       id: "phase-2-offer-leverage",
       number: "03",
-      label: "Phase 2 · Offer Closing, Negotiation & Public Leverage",
+      label: "Phase 2 · Offer Closing, Launch Article & CTO Foundation",
       window: "1 Jan – 18 Feb 2027",
       status: "next",
       summary:
-        "Close a senior full-stack offer with clear scope and compensation, publish one high-signal technical article demonstrating executable tenant-isolation proof, and build referral leverage.",
+        "Close a high-ownership Seed–Series B startup offer (evaluating CTO proximity, equity, real traffic, and comp), publish a high-signal tenant-isolation launch post, and begin the Month 3–12 AI-native + Go future-proofing track on the job.",
       points: [
-        "Compare written offers on ownership scope, engineering bar, compensation, start date, and first-payment date; negotiate using real market benchmarks.",
-        "Publish one practical technical article: 'What a tenant-isolation test actually proves' (showing the failing control pass) and distribute on LinkedIn & dev communities.",
-        "End every technical call with a referral ask: 'Who else in your team or network is solving multi-tenant or worker reliability problems?'",
-        "Keep applying until a contract is countersigned with a confirmed start date.",
+        "Evaluate written offers on CTO proximity, real production ownership, equity + cash comp, and start date; negotiate with market benchmarks.",
+        "Launch 'How one missing WHERE leaks every tenant — and a CI control pass that proves RLS blocks it' on HN, r/PostgreSQL, r/Supabase & LinkedIn driving npx rls-rehearsal installs.",
+        "Convert interview contacts into referrals and keep applying until a contract is countersigned with a confirmed start date.",
+        "Lock your 30/60/90 onboarding plan: volunteer to own 1 reliability/AI-eval system in your first 90 days on the job.",
       ],
-      exit: "Countersigned Senior Full-Stack offer with confirmed start & payroll date, or repeatable paid diagnostic clients, plus a 30/60/90 onboarding plan.",
+      exit: "Countersigned Senior/Founding SWE offer at a high-velocity startup + 10+ external repos using rls-rehearsal/deployproof + 30/60/90 onboarding plan.",
       links: [
         {
           label: "Salary Negotiation Guide",
@@ -318,8 +361,8 @@ export const interviewReadySprint = {
         days: "Mon–Fri",
         slot: "13:00–14:00",
         time: "1.0 h",
-        work: "Proof packaging or paid client delivery: case studies, 3-minute recorded walkthroughs, or RLS Rehearsal / Retryglass polish tied to active conversations.",
-        output: "1 tangible proof artifact or client milestone progressed",
+        work: "OSS & Proof Leverage (strictly capped at 1h): publish rls-rehearsal & deployproof to npm, ship Supabase/Drizzle templates, record 3-min demos, or land clean upstream PRs in /repos/langfuse.",
+        output: "1 tangible npm release, demo recording, or upstream PR progressed",
         links: [
           {
             label: "RLS Rehearsal",
@@ -327,8 +370,13 @@ export const interviewReadySprint = {
             kind: "repo",
           },
           {
-            label: "Retryglass",
-            url: "https://github.com/CVamsi27/retryglass",
+            label: "Deployproof",
+            url: "https://github.com/CVamsi27/deployproof",
+            kind: "repo",
+          },
+          {
+            label: "Langfuse Fork",
+            url: "https://github.com/CVamsi27/langfuse",
             kind: "repo",
           },
         ],
@@ -767,13 +815,14 @@ export const interviewReadySprint = {
       date: "Tue 24 Nov",
       isoDate: "2026-11-24",
       phase: "Phase 0 · Launch",
-      build: "3 tailored applications + 2 paid diagnostic enquiries + PostgreSQL RLS & MVCC drill",
+      build:
+        "Shortlist 20 Seed–Series B startups + 5 Founder/CTO pitches + publish rls-rehearsal@0.3.0 to npm + RLS/MVCC drill",
       description:
-        "Target 3 multi-tenant SaaS roles (India Remote / Hyderabad + 1 EU English role), send 2 scoped Tenant-Isolation Review enquiries to SaaS founders/CTOs linking /work/rls-rehearsal, and drill PostgreSQL MVCC + Row-Level Security.",
+        "Lock the 'no new side projects' rule. Shortlist 20 product startups (10 India Remote/BLR/HYD + 10 EU/US Remote) on TS + Postgres/AI, send 5 direct Founder/CTO pitches linking /work/docita or /work/rls-rehearsal, complete the npm publish step for rls-rehearsal@0.3.0 (/repos/tenantproof), and drill PostgreSQL MVCC + RLS.",
       deliverable:
-        "3 apps + 2 warm/diagnostic messages · RLS Rehearsal demo command verified",
+        "20-startup shortlist · 3 apps + 5 Founder/CTO notes · rls-rehearsal@0.3.0 live on npm",
       evidence:
-        "Logged sends + SQL RLS & MVCC isolation notes with failure boundary",
+        "Logged sends + npx rls-rehearsal --help works in a clean temp folder + MVCC/RLS notes",
       links: [
         {
           label: "PostgreSQL Row-Level Security",
@@ -781,9 +830,9 @@ export const interviewReadySprint = {
           kind: "study",
         },
         {
-          label: "PostgreSQL MVCC",
-          url: "https://study.buildora.work/20-backend/20.4-database/01-postgresql-foundations/20.4.1.03-mvcc",
-          kind: "study",
+          label: "RLS Rehearsal Repo",
+          url: "https://github.com/CVamsi27/rls-rehearsal",
+          kind: "repo",
         },
         {
           label: "RLS Rehearsal Case Study",
@@ -797,13 +846,14 @@ export const interviewReadySprint = {
       date: "Wed 25 Nov",
       isoDate: "2026-11-25",
       phase: "Phase 0 · Launch",
-      build: "Mid-week pipeline check (≥9 apps) + record 3-min Docita walkthrough + DSA sliding window",
+      build:
+        "Mid-week gate (≥9 apps) + record 3-min Docita walkthrough + publish deployproof to npm + DSA sliding window",
       description:
-        "Verify you are on pace for ≥10 apps before Wednesday close (if behind, cut prep and apply). Record a crisp 3-minute Docita end-to-end architecture walkthrough, and run a 35-minute timed TypeScript Sliding Window + Two Pointers drill.",
+        "Check mid-week pace (≥10 apps + founder notes before close). Record a crisp 3-minute Docita end-to-end architecture walkthrough, publish deployproof (/repos/deployproof) to npm so external teams can run `npx deployproof check` with zero Docker setup, and run a 35-minute TypeScript Sliding Window + Two Pointers drill.",
       deliverable:
-        "≥9 cumulative applications · 3-min Docita video recorded · 1 timed DSA drill",
+        "≥9 cumulative apps · 3-min Docita Loom · deployproof live on npm · 1 timed DSA drill",
       evidence:
-        "Recording saved + clean TypeScript solution with edge-case tests",
+        "Recording saved + npx deployproof demo exits 0 in temp dir + clean TS DSA solution",
       links: [
         {
           label: "Docita Claim Walkthrough",
@@ -811,13 +861,13 @@ export const interviewReadySprint = {
           kind: "study",
         },
         {
-          label: "Sliding Window",
-          url: "https://study.buildora.work/70-interview-toolkit/70.2-coding-patterns/01-linear-structures/70.2.1.01-sliding-window",
-          kind: "study",
+          label: "Deployproof Repo",
+          url: "https://github.com/CVamsi27/deployproof",
+          kind: "repo",
         },
         {
-          label: "Two Pointers",
-          url: "https://study.buildora.work/70-interview-toolkit/70.2-coding-patterns/01-linear-structures/70.2.1.02-two-pointers",
+          label: "Sliding Window",
+          url: "https://study.buildora.work/70-interview-toolkit/70.2-coding-patterns/01-linear-structures/70.2.1.01-sliding-window",
           kind: "study",
         },
       ],
@@ -827,13 +877,14 @@ export const interviewReadySprint = {
       date: "Thu 26 Nov",
       isoDate: "2026-11-26",
       phase: "Phase 0 · Launch",
-      build: "3 apps + 2 referral asks + record 3-min RLS Rehearsal demo + Multi-Tenant System Design",
+      build:
+        "3 apps + 2 referral asks + 3-min RLS Rehearsal demo + pick 1 Langfuse upstream issue + Multi-Tenant Design",
       description:
-        "Send 3 qualified applications and ask 2 former colleagues/peers for direct introductions to hiring managers. Record the 3-minute RLS Rehearsal demo (showing the failing control pass), then complete a 40-minute Multi-Tenant SaaS System Design drill.",
+        "Send 3 startup applications + 2 referral asks. Record the 3-minute RLS Rehearsal demo (failing control pass), triage 1 reproducible bug or test-coverage issue in your /repos/langfuse checkout to start your AI-infra OSS track, and complete a 40-minute Multi-Tenant SaaS System Design drill.",
       deliverable:
-        "3 apps + 2 referral asks · 3-min RLS Rehearsal demo · System design diagram",
+        "3 apps + 2 referral asks · 3-min RLS Rehearsal demo · 1 Langfuse issue reproduced locally",
       evidence:
-        "Demo recorded + whiteboard design covering tenant isolation, rate limits & failure modes",
+        "Demo recorded + local failing test in /repos/langfuse + Multi-Tenant design diagram",
       links: [
         {
           label: "Multi-Tenant SaaS Architecture",
@@ -841,9 +892,9 @@ export const interviewReadySprint = {
           kind: "study",
         },
         {
-          label: "How to Approach System Design",
-          url: "https://study.buildora.work/30-architecture/30.2-system-design/01-theory/30.2.1.15-how-to-approach",
-          kind: "study",
+          label: "Langfuse Fork",
+          url: "https://github.com/CVamsi27/langfuse",
+          kind: "repo",
         },
         {
           label: "RLS Rehearsal Repo",
@@ -857,13 +908,14 @@ export const interviewReadySprint = {
       date: "Fri 27 Nov",
       isoDate: "2026-11-27",
       phase: "Phase 0 · Launch",
-      build: "Hit Week 1 target (15 apps / 10 warm / 5 contracts) + Retryglass demo + STAR defense",
+      build:
+        "Hit Week 1 targets (15 apps / 10 warm) + open Langfuse upstream PR + Retryglass demo + STAR defense",
       description:
-        "Close Week 1 targets (15 tailored applications, 10 warm/referral notes, 5 contract enquiries). Record the 3-minute Retryglass crash-point sweep walkthrough and rehearse 2 MAQ Software STAR stories.",
+        "Close Week 1 pipeline targets (15 tailored apps, 10 Founder/CTO or referral notes, 5 diagnostic enquiries). Open your first clean upstream PR from /repos/langfuse, record the 3-minute Retryglass crash-point sweep demo, and rehearse 2 MAQ Software STAR ownership stories.",
       deliverable:
-        "Week 1 scoreboard complete · 3-min Retryglass demo · 2 STAR stories rehearsed",
+        "Week 1 scoreboard hit · 1 upstream Langfuse PR opened · 3-min Retryglass demo · 2 STAR stories",
       evidence:
-        "All 3 project demos recorded + MAQ promotion & optimization stories timed",
+        "Public PR URL + all 3 project demos recorded + MAQ promotion/perf stories timed",
       links: [
         {
           label: "STAR Method",
@@ -871,9 +923,9 @@ export const interviewReadySprint = {
           kind: "study",
         },
         {
-          label: "MAQ Product Engineering",
-          url: "https://study.buildora.work/projects/maq/01-product-engineering",
-          kind: "study",
+          label: "Langfuse Fork",
+          url: "https://github.com/CVamsi27/langfuse",
+          kind: "repo",
         },
         {
           label: "Retryglass Case Study",
@@ -1230,11 +1282,266 @@ export const interviewReadySprint = {
       ],
     },
   ] satisfies WeeklyBlueprint[],
+  ossPortfolio: [
+    {
+      id: "tenantproof",
+      repoFolder: "/repos/tenantproof",
+      name: "RLS Rehearsal (rls-rehearsal)",
+      verdict: "ship-oss",
+      verdictLabel: "Tier 1 · Ship & Publish to npm",
+      currentState:
+        "v0.3.0 CLI + composite GitHub Action + Supabase JWT claim support prepared, but npm publish is still deferred (0 external users).",
+      why: "Highest real-world pull of all your repos: every Supabase, Neon, Prisma, and Drizzle B2B SaaS team fears silent cross-tenant data leaks, and the failing control pass is an instant CTO hook.",
+      nextAction:
+        "Run npm publish for rls-rehearsal@0.3.0, add a 2-min Supabase + Drizzle drop-in template, and publish the launch post on HN, r/PostgreSQL & r/Supabase.",
+      adoptionTarget: "100+ stars · 10+ external repos in CI · 5+ external issues/PRs",
+      links: [
+        {
+          label: "RLS Rehearsal Repo",
+          url: "https://github.com/CVamsi27/rls-rehearsal",
+          kind: "repo",
+        },
+        {
+          label: "Case Study",
+          url: "https://buildora.work/work/rls-rehearsal",
+          kind: "portfolio",
+        },
+      ],
+    },
+    {
+      id: "deployproof",
+      repoFolder: "/repos/deployproof",
+      name: "Deployproof",
+      verdict: "ship-oss",
+      verdictLabel: "Tier 1 · Zero-Docker Quick Win",
+      currentState:
+        "v0.1.0-alpha.3 (0 stars, 2 tarball downloads); enrollment window open until 5 Dec 2026. GitHub tarball install creates unnecessary friction.",
+      why: "Zero Docker/OrbStack dependency — any Node/pnpm/Next.js standalone developer can run `npx deployproof check ./out` in 5 seconds to catch missing runtime files or escaping workspace symlinks.",
+      nextAction:
+        "Publish to npm (unscoped or verified scope), close the Dec 5 trial cohort with 5 external Node/pnpm maintainers, and fix the top 1 onboarding blocker.",
+      adoptionTarget: "5 external trial reports · 3 retained CI integrations",
+      links: [
+        {
+          label: "Deployproof Repo",
+          url: "https://github.com/CVamsi27/deployproof",
+          kind: "repo",
+        },
+        {
+          label: "Developer Pain Lab",
+          url: "https://buildora.work/work/developer-pain-lab",
+          kind: "portfolio",
+        },
+      ],
+    },
+    {
+      id: "langfuse",
+      repoFolder: "/repos/langfuse",
+      name: "Langfuse (Upstream Fork)",
+      verdict: "contribute-upstream",
+      verdictLabel: "Tier 1 · AI-Era Upstream OSS",
+      currentState:
+        "Fork cloned locally (CVamsi27/langfuse, branch `test` active Nov 21). TypeScript + Next.js + Postgres + ClickHouse + queues — your exact stack + LLM observability/evals.",
+      why: "Fastest credibility multiplier for 2026–2030: teaches production AI traces/evals inside a real Series A/B AI codebase and puts merged PRs in front of AI-native hiring teams.",
+      nextAction:
+        "Land 2–3 focused, well-tested bug-fix or eval/API PRs in Langfuse (plus 1–2 in drizzle-orm, better-auth, or bullmq during Month 2–6).",
+      adoptionTarget: "≥2 merged upstream PRs by Dec 31 · 1–2 PRs/month post-offer",
+      links: [
+        {
+          label: "Langfuse Fork",
+          url: "https://github.com/CVamsi27/langfuse",
+          kind: "repo",
+        },
+      ],
+    },
+    {
+      id: "retryglass",
+      repoFolder: "/repos/retryglass",
+      name: "Retryglass",
+      verdict: "proof-only",
+      verdictLabel: "Tier 2 · Interview Proof & Audit Wedge",
+      currentState:
+        "v0.1.0-alpha.2 (0 stars, 2 tarball downloads); deterministic BullMQ crash-point sweep + Vitest export verified locally on OrbStack.",
+      why: "Exceptional Staff-level interview proof and paid queue-audit hook, but Docker/Postgres/Redis prerequisites slow cold OSS adoption compared to RLS Rehearsal and Deployproof.",
+      nextAction:
+        "Record a 3-min crash-sweep demo for founder outreach & interviews; defer npm push and BullMQ v6 expansion until after your job offer is signed.",
+      adoptionTarget: "Used in ≥10 founder/CTO pitches & interview defenses",
+      links: [
+        {
+          label: "Retryglass Repo",
+          url: "https://github.com/CVamsi27/retryglass",
+          kind: "repo",
+        },
+        {
+          label: "Case Study",
+          url: "https://buildora.work/work/retryglass",
+          kind: "portfolio",
+        },
+      ],
+    },
+    {
+      id: "rolloutproof",
+      repoFolder: "/repos/rolloutproof",
+      name: "Rolloutproof",
+      verdict: "park",
+      verdictLabel: "Park Until Post-Offer (Upstream Later)",
+      currentState:
+        "v0.1.0-alpha.1 (0 stars, 2 downloads); macOS OrbStack local profile only; own docs note SchemaProof overlap.",
+      why: "Heavy container + image contract setup makes cold adoption steep right now. Keep the expand-and-contract rollback insight for System Design rounds, not active feature cycles.",
+      nextAction:
+        "Freeze code changes during hiring sprint. Revisit only in Horizon 2 as an upstream PostgreSQL rollback adapter PR if teams ask for it.",
+      adoptionTarget: "0 hours/wk during Phase 0–2 hiring sprint",
+      links: [
+        {
+          label: "Rolloutproof Repo",
+          url: "https://github.com/CVamsi27/rolloutproof",
+          kind: "repo",
+        },
+      ],
+    },
+    {
+      id: "revokeproof",
+      repoFolder: "/repos/revokeproof",
+      name: "Revokeproof",
+      verdict: "park",
+      verdictLabel: "Park Until Post-Offer (Security Proof)",
+      currentState:
+        "v0.1.0-alpha.1 (0 stars, 2 downloads); Chromium/Playwright WebSocket revocation helper requiring 6 custom app callbacks.",
+      why: "Strong security/realtime talking point paired with Docita & TeamOps, but too bespoke per-app for quick cold OSS traction.",
+      nextAction:
+        "Freeze feature work; cite in Auth/JWT/WebSocket interview questions as concrete proof of thinking past HTTP 401.",
+      adoptionTarget: "0 hours/wk during Phase 0–2 hiring sprint",
+      links: [
+        {
+          label: "Revokeproof Repo",
+          url: "https://github.com/CVamsi27/revokeproof",
+          kind: "repo",
+        },
+      ],
+    },
+    {
+      id: "whetstone",
+      repoFolder: "/repos/whetstone",
+      name: "Whetstone (Edgewise)",
+      verdict: "park",
+      verdictLabel: "Explicitly Parked During Job Search",
+      currentState:
+        "1,055 passing local tests across Next/Lynx/NestJS/native sign-in, but native SDKs, reviewed content stock, and production setup still block release.",
+      why: "High surface-area product that will silently steal 20+ hours/week from hiring and startup onboarding if left active.",
+      nextAction:
+        "Keep strictly parked until you are settled in your startup role (Month 6+).",
+      adoptionTarget: "0 hours/wk until Month 6 on the job",
+      links: [],
+    },
+  ] satisfies OssPortfolioItem[],
+  futureProofPillars: [
+    {
+      id: "ai-systems",
+      title: "Production AI & Eval Engineering",
+      horizon: "Start Now (Langfuse PRs) → Months 3–12",
+      whyDurable:
+        "AI agents write CRUD fast; engineers who own eval harnesses, guardrails, structured outputs, hybrid search (pgvector + BM25), and token/latency budgets become irreplaceable.",
+      concreteMoves: [
+        "Land upstream PRs in /repos/langfuse to master real LLM trace/eval pipelines.",
+        "Volunteer in your first 90 days at the startup to own 1 AI feature + its automated regression eval & cost dashboard.",
+      ],
+    },
+    {
+      id: "systems-go",
+      title: "Systems Reliability, Postgres Internals & Go",
+      horizon: "Months 3–12 on the job",
+      whyDurable:
+        "Correctness under load, zero-downtime migrations, OpenTelemetry observability, and adding Go alongside TypeScript removes the 'just a JS dev' ceiling.",
+      concreteMoves: [
+        "Master EXPLAIN ANALYZE, lock queues, connection pooling, outbox/CDC, and OpenTelemetry SLOs on live startup traffic.",
+        "Ship 1 real production service or CLI in Go (Months 6–12) to pair Go + TypeScript + PostgreSQL.",
+      ],
+    },
+    {
+      id: "cloud-finops",
+      title: "Cloud Infra, Security & Unit Economics",
+      horizon: "Months 6–24",
+      whyDurable:
+        "CTOs are graded on trust, uptime, compliance (SOC2/HIPAA/GDPR), and gross margin — especially cloud + LLM cost per tenant.",
+      concreteMoves: [
+        "Own IaC (Terraform), canary/rollback CI/CD gates, secret boundaries, and incident postmortems.",
+        "Track cost-per-tenant and LLM cost-per-workflow for every major system you ship.",
+      ],
+    },
+    {
+      id: "product-leadership",
+      title: "Product Judgment, Hiring & Executive Leverage",
+      horizon: "Years 2–5+",
+      whyDurable:
+        "Code output plateaus; multiplying a team through RFCs, sharp scoping, hiring A-players, and talking to customers compounds all the way to CTO.",
+      concreteMoves: [
+        "Join customer calls, cut 70% of non-essential scope to ship in days, and write ADRs tied to revenue/retention.",
+        "Design interview rubrics, mentor engineers, and partner directly with Founders/Sales on enterprise architecture reviews.",
+      ],
+    },
+  ] satisfies FutureProofPillar[],
+  ctoHorizons: [
+    {
+      id: "horizon-1",
+      horizon: "Horizon 1",
+      timeline: "Days 1–60 (Now → Jan 2027)",
+      roleTarget: "Senior / Founding SWE · Seed–Series B Startup",
+      objective:
+        "Join a high-velocity product startup immediately (1 hop from the CTO/Founders) to learn on real traffic, revenue, and incidents.",
+      milestones: [
+        "Direct Founder/CTO outreach + Trojan-Horse product Looms on top 20 target startups.",
+        "Publish rls-rehearsal & deployproof to npm; merge first upstream Langfuse PRs.",
+        "Park rolloutproof, revokeproof & whetstone; convert screens via 5-round drills.",
+      ],
+      exitGate: "Countersigned startup offer + confirmed start date.",
+    },
+    {
+      id: "horizon-2",
+      horizon: "Horizon 2",
+      timeline: "Months 3–12",
+      roleTarget: "Most Trusted Senior / Lead SWE in the Room",
+      objective:
+        "Future-proof your stack on live production systems while turning 1 dev tool into an externally adopted OSS product.",
+      milestones: [
+        "Own 1 critical reliability system + 1 production AI feature with automated evals & cost metrics.",
+        "Add Go in production + OpenTelemetry observability + Terraform/cloud ownership.",
+        "Grow rls-rehearsal (or a real work-born CLI) to 100+ stars & 10+ external CI repos; write 1 deep post/month.",
+      ],
+      exitGate: "Go-to owner for hardest ambiguous problems + external OSS adoption + strong public writing.",
+    },
+    {
+      id: "horizon-3",
+      horizon: "Horizon 3",
+      timeline: "Years 2–5",
+      roleTarget: "Staff / Tech Lead → Head of Engineering",
+      objective:
+        "Cross from solo builder to technical & organizational multiplier owning architecture, hiring, and business outcomes.",
+      milestones: [
+        "Author company-wide RFCs/ADRs, own incident & release culture, and build the engineering hiring bar.",
+        "Lead a squad/pillar of 5–15 engineers: roadmap trade-offs, coaching, performance, and enterprise customer calls.",
+        "Speak 2–3×/year on multi-tenant Postgres, reliability, or production AI systems.",
+      ],
+      exitGate: "Proven track record hiring/scaling a team and shipping revenue-moving systems.",
+    },
+    {
+      id: "horizon-4",
+      horizon: "Horizon 4",
+      timeline: "Years 5–10+ → Career Goal",
+      roleTarget: "Founding CTO / Scale-Up CTO → Retire as CTO",
+      objective:
+        "Own technology vision, engineering organization, security/compliance posture, board-level strategy, and equity upside.",
+      milestones: [
+        "Path A: Step from Founding/Staff SWE → Head of Eng → VP Eng / CTO as a startup scales Series A → C.",
+        "Path B: Pair with a strong GTM co-founder as Founding CTO (backed by solo SaaS + scale-up leadership proof).",
+        "Compound equity, board communication, unit economics, and technical taste across the full career arc.",
+      ],
+      exitGate: "CTO seat with durable technical authority, A-player org, and meaningful equity.",
+    },
+  ] satisfies CtoHorizon[],
   gates: [
-    "Proof live: Docita, RLS Rehearsal, and Retryglass case studies live on buildora.work; aspirational Langfuse/Lightdash cards removed.",
-    "Resume verified: 1-page A4 EU, Global/India, and phone-free Public PDFs pass verify_resume_pdf.py and check_ats.py with zero unverified claims.",
-    "Pipeline real: every logged application has a submitted date, tailored variant, and 5-business-day follow-up; ≥50% paired with direct outreach.",
-    "Rounds rehearsed: timed Frontend, Backend/Postgres, DSA, System Design, and Project Defense drills each logged with an observed gap & fix.",
-    "Feedback loop: 10-app reply-rate diagnostic checked weekly; every screen debriefed within 24 hours back to a study.buildora.work chapter.",
+    "No new side projects: Whetstone, Rolloutproof, and Revokeproof stay parked until a startup offer is countersigned.",
+    "npm & OSS unlocked: rls-rehearsal@0.3.0 and deployproof published to npm (zero tarball friction); ≥1 upstream Langfuse PR opened.",
+    "Proof live & verified: Docita, RLS Rehearsal, Retryglass, and Developer Pain Lab live on buildora.work; 1-page resumes pass verify_resume_pdf.py & check_ats.py.",
+    "Startup-first pipeline: ≥60% of applications paired with direct Founder/CTO outreach; 10-app reply-rate diagnostic audited every Saturday.",
+    "Future-proof discipline: every interview debriefed within 24h; once hired, immediately shift into Horizon 2 (AI evals + Go + real OSS adoption).",
   ],
 } as const;

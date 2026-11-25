@@ -184,10 +184,10 @@ export function incomeFirstPersonalSchedule(
   const labels: Partial<Record<PersonalWorkKind, string>> =
     date >= HIRING_ENGINE_SCHEDULE_REVISION.effectiveOn
       ? {
-          applications: "Qualified applications & direct hiring-manager outreach",
-          network: "Warm referrals & paid-diagnostic enquiries",
-          project: "Proof asset packaging (case studies / demos) or client delivery",
-          coding: "5-round interview drill (study.buildora.work)",
+          applications: "Startup applications & direct Founder/CTO outreach",
+          network: "Warm referrals, Trojan-Horse Looms & paid diagnostics",
+          project: "OSS & proof leverage (npm publish, demos, Langfuse PRs)",
+          coding: "5-round startup interview drill (study.buildora.work)",
           review:
             new Date(`${date}T12:00:00Z`).getUTCDay() === 6
               ? "Weekly funnel audit & 1 timed mock interview"
