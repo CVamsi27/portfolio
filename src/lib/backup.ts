@@ -71,6 +71,7 @@ const KEYS = [
   "archive:items",
   "reminders",
   "career:telegram-preferences",
+  "career:resume-checkpoints",
   "fasting:water",
   "work:active",
   "focus:active",
@@ -448,7 +449,14 @@ function applyValidatedBackup(backup: unknown): ImportReport {
     const valid =
       key === "career:telegram-preferences"
         ? validCareerTelegramPreferences(value)
-        : key === "work:active"
+        : key === "career:resume-checkpoints"
+          ? value !== null &&
+            typeof value === "object" &&
+            !Array.isArray(value) &&
+            Object.values(value as Record<string, unknown>).every(
+              (item) => typeof item === "boolean",
+            )
+          : key === "work:active"
           ? validWorkState(value)
           : key === "bedtime:manual"
             ? typeof value === "boolean"

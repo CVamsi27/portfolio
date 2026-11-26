@@ -22,6 +22,8 @@ import {
   careerTelegramMayBeDue,
   validCareerTelegramPreferences,
 } from "../../../../lib/career-telegram.ts";
+import { HIRING_ENGINE_SCHEDULE_REVISION } from "../../../../lib/personal-timetable.ts";
+import { zonedDate } from "../../../../lib/routine-reminders.ts";
 import {
   dispatchTelegramNotification,
   type TelegramDeliveryNotification,
@@ -97,26 +99,36 @@ export async function GET(request: Request) {
       validCareerTelegramPreferences(prefs) &&
       careerTelegramMayBeDue(prefs, now)
     ) {
-      // Read only the current plan, not the command center's retained release history.
-      const [career, execution] = await Promise.all([
-        admin
-          .from("tracker_data")
-          .select("plan:value->germanyRoadmap->execution->jobPlan")
-          .eq("user_id", owner)
-          .eq("key", "career_command_center")
-          .maybeSingle(),
-        admin
-          .from("tracker_data")
-          .select("value")
-          .eq("user_id", owner)
-          .eq("key", "career_execution_state")
-          .maybeSingle(),
-      ]);
-      if (career.error) throw career.error;
-      if (execution.error) throw execution.error;
+      const sprintBypass =
+        prefs.planMode === "hiring-sprint" &&
+        zonedDate(now, prefs.timezone) >=
+          HIRING_ENGINE_SCHEDULE_REVISION.effectiveOn;
+      let careerPlan: JobPlan | undefined;
+      let executionValue: unknown = {};
+      if (!sprintBypass) {
+        // Read only the current plan, not the command center's retained release history.
+        const [career, execution] = await Promise.all([
+          admin
+            .from("tracker_data")
+            .select("plan:value->germanyRoadmap->execution->jobPlan")
+            .eq("user_id", owner)
+            .eq("key", "career_command_center")
+            .maybeSingle(),
+          admin
+            .from("tracker_data")
+            .select("value")
+            .eq("user_id", owner)
+            .eq("key", "career_execution_state")
+            .maybeSingle(),
+        ]);
+        if (career.error) throw career.error;
+        if (execution.error) throw execution.error;
+        careerPlan = career.data?.plan as JobPlan | undefined;
+        executionValue = execution.data?.value;
+      }
       for (const notification of dueCareerNotifications(
-        career.data?.plan as JobPlan | undefined,
-        execution.data?.value,
+        careerPlan,
+        executionValue,
         prefs,
         now,
       )) {

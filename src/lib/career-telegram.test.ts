@@ -682,7 +682,7 @@ test("cheap prefilter honors catch-up boundaries, activation and a custom local 
     assert.equal(careerTelegramMayBeDue(preferences(), now), false);
 });
 
-test("career reminders support only the validated version 3 dated schedule", () => {
+test("career reminders support only the validated version 3 dated schedule unless hiring-sprint applies", () => {
   const legacy = jobPlanFixture() as JobPlan;
   assert.equal(isJobPlan(legacy), true);
   assert.deepEqual(
@@ -693,4 +693,83 @@ test("career reminders support only the validated version 3 dated schedule", () 
     dueCareerNotifications(legacy, {}, preferences(), instant("08:00")),
     [],
   );
+});
+
+test("hiring-sprint planMode sends daily digest and all Mon-Fri/Sat sprint alerts in IST", () => {
+  const sprintPrefs = preferences({
+    digestTime: "07:00",
+    planMode: "hiring-sprint",
+    enabledAt: "2026-11-23T00:00:00Z",
+  });
+  const thu = (time: string) => Date.parse(`2026-11-26T${time}:00+05:30`);
+
+  const [digest] = dueCareerNotifications(
+    undefined,
+    {},
+    sprintPrefs,
+    thu("07:00"),
+  );
+  assert.ok(digest);
+  assert.equal(digest.kind, "career-digest");
+  assert.equal(digest.date, "2026-11-26");
+  assert.match(digest.text, /Startup & CTO Sprint/);
+  assert.match(digest.text, /rls-rehearsal/i);
+  assert.doesNotMatch(digest.text, /Technical details are available/);
+  assert.match(
+    digest.text,
+    /https:\/\/personal\.buildora\.work\/roadmap\?view=interview/,
+  );
+
+  for (const [time, expectedKind, expectedPattern] of [
+    ["09:00", "career-project", /3-Lane Funnel/],
+    ["11:15", "career-project", /Trojan-Horse/],
+    ["13:00", "career-project", /OSS & Proof Leverage/],
+    ["15:00", "career-study", /Round 4/],
+    ["16:00", "career-study", /Follow-Ups/],
+  ] as const) {
+    assert.equal(careerTelegramMayBeDue(sprintPrefs, thu(time)), true, time);
+    const items = dueCareerNotifications(
+      planFixture(),
+      {},
+      sprintPrefs,
+      thu(time),
+    );
+    assert.equal(items.length, 1, `expected alert at ${time}`);
+    assert.equal(items[0].kind, expectedKind);
+    assert.match(items[0].text, expectedPattern);
+    assert.doesNotMatch(items[0].text, /Technical details are available/);
+  }
+
+  assert.equal(careerTelegramMayBeDue(sprintPrefs, thu("06:30")), false);
+  assert.equal(careerTelegramMayBeDue(sprintPrefs, thu("11:30")), false);
+
+  const sat = (time: string) => Date.parse(`2026-11-28T${time}:00+05:30`);
+  const satItems = dueCareerNotifications(
+    undefined,
+    {},
+    sprintPrefs,
+    sat("09:00"),
+  );
+  assert.equal(satItems.length, 1);
+  assert.equal(satItems[0].kind, "career-study");
+  assert.match(satItems[0].text, /Weekly Funnel Audit/);
+  assert.deepEqual(
+    dueCareerNotifications(undefined, {}, sprintPrefs, sat("11:15")),
+    [],
+  );
+
+  const sun = Date.parse("2026-11-29T07:00:00+05:30");
+  assert.equal(careerTelegramMayBeDue(sprintPrefs, sun), false);
+  assert.deepEqual(dueCareerNotifications(undefined, {}, sprintPrefs, sun), []);
+
+  const dec10 = Date.parse("2026-12-10T15:00:00+05:30");
+  const dec10Alerts = dueCareerNotifications(
+    undefined,
+    {},
+    sprintPrefs,
+    dec10,
+  );
+  assert.equal(dec10Alerts.length, 1);
+  assert.equal(dec10Alerts[0].kind, "career-study");
+  assert.match(dec10Alerts[0].text, /Round 4/);
 });

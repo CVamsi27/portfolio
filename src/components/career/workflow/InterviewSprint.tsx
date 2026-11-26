@@ -3,17 +3,22 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
+  Bell,
   BookOpen,
   CalendarDays,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
   Compass,
   Cpu,
+  FileCheck2,
   Flag,
   FolderGit2,
   Github,
   Globe,
+  Layers,
   ListChecks,
+  Rocket,
   ShieldCheck,
   Target,
   Timer,
@@ -27,6 +32,11 @@ import { useCareerWorkflow } from "@/lib/career-workflow-store";
 import { careerReview } from "@/lib/career-workflow";
 import { useNow } from "@/lib/tracker-store";
 import { zonedDate } from "@/lib/routine-reminders";
+import { useSyncedStorage } from "@/lib/use-synced-storage";
+import {
+  DEFAULT_CAREER_TELEGRAM_PREFERENCES,
+  validCareerTelegramPreferences,
+} from "@/lib/career-telegram";
 import ProgressBar from "@/components/charts/ProgressBar";
 
 const statusCopy = {
@@ -73,6 +83,31 @@ export default function InterviewSprint() {
   const [expandedDay, setExpandedDay] = useState<number | null>(
     () => sprint.days.find((d) => d.isoDate === today)?.day ?? 1,
   );
+  const telegramStorage = useSyncedStorage<unknown>(
+    "career:telegram-preferences",
+    DEFAULT_CAREER_TELEGRAM_PREFERENCES,
+  );
+  const telegramPrefs = validCareerTelegramPreferences(telegramStorage.value)
+    ? telegramStorage.value
+    : DEFAULT_CAREER_TELEGRAM_PREFERENCES;
+  const checkpointStorage = useSyncedStorage<Record<string, boolean>>(
+    "career:resume-checkpoints",
+    {},
+  );
+  const checkpointMap =
+    checkpointStorage.value && typeof checkpointStorage.value === "object"
+      ? checkpointStorage.value
+      : {};
+  const achievedCheckpoints = sprint.resumeCheckpoints.filter(
+    (item) => checkpointMap[item.id] === true,
+  ).length;
+
+  function toggleCheckpoint(id: string) {
+    checkpointStorage.setValue((prev) => {
+      const current = prev && typeof prev === "object" ? prev : {};
+      return { ...current, [id]: !current[id] };
+    });
+  }
 
   const liveCounts: Record<string, number> = {
     applications: review.applications,
@@ -121,6 +156,42 @@ export default function InterviewSprint() {
           {sprint.quickLinks.map((item) => (
             <LinkPill key={item.url} item={item} />
           ))}
+        </div>
+
+        {/* Daily Telegram Notifications Status Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-background/60 px-3.5 py-2.5 text-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <Bell className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span>
+              <strong className="text-foreground">
+                Daily Telegram Notifications:
+              </strong>{" "}
+              {telegramPrefs.enabled ? (
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                  Active · Digest {telegramPrefs.digestTime} IST
+                  {telegramPrefs.cadence === "digest-and-learning"
+                    ? " + all sprint blocks"
+                    : " (digest only)"}
+                  {telegramPrefs.planMode === "hiring-sprint"
+                    ? " · Startup & CTO Sprint"
+                    : " · Legacy mode"}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">
+                  Off — opt in for 07:00 IST digest &amp; sprint block alerts
+                </span>
+              )}
+            </span>
+          </div>
+          <Link
+            href="/settings#telegram-delivery"
+            className="inline-flex items-center gap-1 font-semibold text-primary hover:underline shrink-0"
+          >
+            {telegramPrefs.enabled
+              ? "Configure Telegram alerts"
+              : "Enable daily alerts in Settings"}{" "}
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
 
         {/* Key Facts Strip */}
@@ -502,6 +573,69 @@ export default function InterviewSprint() {
         </div>
       </section>
 
+      {/* 3-Lane Startup Hiring Funnel & CTO-Track Offer Scorecard */}
+      <section
+        className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
+        aria-label="3-Lane Startup Hiring Funnel and Offer Scorecard"
+      >
+        <div>
+          <h3 className="font-display text-base font-semibold flex items-center gap-2">
+            <Layers className="h-4 w-4 text-primary" />
+            3-Lane Startup Hiring Funnel &amp; CTO-Track Offer Scorecard
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Stop relying on cold ATS queues. Allocate outbound time across
+            three intentional lanes and score every offer on CTO trajectory.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {sprint.hiringLanes.map((lane) => (
+            <article
+              key={lane.id}
+              className="flex flex-col justify-between rounded-xl border border-border/60 bg-background/60 p-4 space-y-2.5"
+            >
+              <div className="space-y-2">
+                <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                  {lane.share}
+                </span>
+                <h4 className="font-display text-sm font-bold">{lane.name}</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Targets:</strong>{" "}
+                  {lane.targets}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Strategy:</strong>{" "}
+                  {lane.strategy}
+                </p>
+              </div>
+              <p className="pt-2 border-t border-border/50 text-[11px] text-foreground">
+                <strong>Why:</strong> {lane.why}
+              </p>
+            </article>
+          ))}
+        </div>
+        <div className="pt-2 border-t border-border/50 space-y-2">
+          <p className="text-xs font-semibold text-foreground">
+            CTO-Track Offer Scorecard (Score every offer 1–5 across all four)
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {sprint.offerScorecard.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1"
+              >
+                <h4 className="text-xs font-bold text-foreground">
+                  {item.title}
+                </h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {item.question}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Open-Source & /repos/*proof* Triage */}
       <section
         className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
@@ -563,6 +697,219 @@ export default function InterviewSprint() {
               )}
             </article>
           ))}
+        </div>
+      </section>
+
+      {/* Startup-Hiring Upstream OSS Targets + 14-Day PR -> Interview Playbook */}
+      <section
+        className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
+        aria-label="Startup-Hiring Upstream OSS Targets and Playbook"
+      >
+        <div>
+          <h3 className="font-display text-base font-semibold flex items-center gap-2">
+            <Github className="h-4 w-4 text-primary" />
+            Startup-Hiring Upstream OSS Targets + 14-Day PR → Interview Playbook
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Pick 1 Primary + 1 Secondary active repo matching your
+            TS/React/NestJS/Postgres stack that teaches AI/systems depth and
+            hires from contributors.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {sprint.upstreamOssTargets.map((target) => (
+            <article
+              key={target.id}
+              className="flex flex-col justify-between rounded-xl border border-border/60 bg-background/60 p-4 space-y-3"
+            >
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                    {target.tier}
+                  </span>
+                  {target.localFolder && (
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      {target.localFolder}
+                    </span>
+                  )}
+                </div>
+                <h4 className="font-display text-sm font-bold">{target.repo}</h4>
+                <p className="text-[11px] font-medium text-foreground">
+                  {target.stackAndGeo}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {target.whyFit}
+                </p>
+                <ul className="space-y-1 text-xs text-foreground">
+                  {target.prIdeas.map((idea) => (
+                    <li key={idea} className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                      <span>{idea}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="pt-2 border-t border-border/50">
+                <LinkPill
+                  item={{ label: target.repo, url: target.url, kind: "repo" }}
+                />
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="pt-2 border-t border-border/50 space-y-2">
+          <p className="text-xs font-semibold text-foreground">
+            14-Day PR → Startup Interview Playbook
+          </p>
+          <div className="grid gap-3 lg:grid-cols-3">
+            {sprint.ossPlaybook.map((step) => (
+              <div
+                key={step.id}
+                className="rounded-xl border border-border/60 bg-muted/30 p-3.5 space-y-1.5"
+              >
+                <span className="text-[11px] font-semibold text-primary">
+                  {step.window}
+                </span>
+                <h4 className="text-xs font-bold text-foreground">
+                  {step.title}
+                </h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {step.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Future-Proof Wedge Project Queue */}
+      <section
+        className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
+        aria-label="Future-Proof Wedge Project Queue"
+      >
+        <div>
+          <h3 className="font-display text-base font-semibold flex items-center gap-2">
+            <Rocket className="h-4 w-4 text-primary" />
+            Future-Proof Wedge Project Queue (Strict Activation Gates)
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Never start a 6-month CRUD monolith before you have users. Unlock
+            one sharp 1-command tool at a time only after clearing its gate.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {sprint.futureWedgeProjects.map((proj) => (
+            <article
+              key={proj.id}
+              className="flex flex-col justify-between rounded-xl border border-border/60 bg-background/60 p-4 space-y-3"
+            >
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="font-display text-sm font-bold">
+                    {proj.name}
+                  </h4>
+                  <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-foreground">
+                    {proj.buildWindow}
+                  </span>
+                </div>
+                <p className="font-mono text-[11px] text-primary bg-primary/5 rounded-md px-2.5 py-1 break-all">
+                  {proj.command}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Pain:</strong> {proj.pain}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Mechanism:</strong>{" "}
+                  {proj.whatItDoes}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">CTO Leverage:</strong>{" "}
+                  {proj.ctoLeverage}
+                </p>
+              </div>
+              <p className="pt-2 border-t border-border/50 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                {proj.gate}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* Now vs. 12-Month Target Resume Checkpoint */}
+      <section
+        className="rounded-2xl border border-border/70 bg-card/90 p-5 space-y-4"
+        aria-label="Resume Checkpoint Tracker"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="font-display text-base font-semibold flex items-center gap-2">
+              <FileCheck2 className="h-4 w-4 text-primary" />
+              Now vs. 12-Month Target Resume Checkpoint
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Compare your current CV (<code>Vamsi_Resume.pdf</code>) against
+              your predicted Nov 2027 Staff/CTO-track target (
+              <code>Vamsi_Resume_Future_Checkpoint.pdf</code> — target north
+              star, not for active applications).
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            {achievedCheckpoints} / {sprint.resumeCheckpoints.length} achieved
+          </span>
+        </div>
+
+        <ProgressBar
+          label="12-month Target Resume Checkpoint progress"
+          value={achievedCheckpoints}
+          max={sprint.resumeCheckpoints.length}
+          unit="milestones"
+          tone="emerald"
+        />
+
+        <div className="grid gap-3 lg:grid-cols-2">
+          {sprint.resumeCheckpoints.map((item) => {
+            const done = checkpointMap[item.id] === true;
+            return (
+              <label
+                key={item.id}
+                className={`flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition-colors ${
+                  done
+                    ? "border-emerald-500/40 bg-emerald-500/5"
+                    : "border-border/60 bg-background/60 hover:border-primary/40"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={done}
+                  onChange={() => toggleCheckpoint(item.id)}
+                  className="mt-1 size-4 shrink-0 accent-primary"
+                />
+                <div className="space-y-1 text-xs min-w-0">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-display text-sm font-bold text-foreground">
+                      {item.area}
+                    </span>
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                      {item.horizon}
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground">
+                    <strong className="text-foreground">
+                      Today (Nov 2026):
+                    </strong>{" "}
+                    {item.nowState}
+                  </p>
+                  <p className="text-foreground">
+                    <strong>Target (Nov 2027):</strong> {item.targetState}
+                  </p>
+                  <p className="text-[11px] text-primary">
+                    <strong>Verify by:</strong> {item.verifyBy}
+                  </p>
+                </div>
+              </label>
+            );
+          })}
         </div>
       </section>
 

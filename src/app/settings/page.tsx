@@ -75,6 +75,7 @@ export default function SettingsPage() {
   const { prefs, setPrefs, isSetup } = useUserPrefs();
   const { theme, setTheme } = useTheme();
   const [settingsView, setSettingsView] = useState("profile");
+  const telegramDetailsRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     const sync = () => {
       const hash = window.location.hash;
@@ -84,7 +85,7 @@ export default function SettingsPage() {
           ? "data"
           : /modules|appearance/.test(hash)
             ? "modules"
-            : /reminder|notifications/.test(hash)
+            : /reminder|notifications|telegram/.test(hash)
               ? "notifications"
               : /bedtime|preferences|work|focus/.test(hash)
                 ? "work"
@@ -98,6 +99,9 @@ export default function SettingsPage() {
                   ? query!
                   : "profile",
       );
+      if (/telegram/.test(hash) && telegramDetailsRef.current) {
+        telegramDetailsRef.current.open = true;
+      }
     };
     sync();
     window.addEventListener("hashchange", sync);
@@ -369,7 +373,7 @@ export default function SettingsPage() {
           </Card>
         </div>
         <div hidden={settingsView !== "notifications"} className="space-y-5">
-          <details className="workspace-disclosure">
+          <details ref={telegramDetailsRef} className="workspace-disclosure">
             <summary>Routine notification delivery</summary>
             <TelegramDelivery />
           </details>
@@ -716,6 +720,7 @@ export default function SettingsPage() {
                                 timetable_100_days: "Timetable",
                                 roadmap: "Study progress",
                                 study: "Study sessions",
+                                career: "Career & sprint",
                                 career_command_center: "Career plan",
                                 career_execution_state: "Career records",
                                 night_curfew_config: "Night schedule",

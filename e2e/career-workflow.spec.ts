@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-11-05T09:00:00Z"));
 });
 
-test("interview sprint exposes the Nov 23 hiring phases, OSS triage, CTO horizons and proof repos", async ({
+test("interview sprint exposes the Nov 23 hiring phases, OSS triage, CTO horizons, checkpoints and proof repos", async ({
   page,
 }) => {
   await seed(page);
@@ -23,14 +23,27 @@ test("interview sprint exposes the Nov 23 hiring phases, OSS triage, CTO horizon
   await expect(sprint).toContainText("Phase 0");
   await expect(sprint).toContainText("5-Round Senior Interview Rotation");
   await expect(sprint).toContainText("Pre-Interview Rapid Cheatsheets");
+  await expect(sprint).toContainText("3-Lane Startup Hiring Funnel");
   await expect(sprint).toContainText("Open-Source & /repos/*proof* Triage");
+  await expect(sprint).toContainText("Startup-Hiring Upstream OSS Targets");
+  await expect(sprint).toContainText("twentyhq/twenty");
   await expect(sprint).toContainText("Deployproof");
   await expect(sprint).toContainText("Langfuse");
+  await expect(sprint).toContainText("Future-Proof Wedge Project Queue");
+  await expect(sprint).toContainText("evalproof");
   await expect(sprint).toContainText("Future-Proof Engineering Stack");
   await expect(sprint).toContainText("Retiring as CTO");
+  await expect(sprint).toContainText("Now vs. 12-Month Target Resume Checkpoint");
   await expect(
     sprint.getByRole("link", { name: /RLS Rehearsal/ }).first(),
   ).toHaveAttribute("href", "https://github.com/CVamsi27/rls-rehearsal");
+  await expect(
+    sprint.getByRole("link", { name: /Telegram alerts|Enable daily alerts/i }),
+  ).toHaveAttribute("href", "/settings#telegram-delivery");
+
+  await expect(sprint).toContainText("0 / 8 achieved");
+  await sprint.getByLabel(/Core Role & Production Traffic/i).check();
+  await expect(sprint).toContainText("1 / 8 achieved");
 });
 
 test("the interview sprint is a first-class Career view", async ({ page }) => {

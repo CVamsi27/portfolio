@@ -129,9 +129,20 @@ export default function TelegramDelivery() {
           : "Device-only settings. Server delivery requires cloud sync.";
   const delivery = server?.status?.delivery;
   const configured = server?.status?.configured;
+  const digestTimeOptions = Array.from(
+    new Set([
+      "06:00",
+      "06:30",
+      "07:00",
+      "07:30",
+      "08:00",
+      "08:30",
+      preferences.digestTime,
+    ]),
+  ).sort();
 
   return (
-    <div className="space-y-3 rounded-lg bg-muted/40 p-3">
+    <div id="telegram-delivery" className="space-y-3 rounded-lg bg-muted/40 p-3">
       <h3 className="font-semibold">Telegram delivery</h3>
       <p className="text-sm text-muted-foreground">
         The server sends reminders to the configured private Telegram chat. No
@@ -146,50 +157,135 @@ export default function TelegramDelivery() {
           type="checkbox"
           checked={preferences.enabled}
           onChange={(event) =>
-            save({
-              ...preferences,
-              enabled: event.target.checked,
-              enabledAt: event.target.checked ? new Date().toISOString() : null,
-            })
+            save(
+              event.target.checked
+                ? {
+                    ...preferences,
+                    enabled: true,
+                    planMode: "hiring-sprint",
+                    enabledAt: new Date().toISOString(),
+                  }
+                : {
+                    ...preferences,
+                    enabled: false,
+                    enabledAt: null,
+                  },
+            )
           }
           className="size-4 accent-primary"
         />
         Career Telegram reminders
       </label>
-      <div className="space-y-1">
-        <label htmlFor={`${id}-cadence`} className="text-sm">
-          Career reminder cadence
-        </label>
-        <select
-          id={`${id}-cadence`}
-          value={preferences.cadence}
-          onChange={(event) => {
-            const cadence = event.target
-              .value as CareerTelegramPreferences["cadence"];
-            save({
-              ...preferences,
-              cadence,
-              enabledAt:
-                preferences.enabled &&
-                preferences.cadence === "digest-only" &&
-                cadence === "digest-and-learning"
-                  ? new Date().toISOString()
-                  : preferences.enabledAt,
-            });
-          }}
-          className="block w-full rounded-md border border-border bg-background p-2 text-sm"
-        >
-          <option value="digest-and-learning">
-            Daily digest + study/project blocks
-          </option>
-          <option value="digest-only">Daily digest only</option>
-        </select>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="space-y-1">
+          <label htmlFor={`${id}-cadence`} className="text-sm">
+            Career reminder cadence
+          </label>
+          <select
+            id={`${id}-cadence`}
+            value={preferences.cadence}
+            onChange={(event) => {
+              const cadence = event.target
+                .value as CareerTelegramPreferences["cadence"];
+              save({
+                ...preferences,
+                cadence,
+                enabledAt:
+                  preferences.enabled &&
+                  preferences.cadence === "digest-only" &&
+                  cadence === "digest-and-learning"
+                    ? new Date().toISOString()
+                    : preferences.enabledAt,
+              });
+            }}
+            className="block w-full rounded-md border border-border bg-background p-2 text-sm"
+          >
+            <option value="digest-and-learning">
+              Daily digest + all sprint blocks (09:00 · 11:15 · 13:00 · 15:00 ·
+              16:00 IST)
+            </option>
+            <option value="digest-only">Daily morning digest only</option>
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label htmlFor={`${id}-digest-time`} className="text-sm">
+            Morning digest time (IST)
+          </label>
+          <select
+            id={`${id}-digest-time`}
+            value={preferences.digestTime}
+            onChange={(event) => {
+              const digestTime = event.target.value;
+              save({
+                ...preferences,
+                digestTime,
+                enabledAt:
+                  preferences.enabled && digestTime < preferences.digestTime
+                    ? new Date().toISOString()
+                    : preferences.enabledAt,
+              });
+            }}
+            className="block w-full rounded-md border border-border bg-background p-2 text-sm"
+          >
+            {digestTimeOptions.map((time) => (
+              <option key={time} value={time}>
+                {time} IST
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      {preferences.enabled && preferences.planMode !== "hiring-sprint" && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-xs">
+          <span>
+            Alerts are not yet pinned to the active Startup &amp; CTO Sprint
+            schedule.
+          </span>
+          <button
+            type="button"
+            onClick={() =>
+              save({
+                ...preferences,
+                planMode: "hiring-sprint",
+                enabledAt: new Date().toISOString(),
+              })
+            }
+            className="rounded-md bg-primary px-2.5 py-1 font-semibold text-primary-foreground hover:opacity-90"
+          >
+            Switch alerts to active Startup &amp; CTO Sprint
+          </button>
+        </div>
+      )}
+      <div className="rounded-md border border-border/60 bg-background/70 p-2.5 text-xs space-y-1">
+        <p className="font-semibold text-foreground">
+          Scheduled Telegram Alerts (
+          {preferences.planMode === "legacy-v3"
+            ? "Legacy v3"
+            : preferences.enabled && preferences.planMode !== "hiring-sprint"
+              ? "Legacy / auto"
+              : "Active Startup & CTO Sprint"}
+          )
+        </p>
+        <ul className="space-y-0.5 text-muted-foreground">
+          <li>• Mon–Sat {preferences.digestTime} IST — Daily morning brief + today&apos;s deliverable</li>
+          {preferences.cadence === "digest-and-learning" && (
+            <>
+              <li>• Mon–Fri 09:00 IST — 3 startup apps + Founder/CTO outreach</li>
+              <li>• Mon–Fri 11:15 IST — Warm referrals, Trojan-Horse Looms &amp; diagnostics</li>
+              <li>• Mon–Fri 13:00 IST — OSS &amp; proof leverage (npm, Langfuse/Twenty PRs, demos)</li>
+              <li>• Mon–Fri 15:00 IST — 5-round startup interview drill</li>
+              <li>• Mon–Fri 16:00 IST — 5-day follow-ups &amp; tomorrow&apos;s top 3 startups</li>
+              <li>• Saturday 09:00 IST — Weekly funnel audit + 1 timed mock</li>
+            </>
+          )}
+          <li>• Sunday — Off (protected rest)</li>
+        </ul>
       </div>
       <p className="text-xs text-muted-foreground">
-        Digest at {preferences.digestTime} IST. Study/project alerts follow the
-        dated plan. Sundays are off. Only future occurrences after opt-in are
-        eligible; reminders more than {preferences.catchUpMinutes} minutes late
-        are skipped.
+        Digest at {preferences.digestTime} IST. Sprint alerts follow the active
+        Startup &amp; CTO roadmap. Sundays are off. Only future occurrences after
+        opt-in are eligible; reminders more than {preferences.catchUpMinutes}{" "}
+        minutes late are skipped.
       </p>
       {!valid && (
         <p role="alert" className="text-xs text-destructive">

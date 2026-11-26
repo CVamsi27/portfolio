@@ -76,7 +76,10 @@ import { careerReview, careerWritesEnabled } from "@/lib/career-workflow";
 import { useCareerWorkflow } from "@/lib/career-workflow-store";
 import { useHealthConnectSummary } from "@/lib/use-health-connect-summary";
 import ProgressBar from "@/components/charts/ProgressBar";
-import { interviewReadySprint } from "@/data/interview-ready-sprint";
+import {
+  interviewReadySprint,
+  sprintFocusForDate,
+} from "@/data/interview-ready-sprint";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   incomeFirstPersonalSchedule,
@@ -135,8 +138,7 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
   const careerStats = careerReview(workflow.activities.value, date);
   const healthSummary = useHealthConnectSummary(7, date);
   const sprintDay =
-    interviewReadySprint.days.find((d) => d.isoDate === date) ??
-    interviewReadySprint.days[0];
+    sprintFocusForDate(date) ?? interviewReadySprint.days[0];
   const [editing, setEditing] = useState<PlanBlock | null>(null),
     [editor, setEditor] = useState(Boolean(params.get("schedule"))),
     [error, setError] = useState(""),
@@ -874,7 +876,6 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
                 <strong>{nextCard.title}</strong>
                 <small>{nextCard.meta}</small>
               </div>
-<<<<<<< HEAD
               {!nextActionDuplicatesHeader && (
                 <Link className="nova-next-cta" href={nextCard.href}>
                   {nextCard.cta}
@@ -922,27 +923,6 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
                   tone="emerald"
                   compact
                 />
-              <div className="flex flex-wrap gap-1.5">
-                {sprintDay.links.slice(0, 2).map((linkItem) => (
-                  <a
-                    key={linkItem.url}
-                    href={linkItem.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-background px-2.5 py-1 text-[11px] font-medium hover:border-primary/50 hover:text-primary"
-                  >
-                    <BookOpen className="h-3 w-3 text-primary" />
-                    {linkItem.label}
-                    <ArrowUpRight className="h-3 w-3 opacity-60" />
-                  </a>
-                ))}
-                <Link
-                  href="/roadmap?view=interview"
-                  className="inline-flex items-center gap-1 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/15"
-                >
-                  Full roadmap
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
               </div>
               {sprintDay && (
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-3 text-xs">
@@ -968,6 +948,13 @@ function ReadyDailyWorkspace({ planning }: { planning: boolean }) {
                         <ArrowUpRight className="h-3 w-3 opacity-60" />
                       </a>
                     ))}
+                    <Link
+                      href="/roadmap?view=interview"
+                      className="inline-flex items-center gap-1 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/15"
+                    >
+                      Full roadmap
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
                   </div>
                 </div>
               )}

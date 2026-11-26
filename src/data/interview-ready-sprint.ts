@@ -113,6 +113,70 @@ export type CtoHorizon = {
   exitGate: string;
 };
 
+export type UpstreamOssTarget = {
+  id: string;
+  repo: string;
+  tier: "Tier A · Start Now" | "Tier B · Domain Twin" | "Tier C · AI & Workflows";
+  stackAndGeo: string;
+  whyFit: string;
+  prIdeas: string[];
+  url: string;
+  localFolder?: string;
+};
+
+export type OssPlaybookStep = {
+  id: string;
+  window: string;
+  title: string;
+  detail: string;
+};
+
+export type FutureWedgeProject = {
+  id: string;
+  name: string;
+  command: string;
+  gate: string;
+  buildWindow: string;
+  pain: string;
+  whatItDoes: string;
+  ctoLeverage: string;
+};
+
+export type HiringLane = {
+  id: string;
+  share: string;
+  name: string;
+  targets: string;
+  strategy: string;
+  why: string;
+};
+
+export type OfferScorecardCriterion = {
+  id: string;
+  title: string;
+  question: string;
+};
+
+export type ResumeCheckpointItem = {
+  id: string;
+  area: string;
+  horizon: string;
+  nowState: string;
+  targetState: string;
+  verifyBy: string;
+};
+
+export type SprintFocus = {
+  date: string;
+  isoDate: string;
+  phase: string;
+  build: string;
+  deliverable: string;
+  evidence: string;
+  weekdayRound?: string;
+  links: ResourceLink[];
+};
+
 /**
  * Startup-first hiring & CTO-track execution plan anchored to Monday, 23 November 2026.
  * Every study link resolves to a verified clean URL on study.buildora.work
@@ -878,13 +942,13 @@ export const interviewReadySprint = {
       isoDate: "2026-11-26",
       phase: "Phase 0 · Launch",
       build:
-        "3 apps + 2 referral asks + 3-min RLS Rehearsal demo + pick 1 Langfuse upstream issue + Multi-Tenant Design",
+        "Publish rls-rehearsal@0.3.0 & deployproof to npm + 3 Lane 1/2 startup apps + 2 founder DMs + Langfuse PR #1 repro",
       description:
-        "Send 3 startup applications + 2 referral asks. Record the 3-minute RLS Rehearsal demo (failing control pass), triage 1 reproducible bug or test-coverage issue in your /repos/langfuse checkout to start your AI-infra OSS track, and complete a 40-minute Multi-Tenant SaaS System Design drill.",
+        "Publish rls-rehearsal@0.3.0 (/repos/tenantproof) and deployproof (/repos/deployproof) to npm so developers can install via npx with zero friction. Send 3 tailored Lane 1/2 startup applications paired with 2 direct Founder/CTO DMs linking /work/docita or /work/rls-rehearsal, reproduce 1 clean bug/test issue in /repos/langfuse for PR #1, and complete a 40-minute Multi-Tenant SaaS System Design drill.",
       deliverable:
-        "3 apps + 2 referral asks · 3-min RLS Rehearsal demo · 1 Langfuse issue reproduced locally",
+        "rls-rehearsal + deployproof live on npm · 3 apps + 2 Founder/CTO DMs · Langfuse PR #1 issue reproduced",
       evidence:
-        "Demo recorded + local failing test in /repos/langfuse + Multi-Tenant design diagram",
+        "npx rls-rehearsal & npx deployproof run in temp dir + local failing regression test in /repos/langfuse + design notes",
       links: [
         {
           label: "Multi-Tenant SaaS Architecture",
@@ -909,13 +973,13 @@ export const interviewReadySprint = {
       isoDate: "2026-11-27",
       phase: "Phase 0 · Launch",
       build:
-        "Hit Week 1 targets (15 apps / 10 warm) + open Langfuse upstream PR + Retryglass demo + STAR defense",
+        "Open Langfuse PR #1 + pick twentyhq/twenty PR #1 issue + 2 Trojan-Horse Looms (15 apps / 10 warm) + Retryglass demo",
       description:
-        "Close Week 1 pipeline targets (15 tailored apps, 10 Founder/CTO or referral notes, 5 diagnostic enquiries). Open your first clean upstream PR from /repos/langfuse, record the 3-minute Retryglass crash-point sweep demo, and rehearse 2 MAQ Software STAR ownership stories.",
+        "Open your first clean upstream PR from /repos/langfuse (bug fix + failing-then-passing regression test) and pick 1 confirmed bug issue in twentyhq/twenty. Send 2 Trojan-Horse product Looms to top dream startups, hit Week 1 scoreboard (15 tailored apps, 10 Founder/CTO or referral notes, 5 diagnostic enquiries), record the 3-minute Retryglass demo, and rehearse 2 MAQ STAR stories.",
       deliverable:
-        "Week 1 scoreboard hit · 1 upstream Langfuse PR opened · 3-min Retryglass demo · 2 STAR stories",
+        "Langfuse PR #1 opened · twenty issue claimed · 2 Trojan-Horse Looms + Week 1 targets hit · 3-min Retryglass demo",
       evidence:
-        "Public PR URL + all 3 project demos recorded + MAQ promotion/perf stories timed",
+        "Public Langfuse PR URL + recorded Retryglass demo + timed MAQ ownership & perf stories",
       links: [
         {
           label: "STAR Method",
@@ -939,13 +1003,14 @@ export const interviewReadySprint = {
       date: "Sat 28 Nov",
       isoDate: "2026-11-28",
       phase: "Phase 0 · Review",
-      build: "Week 1 Funnel Audit + 1 Full Timed Mock Interview (2h cap)",
+      build:
+        "Week 1 Funnel Audit (10% reply-rate gate) + 1 Timed Startup Mock Interview (2h cap)",
       description:
-        "Run the Weekly Review: count real sends vs drafts, check reply rate across the first 15 applications, run one 60-minute timed peer/self mock interview, and lock Monday's #1 fix.",
+        "Run the Weekly Review: count real sends vs drafts, evaluate the 10% reply-rate gate across Week 1's 15 applications, run one 60-minute timed startup-style mock interview (feature debugging + system design), and lock Monday's #1 fix.",
       deliverable:
-        "Week 1 review saved · Mock rubric scored · Top 1 technical gap selected",
+        "Week 1 funnel audit saved · Mock rubric scored · Monday top technical gap locked",
       evidence:
-        "Funnel metrics recorded + written debrief with 1 changed-case repair for Monday",
+        "Conversion table (apps → replies → screens) + written debrief with 1 changed-case repair",
       links: [
         {
           label: "Mock Interview Script",
@@ -964,13 +1029,14 @@ export const interviewReadySprint = {
       date: "Mon 30 Nov",
       isoDate: "2026-11-30",
       phase: "Phase 0 · Follow-Up Wave",
-      build: "5-day follow-up wave on Nov 23 batch + 3 new apps + React Fiber & TanStack Query drill",
+      build:
+        "5-day follow-up wave on Nov 23 batch + 3 Lane 1/2 apps + start PR #2 (Postgres/queue/eval) + React/TanStack drill",
       description:
-        "Send polite 5-business-day follow-ups on every silent Nov 23 application/outreach with a fresh demo link, submit 3 new roles using Week 1 CV refinements, and drill React Fiber + TanStack Query cache invalidation.",
+        "Send polite 5-business-day follow-ups on silent Nov 23 startups with a fresh demo/npm link, submit 3 new Lane 1/2 startup apps, start PR #2 in Langfuse or twentyhq/twenty (targeting Postgres queries, worker retries, or evals with a design comment first), and drill React Fiber + TanStack Query optimistic mutations.",
       deliverable:
-        "Nov 23 follow-ups sent · 3 new apps · React/TanStack machine-coding drill",
+        "Nov 23 follow-ups sent · 3 new startup apps · PR #2 design note posted · React/TanStack drill",
       evidence:
-        "Follow-up dates updated + working optimistic mutation & rollback code",
+        "Follow-up dates updated + maintainer-visible design comment + working optimistic rollback code",
       links: [
         {
           label: "React Fiber Internals",
@@ -994,13 +1060,14 @@ export const interviewReadySprint = {
       date: "Tue 1 Dec",
       isoDate: "2026-12-01",
       phase: "Phase 0 · Follow-Up Wave",
-      build: "3 apps + 2 contract follow-ups + Webhooks, Outbox & Idempotency drill",
+      build:
+        "3 apps + 2 diagnostic/founder follow-ups + advance PR #2 + Webhooks, Outbox & Idempotency drill",
       description:
-        "Follow up on Nov 24 paid diagnostic enquiries, send 3 targeted backend-heavy/full-stack applications using --focus backend, and drill HMAC webhooks, transactional outbox, and idempotency keys.",
+        "Follow up on Nov 24 founder pitches and diagnostic enquiries, send 3 backend-heavy/full-stack startup apps (--focus backend), advance your PR #2 implementation and regression tests, and drill HMAC webhooks, transactional outbox, and idempotency keys.",
       deliverable:
-        "3 apps + contract follow-ups · Outbox & webhook idempotency design",
+        "3 apps + follow-ups · PR #2 tests green locally · Outbox & webhook idempotency design",
       evidence:
-        "Trace showing duplicate webhook handling & crash-before-ack recovery",
+        "Updated tracker + trace showing duplicate webhook handling & crash-before-ack recovery",
       links: [
         {
           label: "Webhooks Design",
@@ -1024,13 +1091,14 @@ export const interviewReadySprint = {
       date: "Wed 2 Dec",
       isoDate: "2026-12-02",
       phase: "Phase 0 · Follow-Up Wave",
-      build: "3 apps + 2 warm notes + DSA Graphs/BFS/Topological Sort + TypeScript Generics",
+      build:
+        "3 apps + 2 warm intros + open/land PR #2 + light DSA maintenance (455+ banked) & startup feature coding",
       description:
-        "Maintain pipeline pace (aim ≥25 cumulative apps by Friday), send 2 referral notes to engineers at shortlisted product companies, and drill BFS/DFS + Topological Sort in TypeScript.",
+        "Keep pipeline pace toward ≥25 cumulative apps, send 2 peer referral notes, open PR #2 (Langfuse/twenty) with full test proof, and run a 45-minute practical TS feature-build + light graph/topo-sort maintenance drill (keep DSA light since 455+ LeetCode are already solved).",
       deliverable:
-        "3 apps + 2 warm messages · Timed graph/topo-sort implementation",
+        "3 apps + 2 warm intros · PR #2 submitted · Practical TS feature + topo-sort drill",
       evidence:
-        "Verified complexity analysis + cycle-detection edge case passed",
+        "PR #2 link + complexity & cycle-detection check passed",
       links: [
         {
           label: "DFS & BFS",
@@ -1054,13 +1122,14 @@ export const interviewReadySprint = {
       date: "Thu 3 Dec",
       isoDate: "2026-12-03",
       phase: "Phase 0 · Close",
-      build: "3 apps + Payment Gateway System Design + Auth (JWT / OAuth2 / RBAC-ABAC)",
+      build:
+        "3 Lane 3 EU/Remote apps + Day-11 maintainer/CTO DM + draft Show HN / r/Supabase RLS launch + Payment System Design",
       description:
-        "Send 3 roles (including EU/Germany Track B with EU PDF), complete a 40-minute Payment Gateway system design drill (ledger invariants, idempotency, retries), and review JWT vs session revocation trade-offs.",
+        "Send 3 targeted roles (including Lane 3 EU/NL/DE startups matching TS + OSS proof), send Day-11 direct DMs to the CTO/maintainers who reviewed your PRs, draft the Show HN / r/Supabase launch post for rls-rehearsal (with 30s control-pass GIF), and complete a 40-minute Payment Gateway & Auth (JWT vs session revocation) system design drill.",
       deliverable:
-        "3 apps · Payment Gateway system design · Auth trade-off matrix",
+        "3 apps + Day-11 maintainer DM · rls-rehearsal launch draft · Payment Gateway & Auth matrix",
       evidence:
-        "Complete design notes covering double-charge prevention & reconciliation",
+        "Sent CTO/maintainer DM + saved launch draft + design notes on double-charge prevention & revocation",
       links: [
         {
           label: "Payment Gateway Case Study",
@@ -1084,11 +1153,12 @@ export const interviewReadySprint = {
       date: "Fri 4 Dec",
       isoDate: "2026-12-04",
       phase: "Phase 0 · Exit Gate",
-      build: "Phase 0 Checkpoint: ≥25 apps, ≥20 warm notes, ≥10 contracts + Full Defense Rehearsal",
+      build:
+        "Phase 0 Checkpoint: ≥25 apps, ≥20 Founder/CTO notes, 2 CLIs on npm, ≥1–2 Langfuse/twenty PRs + Full Defense Rehearsal",
       description:
-        "Evaluate the Phase 0 exit gate across your first 2 weeks (23 Nov – 4 Dec). Rehearse all three 3-minute project stories back-to-back and decide Phase 1 ratio (keep 15 apps/wk if <2 live loops, or shift to 5 apps/wk + heavy screen prep if ≥2 loops are active).",
+        "Evaluate the Phase 0 exit gate across Weeks 1–2 (23 Nov – 4 Dec). Verify npm packages, merged/open OSS PRs, and active screen count. Rehearse all three 3-minute project stories back-to-back and lock Phase 1 capacity (keep 15 apps/wk if <2 live loops, or shift to 5 apps/wk + round defense if ≥2 loops are active).",
       deliverable:
-        "Phase 0 scoreboard evaluated · Phase 1 capacity allocation locked",
+        "Phase 0 scoreboard evaluated · Phase 1 capacity allocation locked · Resume checkpoint synced",
       evidence:
         "Dated conversion report (apps → replies → screens → calls) + next week's top 3 focus gaps",
       links: [
@@ -1544,4 +1614,388 @@ export const interviewReadySprint = {
     "Startup-first pipeline: ≥60% of applications paired with direct Founder/CTO outreach; 10-app reply-rate diagnostic audited every Saturday.",
     "Future-proof discipline: every interview debriefed within 24h; once hired, immediately shift into Horizon 2 (AI evals + Go + real OSS adoption).",
   ],
+  hiringLanes: [
+    {
+      id: "lane-india-global-remote",
+      share: "Lane 1 · 60%",
+      name: "India Product Startups & Global Remote YC / OSS Teams",
+      targets:
+        "Bengaluru/Hyderabad/Remote Seed–Series B startups (Peak XV, Accel, Lightspeed, YC) + global remote OSS teams (Cal.com, Supabase, PostHog, Dub, Formbricks, Documenso, Trigger.dev, Twenty).",
+      strategy:
+        "Fast 2–3 week interview loops, immediate India-compatible payroll/EOR, direct 1-hop access to CTO/Founders, and zero visa bottleneck.",
+      why: "Fastest path to immediate cash + real production scale while preserving global remote upside.",
+    },
+    {
+      id: "lane-founding-direct",
+      share: "Lane 2 · 25%",
+      name: "Founding / Early Engineer (#3–#15) Direct Founder Outreach",
+      targets:
+        "Recent Seed/Series A founders hiring their first 2–5 senior TS/Postgres engineers on YC Work at a Startup, Wellfound & X.",
+      strategy:
+        "Send a 4-sentence proof pitch linking /work/docita or /work/rls-rehearsal; for top 5 dream startups, spot 1 real UX/API/DX paper-cut and attach a 2-min Trojan-Horse Loom + fix.",
+      why: "Bypasses ATS black holes (5–10× reply rate) and puts you directly on the CTO trajectory.",
+    },
+    {
+      id: "lane-eu-relocation",
+      share: "Lane 3 · 15%",
+      name: "High-Fit EU / Germany / NL / IE Relocation Track",
+      targets:
+        "Berlin/Munich/Amsterdam/Dublin product startups where exact stack + merged OSS PRs overcome visa friction (Langfuse, n8n, Twenty, Cello, Packmatic) and align with dual-career (TS + Pega) family fit.",
+      strategy:
+        "Confirm India-remote or supported relocation eligibility early; anchor outreach on live upstream PRs rather than cold ATS applications.",
+      why: "Protects long-term family upside without stalling immediate income conversion.",
+    },
+  ] satisfies HiringLane[],
+  offerScorecard: [
+    {
+      id: "cto-proximity",
+      title: "Founder / CTO Proximity",
+      question:
+        "Do you work directly with the CTO or VP Engineering and see architecture, hiring, and customer trade-offs up close?",
+    },
+    {
+      id: "prod-complexity",
+      title: "Real Production Complexity",
+      question:
+        "Are there paying customers, multi-tenant data, async/AI workloads, and real production incidents you can own end to end?",
+    },
+    {
+      id: "e2e-scope",
+      title: "End-to-End Scope",
+      question:
+        "Do you own product + API + database + infrastructure together (avoiding isolated ticket-factory maintenance)?",
+    },
+    {
+      id: "family-stability",
+      title: "Family & Financial Stability",
+      question:
+        "Does it deliver reliable immediate cash + meaningful equity (with global-remote flexibility or a clean EU/NL/DE route)?",
+    },
+  ] satisfies OfferScorecardCriterion[],
+  upstreamOssTargets: [
+    {
+      id: "langfuse",
+      repo: "langfuse/langfuse",
+      tier: "Tier A · Start Now",
+      stackAndGeo:
+        "TypeScript, Next.js, PostgreSQL, ClickHouse, BullMQ, LLM Evals · Berlin / Remote (YC)",
+      whyFit:
+        "Already cloned in /repos/langfuse. Fixes your #1 future-proofing gap overnight by teaching production LLM observability, prompt/trace ingestion, and eval pipelines on your exact stack.",
+      prIdeas: [
+        "BullMQ ingestion/retry edge-case fixes with deterministic regression tests",
+        "Eval dataset/score filtering bugs, tRPC schema fixes, or Postgres/ClickHouse query perf",
+      ],
+      url: "https://github.com/langfuse/langfuse",
+      localFolder: "/repos/langfuse",
+    },
+    {
+      id: "twenty",
+      repo: "twentyhq/twenty",
+      tier: "Tier A · Start Now",
+      stackAndGeo:
+        "React, TypeScript, NestJS, PostgreSQL · Paris / EU Remote (YC)",
+      whyFit:
+        "Exact 1:1 stack twin of Docita (React + TS + NestJS + Postgres). Venture-backed AI-native open-source CRM (25k+ stars) that explicitly recruits engineers from active GitHub contributors.",
+      prIdeas: [
+        "Multi-workspace permission/isolation bugs or NestJS queue/worker reliability fixes",
+        "GraphQL/Postgres N+1 query tuning or accessible React table/form interaction fixes",
+      ],
+      url: "https://github.com/twentyhq/twenty",
+    },
+    {
+      id: "calcom",
+      repo: "calcom/cal.com",
+      tier: "Tier B · Domain Twin",
+      stackAndGeo:
+        "TypeScript, Next.js, Prisma, PostgreSQL · Global Remote (hires in India)",
+      whyFit:
+        "Exact domain twin of Docita (scheduling, clinic/team timezones, bookings, webhooks) with fast remote hiring in India.",
+      prIdeas: [
+        "Timezone/DST edge-case fixes, webhook retry/idempotency bugs, or Prisma query tuning",
+      ],
+      url: "https://github.com/calcom/cal.com",
+    },
+    {
+      id: "n8n",
+      repo: "n8n-io/n8n",
+      tier: "Tier B · Domain Twin",
+      stackAndGeo:
+        "TypeScript, Node.js, AI Agents, Workflows · Berlin / EU Remote",
+      whyFit:
+        "Your highest historical career match (4.7/5) where workflow reliability and enterprise RBAC/audit directly match Docita.",
+      prIdeas: [
+        "Webhook error-handling/retry edge cases, queue execution stability, or AI tool-node fixes",
+      ],
+      url: "https://github.com/n8n-io/n8n",
+    },
+    {
+      id: "supabase",
+      repo: "supabase/supabase",
+      tier: "Tier B · Domain Twin",
+      stackAndGeo:
+        "TypeScript, PostgreSQL, RLS, pgvector · Global Remote",
+      whyFit:
+        "Exact ecosystem twin of RLS Rehearsal and the core pgvector + Postgres AI stack; Supabase actively hires community builders.",
+      prIdeas: [
+        "Studio RLS policy editor edge cases, local CLI migration fixes, or showcasing rls-rehearsal",
+      ],
+      url: "https://github.com/supabase/supabase",
+    },
+    {
+      id: "mastra-trigger",
+      repo: "mastra-ai/mastra · triggerdotdev/trigger.dev",
+      tier: "Tier C · AI & Workflows",
+      stackAndGeo:
+        "TypeScript-native AI agents, RAG, memory, evals & durable background jobs · Remote",
+      whyFit:
+        "Mastra covers TS agentic/RAG workflows cleanly without leaving TypeScript; Trigger.dev is the 1:1 durable execution twin of Retryglass.",
+      prIdeas: [
+        "Mastra memory/RAG adapter bug fixes & eval tests; Trigger.dev retry/timeout edge-case PRs",
+      ],
+      url: "https://github.com/mastra-ai/mastra",
+    },
+  ] satisfies UpstreamOssTarget[],
+  ossPlaybook: [
+    {
+      id: "pr1-trust",
+      window: "Days 1–3 · PR #1 Trust Builder",
+      title: "Confirmed bug + failing-then-passing regression test",
+      detail:
+        "Never submit README typos or 2,000-line feature drops. Pick a confirmed bug with a clean local repro, ship a minimal fix, and include a test that fails before your patch and passes after.",
+    },
+    {
+      id: "pr2-arch",
+      window: "Days 4–10 · PR #2 Architecture Signal",
+      title: "Postgres, worker retry, isolation, or AI eval fix",
+      detail:
+        "Target a harder issue in queries, queues, auth/tenant isolation, or LLM eval pipelines. Post a crisp 5-line design note on the issue before coding so maintainers see how you reason.",
+    },
+    {
+      id: "day11-dm",
+      window: "Day 11 · Direct CTO / Lead DM",
+      title: "Convert code review trust into a 15-min interview chat",
+      detail:
+        "DM the engineering lead/CTO who reviewed your PRs: reference the exact subsystem + PR numbers, link rls-rehearsal, state India-remote or relocation readiness, and ask for a 15-min chat.",
+    },
+  ] satisfies OssPlaybookStep[],
+  futureWedgeProjects: [
+    {
+      id: "evalproof",
+      name: "evalproof",
+      command: "npx evalproof run",
+      gate: "Activation Gate: ONLY after npm publish + Week 1–3 hiring targets hit (or post-offer)",
+      buildWindow: "1-week laser-focused v1",
+      pain: "Startups swap prompts, models, or tool schemas and silently break JSON outputs, tool calls, or 3× their LLM bill in production.",
+      whatItDoes:
+        "Runs golden input fixtures against TS LLM functions in CI; asserts Zod schema validity, ordered tool calls, p95 latency, and $/1k run budgets with a PR diff table vs. main.",
+      ctoLeverage:
+        "Extends your *proof brand straight into 2026–2030 AI engineering and removes any AI-depth objection in startup loops.",
+    },
+    {
+      id: "webhookproof",
+      name: "webhookproof",
+      command: "npx webhookproof run http://localhost:3000/api/webhooks/stripe --provider stripe",
+      gate: "Activation Gate: Post-offer · Months 3–6",
+      buildWindow: "3–5 day zero-Docker CLI",
+      pain: "SaaS/FinTech teams get burned in prod by out-of-order webhooks, concurrent duplicate deliveries, replay timestamps, or broken HMAC checks.",
+      whatItDoes:
+        "Fires HMAC-signed payloads across 6 adversarial scenarios (duplicate sequential, parallel race, reversed lifecycle, bad sig, expired timestamp, slow-consumer retry).",
+      ctoLeverage:
+        "Born directly from Docita Razorpay work; every SaaS CTO gets the value in 10 seconds.",
+    },
+    {
+      id: "pglockguard",
+      name: "pglockguard (Go)",
+      command: "pglockguard check ./prisma/migrations",
+      gate: "Activation Gate: Post-offer · Months 6–12 (Go milestone)",
+      buildWindow: "Go single-binary CLI + GitHub Action",
+      pain: "Harmless-looking Prisma/Drizzle migrations (volatile defaults, unconcurrent indexes, missing lock_timeout) take down production with ACCESS EXCLUSIVE lock queues.",
+      whatItDoes:
+        "Statically parses SQL migrations with zero Docker needed, flags lock-queue hazards, and prints safe expand-and-contract SQL rewrites directly on PRs.",
+      ctoLeverage:
+        "100× easier cold adoption than rolloutproof and proves production Go systems fluency alongside TypeScript/Postgres.",
+    },
+    {
+      id: "tenantguard-cloud",
+      name: "TenantGuard Cloud",
+      command: "Monetizing rls-rehearsal ($99–$299/mo)",
+      gate: "Activation Gate: Horizon 2/3 — ONLY after 20+ external CI repos run rls-rehearsal",
+      buildWindow: "Demand-validated micro-SaaS",
+      pain: "B2B SaaS teams need signed SOC2/HIPAA tenant-isolation compliance artifacts and Slack alerts when a PR weakens a Postgres RLS policy.",
+      whatItDoes:
+        "Turns rls-rehearsal CI outputs into audit-ready release reports, cross-branch policy drift alerts, and workspace compliance dashboards.",
+      ctoLeverage:
+        "Builds B2B security buyer discovery and recurring revenue without gambling 12 months on an unvalidated build.",
+    },
+  ] satisfies FutureWedgeProject[],
+  resumeCheckpoints: [
+    {
+      id: "startup-seat",
+      area: "Core Role & Production Traffic",
+      horizon: "Horizon 1 · Days 1–60",
+      nowState: "Independent SaaS (Docita) + MAQ Senior SWE (Jul 2025)",
+      targetState:
+        "Senior / Founding SWE at a Seed–Series B startup owning live multi-tenant & customer traffic",
+      verifyBy: "Countersigned startup offer + 2+ shipped production systems in 90 days",
+    },
+    {
+      id: "npm-oss-adoption",
+      area: "OSS Tool Adoption (*proof* CLIs)",
+      horizon: "Horizon 1–2 · Months 1–6",
+      nowState: "rls-rehearsal & deployproof at 0 stars / GitHub tarballs only",
+      targetState:
+        "Published on npm (npx) with 100+ GitHub stars & 10+ external repos running in CI",
+      verifyBy: "npm registry stats + external CI workflow references & community issues resolved",
+    },
+    {
+      id: "upstream-oss-prs",
+      area: "Upstream Startup OSS PRs",
+      horizon: "Horizon 1–2 · Months 1–6",
+      nowState: "Local /repos/langfuse fork cloned; 0 merged external startup PRs",
+      targetState:
+        "2–4+ merged production PRs across langfuse, twentyhq/twenty, cal.com, or supabase",
+      verifyBy: "Public merged PR URLs touching queries, queues, isolation, or LLM evals",
+    },
+    {
+      id: "prod-ai-evals",
+      area: "Production AI & Eval Engineering",
+      horizon: "Horizon 2 · Months 3–12",
+      nowState: "Strong TS/Postgres foundation; no production AI/LLM eval proof on resume",
+      targetState:
+        "Shipped production AI workflow (structured outputs/RAG/tools) + automated eval/cost gate (evalproof or work harness)",
+      verifyBy: "Measured eval pass-rate & cost-per-run guardrails documented on CV",
+    },
+    {
+      id: "second-language-go",
+      area: "Systems Breadth (Go + TypeScript)",
+      horizon: "Horizon 2 · Months 6–12",
+      nowState: "TypeScript / Node / NestJS / PostgreSQL primary stack",
+      targetState:
+        "Shipped 1 production backend service or Go CLI (pglockguard) alongside TypeScript/SQL",
+      verifyBy: "Public Go release binary or shipped production Go service",
+    },
+    {
+      id: "observability-scale",
+      area: "Measured Postgres & Telemetry Impact",
+      horizon: "Horizon 2 · Months 3–12",
+      nowState: "Synthetic local checks & qualitative MAQ query optimization",
+      targetState:
+        "Measured prod EXPLAIN ANALYZE wins, lock-safe migrations, and OpenTelemetry SLO tracing",
+      verifyBy: "Defensible before/after latency & incident metrics retained from real prod logs",
+    },
+    {
+      id: "cloud-security-finops",
+      area: "Cloud Infra, Security & Unit Economics",
+      horizon: "Horizon 2–3 · Months 6–24",
+      nowState: "Docker, GitHub Actions, Fly.io & Cloudflare basics",
+      targetState:
+        "Owned Terraform/IaC, canary/rollback release gates, and per-tenant cloud + LLM unit economics",
+      verifyBy: "Authored IaC/release runbooks & gross-margin cost optimizations",
+    },
+    {
+      id: "staff-leadership",
+      area: "Staff / CTO Leverage & Public Voice",
+      horizon: "Horizon 2–3 · Months 6–24",
+      nowState: "Code reviews & mentoring at MAQ Software",
+      targetState:
+        "Authored company RFCs/ADRs, led technical hiring/interviews, 6+ deep engineering posts & 1+ talk",
+      verifyBy: "Published deep-dive articles + interview loop ownership + team multiplier track record",
+    },
+  ] satisfies ResumeCheckpointItem[],
 } as const;
+
+const WEEKDAY_ROUND_BY_UTC_DAY: Record<number, string> = {
+  1: "Monday",
+  2: "Tuesday",
+  3: "Wednesday",
+  4: "Thursday",
+  5: "Friday",
+};
+
+const SPRINT_END_ISO = "2027-02-18";
+
+const BLUEPRINT_WINDOWS: Array<{ start: string; end: string; index: number }> = [
+  { start: "2026-12-05", end: "2026-12-19", index: 0 },
+  { start: "2026-12-20", end: "2026-12-31", index: 1 },
+  { start: "2027-01-01", end: "2027-01-24", index: 2 },
+  { start: "2027-01-25", end: SPRINT_END_ISO, index: 3 },
+];
+
+/**
+ * Pure date-to-sprint-focus resolver covering the full Nov 23, 2026 -> Feb 18, 2027
+ * sprint window (Mon-Sat; Sundays return undefined). Zero React/Next dependencies so
+ * Telegram delivery and Node unit tests can share it directly.
+ */
+export function sprintFocusForDate(isoDate: string): SprintFocus | undefined {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return undefined;
+  const parsed = new Date(`${isoDate}T12:00:00Z`);
+  if (
+    !Number.isFinite(parsed.getTime()) ||
+    parsed.toISOString().slice(0, 10) !== isoDate
+  )
+    return undefined;
+  if (
+    isoDate < interviewReadySprint.startDate ||
+    isoDate > SPRINT_END_ISO
+  )
+    return undefined;
+  const utcDay = parsed.getUTCDay();
+  if (utcDay === 0) return undefined;
+
+  const weekdayName = WEEKDAY_ROUND_BY_UTC_DAY[utcDay];
+  const round = weekdayName
+    ? interviewReadySprint.interviewRounds.find((r) => r.weekday === weekdayName)
+    : undefined;
+
+  const exact = interviewReadySprint.days.find((d) => d.isoDate === isoDate);
+  if (exact) {
+    return {
+      date: exact.date,
+      isoDate: exact.isoDate,
+      phase: exact.phase,
+      build: exact.build,
+      deliverable: exact.deliverable,
+      evidence: exact.evidence,
+      weekdayRound: round?.title,
+      links: [...exact.links],
+    };
+  }
+
+  const windowSpec = BLUEPRINT_WINDOWS.find(
+    (w) => isoDate >= w.start && isoDate <= w.end,
+  );
+  const bp =
+    interviewReadySprint.weeklyBlueprints[windowSpec?.index ?? 0];
+  const dateLabel = new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  })
+    .format(parsed)
+    .replace(",", "");
+
+  if (utcDay === 6) {
+    return {
+      date: dateLabel,
+      isoDate,
+      phase: bp.phase,
+      build: `Weekly Funnel Audit + 1 Timed Mock Interview (2h cap) · ${bp.theme}`,
+      deliverable:
+        "Conversion audit saved + 1 timed mock debriefed + Monday top gap locked",
+      evidence: "Recorded funnel metrics & mock rubric score",
+      links: [...bp.links],
+    };
+  }
+
+  return {
+    date: dateLabel,
+    isoDate,
+    phase: bp.phase,
+    build: `${bp.theme}${round ? ` · ${round.title}` : ""}`,
+    deliverable: bp.deliverable,
+    evidence: "Dated applications/outreach logged + 1 completed weekday drill",
+    weekdayRound: round?.title,
+    links: [...bp.links.slice(0, 2), ...(round ? round.links.slice(0, 2) : [])],
+  };
+}

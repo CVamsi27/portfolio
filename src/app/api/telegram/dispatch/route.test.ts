@@ -24,6 +24,7 @@ let ackError = false;
 let sweepError = false;
 let trackerError = false;
 let prefsEnabled = true;
+let prefsPlanMode: "hiring-sprint" | "legacy-v3" | undefined = undefined;
 let routineEnabled = true;
 let sends: string[] = [];
 let claims: Record<string, unknown>[] = [];
@@ -103,6 +104,7 @@ const server = createServer(async (request, response) => {
       digestTime: "06:00",
       enabled: prefsEnabled,
       enabledAt: prefsEnabled ? "2026-10-25T00:00:00Z" : null,
+      ...(prefsPlanMode ? { planMode: prefsPlanMode } : {}),
     };
     if (key === "eq.career_command_center") {
       response.end(
@@ -214,6 +216,7 @@ beforeEach(() => {
   sweepError = false;
   trackerError = false;
   prefsEnabled = true;
+  prefsPlanMode = undefined;
   routineEnabled = true;
   process.env.TELEGRAM_CHAT_ID = "123456";
   sends = [];
@@ -343,4 +346,43 @@ test("routine-only ticks avoid loading the full dated career plan", async () => 
     ),
     false,
   );
+});
+
+test("hiring-sprint planMode dispatches without loading legacy career_command_center and deduplicates replays", async () => {
+  routineEnabled = false;
+  prefsPlanMode = "hiring-sprint";
+  clock = Date.parse("2026-11-26T09:00:00+05:30");
+
+  const first = await GET(request());
+  assert.equal(first.status, 200);
+  assert.deepEqual(await first.json(), {
+    due: 1,
+    sent: 1,
+    failed: 0,
+    unknown: 0,
+    skipped: 0,
+  });
+  assert.equal(sends.length, 1);
+  assert.match(sends[0], /3-Lane Funnel/);
+  assert.match(
+    sends[0],
+    /https:\/\/personal\.buildora\.work\/roadmap\?view=interview/,
+  );
+  assert.equal(
+    reads.some(
+      (url) => url.searchParams.get("key") === "eq.career_command_center",
+    ),
+    false,
+  );
+
+  const replay = await GET(request());
+  assert.equal(replay.status, 200);
+  assert.deepEqual(await replay.json(), {
+    due: 1,
+    sent: 0,
+    failed: 0,
+    unknown: 0,
+    skipped: 1,
+  });
+  assert.equal(sends.length, 1);
 });

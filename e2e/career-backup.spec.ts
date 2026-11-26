@@ -137,3 +137,34 @@ test("invalid career records reject the entire backup before writes or snapshots
     expect(Array.from(storage.entries())).toEqual(before);
   }
 });
+
+test("resume checkpoints round-trip through backup and reject non-boolean values", () => {
+  const checkpoints = {
+    "cp-1-startup-seat": true,
+    "cp-2-oss-adoption": false,
+  };
+  storage.set("vk:career:resume-checkpoints", JSON.stringify(checkpoints));
+  const backup = collectBackup();
+  expect(backup.data["career:resume-checkpoints"]).toEqual(checkpoints);
+  storage.clear();
+  const report = applyBackup(backup);
+  expect(report.ok).toBe(true);
+  expect(report.keysRestored).toContain("career:resume-checkpoints");
+  expect(
+    JSON.parse(storage.get("vk:career:resume-checkpoints")!),
+  ).toEqual(checkpoints);
+
+  for (const invalid of [{ "cp-1-startup-seat": "yes" }, []]) {
+    storage.clear();
+    storage.set("vk:prefs", '{"theme":"dark"}');
+    const before = Array.from(storage.entries());
+    const badReport = applyBackup(
+      file({
+        prefs: { theme: "light" },
+        "career:resume-checkpoints": invalid,
+      }),
+    );
+    expect(badReport.ok).toBe(false);
+    expect(Array.from(storage.entries())).toEqual(before);
+  }
+});

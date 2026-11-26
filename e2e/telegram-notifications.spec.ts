@@ -245,3 +245,51 @@ test("provider acknowledgement and unknown attempts are distinct from phone rece
     page.getByText(/Unknown attempts require review before any replay/),
   ).toBeVisible();
 });
+
+test("telegram-delivery anchor opens delivery controls and supports Startup & CTO Sprint switching", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/settings#telegram-delivery");
+  const checkbox = page.getByRole("checkbox", {
+    name: "Career Telegram reminders",
+    exact: true,
+  });
+  await expect(checkbox).toBeVisible();
+  await checkbox.check();
+
+  let stored = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("vk:career:telegram-preferences")!),
+  );
+  expect(stored.enabled).toBe(true);
+  expect(stored.planMode).toBe("hiring-sprint");
+
+  await page
+    .getByLabel("Morning digest time (IST)", { exact: true })
+    .selectOption("07:30");
+  stored = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("vk:career:telegram-preferences")!),
+  );
+  expect(stored.digestTime).toBe("07:30");
+
+  const legacyPage = await page.context().newPage();
+  await legacyPage.route("**/api/telegram/status", (route) =>
+    route.fulfill({ status: 503, json: { error: "Status unavailable." } }),
+  );
+  await seed(legacyPage, { "vk:career:telegram-preferences": preferences });
+  await legacyPage.goto("/settings#telegram-delivery");
+  const switchButton = legacyPage.getByRole("button", {
+    name: "Switch alerts to active Startup & CTO Sprint",
+    exact: true,
+  });
+  await expect(switchButton).toBeVisible();
+  const beforeSwitch = Date.now();
+  await switchButton.click();
+  const switched = await legacyPage.evaluate(() =>
+    JSON.parse(localStorage.getItem("vk:career:telegram-preferences")!),
+  );
+  expect(switched.planMode).toBe("hiring-sprint");
+  expect(Date.parse(switched.enabledAt)).toBeGreaterThanOrEqual(beforeSwitch);
+  await expect(switchButton).toHaveCount(0);
+  await legacyPage.close();
+});
